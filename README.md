@@ -150,16 +150,16 @@ void-framework/
 
 ```java
 // Click a tile
-Vartopia.action().clickOn(AdminHomeElements.Tiles.ACCOUNT_MAPPING);
+Framework.action().clickOn(AdminHomeElements.Tiles.ACCOUNT_MAPPING);
 
 // Select from dropdown
-Vartopia.action().selectFromDropdown(CommonElements.Switcher.VARTOPIA_SWITCHER, "Admin");
+Framework.action().selectFromDropdown(CommonElements.Switcher.APP_SWITCHER, "Admin");
 
 // Get tooltip text
-String tooltip = Vartopia.action().getText(UserCards.EMAIL_TOOLTIP);
+String tooltip = Framework.action().getText(UserCards.EMAIL_TOOLTIP);
 
 // Search for an entry
-Vartopia.action().searchFor(CommonElements.SearchBar.GLOBAL_SEARCH, "Deal Registration");
+Framework.action().searchFor(CommonElements.SearchBar.GLOBAL_SEARCH, "Deal Registration");
 ```
 
 ---
