@@ -150,16 +150,16 @@ void-framework/
 
 ```java
 // Click a tile
-Framework.action().clickOn(AdminHomeElements.Tiles.ACCOUNT_MAPPING);
+Framework.intraction().clickOn(AdminHomeElements.Tiles.ACCOUNT_MAPPING);
 
 // Select from dropdown
-Framework.action().selectFromDropdown(CommonElements.Switcher.APP_SWITCHER, "Admin");
+Framework.intraction().selectFromDropdown(CommonElements.Switcher.APP_SWITCHER, "Admin");
 
 // Get tooltip text
-String tooltip = Framework.action().getText(UserCards.EMAIL_TOOLTIP);
+String tooltip = Framework.intraction().getText(UserCards.EMAIL_TOOLTIP);
 
 // Search for an entry
-Framework.action().searchFor(CommonElements.SearchBar.GLOBAL_SEARCH, "Deal Registration");
+Framework.intraction().searchFor(CommonElements.SearchBar.GLOBAL_SEARCH, "Deal Registration");
 ```
 
 ---
