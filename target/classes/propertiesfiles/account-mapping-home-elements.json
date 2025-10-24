@@ -1,0 +1,111 @@
+{
+  "AccountMapping": {
+    "defaultReportsTiles": {
+      "ACCOUNT_MAPPING_DEFAULT_REPORTS_TILE": {
+        "locator": "//div[@id='AccountMapping_%s']/button",
+        "type": "xpath",
+        "description": "Default Reports tiles by label (e.g., OpenAccounts, PendingAccounts, ...)"
+      }
+    },
+    "importRecordsDropdown": {
+      "IMPORT_RECORDS_TRIGGER": {
+        "locator": "//button[span[contains(text(),'Import Records')]]",
+        "type": "xpath",
+        "description": "Opens the Import Records dropdown/popup"
+      },
+      "IMPORT_RECORDS_LIST": {
+        "locator": "(//div[contains(@class,'cdk-overlay-pane')]//button[normalize-space()='%s'])[last()]",
+        "type": "xpath",
+        "description": "Selects an option in the Import Re+cords Angular CDK overlay menu by exact label"
+      }
+    },
+    "ImportRecordsPopup": {
+      "UploadFieldErrorMessage": {
+        "YOU_CAN_ONLY_SELECT_CSV_OR_EXCEL_FILE": {
+          "locator": "//*[contains(@*, 'select_only_csv_or_excel')]",
+          "type": "xpath",
+          "description": "Inline validation message shown near the upload field"
+        }
+      },
+      "uploadField": {
+        "DROP_FILES_HERE_OR_CLICK_TO_UPLOAD": {
+          "locator": "//input[@type='file']",
+          "type": "xpath",
+          "description": "Hidden file input backing the drag-and-drop upload area"
+        }
+      },
+      "navigationButtons": {
+        "IMPORT_RECORDS_POPUP_NAVIGATION_BUTTON": {
+          "locator": "//div[@id='direction-buttons']/button[contains(text(),'%s')]",
+          "type": "xpath",
+          "description": "Popup navigation buttons by label: Next, Back, Submit, Close"
+        }
+      },
+      "popupViewsHeaders": {
+        "IMPORT_RECORDS_POPUP_VIEWS_HEADING": {
+          "locator": "//div[@class='modal-content']//*[contains(text(),'%s')]",
+          "type": "xpath",
+          "description": "Section headers within the Import Records modal (Import Records, Map Columns, Verify Data)"
+        }
+      },
+      "importRecordsTable": {
+        "IMPORT_RECORDS_TABLE": {
+          "locator": "//table[@id='outputTable' and .//tr]",
+          "type": "xpath",
+          "description": "Main import/preview table container"
+        },
+        "IMPORT_RECORDS_TABLE_HEADERS": {
+          "locator": "//table[@id='outputTable']//thead//th/div",
+          "type": "xpath",
+          "description": "Table header cells"
+        },
+        "IMPORT_RECORDS_TABLE_ROWS": {
+          "locator": "//table[@id='outputTable']//tbody//tr",
+          "type": "xpath",
+          "description": "All data rows in the table body"
+        },
+        "IMPORT_RECORDS_TABLE_COLUMNS": {
+          "locator": "//table[@id='outputTable']//tr/td[%s]",
+          "type": "xpath",
+          "description": "Nth column cells across rows (use with a 1-based index argument)"
+        },
+        "IMPORT_RECORDS_TABLE_CELL": {
+          "locator": "//table[@id='outputTable' and .//tr]//tbody/tr[%s]/td[%s]",
+          "type": "xpath",
+          "description": "Specific table cell by row and column (1-based indices)"
+        },
+        "IMPORT_RECORDS_TABLE_INPUTS": {
+          "locator": "//table[@id='outputTable' and .//tr]//tfoot//input",
+          "type": "xpath",
+          "description": "Footer inputs for adding new rows or filtering"
+        },
+        "IMPORT_RECORDS_TABLE_ADD_ROW_BUTTON": {
+          "locator": "//td/button[contains(text(),'%s')]",
+          "type": "xpath",
+          "description": "Add/Remove row buttons within the table footer by label (e.g., 'Add', 'X')"
+        },
+        "addRemoveRowButtons": {
+          "IMPORT_RECORDS_TABLE_ADD_ROW_BUTTON": {
+            "locator": "//td/button[contains(text(),'%s')]",
+            "type": "xpath",
+            "description": "Alias path to the same Add/Remove row button selector for nested enum access"
+          }
+        }
+      },
+      "Iframe": {
+        "IMPORT_RECORDS_IFRAME": {
+          "locator": "(//div[@class='csvbox-holder']/iframe)[1]",
+          "type": "xpath",
+          "description": "Embedded CSVBox iframe within the Import Records modal"
+        }
+      },
+      "Div": {
+        "IMPORTS_RECORDS_OVERLAY": {
+          "locator": "//div[@id='mainModal' and contains(@class,'modal') and contains(@class,'show')]",
+          "type": "xpath",
+          "description": "Visible Import Records modal overlay container"
+        }
+      }
+    }
+  }
+}

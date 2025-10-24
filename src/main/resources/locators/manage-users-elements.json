@@ -1,0 +1,55 @@
+{
+  "ManageUsersElements" : {
+    "FilterBy" : {
+      "TextField" : {
+        "locator" : "//input[@data-placeholder='%s']"
+      },
+      "Toggle" : {
+        "locator" : "//*[@formcontrolname='filterShow%s']"
+      },
+      "UserTypeDropdown" : {
+        "listLocator" : "//*[@role='option'][span[text()='%s']]",
+        "triggerLocator" : "//*[@formcontrolname='filterUserType']",
+        "ADMIN_USER" : null,
+        "PARTNER_USER" : null,
+        "VENDOR_USER" : null,
+        "DISTRIBUTOR_USER" : null
+      },
+      "SearchButton" : {
+        "locator" : "//button[span[text()='Apply Filter'] and not(ancestor::*[@class='category-footer'])]"
+      }
+    },
+    "ActionBar" : {
+      "LayoutSwitcher" : {
+        "locator" : "//mat-button-toggle[@value ='%s']/button"
+      },
+      "SortBy" : {
+        "PINNED_USERS" : null,
+        "NEWEST_TO_OLDEST" : null,
+        "OLDEST_TO_NEWEST" : null,
+        "A_TO_Z" : null,
+        "Z_TO_A" : null
+      }
+    },
+    "UserCards" : {
+      "CONTAINER" : "//div[contains(@class,'column-prr')]",
+      "FULL_NAME" : ".//h2",
+      "USERNAME" : ".//p[text()='Username']/following-sibling::*[1]",
+      "EMAIL" : ".//p[text()='Email']/following-sibling::a[starts-with(@href,'mailto:')]",
+      "COMPANY" : ".//p[normalize-space()='Company']/following-sibling::h3",
+      "ROLES" : null,
+      "STATUS" : null,
+      "USER_TYPE" : ".//span[contains(@class,'sponsored-label ng')]"
+    },
+    "UserCardClickableElement" : {
+      "locator" : ".//button[contains(@class,'login-btn')]"
+    },
+    "UserTileToolTipElement" : {
+      "locator" : "//div[@class='cdk-overlay-container']"
+    },
+    "UserRoles" : {
+      "inputLocator" : "//input[contains(normalize-space(@placeholder),'Search this list')]",
+      "resultLocator" : "//mat-option[span[contains(normalize-space(text()),'%s')]]"
+    }
+  }
+}

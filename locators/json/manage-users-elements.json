@@ -1,0 +1,141 @@
+{
+  "ManageUsers" : {
+    "UserRoles" : {
+      "UserRoles" : {
+        "SELECT_USER_ROLES" : {
+          "locator" : "//input[contains(normalize-space(@placeholder),'Search this list')]",
+          "type" : "xpath",
+          "description" : "Select User Roles"
+        },
+        "SEARCH_RESULT_LOCATOR" : {
+          "locator" : "//mat-option[span[contains(normalize-space(text()),'%s')]]",
+          "type" : "xpath",
+          "description" : "Search result"
+        }
+      }
+    },
+    "UserTileToolTipElement" : {
+      "UserTileToolTipElement" : {
+        "TOOLTIP" : {
+          "locator" : "//div[@class='cdk-overlay-container']",
+          "type" : "xpath",
+          "description" : "Tooltip"
+        }
+      }
+    },
+    "UserCardClickableElement" : {
+      "UserCardClickableElement" : {
+        "LOGIN_AS_BUTTON" : {
+          "locator" : ".//button[contains(@class,'login-btn')]",
+          "type" : "xpath",
+          "description" : "Login As Button"
+        }
+      }
+    },
+    "UserCards" : {
+      "UserCards" : {
+        "CONTAINER" : {
+          "locator" : "//div[contains(@class,'column-prr')]",
+          "type" : "xpath",
+          "description" : "Container"
+        },
+        "FULL_NAME" : {
+          "locator" : ".//h2",
+          "type" : "xpath",
+          "description" : "Full Name"
+        },
+        "USERNAME" : {
+          "locator" : ".//p[text()='Username']/following-sibling::*[1]",
+          "type" : "xpath",
+          "description" : "Username"
+        },
+        "EMAIL" : {
+          "locator" : ".//p[text()='Email']/following-sibling::a[starts-with(@href,'mailto:')]",
+          "type" : "xpath",
+          "description" : "Email"
+        },
+        "COMPANY" : {
+          "locator" : ".//p[normalize-space()='Company']/following-sibling::h3",
+          "type" : "xpath",
+          "description" : "Company"
+        },
+        "ROLES" : {
+          "locator" : "",
+          "type" : "xpath",
+          "description" : "Roles"
+        },
+        "STATUS" : {
+          "locator" : "",
+          "type" : "xpath",
+          "description" : "Status"
+        },
+        "USER_TYPE" : {
+          "locator" : ".//span[contains(@class,'sponsored-label ng')]",
+          "type" : "xpath",
+          "description" : "User Type"
+        }
+      }
+    },
+    "FilterBySearchButton" : {
+      "FilterBySearchButton" : {
+        "FILTER_BY_SEARCH_BUTTON" : {
+          "locator" : "//button[span[text()='Apply Filter'] and not(ancestor::*[@class='category-footer'])]",
+          "type" : "xpath",
+          "description" : "Apply Filter"
+        }
+      }
+    },
+    "FilterByUserType" : {
+      "FilterByUserType" : {
+        "ADMIN_USER" : {
+          "locator" : "",
+          "type" : "xpath",
+          "description" : "Admin User"
+        },
+        "USER_TYPE_TRIGGER" : {
+          "locator" : "//*[@formcontrolname='filterUserType']",
+          "type" : "xpath",
+          "description" : "Dropdown trigger"
+        },
+        "USER_TYPE_LIST" : {
+          "locator" : "//*[@role='option'][span[text()='%s']]",
+          "type" : "xpath",
+          "description" : "Dropdown list"
+        },
+        "PARTNER_USER" : {
+          "locator" : "",
+          "type" : "xpath",
+          "description" : "Partner User"
+        },
+        "VENDOR_USER" : {
+          "locator" : "",
+          "type" : "xpath",
+          "description" : "Vendor User"
+        },
+        "DISTRIBUTOR_USER" : {
+          "locator" : "",
+          "type" : "xpath",
+          "description" : "Distributor User"
+        }
+      }
+    },
+    "FilterByToggle" : {
+      "FilterByToggle" : {
+        "FILTER_BY_TOGGLE" : {
+          "locator" : "//*[@formcontrolname='filterShow%s']",
+          "type" : "xpath",
+          "description" : "Active Users"
+        }
+      }
+    },
+    "FilterByTextFieldElement" : {
+      "FilterByTextFieldElement" : {
+        "FILTER_BY_INPUT" : {
+          "locator" : "//input[@data-placeholder='%s']",
+          "type" : "xpath",
+          "description" : "Username"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "CommonElements" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s)."
+  },
+  "quickSearch" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s).",
+    "QUICK_SEARCH_INPUT" : {
+      "locator" : "//*[@data-testid='%s']"
+    },
+    "QUICK_SEARCH_BUTTON" : {
+      "locator" : "//*[@data-testid='%s']"
+    }
+  },
+  "TooltipsElements" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s).",
+    "COMMON_TOOLTIP_CONTAINER" : {
+      "locator" : "//*[@data-testid='%s']"
+    }
+  },
+  "VartopiaSwitcher" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s).",
+    "SWITCHER_LIST" : {
+      "locator" : "(//div[contains(@class,'cdk-overlay-pane')]//*[normalize-space(text())='%s'])[last()]"
+    },
+    "SWITCHER_TRIGGER" : {
+      "locator" : "//*[@data-dd-trigger and .//*[normalize-space(text())='%s']]"
+    }
+  },
+  "NavigationBar" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s).",
+    "NAV_BAR_MODULES" : {
+      "locator" : "//*[@data-testid='%s']"
+    }
+  },
+  "FieldType" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s)."
+  },
+  "UserType" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s)."
+  },
+  "BreadCrumbs" : {
+    "type" : "xpath",
+    "description" : "Auto-generated. Replace with real locator(s).",
+    "BREADCRUMB_ALL_ITEMS" : {
+      "locator" : "//*[@data-testid='%s']"
+    },
+    "BREADCRUMB_SECOND_LAST_ITEM" : {
+      "locator" : "//*[@data-testid='%s']"
+    },
+    "BREADCRUMB_LAST_ITEM" : {
+      "locator" : "//*[@data-testid='%s']"
+    }
+  }
+}
