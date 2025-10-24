@@ -115,7 +115,7 @@ void-framework/
 │   ├── Interactions.java
 │   └── StepDefInteractions.java
 │
-├── utils/
+├── core.utils/
 │   ├── locators/
 │   ├── wait/
 │   ├── logging/
