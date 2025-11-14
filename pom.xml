@@ -22,6 +22,8 @@
                 <version>3.13.0</version>
                 <configuration>
                     <release>17</release>
+                    <source>25</source>
+                    <target>25</target>
                 </configuration>
             </plugin>
 

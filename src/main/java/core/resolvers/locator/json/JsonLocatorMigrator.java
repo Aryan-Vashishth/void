@@ -166,6 +166,7 @@ public final class JsonLocatorMigrator extends BaseUtils {
         Class<DemoPageElements> root = DemoPageElements.class;
         debug.log("[run] start root=" + root.getSimpleName());
         String json = buildResolvedJson(root);
+        info.log(json);
         Path out = JsonLocatorMigrator.writeResolvedJson(root);
         debug.log("[run] output=" + out.toAbsolutePath() + " bytes=" + json.length());
     }
