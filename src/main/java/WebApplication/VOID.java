@@ -1,10 +1,8 @@
 package WebApplication;
 
-import Configurations.InitialiseBaseTest;
 import core.driver.DriverContext;
 import interactions.*;
 import org.openqa.selenium.WebDriver;
-import core.utils.Info;
 
 public class VOID {
 
@@ -33,7 +31,7 @@ public class VOID {
     }
 
 
-    public Info info() {
-        return new Info();
-    }
+//    public Info info() {
+//        return new Info();
+//    }
 }

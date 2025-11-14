@@ -1,30 +1,19 @@
 package Elements;
 
-import Elements.Interfaces.ReadOnlyElement;
-import Elements.Interfaces.ResolvableEnum;
+import Elements.interfacesv1.*;
+import Elements.interfacesv1.ResolvableEnum;
+import Elements.interfacesv1.Element;
 
-public enum InfoElements implements ReadOnlyElement, ResolvableEnum {
+public enum InfoElements implements ResolvableEnum, Element {
     CURRENT_USER_TYPE,
     ALL_TOOLTIPS;
 
-    @Override
-    public String getKey() {
-        return name();
+    @Override public String getExternalFileName() { return "info-elements.properties"; }
+    @Override public String getPrimaryLocator() { return name(); }
+    @Override public Object[] getArgs() { return new Object[0]; }
+    @Override public java.util.Map<ElementRole,String> getAllLocatorRoles(){
+        java.util.Map<ElementRole,String> roles = new java.util.LinkedHashMap<>();
+        roles.put(ElementRole.TEXT, getPrimaryLocator());
+        return roles;
     }
-
-    @Override
-    public String getPropertyFile() {
-        return "info-elements.properties";
-    }
-
-    @Override
-    public Object[] getArgs() {
-        return new Object[0];
-    }
-
-    @Override
-    public String getDisplayText() {
-        return ReadOnlyElement.super.getDisplayText();
-    }
-
 }

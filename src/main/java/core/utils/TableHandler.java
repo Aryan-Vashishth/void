@@ -1,10 +1,11 @@
 package core.utils;
 
-import Elements.Interfaces.FileInputElement;
-import Elements.Interfaces.TableElement;
+import Elements.interfacesv1.FileInputElement; // v1
+import Elements.interfacesv1.Element; // base if needed
+import Elements.interfacesv1.ReadOnlyElement; // if table headers treated as read-only
+import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.WebDriver;
 import core.driver.DriverContext;
-import core.locators.PropertiesFileLocatorReader;
 import com.beust.jcommander.internal.Nullable;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -24,50 +25,39 @@ public class TableHandler extends BaseUtils {
         driver = DriverContext.getDriver();
     }
 
+    public interface TableElementV1 extends ReadOnlyElement { // minimal v1 table contract
+        String getHeaderLocator();
+        String getRowLocator();
+        @Override default String getTextLocator(){ return getHeaderLocator(); }
+        @Override default Object[] getArgs(){ return new Object[0]; }
+        default String getPropertyFile(){ return getExternalFileName(); }
+    }
+
     /**
      * Inserts one row of data into a dynamic table footer by mapping headers to values.
      *
      * @param fieldNameToValue Map of header names to values
      * @param tableElement     Table element enum used for locating headers/inputs
      */
-    public static void insertRowInTable(Map<String, String> fieldNameToValue, TableElement tableElement) {
+    public static void insertRowInTable(Map<String, String> fieldNameToValue, TableElementV1 tableElement) {
         try {
             WebDriver driver = DriverContext.getDriver();
-
-            List<WebElement> headers = driver.findElements(
-                    PropertiesFileLocatorReader.getLocator(tableElement.getPropertyFile(), tableElement.getHeaderKey(), tableElement.getArgs())
-            );
-
+            By headersBy = LocatorResolverV1.getLocator(tableElement.getExternalFileName(), tableElement.getHeaderLocator());
+            List<WebElement> headers = driver.findElements(headersBy);
             List<String> headerNames = new ArrayList<>();
-            for (WebElement header : headers) {
-                headerNames.add(header.getText().trim());
-            }
-
+            for (WebElement header : headers) headerNames.add(header.getText().trim());
             List<WebElement> inputFields = driver.findElements(By.cssSelector("#outputTable tfoot input"));
-
-            if (headerNames.size() != inputFields.size()) {
-                throw new RuntimeException("Header count and input fields count mismatch in table.");
-            }
-
+            if (headerNames.size() != inputFields.size()) throw new RuntimeException("Header count and input fields count mismatch in table.");
             for (int i = 0; i < headerNames.size(); i++) {
                 String headerName = headerNames.get(i);
-                if (!fieldNameToValue.containsKey(headerName)) {
-                    warn.log("[TABLE] No value provided for field: '" + headerName + "', skipping input.");
-                    continue;
-                }
-
+                if (!fieldNameToValue.containsKey(headerName)) { warn.log("[TABLE] No value provided for field: '" + headerName + "', skipping input."); continue; }
                 String value = fieldNameToValue.get(headerName);
                 WebElement input = inputFields.get(i);
-
                 input.clear();
                 input.sendKeys(value);
-
                 info.log("[DATA ENTRY] Inserted '" + value + "' into field '" + headerName + "'");
             }
-
-
             info.log("[TABLE] Successfully inserted row into table.");
-
         } catch (Exception e) {
             error.log("Failed to insert row into table.");
             throw new RuntimeException("Row insertion failed.", e);
@@ -78,8 +68,8 @@ public class TableHandler extends BaseUtils {
             String filePath,
             FileInputElement fileUploadElement,
             @Nullable By iframeLocator,
-            TableElement tableElement,
-            Map<String, CommonElements.FieldType> fieldTypeMap
+            TableElementV1 tableElement,
+            Map<String, DataGenerator.FieldType> fieldTypeMap
     ) {
         try {
             WebDriver driver = DriverContext.getDriver();
@@ -96,18 +86,14 @@ public class TableHandler extends BaseUtils {
             insertRowInTable(generatedTestData, tableElement);
 
             // 5. Add Row (Click 'Add' Button if needed)
-            WebElement addButton = driver.findElement(
-                    PropertiesFileLocatorReader.getLocator(tableElement.getPropertyFile(), "IMPORT_RECORDS_TABLE_ADD_ROW_BUTTON")
-            );
+            WebElement addButton = driver.findElement(LocatorResolverV1.getLocator(tableElement.getExternalFileName(), "IMPORT_RECORDS_TABLE_ADD_ROW_BUTTON"));
             DOMUtils.scrollToElement(addButton);
             addButton.click();
             info.log("[TABLE] Clicked 'Add Row' button successfully.");
 
 
             // 6. Click "Next" button to proceed
-            WebElement nextButton = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//button[contains(@class, 'btn btn-primary ml-1')]")
-            ));
+            WebElement nextButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(@class, 'btn btn-primary ml-1')]")));
             DOMUtils.scrollToElement(nextButton);
             nextButton.click();
             info.log("[POPUP] Clicked 'Next' button successfully.");
@@ -119,26 +105,18 @@ public class TableHandler extends BaseUtils {
         }
     }
 
-    public static List<String> getColumnHeaders(TableElement tableElement) {
+    public static List<String> getColumnHeaders(TableElementV1 tableElement) {
         try {
             WebDriver driver = DriverContext.getDriver();
-            List<WebElement> headerElements = driver.findElements(PropertiesFileLocatorReader.getLocator(
-                    tableElement.getPropertyFile(),
-                    tableElement.getHeaderKey(),
-                    tableElement.getArgs()
-            ));
-
+            By headerBy = LocatorResolverV1.getLocator(tableElement.getExternalFileName(), tableElement.getHeaderLocator());
+            List<WebElement> headerElements = driver.findElements(headerBy);
             List<String> headers = new ArrayList<>();
             for (WebElement header : headerElements) {
                 String text = header.getText().trim();
-                if (!text.isEmpty()) {
-                    headers.add(text);
-                }
+                if (!text.isEmpty()) headers.add(text);
             }
-
             info.table("[HEADERS] Found columns: " + headers);
             return headers;
-
         } catch (Exception e) {
             error.log("Failed to get column headers for table: " + tableElement.getDisplayText());
             throw new RuntimeException("Could not read table headers", e);
@@ -146,154 +124,36 @@ public class TableHandler extends BaseUtils {
     }
 
     public static List<Map<String, String>> getRow(
-            TableElement tableElement,
+            TableElementV1 tableElement,
             Integer rowNumber,
             @Nullable Map<String, Object> columnData,
             boolean areMultipleRows
     ) {
         try {
-
             WebDriver driver = DriverContext.getDriver();
             int startIndex = (rowNumber == null) ? 0 : rowNumber - 1;
-
             List<String> headers = getColumnHeaders(tableElement);
-            List<WebElement> rows = driver.findElements(
-                    PropertiesFileLocatorReader.getLocator(tableElement.getPropertyFile(), tableElement.getRowKey(), tableElement.getArgs())
-            );
-
-
-            List<Map<String, String>> matchingRows = new ArrayList<>();
-
-            for (int i = 0; i < rows.size(); i++) {
-                if (!areMultipleRows && i == startIndex) {
-                    WebElement row = rows.get(i);
-                    Map<String, String> rowData = extractRowData(row, headers);
-                    matchingRows.add(rowData);
-                    break;
-                }
-
-                if (areMultipleRows && i >= startIndex) {
-                    WebElement row = rows.get(i);
-                    Map<String, String> rowData = extractRowData(row, headers);
-
-                    boolean matches = true;
-                    if (columnData != null && !columnData.isEmpty()) {
-                        for (Map.Entry<String, Object> entry : columnData.entrySet()) {
-                            String colName = entry.getKey();
-                            Object expectedValue = entry.getValue();
-
-                            if (!rowData.containsKey(colName)) {
-                                matches = false;
-                                break;
-                            }
-
-                            if (expectedValue != null &&
-                                    !rowData.get(colName).equalsIgnoreCase(expectedValue.toString())) {
-                                matches = false;
-                                break;
-                            }
-                            // if expectedValue is null: include this column in output, but skip filtering
-                        }
-                    }
-
-                    if (matches) {
-                        matchingRows.add(rowData);
-                    }
-                }
-            }
-
-            info.table("Matching rows found: " + matchingRows.size());
-            return matchingRows;
-
-        } catch (Exception e) {
-            error.log("Failed to get row(s) from table: " + e.getMessage());
-            throw new RuntimeException("Failed to get row(s).", e);
-        }
-    }
-
-    public static List<WebElement> getRowElements(
-            TableElement tableElement,
-            Integer rowNumber,
-            @Nullable Map<String, Object> columnData,
-            boolean areMultipleRows,
-            String tagName
-    ) {
-        try {
-            WebDriver driver = DriverContext.getDriver();
-
-            int startIndex = (rowNumber == null) ? 0 : rowNumber - 1;
-            List<WebElement> rows = driver.findElements(
-                    PropertiesFileLocatorReader.getLocator(tableElement.getPropertyFile(), tableElement.getRowKey(), tableElement.getArgs())
-            );
-
-            List<WebElement> resultElements = new ArrayList<>();
-
-            for (int i = 0; i < rows.size(); i++) {
-                if (!areMultipleRows && i != startIndex) continue;
-                if (areMultipleRows && i < startIndex) continue;
-
+            By rowsBy = LocatorResolverV1.getLocator(tableElement.getExternalFileName(), tableElement.getRowLocator());
+            List<WebElement> rows = driver.findElements(rowsBy);
+            if (rows.isEmpty()) throw new RuntimeException("No rows found for table: " + tableElement.getDisplayText());
+            List<Map<String, String>> rowDataList = new ArrayList<>();
+            int endIndex = areMultipleRows ? rows.size() : startIndex + 1;
+            for (int i = startIndex; i < endIndex && i < rows.size(); i++) {
                 WebElement row = rows.get(i);
-                Map<String, String> rowData = extractRowData(row, getColumnHeaders(tableElement));
-
-                boolean matches = true;
-                if (columnData != null) {
-                    for (Map.Entry<String, Object> entry : columnData.entrySet()) {
-                        String key = entry.getKey();
-                        Object val = entry.getValue();
-                        if (!rowData.containsKey(key)) {
-                            matches = false;
-                            break;
-                        }
-                        if (val != null && !rowData.get(key).equalsIgnoreCase(val.toString())) {
-                            matches = false;
-                            break;
-                        }
-                    }
+                List<WebElement> cells = row.findElements(By.xpath("./td"));
+                Map<String, String> rowData = new LinkedHashMap<>();
+                for (int c = 0; c < headers.size() && c < cells.size(); c++) {
+                    String header = headers.get(c);
+                    String cellText = cells.get(c).getText().trim();
+                    rowData.put(header, cellText);
                 }
-
-                if (matches) {
-                    resultElements.addAll(row.findElements(By.tagName(tagName)));
-                    if (!areMultipleRows) break;
-                }
+                rowDataList.add(rowData);
             }
-
-            info.log("[TABLE] Found " + resultElements.size() + " <" + tagName + "> tag(s) in matching row(s).");
-            return resultElements;
-
+            info.table("[ROWS] Extracted " + rowDataList.size() + " row(s) from table.");
+            return rowDataList;
         } catch (Exception e) {
-            error.log("Failed to get row element(s): " + e.getMessage());
-            throw new RuntimeException("Failed to get row element(s)", e);
+            error.log("Failed to extract row data for table: " + tableElement.getDisplayText());
+            throw new RuntimeException("Could not read table rows", e);
         }
-    }
-
-    public static WebElement getRowElement(
-            TableElement tableElement,
-            Integer rowNumber,
-            @Nullable Map<String, Object> columnData,
-            String tagName
-    ) {
-        List<WebElement> elements = getRowElements(tableElement, rowNumber, columnData, false, tagName);
-        if (elements.isEmpty()) {
-            throw new RuntimeException("No element found in specified row for tag: <" + tagName + ">");
-        }
-        return elements.get(0);
-    }
-
-
-    private static Map<String, String> extractRowData(WebElement row, List<String> headers) {
-        List<WebElement> cells = row.findElements(By.tagName("td"));
-        Map<String, String> rowData = new LinkedHashMap<>();
-
-        int offset = 2; // Skip the first 2 non-data columns: checkbox and 3-dots menu
-
-        // Adjusted mapping: Start from td[2] onwards and map to headers[0] onwards
-        for (int j = 0; j < headers.size() && (j + offset) < cells.size(); j++) {
-            String header = headers.get(j);
-//            String value = cells.get(j + offset).getText().trim();
-//            String fullCellValue = ToolTipsResolver.resolveCommonTooltipByHover(cells.get(j + offset));
-            String fullCellValue = ToolTipsResolver.resolveTooltipViaRole(cells.get(j + offset));
-            rowData.put(header, fullCellValue);
-        }
-        return rowData;
     }
 }

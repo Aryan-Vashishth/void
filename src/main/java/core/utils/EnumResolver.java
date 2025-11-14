@@ -1,7 +1,8 @@
 package core.utils;
 
+import Elements.InfoElements;
 import Elements.*;
-import Elements.Interfaces.ResolvableEnum;
+import Elements.interfacesv1.ResolvableEnum; // switched to v1
 import com.beust.jcommander.internal.Nullable;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -13,12 +14,8 @@ import java.util.List;
 
 public class EnumResolver extends BaseUtils {
 
-    private static final List<Class<?>> ENUM_CONTAINERS = Arrays.asList(
-            CommonElements.class,
-            AccountMappingElements.class,
-            InfoElements.class,
-            AdminHomeElements.class,
-            ManageUsersElements.class
+    private static final List<Class<?>> ENUM_CONTAINERS = List.of(
+            InfoElements.class
             // add more as needed
     );
 
@@ -100,7 +97,7 @@ public class EnumResolver extends BaseUtils {
 
         String available = Arrays.toString(Arrays.stream(constants).map(Enum::name).toArray());
         throw new IllegalArgumentException("No matching enum constant or label for value: '" + input + "' "
-                + "(normalized: '" + normalized + "') in enum: " + enumClass.getSimpleName()
+                + "(normalized: '" + normalized + ") in enum: " + enumClass.getSimpleName()
                 + ". Available values: " + available);
     }
 
@@ -136,7 +133,7 @@ public class EnumResolver extends BaseUtils {
 
                         String available = Arrays.toString(Arrays.stream(constants).map(Enum::name).toArray());
                         throw new IllegalArgumentException("No matching enum constant or label for value: '" + input + "' "
-                                + "(normalized: '" + normalized + "') in enum: " + inner.getSimpleName()
+                                + "(normalized: '" + normalized + ") in enum: " + inner.getSimpleName()
                                 + ". Available values: " + available);
                     }
                 }

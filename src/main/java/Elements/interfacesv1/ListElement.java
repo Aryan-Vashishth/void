@@ -1,0 +1,46 @@
+package Elements.interfacesv1;
+
+import Elements.ElementRole;
+
+/**
+ * Represents a repeating collection container (UL/OL, table rows group, card deck, etc.).
+ * <p>Role: {@link ElementRole#LIST}</p>
+ */
+public interface ListElement extends Element {
+
+    /**
+     * Key for the dynamic list XPath (e.g., with %s for argument substitution).
+     */
+    String getListLocator();
+
+    /**
+     * Index within the list, if needed.
+     */
+    int getIndex();
+
+    /**
+     * Returns a human-readable label for logs. Uses the first argument if present, else the list key.
+     */
+    @Override
+    default String getDisplayText() {
+        Object[] args = getArgs();
+        return args.length > 0 ? args[0].toString() : getListLocator();
+    }
+
+    /** Build role map exposing LIST only. */
+    default java.util.Map<ElementRole,String> getAllLocatorRoles(){
+        java.util.Map<ElementRole,String> roles = new java.util.LinkedHashMap<>();
+        String list = getListLocator();
+        if(list!=null && !list.isBlank()) roles.put(ElementRole.LIST, list);
+        return roles;
+    }
+
+    /** @deprecated Use {@link #getAllLocatorRoles()} */
+    @Deprecated
+    @Override
+    default java.util.Map<String,String> getAllLocators(){
+        java.util.Map<String,String> legacy = new java.util.LinkedHashMap<>();
+        getAllLocatorRoles().forEach((r,v)-> legacy.put(r.name(), v));
+        return legacy;
+    }
+}

@@ -1,7 +1,7 @@
 package core.utils;
 
-import Elements.Interfaces.FileInputElement;
-import core.locators.PropertiesFileLocatorReader;
+import Elements.interfacesv1.FileInputElement;
+import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -22,11 +22,7 @@ public class Upload extends BaseUtils {
      */
     public static void uploadFile(FileInputElement fileElement, String filePath) {
         try {
-//            if (iframeLocator != null) {
-//                DOMUtils.switchToFrame(iframeLocator);
-//            }
-
-            By locator = PropertiesFileLocatorReader.getLocator(fileElement.getPropertyFile(), fileElement.getKey(), fileElement.getArgs());
+            By locator = LocatorResolverV1.getLocator(fileElement); // v1 resolution
             WebElement fileInput = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
 
             String absolutePath = FileUtils.resolveResourceAbsolutePath(UPLOAD_BASE_PATH, filePath, null);
@@ -34,10 +30,6 @@ public class Upload extends BaseUtils {
             fileInput.sendKeys(absolutePath);
 
             info.success("File uploaded into: " + fileElement.getDisplayText() + " → " + absolutePath);
-
-//            if (iframeLocator != null) {
-//                DOMUtils.switchToDefaultContent();
-//            }
 
         } catch (Exception e) {
             error.upload("File upload failed for: " + fileElement.getDisplayText());

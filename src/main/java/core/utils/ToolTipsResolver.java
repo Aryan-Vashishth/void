@@ -1,189 +1,102 @@
 package core.utils;
 
 import Elements.InfoElements;
-import Elements.Interfaces.ReadOnlyElement;
-import Elements.Interfaces.ToolTipElement;
-import core.locators.PropertiesFileLocatorReader;
+import Elements.interfacesv1.ReadOnlyElement;
+import Elements.interfacesv1.ToolTipElement;
+import core.driver.DriverContext;
+import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import static Configurations.InitialiseBaseTest.driver;
 
 import java.util.List;
 
+import static core.logging.CustomLogger.*;
+
 public class ToolTipsResolver extends BaseUtils {
 
-    public ToolTipsResolver(WebDriver driver){
-        initializer(driver);
-    }
+    public ToolTipsResolver(){ initializer(DriverContext.getActiveDriver()); }
+    private static WebDriver active() { return DriverContext.getDriver(); }
 
     public static String resolveTooltipViaRole(WebElement cellElement) {
         try {
             String cellText = cellElement.getText().trim();
             debug.text("Cell text: " + cellText);
-
-            // Return as-is if not truncated
-            if (!cellText.endsWith("...")) {
-                debug.log("Text is not truncated, returning original value.");
-                return cellText;
-            }
-
+            if (!cellText.endsWith("...")) return cellText; // not truncated
             String baseText = cellText.substring(0, cellText.length() - 3).trim().toLowerCase();
-            debug.log("Truncated base for tooltip match: " + baseText);
-
-            List<WebElement> tooltips = driver.findElements(By.xpath("//*[@role='tooltip']"));
-
-            for (int i = 0; i < tooltips.size(); i++) {
-                WebElement tooltip = tooltips.get(i);
+            List<WebElement> tooltips = active().findElements(By.xpath("//*[@role='tooltip']"));
+            for (WebElement tooltip : tooltips) {
                 String tooltipText = tooltip.getAttribute("textContent").trim();
-
-                debug.log("[ROLE-TOOLTIP #" + i + "] " + tooltipText);
-
-                if (tooltipText.toLowerCase().startsWith(baseText)) {
-                    debug.log("Match found, returning tooltip text: " + tooltipText);
-                    return tooltipText;
-                }
+                if (tooltipText.toLowerCase().startsWith(baseText)) return tooltipText;
             }
-
-            debug.failed("No matching tooltip found, returning original truncated text.");
-            return cellText;
-
+            return cellText; // fallback
         } catch (Exception e) {
-            error.log("Failed to resolve tooltip via role='tooltip': " + e.getMessage());
-            throw new RuntimeException("Tooltip resolution via [role='tooltip'] failed.", e);
+            error.log("Failed role tooltip resolution: " + e.getMessage());
+            throw new RuntimeException("Tooltip role resolution failed", e);
         }
     }
-
-
 
     public static String resolveCommonTooltipByHover(WebElement element) {
         try {
-            String unresolvedText = element.getText();
-            debug.text("Unresolved Text: " + unresolvedText);
-
-            String tooltipText = unresolvedText;
-
-            if (unresolvedText != null && unresolvedText.endsWith("...")) {
-                // Use LocatorReader helper to get tooltip locator
-                By tooltipLocator = PropertiesFileLocatorReader.getLocator(CommonElements.TooltipsElements.COMMON_TOOLTIP_CONTAINER);
-
+            String unresolved = element.getText();
+            if (unresolved != null && unresolved.endsWith("...")) {
+                By tooltipLocator = LocatorResolverV1.getLocator(InfoElements.ALL_TOOLTIPS);
                 DOMUtils.hoverOnElement(element);
-                debug.log("Hovering on element: " + unresolvedText);
-
-//                wait.until(ExpectedConditions.visibilityOf(driver.findElement(tooltipLocator)));
-                // Wait for tooltip text to appear
-//                WaitUtils.waitForElementText(tooltipLocator, 10);
-
-                if(WaitUtils.waitForElementTextToBePresent(tooltipLocator)) {
-                    tooltipText = VOID.interaction().getText(CommonElements.TooltipsElements.COMMON_TOOLTIP_CONTAINER);
-                }else{
-                    debug.failed("Tooltip text found to be null");
+                if (WaitUtils.waitForElementTextToBePresent(tooltipLocator)) {
+                    return VOID.interaction().getText(InfoElements.ALL_TOOLTIPS).trim();
                 }
             }
-
-            debug.log("Resolved tooltip from hover: " + tooltipText);
-            return tooltipText != null ? tooltipText.trim() : "";
-
+            return unresolved == null ? "" : unresolved.trim();
         } catch (Exception e) {
-            error.log("Failed to resolve tooltip by hover on element: " + element.getText());
-            throw new RuntimeException("Tooltip resolution by hover failed for element: " + element.getText(), e);
+            error.log("Hover tooltip failed: " + e.getMessage());
+            throw new RuntimeException("Hover tooltip failed", e);
         }
     }
-
 
     public static String resolveTooltipByHover(ToolTipElement element) {
         try {
-            debug.log("Hovering on element: " + element.getDisplayText());
-
-            WebElement webElement = driver.findElement(PropertiesFileLocatorReader.getLocator(
-                    element.getPropertyFile(),
-                    element.getKey(),
-                    element.getArgs()
-            ));
-
+            By by = LocatorResolverV1.getLocator(element);
+            WebElement webElement = active().findElement(by);
             DOMUtils.hoverOnElement(webElement);
-
             String tooltipAttr = webElement.getAttribute("title");
-            String ariaLabelAttr = webElement.getAttribute("aria-label");
-
-            String resolvedTooltip = tooltipAttr != null && !tooltipAttr.trim().isEmpty() ? tooltipAttr.trim() : ariaLabelAttr;
-
-            debug.log("Resolved tooltip from hover: " + resolvedTooltip);
-            return resolvedTooltip;
-
+            String ariaLabel = webElement.getAttribute("aria-label");
+            return (tooltipAttr != null && !tooltipAttr.isBlank()) ? tooltipAttr.trim() : ariaLabel;
         } catch (Exception e) {
-            error.log("Failed to resolve tooltip by hover on element: " + element.getDisplayText());
-            throw new RuntimeException("Tooltip resolution by hover failed for element: " + element.getDisplayText(), e);
+            error.log("Tooltip hover failed for: " + element.getDisplayText());
+            throw new RuntimeException("Tooltip hover failed", e);
         }
     }
 
-
-    public static String resolveTooltipByTooltipElements(String identifier, ReadOnlyElement tooltipContainer) {
+    public static String resolveTooltipByTooltipElements(String identifier, ReadOnlyElement container) {
         try {
-            debug.log("Resolving tooltip by scanning elements under: " + tooltipContainer.getDisplayText());
-
-            List<WebElement> tooltips = driver.findElements(PropertiesFileLocatorReader.getLocator(
-                    tooltipContainer.getPropertyFile(),
-                    tooltipContainer.getKey(),
-                    tooltipContainer.getArgs()
-            ));
-
-            for (int i = 0; i < tooltips.size(); i++) {
-                String tooltipText = tooltips.get(i).getText().trim();
-                debug.log("[TOOLTIP #" + i + "] " + tooltipText);
-                if (tooltipText.equalsIgnoreCase(identifier)) {
-                    return tooltipText;
-                }
+            By c = LocatorResolverV1.getLocator(container);
+            for (WebElement el : active().findElements(c)) {
+                String txt = el.getText().trim();
+                if (txt.equalsIgnoreCase(identifier)) return txt;
             }
-
             return null;
-
         } catch (Exception e) {
-            error.log("Failed to resolve tooltip by elements under: " + tooltipContainer.getDisplayText());
-            throw new RuntimeException("Tooltip resolution by elements failed for: " + tooltipContainer.getDisplayText(), e);
+            error.log("Tooltip scan failed: " + container.getDisplayText());
+            throw new RuntimeException("Tooltip scan failed", e);
         }
     }
 
-    public static String resolveTooltipWithHoverFallback(ToolTipElement element, String identifier, ReadOnlyElement tooltipContainer) {
-        try {
-            // Hover and try resolving via title or aria-label first
-            WebElement webElement = driver.findElement(PropertiesFileLocatorReader.getLocator(
-                    element.getPropertyFile(),
-                    element.getKey(),
-                    element.getArgs()
-            ));
-
-            String resolvedTooltip = resolveTooltipByHover(element);
-
-            // Check if fallback is needed based on emptiness or element's getEndsWith pattern
-            if (resolvedTooltip == null || resolvedTooltip.isEmpty() || resolvedTooltip.endsWith(element.getEndsWith())) {
-                debug.log("Tooltip from hover is empty or ends with '" + element.getEndsWith() + "', falling back to tooltip elements.");
-                resolvedTooltip = resolveTooltipByTooltipElements(identifier, tooltipContainer);
-            }
-
-            return resolvedTooltip;
-
-        } catch (Exception e) {
-            error.log("Failed to resolve tooltip with hover fallback for identifier: " + identifier);
-            throw new RuntimeException("Tooltip resolution with hover fallback failed for identifier: " + identifier, e);
+    public static String resolveTooltipWithHoverFallback(ToolTipElement element, String identifier, ReadOnlyElement container) {
+        String tip = resolveTooltipByHover(element);
+        if (tip == null || tip.isBlank() || tip.endsWith(element.getEndsWith())) {
+            return resolveTooltipByTooltipElements(identifier, container);
         }
+        return tip;
     }
 
-
-    public static String resolveTooltipValueFromTruncated(String truncatedText) {
+    public static String resolveTooltipValueFromTruncated(String truncated) {
         try {
-            List<WebElement> tooltips = driver.findElements(
-                    PropertiesFileLocatorReader.getLocator(InfoElements.ALL_TOOLTIPS.getPropertyFile(), InfoElements.ALL_TOOLTIPS.getKey())
-            );
-            for (WebElement tooltip : tooltips) {
-                String tooltipText = tooltip.getText().trim();
-                if (tooltipText.toLowerCase().startsWith(truncatedText.toLowerCase().replace("...", ""))) {
-                    return tooltipText;
-                }
+            By allTooltips = LocatorResolverV1.getLocator(InfoElements.ALL_TOOLTIPS);
+            for (WebElement el : active().findElements(allTooltips)) {
+                String txt = el.getText().trim();
+                if (txt.toLowerCase().startsWith(truncated.toLowerCase().replace("...", ""))) return txt;
             }
-        } catch (Exception e) {
-            warn.log("Failed to resolve tooltip for truncated text: " + truncatedText);
-        }
-        return truncatedText;
+        } catch (Exception ignored) { warn.log("Failed to resolve tooltip for truncated text: " + truncated); }
+        return truncated;
     }
 }

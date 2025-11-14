@@ -1,5 +1,6 @@
 package core.utils;
 
+import Elements.interfacesv1.ResolvableEnum;
 import com.github.javafaker.Faker;
 
 import javax.annotation.Nullable;
@@ -14,6 +15,32 @@ import static core.utils.json.JsonLogger.Write.MapWriter.writeFlatMap;
 public class DataGenerator extends BaseUtils {
 
     private static final Faker faker = new Faker();
+
+    public enum FieldType implements ResolvableEnum {
+        PROGRAM_NAME,
+        OPPORTUNITY_NAME,
+        OPPORTUNITY_DESCRIPTION,
+        ACCOUNT_NAME,
+        WEBSITE,
+        COUNTRY,
+        HQ_STATE_PROVINCE,
+        INCENTIVE_TYPE,
+        INCENTIVE_AMOUNT,
+        EXPIRATION_DATE,
+        DUNS_TAX_ID_NUMBER,
+        NOTES,
+        // Generic types (fallbacks)
+        TEXT,
+        NAME,
+        COMPANY,
+        EMAIL,
+        NUMBER,
+        CURRENCY,
+        DATE,
+        STATE,
+        INCENTIVE_AMOUNT_IN_USD,
+        ID
+    }
     private static final Map<FieldType, DataSupplier> fieldTypeGenerators = new EnumMap<>(FieldType.class);
 
     static {

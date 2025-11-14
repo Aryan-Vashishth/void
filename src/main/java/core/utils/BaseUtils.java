@@ -23,7 +23,6 @@ public abstract class BaseUtils {
         if (driver == null) {
             throw new IllegalArgumentException("WebDriver instance must not be null. Initialization failed.");
         }
-        DriverContext.setDriver(driver);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         CustomLogger.initialize(this.getClass());
         debug.log("[" + getClass().getSimpleName() + "] initialized with WebDriver: " + driver);
@@ -31,13 +30,13 @@ public abstract class BaseUtils {
     }
 
     public void initializer() {
-        WebDriver driver = DriverContext.getDriver();
+        WebDriver driver = DriverContext.getActiveDriver();
         if (driver == null) {
             throw new IllegalStateException("WebDriver is not set in DriverContext.");
         }
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         CustomLogger.initialize(this.getClass());
-        debug.log("[" + getClass().getSimpleName() + "] initialized with WebDriver: " + driver);
+        debug.log("[" + BaseUtils.class.getSimpleName() + "] initialized with WebDriver: " + driver);
         VOID = new VOID();
     }
 }

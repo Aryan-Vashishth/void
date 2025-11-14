@@ -23,7 +23,7 @@
 //import core.utils.EnumResolver;
 //import core.utils.json.JsonLogger;
 //import core.utils.json.JsonReader;
-//import core.locators.JsonLocatorReader;
+//import core.resolvers.locators.JsonLocatorReader;
 //import core.logging.CustomLogger;
 //import core.utils.URLS;
 //import core.utils.TableHandler;

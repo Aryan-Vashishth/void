@@ -1,52 +1,70 @@
 package interactions;
 
-import Elements.Interfaces.*;
-import core.locators.LocatorResolver; // ← centralized AUTO resolver (JSON→.properties)
-import core.utils.*;
+import Elements.ElementRole;
+import Elements.InfoElements;
+import Elements.interfacesv1.*; // v1 interfaces only
 import core.driver.DriverContext;
-import com.beust.jcommander.internal.Nullable;
+import core.resolvers.locator.LocatorResolverV1;
+import core.utils.*;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
 import java.time.Duration;
 import java.util.*;
-
+import com.beust.jcommander.internal.Nullable;
 import static core.logging.CustomLogger.*;
 
 /**
- * Interactions (V2, centralized locators)
- * ---------------------------------------
- * Now resolves all locators through LocatorResolver which prefers JSON and
- * falls back to .properties, using BaseElement.getPrimaryLocator()/getSecondaryLocator().
+ * Interactions
+ * ------------
+ * Central place for all UI actions in the framework. This class is intentionally
+ * enum/interface-driven so that new UI elements can be added simply by defining
+ * enums that implement the appropriate *Element interface, without touching
+ * the core interaction logic.
  *
- * - For generic elements: PRIMARY = main locator, SECONDARY = auxiliary locator.
- * - For DropdownElement:   PRIMARY = trigger, SECONDARY = list-item.
- * - For SearchableElement: PRIMARY = input field, SECONDARY = result locator (format args supplied at call-site).
- * - For MultipleIdenticalDropdownElements: use getTriggerKey()/getListLocatorKey() with distinct args (index vs label).
+ * <h3>Key ideas</h3>
+ * <ul>
+ *   <li>Resolve everything from enums → locators via properties/json resolver,
+ *       keeping all CSS/XPath selectors in properties files.</li>
+ *   <li>Provide before/after action hooks so callers can compose behaviors
+ *       (e.g., waits, scrolls, highlights).</li>
+ *   <li>Log the arguments and final locators for each action so test traces
+ *       remain accurate and debuggable.</li>
+ * </ul>
+ *
+ * <h3>Angular Material Menus (Three Dots)</h3>
+ * <ul>
+ *   <li>Trigger (row index) and List Item (label) must be treated separately:</li>
+ *   <ul>
+ *     <li><b>Trigger property</b> (example): <code>(//td[@role='cell']/button)[%s]</code>
+ *         → expects one argument: the row index.</li>
+ *     <li><b>List property</b> (example):<br/>
+ *         <code>(//div[contains(@class,'cdk-overlay-pane')]//div[@role='menu']//
+ *         button[@role='menuitem' and normalize-space()='%s'])[last()]</code><br/>
+ *         → expects one argument: the visible label (e.g., "View Registration").</li>
+ *   </ul>
+ *   <li>After clicking the trigger, Angular CDK renders the menu into a detached
+ *       overlay. Always wait for the overlay to appear using
+ *       {@code waitForOverlayToAppear()} before trying to click an item.</li>
+ * </ul>
+ *
+ * <h3>Logging correctness</h3>
+ * <ul>
+ *   <li>Arguments for TRIGGER vs LIST are logged separately, along with the final
+ *       resolved {@link By} locators. This avoids confusion such as substituting
+ *       "1" (index) into the label placeholder.</li>
+ * </ul>
+ *
+ * <h3>Robustness</h3>
+ * <ul>
+ *   <li>Click flow includes JS fallback and stale-element retry.</li>
+ *   <li>Autocomplete and search flows scroll into view and/or use Actions to
+ *       handle overlay edge cases.</li>
+ * </ul>
  */
-public class Interactions {
 
-    // ====== STATIC HELPERS ======
-    public static class Via {
-        public static WebElement WebElement(WebElement element) { return element; }
-        public static BaseElement BaseElement(BaseElement element) { return element; }
-        public static CheckboxElement CheckboxElement(CheckboxElement element) { return element; }
-        public static ClickableElement ClickableElement(ClickableElement element) { return element; }
-        public static DropdownElement DropdownElement(DropdownElement element) { return element; }
-        public static FileInputElement FileInputElement(FileInputElement element) { return element; }
-        public static Form Form(Form element) { return element; }
-        public static ListElement ListElement(ListElement element) { return element; }
-        public static MultipleIdenticalDropdownElements MultipleIdenticalDropdownElements(MultipleIdenticalDropdownElements element) { return element; }
-        public static ReadOnlyElement ReadOnlyElement(ReadOnlyElement element) { return element; }
-        public static ResolvableEnum ResolvableEnum(ResolvableEnum element) { return element; }
-        public static SearchableElementInput SearchableElement(SearchableElementInput element) { return element; }
-        public static TableElement TableElement(TableElement element) { return element; }
-        public static TextInputFieldElement TextFieldElement(TextInputFieldElement element) { return element; }
-        public static ToolTipElement ToolTipElement(ToolTipElement element) { return element; }
-        public static WritableTableElement WritableTableElement(WritableTableElement element) { return element; }
-    }
+public class Interactions {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
@@ -54,6 +72,11 @@ public class Interactions {
 
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
 
+    /**
+     * Standard constructor, initializes driver context and logging.
+     *
+     * @param driver The WebDriver instance to use for all actions.
+     */
     public Interactions(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -61,9 +84,24 @@ public class Interactions {
         DriverContext.setDriver(driver);
     }
 
+    public String getText(InfoElements elements) {
+        By locator = LocatorResolverV1.getLocator(elements);
+        WebElement webElement = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        String text = webElement.getText().trim();
+        info.text("Retrieved from → " + elements.getDisplayText() + ": " + text);
+        return text;
+    }
+
+    /** Functional interface for before/after action hooks. */
     @FunctionalInterface
     public interface ActionHandler { void execute(WebDriver driver); }
 
+    /**
+     * Helper for collecting hooks in a single call.
+     *
+     * @param handlers optional list of handlers
+     * @return list or null if empty
+     */
     public static List<ActionHandler> of(ActionHandler... handlers) {
         return (handlers == null || handlers.length == 0) ? null : List.of(handlers);
     }
@@ -75,6 +113,7 @@ public class Interactions {
         public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = driver -> WaitUtils.resolveAngularLoader();
         public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = driver -> WaitUtils.resolveLoader(WaitUtils.SPIN_SPINNER_LOADER);
 
+        /** Waits for the last resolved element to become clickable (uses UIContext). */
         public static final ActionHandler WAIT_FOR_ELEMENT_CLICKABLE = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -82,6 +121,7 @@ public class Interactions {
             }
         };
 
+        /** Clears the last resolved element if it is an input. */
         public static final ActionHandler CLEAR_FIELD = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -91,6 +131,7 @@ public class Interactions {
             }
         };
 
+        /** Waits for the last element to be visible. */
         public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -98,6 +139,7 @@ public class Interactions {
             }
         };
 
+        /** Scrolls the last element into view. */
         public static final ActionHandler SCROLL_TO_ELEMENT = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -105,6 +147,7 @@ public class Interactions {
             }
         };
 
+        /** Highlights the last element for debug. */
         public static final ActionHandler HIGHLIGHT_ELEMENT = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -118,6 +161,7 @@ public class Interactions {
         public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = driver -> WaitUtils.resolveAngularLoader();
         public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = driver -> WaitUtils.resolveLoader(WaitUtils.SPIN_SPINNER_LOADER);
 
+        /** Waits for last element to be visible after action. */
         public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -125,6 +169,7 @@ public class Interactions {
             }
         };
 
+        /** Highlights last element with green border for visual validation. */
         public static final ActionHandler HIGHLIGHT_ELEMENT = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -132,6 +177,7 @@ public class Interactions {
             }
         };
 
+        /** Scrolls the last element into view post-action. */
         public static final ActionHandler SCROLL_TO_ELEMENT = driver -> {
             WebElement element = UIContext.getLastElement();
             if (element != null) {
@@ -142,6 +188,13 @@ public class Interactions {
 
     // ======================= GENERIC TEXT RETRIEVAL =======================
 
+    /**
+     * Reads the trimmed text from a locator, scrolling into view and updating UIContext for hooks.
+     *
+     * @param locator target locator
+     * @return element text (trimmed)
+     * @throws RuntimeException on failure to locate/read
+     */
     public String getTextByWebElement(By locator) {
         try {
             WebElement targetText = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
@@ -156,32 +209,52 @@ public class Interactions {
         }
     }
 
+    /**
+     * Gets text from a read-only element with optional before/after actions.
+     *
+     * @param beforeActions optional hooks
+     * @param element       read-only element
+     * @param afterActions  optional hooks
+     * @return trimmed text
+     */
     public String getText(@Nullable List<ActionHandler> beforeActions,
                           ReadOnlyElement element,
                           @Nullable List<ActionHandler> afterActions) {
         if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
-        By locator = LocatorResolver.primary(element); // PRIMARY for ReadOnlyElement
+        By locator = LocatorResolverV1.getLocator(element); // role-based best available
         if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
         return getTextByWebElement(locator);
     }
 
+    /** Simple overload: no hooks. */
     public String getText(ReadOnlyElement element) { return getText(null, element, null); }
 
+    /**
+     * Reads visible text, with a tooltip fallback if truncated (common for ellipsized cells).
+     *
+     * @param beforeActions        optional hooks before
+     * @param element              tooltip-capable element
+     * @param afterActions         optional hooks after
+     * @param enableResolveTooltip if true, will try hover-based resolution
+     * @return resolved text
+     * @throws RuntimeException on failure
+     */
     public String getTextViaToolTip(@Nullable List<ActionHandler> beforeActions,
                                     ToolTipElement element,
                                     @Nullable List<ActionHandler> afterActions,
                                     boolean enableResolveTooltip) {
         try {
             if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
-            By locator = LocatorResolver.primary(element); // PRIMARY for main text element
+            By locator = LocatorResolverV1.getLocator(element); // role-based best available
             WebElement targetElement = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
             String unresolvedText = getTextByWebElement(locator);
             info.text("Retrieved from → " + element.getDisplayText() + " Unresolved Text: " + unresolvedText);
             if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
 
+            // If truncated, try hover-based resolver or title/aria-label fallbacks
             if (enableResolveTooltip && !unresolvedText.isEmpty() && unresolvedText.endsWith(element.getEndsWith())) {
-                debug.log("[DEBUG] Unresolved text ends with '" + element.getEndsWith() + "', resolving via hover.");
-                return ToolTipsResolver.resolveTooltipByHover(element);
+                debug.log("[DEBUG] Unresolved text ends with '" + element.getEndsWith() + "'. Skipping hover resolution (disabled).");
+                return unresolvedText; // Keep truncated if resolver disabled
             }
             if (unresolvedText.isEmpty() || unresolvedText.endsWith(element.getEndsWith())) {
                 String tooltipAttr = targetElement.getAttribute("title");
@@ -201,22 +274,20 @@ public class Interactions {
 
     // ======================= CLICK HANDLING (ALL OVERLOADS) =======================
 
-    public <T extends Enum<T> & ClickableElement & ResolvableEnum> void clickOn(Class<T> enumClass, String label) {
-        try {
-            T element = EnumResolver.stringToEnum(enumClass, label);
-            clickOn(null, element, null);
-        } catch (Exception e) {
-            log.error("Failed to click on element from " + enumClass.getSimpleName() + ": " + label + " " + e);
-            throw new RuntimeException("Failed to click on element: " + label, e);
-        }
-    }
-
+    /**
+     * Clicks a ClickableElement using optional before/after hooks.
+     *
+     * @param beforeActions optional hooks
+     * @param element       target enum element
+     * @param afterActions  optional hooks
+     * @throws RuntimeException if click fails
+     */
     public void clickOn(@Nullable List<ActionHandler> beforeActions,
-                        ClickableElement element,
+                        Clickable element,
                         @Nullable List<ActionHandler> afterActions) {
         try {
             if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
-            By locator = LocatorResolver.primary(element); // PRIMARY for a generic click target
+            By locator = LocatorResolverV1.getLocator(element); // role-based best available
             WebElement clickable = driver.findElement(locator);
             UIContext.setLastElement(clickable);
             clickOn(clickable);
@@ -227,6 +298,15 @@ public class Interactions {
         }
     }
 
+    /**
+     * Core click with optional JS fallback and stale retry.
+     *
+     * @param beforeActions optional hooks before
+     * @param element       target element
+     * @param useJSExecutor if true, use JS click
+     * @param afterActions  optional hooks after
+     * @throws RuntimeException on failure
+     */
     public void clickOn(@Nullable List<ActionHandler> beforeActions, WebElement element, @Nullable Boolean useJSExecutor, @Nullable List<ActionHandler> afterActions) {
         try {
             if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
@@ -243,21 +323,30 @@ public class Interactions {
         }
     }
 
+    /**
+     * High-level click pipeline:
+     * 1) Wait visible + clickable + highlight (for human debugging)
+     * 2) Try Selenium click
+     * 3) If that fails → JS click as a fallback
+     * 4) If stale → try re-resolve via UIContext meta and click again
+     *
+     * @param element target element
+     */
     public void clickOn(WebElement element) {
         UIContext.setLastElement(element);
         boolean clickedSuccessfully = tryClickWithHooks(
                 element,
                 List.of(Before.WAIT_FOR_ELEMENT_VISIBLE, Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
-                false,
+                false,  // prefer standard click first
                 List.of(After.DO_NOTHING),
-                true
+                true    // skip retry if URL changes (navigation)
         );
         if (!clickedSuccessfully) {
             warn.fallback("Selenium click failed, retrying with JavaScript click...");
             clickedSuccessfully = tryClickWithHooks(
                     element,
                     List.of(Before.WAIT_FOR_ELEMENT_VISIBLE, Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
-                    true,
+                    true,   // JS fallback
                     List.of(After.DO_NOTHING),
                     true
             );
@@ -265,26 +354,67 @@ public class Interactions {
         }
     }
 
+    public void clickOn(By element){
+        WebElement webElement = driver.findElement(element);
+        clickOn(webElement);
+    }
+
+    /**
+     * Tries a click with hooks and optional JS, with stale retry if page didn't navigate.
+     *
+     * @param element              target
+     * @param beforeActions        hooks before
+     * @param useJSExecutor        JS click?
+     * @param afterActions         hooks after
+     * @param skipRetryIfNavigated if URL changed, assume click succeeded
+     * @return true if click path completed without fatal error
+     */
     private boolean tryClickWithHooks(WebElement element,
                                       List<ActionHandler> beforeActions,
                                       boolean useJSExecutor,
                                       List<ActionHandler> afterActions,
                                       boolean skipRetryIfNavigated) {
-        String originalUrl = DriverContext.getDriver().getCurrentUrl();
+        WebDriver activeDriver = DriverContext.getActiveDriver();
+        String originalUrl = activeDriver.getCurrentUrl();
         try {
-            beforeActions.forEach(action -> action.execute(DriverContext.getDriver()));
-            performClick(element, useJSExecutor);
-            if (afterActions != null) afterActions.forEach(action -> action.execute(DriverContext.getDriver()));
+            // Only log intent once per click attempt
+            if (beforeActions != null) {
+                beforeActions.forEach(action -> {
+                    if (action != Before.LOG_INTENT) {
+                        action.execute(activeDriver);
+                    }
+                });
+                // Execute LOG_INTENT only once
+                if (beforeActions.contains(Before.LOG_INTENT)) {
+                    Before.LOG_INTENT.execute(activeDriver);
+                }
+            }
+            performClick(element, useJSExecutor, activeDriver);
+            if (afterActions != null) afterActions.forEach(action -> action.execute(activeDriver));
             return true;
         } catch (StaleElementReferenceException staleEx) {
-            debug.error("Stale element encountered during click.");
-            // We do not re-resolve via file/key here anymore to keep resolution centralized.
-            String currentUrl = DriverContext.getDriver().getCurrentUrl();
+            debug.error("Stale element, retrying...");
+            String currentUrl = activeDriver.getCurrentUrl();
             if (skipRetryIfNavigated && !originalUrl.equals(currentUrl)) {
-                debug.log("Page navigation detected (URL changed). Treating click as success.");
-                return true;
+                debug.log("Page navigation detected (URL changed). Skipping stale element retry.");
+                return true; // treat as success — action likely took effect
             }
-            return false;
+            try {
+                By retryLocator = LocatorResolverV1.getLocator(
+                        UIContext.getLastElementMeta().getPropertyFile(),
+                        UIContext.getLastElementMeta().getKey(),
+                        UIContext.getLastElementMeta().getArgs()
+                );
+                WebElement freshElement = activeDriver.findElement(retryLocator);
+                UIContext.setLastElement(freshElement);
+                // On retry, skip beforeActions to avoid duplicate logs
+                performClick(freshElement, useJSExecutor, activeDriver);
+                if (afterActions != null) afterActions.forEach(action -> action.execute(activeDriver));
+                return true;
+            } catch (Exception retryEx) {
+                error.failed("Retry after stale element failed: " + retryEx.getMessage());
+                return false;
+            }
         } catch (Exception e) {
             error.failed("Click failed: " + e.getMessage());
             return false;
@@ -292,8 +422,12 @@ public class Interactions {
     }
 
     private void performClick(WebElement element, boolean useJSExecutor) {
+        performClick(element, useJSExecutor, DriverContext.getActiveDriver());
+    }
+
+    private void performClick(WebElement element, boolean useJSExecutor, WebDriver activeDriver) {
         if (useJSExecutor) {
-            ((JavascriptExecutor) DriverContext.getDriver()).executeScript("arguments[0].click();", element);
+            ((JavascriptExecutor) activeDriver).executeScript("arguments[0].click();", element);
             info.success("Clicked on: " + safeText(element));
             debug.success("Clicked using JavaScriptExecutor.");
         } else {
@@ -308,33 +442,51 @@ public class Interactions {
         try { return (el.getText() == null) ? "" : el.getText().trim(); } catch (Exception ignored) { return ""; }
     }
 
-    // Shortcuts
-    public void clickOn(ClickableElement element) { clickOn(null, element, null); }
-    public void clickOn(List<ActionHandler> beforeActions, ClickableElement element) { clickOn(beforeActions, element, null); }
-    public void clickOn(ClickableElement element, List<ActionHandler> afterActions) { clickOn(null, element, afterActions); }
-    public void clickOn(ActionHandler before, ClickableElement element) { clickOn(before != null ? List.of(before) : null, element, null); }
-    public void clickOn(ClickableElement element, ActionHandler after) { clickOn(null, element, after != null ? List.of(after) : null); }
+    // --- Shortcuts for clickOn with different signatures ---
+    public void clickOn(Clickable element) { clickOn(null, element, null); }
+    public void clickOn(List<ActionHandler> beforeActions, Clickable element) { clickOn(beforeActions, element, null); }
+    public void clickOn(Clickable element, List<ActionHandler> afterActions) { clickOn(null, element, afterActions); }
+    public void clickOn(ActionHandler before, Clickable element) { clickOn(before != null ? List.of(before) : null, element, null); }
+    public void clickOn(Clickable element, ActionHandler after) { clickOn(null, element, after != null ? List.of(after) : null); }
 
-    public <T extends Enum<T> & ClickableElement & ResolvableEnum> void clickOn(
+    /**
+     * Click an enum-based ClickableElement with both before and after hooks.
+     *
+     * @param beforeAction hook before click (nullable)
+     * @param enumClass    enum class
+     * @param label        label to resolve
+     * @param afterAction  hook after click (nullable)
+     * @param <T>          Clickable + Resolvable enum
+     * @throws RuntimeException if click fails
+     */
+    public <T extends Enum<T> & Clickable> void clickOn(
             @Nullable ActionHandler beforeAction,
             Class<T> enumClass,
             String label,
             @Nullable ActionHandler afterAction
     ) {
         try {
-            T element = EnumResolver.stringToEnum(enumClass, label);
+            @SuppressWarnings({"rawtypes","unchecked"})
+            T element = (T) EnumResolver.stringToEnum((Class) enumClass, label); // v1 ResolvableEnum only
             clickOn(of(beforeAction), element, of(afterAction));
         } catch (Exception e) {
             error.failed("Failed to click on element from " + enumClass.getSimpleName() + ": " + label + " " + e);
             throw new RuntimeException("Failed to click on element: " + label, e);
         }
     }
-    public <T extends Enum<T> & ClickableElement & ResolvableEnum> void clickOn(ActionHandler beforeAction, Class<T> enumClass, String label) { clickOn(beforeAction, enumClass, label, null); }
-    public <T extends Enum<T> & ClickableElement & ResolvableEnum> void clickOn(Class<T> enumClass, String label, ActionHandler afterAction) { clickOn(null, enumClass, label, afterAction); }
+    public <T extends Enum<T> & Clickable> void clickOn(ActionHandler beforeAction, Class<T> enumClass, String label) { clickOn(beforeAction, enumClass, label, null); }
+    public <T extends Enum<T> & Clickable> void clickOn(Class<T> enumClass, String label, ActionHandler afterAction) { clickOn(null, enumClass, label, afterAction); }
 
-    public void clickOnWithin(WebElement scope, ClickableElement element) {
+    /**
+     * Clicks a target within a specific scope node (useful for complex tables/cards).
+     *
+     * @param scope   parent WebElement
+     * @param element enum mapping to a child locator
+     * @throws RuntimeException if click fails
+     */
+    public void clickOnWithin(WebElement scope, Clickable element) {
         try {
-            By locator = LocatorResolver.primary(element);
+            By locator = LocatorResolverV1.getLocator(element); // role-based best available
             WebElement target = scope.findElement(locator);
             DOMUtils.scrollToElement(target);
             wait.until(ExpectedConditions.elementToBeClickable(target)).click();
@@ -345,29 +497,57 @@ public class Interactions {
         }
     }
 
-    // ======================= SELECT FROM DROPDOWN =======================
+    // ======================= SELECT FROM DROPDOWN (ALL OVERLOADS) =======================
 
+    /**
+     * Waits briefly for Angular Material CDK overlay to appear.
+     *
+     * <p>Why: mat-menu renders into an overlay pane detached from the main DOM tree.
+     * If we try to find a menu item before the overlay exists, lookup fails.</p>
+     *
+     * @implNote Uses a lightweight presence check on <code>div.cdk-overlay-pane</code>
+     *           via {@link WaitUtils#waitForCondition(WebDriver, org.openqa.selenium.support.ui.ExpectedCondition, By, Integer, Integer, Boolean, String)}.
+     */
     private void waitForOverlayToAppear() {
+        WebDriver activeDriver = DriverContext.getActiveDriver();
         By overlayPane = By.cssSelector("div.cdk-overlay-pane");
         WaitUtils.waitForCondition(
-                DriverContext.getDriver(),
-                drv -> drv.findElements(overlayPane).size() > 0,
+                activeDriver,
+                drv -> {
+                    assert drv != null;
+                    return !drv.findElements(overlayPane).isEmpty();
+                },
                 overlayPane,
-                5,
-                100,
+                5,   // seconds
+                100, // polling ms
                 true,
                 "cdk overlay to appear"
         );
     }
 
+    /**
+     * Selects an option from a dropdown using low-level locators.
+     * <ol>
+     *   <li>Clicks trigger (opens dropdown)</li>
+     *   <li>Waits for Angular CDK overlay (if applicable)</li>
+     *   <li>Clicks option</li>
+     * </ol>
+     *
+     * @param triggerLocator the locator for the dropdown trigger (button/icon to open the menu)
+     * @param optionLocator  the locator for the option (menu item) to be clicked
+     * @throws RuntimeException if trigger or option cannot be clicked or located
+     */
     public void selectFromDropdown(By triggerLocator, By optionLocator) {
         try {
+            // --- Trigger (open) ---
             WebElement trigger = driver.findElement(triggerLocator);
             debug.dropdown("[TRIGGER] " + triggerLocator);
             clickOn(trigger);
 
+            // --- Overlay appear (Angular menus) ---
             waitForOverlayToAppear();
 
+            // --- Option (select) ---
             debug.dropdown("[OPTION ] " + optionLocator);
             WebElement option = driver.findElement(optionLocator);
             clickOn(option);
@@ -379,11 +559,16 @@ public class Interactions {
         }
     }
 
-    /** Single-value dropdown: PRIMARY=trigger, SECONDARY=list-item */
-    public void selectFromDropdown(DropdownElement option) {
+    /**
+     * Select a single-value {@link Dropdown} (trigger+list come from the enum).
+     *
+     * @param option enum representing both the trigger and list item locators
+     * @throws RuntimeException if selection fails
+     */
+    public void selectFromDropdown(Dropdown option) {
         try {
-            By trigger = LocatorResolver.primary(option);
-            By listOption = LocatorResolver.secondary(option);
+            By trigger = LocatorResolverV1.getLocator(option, ElementRole.TRIGGER);
+            By listOption = LocatorResolverV1.getLocator(option, ElementRole.LIST, option.getArgs());
             selectFromDropdown(trigger, listOption);
             debug.dropdown("Selected → " + option.getDisplayText());
         } catch (Exception e) {
@@ -392,8 +577,19 @@ public class Interactions {
         }
     }
 
+    /**
+     * Advanced select for {@link Dropdown} with hooks and optional JS click.
+     *
+     * @param option                dropdown element representing trigger and list item
+     * @param beforeDropdownActions actions before clicking trigger (may be null)
+     * @param afterDropdownActions  actions after clicking trigger (may be null)
+     * @param beforeOptionActions   actions before clicking option (may be null)
+     * @param afterOptionActions    actions after clicking option (may be null)
+     * @param useJSExecutor         if true, click via JavaScript as a fallback/primary
+     * @throws RuntimeException if selection fails at any stage
+     */
     public void selectFromDropdown(
-            DropdownElement option,
+            Dropdown option,
             @Nullable List<ActionHandler> beforeDropdownActions,
             @Nullable List<ActionHandler> afterDropdownActions,
             @Nullable List<ActionHandler> beforeOptionActions,
@@ -401,16 +597,19 @@ public class Interactions {
             boolean useJSExecutor
     ) {
         try {
-            By trigger = LocatorResolver.primary(option);
-            By listOption = LocatorResolver.secondary(option);
+            By trigger = LocatorResolverV1.getLocator(option, ElementRole.TRIGGER);
+            By listOption = LocatorResolverV1.getLocator(option, ElementRole.LIST, option.getArgs());
             WebElement triggerElement = driver.findElement(trigger);
 
+            // Open
             if (beforeDropdownActions != null) for (ActionHandler a : beforeDropdownActions) if (a != null) a.execute(driver);
             clickOn(null, triggerElement, useJSExecutor, null);
             if (afterDropdownActions != null) for (ActionHandler a : afterDropdownActions) if (a != null) a.execute(driver);
 
+            // Wait overlay (if Angular)
             waitForOverlayToAppear();
 
+            // Select
             if (beforeOptionActions != null) for (ActionHandler a : beforeOptionActions) if (a != null) a.execute(driver);
             WebElement optionElement = wait.until(ExpectedConditions.visibilityOfElementLocated(listOption));
             clickOn(null, optionElement, useJSExecutor, null);
@@ -422,18 +621,24 @@ public class Interactions {
             throw new RuntimeException("Dropdown selection failed: " + option.getDisplayText(), e);
         }
     }
-    public void selectFromDropdown(DropdownElement option, boolean useJSExecutor) {
+    /** Overload for Dropdown: allow simple JS fallback, no hooks. */
+    public void selectFromDropdown(Dropdown option, boolean useJSExecutor) {
         selectFromDropdown(option, null, null, null, null, useJSExecutor);
     }
 
-    /** Multiple dropdown (three-dots): trigger index only, list label only. */
-    public void triggerDropdown(MultipleIdenticalDropdownElements dropdown, @Nullable Integer dropdownIndex) {
+    /**
+     * Triggers (opens) a {@link MultipleIdenticalDropdowns} by optional index.
+     * Important: Trigger uses the row index only (e.g., "(.../button)[%s]").
+     *
+     * @param dropdown      the three-dots (multi) dropdown enum
+     * @param dropdownIndex 1-based index of the row whose three-dots to open; null uses enum default
+     * @throws RuntimeException if trigger cannot be clicked
+     */
+    public void triggerDropdown(MultipleIdenticalDropdowns dropdown, @Nullable Integer dropdownIndex) {
         try {
-            // Trigger uses its specific key and INDEX as arg
-            By triggerLocator = LocatorResolver.key(dropdown, dropdown.getTriggerKey(),
-                    (dropdownIndex == null) ? dropdown.getArgs() : new Object[]{ dropdownIndex });
-            debug.dropdown("[TRIGGER args] index=" + (dropdownIndex == null ? "null" : dropdownIndex));
-            debug.dropdown("[TRIGGER key ] " + dropdown.getTriggerKey());
+            By triggerLocator = (dropdownIndex == null)
+                    ? LocatorResolverV1.getLocator(dropdown, ElementRole.MULTI_TRIGGER)
+                    : LocatorResolverV1.getLocator(dropdown, ElementRole.MULTI_TRIGGER, dropdownIndex);
             WebElement triggerElement = driver.findElement(triggerLocator);
             clickOn(triggerElement);
         } catch (Exception e) {
@@ -442,17 +647,27 @@ public class Interactions {
         }
     }
 
-    public void selectFromDropdown(@Nullable Integer dropdownIndex, MultipleIdenticalDropdownElements option) {
+    /**
+     * Selects an option from a {@link MultipleIdenticalDropdowns} (three-dots) using optional index.
+     *
+     * Argument separation:
+     * - Trigger: index only
+     * - List item: label only (single %s is the human label)
+     *
+     * @param dropdownIndex the 1-based index of the Nth three-dots on the page (may be null)
+     * @param option        the enum constant representing the specific menu option to click
+     * @throws RuntimeException if selection fails
+     */
+    public void selectFromDropdown(@Nullable Integer dropdownIndex, MultipleIdenticalDropdowns option) {
         try {
+            // 1) Trigger with INDEX ONLY
             triggerDropdown(option, dropdownIndex);
+
+            // 2) Wait overlay appear (Angular menu)
             waitForOverlayToAppear();
 
-            // List uses its specific key and LABEL (from enum args)
-            By optionLocator = LocatorResolver.key(option, option.getListLocatorKey(), option.getArgs());
-            debug.dropdown("[LIST args] label=" + option.getDisplayText());
-            debug.dropdown("[LIST key ] " + option.getListLocatorKey());
-            debug.dropdown("[LIST loc ] " + optionLocator);
-
+            // 3) Resolve list with LABEL ONLY — ignore dropdownIndex here
+            By optionLocator = LocatorResolverV1.getLocator(option.getExternalFileName(), option.getListLocator(), option.getArgs()); // list uses label only
             WebElement optionElement = driver.findElement(optionLocator);
             clickOn(optionElement);
 
@@ -465,11 +680,18 @@ public class Interactions {
         }
     }
 
-    public void selectFromDropdown(MultipleIdenticalDropdownElements option) { selectFromDropdown(null, option); }
+    /** Overload for MultipleDropdownElement with default index (null). */
+    public void selectFromDropdown(MultipleIdenticalDropdowns option) { selectFromDropdown(null, option); }
 
-    public void triggerDropdown(DropdownElement dropdown) {
+    /**
+     * Clicks the trigger element for any {@link Dropdown}.
+     *
+     * @param dropdown dropdown enum
+     * @throws RuntimeException on failure
+     */
+    public void triggerDropdown(Dropdown dropdown) {
         try {
-            By triggerLocator = LocatorResolver.primary(dropdown);
+            By triggerLocator = LocatorResolverV1.getLocator(dropdown, ElementRole.TRIGGER);
             WebElement triggerElement = driver.findElement(triggerLocator);
             clickOn(triggerElement);
         } catch (Exception e) {
@@ -478,120 +700,20 @@ public class Interactions {
         }
     }
 
-    public void selectFromDropdownByContext(String dropdownLabel, String optionLabel) {
-        switch (dropdownLabel.trim().toLowerCase()) {
-            case "import records":
-                AccountMappingElements.importRecordsDropdown selectedOption =
-                        EnumResolver.stringToEnum("importRecordsDropdown", optionLabel);
-                selectFromDropdown(selectedOption);
-                debug.dropdown("'" + optionLabel + "' selected from 'Import Records' Dropdown");
-                break;
-            default:
-                throw new UnsupportedOperationException("Dropdown not supported: " + dropdownLabel);
-        }
-    }
+    // ======================= GENERIC SEARCH AND RESULT HANDLING (RESTORED) =======================
 
-    // ======================= INPUT TEXT HANDLING =======================
-
-    public void inputText(TextInputFieldElement element, String text) {
-        try {
-            By locator = LocatorResolver.primary(element); // PRIMARY for input field
-            WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-            DOMUtils.scrollToElement(inputField);
-            UIContext.setLastElement(inputField);
-            try {
-                inputField.clear();
-                inputField.sendKeys(text);
-                debug.input("Entered " + text + " into " + element.getDisplayText());
-                info.success("Entered " + text + " into " + element.getDisplayText());
-            } catch (Exception e) {
-                warn.text("sendKeys() failed. Retrying with JS → " + element.getDisplayText() + " " + e);
-                ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", inputField, text);
-                info.input("[JS] → " + text + " set in " + element.getDisplayText());
-            }
-        } catch (Exception e) {
-            error.failed("Input failed for field: " + element.getDisplayText() + " " + e);
-            throw new RuntimeException("Input failed for: " + element.getDisplayText(), e);
-        }
-    }
-
-    // ======================= AUTOCOMPLETE SELECT HANDLING =======================
-
-    public void selectAutocompleteOption(String optionText, @Nullable List<ActionHandler> beforeClickActions, @Nullable List<ActionHandler> afterClickActions) {
-        try {
-            By matOptionLocator = By.xpath("//mat-option[normalize-space() and not(@aria-disabled='true')]");
-            wait.until(ExpectedConditions.visibilityOfElementLocated(matOptionLocator));
-            List<WebElement> options = driver.findElements(matOptionLocator);
-
-            WebElement match = null;
-            for (WebElement option : options) {
-                String optionTxt = option.getText().trim();
-                if (optionTxt.toLowerCase().contains(optionText.toLowerCase())) {
-                    match = option;
-                    break;
-                }
-            }
-            if (match == null) throw new RuntimeException("No mat-option matching '" + optionText + "' found.");
-            UIContext.setLastElement(match);
-
-            if (beforeClickActions != null) for (ActionHandler action : beforeClickActions) if (action != null) action.execute(driver);
-
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", match);
-            try {
-                new org.openqa.selenium.interactions.Actions(driver)
-                        .moveToElement(match)
-                        .pause(Duration.ofMillis(200))
-                        .click(match)
-                        .perform();
-            } catch (Exception e) {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", match);
-            }
-
-            if (afterClickActions != null) for (ActionHandler action : afterClickActions) if (action != null) action.execute(driver);
-            info.log("[selectAutocompleteOption] Selected: " + optionText);
-        } catch (Exception e) {
-            error.failed("Failed to select autocomplete option '" + optionText + "': " + e.getMessage());
-            throw new RuntimeException("Failed to select autocomplete option: " + optionText, e);
-        }
-    }
-
-    // ======================= TABLE SEARCH HANDLING =======================
-
-    public List<Map<String, String>> searchThisTable(
-            @Nullable List<ActionHandler> beforeActions,
-            @Nullable WebElement searchField,
-            TableElement table,
-            String searchColumn,
-            String searchTerm,
-            @Nullable WebElement searchButton,
-            @Nullable Set<String> desiredColumns,
-            @Nullable List<ActionHandler> afterActions
-    ) {
-        try {
-            performSearch(beforeActions, searchField, searchTerm, searchButton, afterActions);
-            Map<String, Object> columnData = new HashMap<>();
-            columnData.put(searchColumn, searchTerm);
-            List<Map<String, String>> rows = TableHandler.getRow(
-                    table,
-                    null,
-                    columnData,
-                    true
-            );
-            info.result("[SearchThisTable] Found " + rows.size() + " matching row(s) for filter → " +
-                    searchColumn + " = '" + searchTerm + "'");
-            return rows;
-        } catch (Exception e) {
-            error.failed("[SearchThisTable] Failed for table: " + table.getDisplayText() +
-                    " using filter → " + searchColumn + " = '" + searchTerm + "': " + e.getMessage());
-            throw new RuntimeException("SearchThisTable failed for: " + table.getDisplayText(), e);
-        }
-    }
-    public List<Map<String, String>> searchThisTable(TableElement table, String searchColumn, String searchTerm) {
-        return searchThisTable(null, null, table, searchColumn, searchTerm, null, null, null);
-    }
-
-    // ======================= GENERIC SEARCH AND RESULT HANDLING =======================
-
+    /**
+     * Performs a simple search flow:
+     *  - scroll to field
+     *  - type term
+     *  - click button OR press ENTER
+     *
+     * @param beforeActions optional hooks before
+     * @param searchField   the input element (WebElement already located)
+     * @param searchTerm    term to search
+     * @param searchButton  optional button to click (nullable)
+     * @param afterActions  optional hooks after
+     */
     public void performSearch(
             @Nullable List<ActionHandler> beforeActions,
             WebElement searchField,
@@ -606,8 +728,7 @@ public class Interactions {
             UIContext.setLastElement(searchField);
             searchField.clear();
             searchField.sendKeys(searchTerm);
-            if (searchButton != null) clickOn(searchButton);
-            else searchField.sendKeys(Keys.ENTER);
+            if (searchButton != null) clickOn(searchButton); else searchField.sendKeys(Keys.ENTER);
             if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
         } catch (Exception e) {
             error.failed("[SEARCH] Failed to perform search for: '" + searchTerm + "' " + e);
@@ -615,16 +736,17 @@ public class Interactions {
         }
     }
 
-    public WebElement getSearchedElement(SearchableElementInput field, String searchTerm) {
+    /**
+     * Performs a search using a Searchable field and returns the first result WebElement after scrolling.
+     * Uses SEARCH_INPUT then SEARCH_RESULT roles.
+     */
+    public WebElement getSearchedElement(Searchable field, String searchTerm) {
         try {
-            // PRIMARY = input field
-            By inputLocator = LocatorResolver.primary(field);
+            By inputLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_INPUT);
             WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
             UIContext.setLastElement(inputField);
             performSearch(null, inputField, searchTerm, null, null);
-
-            // SECONDARY key but with caller-supplied arg(s) (searchTerm)
-            By resultLocator = LocatorResolver.key(field, field.getSecondaryLocator(), searchTerm);
+            By resultLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_RESULT, searchTerm);
             DOMUtils.scrollToElement(driver.findElement(resultLocator));
             return wait.until(ExpectedConditions.visibilityOfElementLocated(resultLocator));
         } catch (Exception e) {
@@ -634,37 +756,38 @@ public class Interactions {
         }
     }
 
-    public String getSearchResultText(SearchableElementInput field, String searchTerm) {
+    /** Returns the display text for a searched/selected value after performing search. */
+    public String getSearchResultText(Searchable field, String searchTerm) {
         WebElement result = getSearchedElement(field, searchTerm);
         return result != null ? result.getText().trim() : "";
     }
 
-    public List<WebElement> searchAndGetResults(SearchableElementInput field, String searchTerm) {
+    /** Performs a search and returns all result WebElements (list may be empty). */
+    public List<WebElement> searchAndGetResults(Searchable field, String searchTerm) {
         try {
-            By inputLocator = LocatorResolver.primary(field);
+            By inputLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_INPUT);
             WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
             UIContext.setLastElement(inputField);
             performSearch(null, inputField, searchTerm, null, null);
-
-            // Use supplier for multi-arg result patterns
-            By resultLocator = LocatorResolver.key(field, field.getSecondaryLocator(), field.getResultArgsSupplier().get());
+            By resultLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_RESULT, field.getArgs());
             return wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(resultLocator));
         } catch (TimeoutException e) {
             warn.log("[SEARCH] No results found for term: '" + searchTerm + "' in " + field.getDisplayText());
             return List.of();
         } catch (Exception e) {
             error.failed("Failed to search and get results for: " + searchTerm + " " + e);
-            throw new RuntimeException("SearchAndGetResults failed", e);
+            throw new RuntimeException("searchAndGetResults failed", e);
         }
     }
 
-    public List<WebElement> searchThisList(SearchableElementInput field, String searchTerm) {
+    /** Specialized search for shared list context. */
+    public List<WebElement> searchThisList(Searchable field, String searchTerm) {
         try {
-            By inputLocator = LocatorResolver.primary(field);
+            By inputLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_INPUT);
             WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
             UIContext.setLastElement(inputField);
             performSearch(null, inputField, searchTerm, null, null);
-            By resultLocator = LocatorResolver.key(field, field.getSecondaryLocator(), field.getResultArgsSupplier().get());
+            By resultLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_RESULT, field.getArgs());
             return wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(resultLocator));
         } catch (TimeoutException e) {
             warn.log("[SearchThisList] No results found for → '" + searchTerm + "'");
@@ -675,8 +798,9 @@ public class Interactions {
         }
     }
 
+    /** Generic search + optional click first result. */
     public WebElement searchFor(
-            SearchableElementInput field,
+            Searchable field,
             boolean clickResult,
             @Nullable List<ActionHandler> beforeSearch,
             @Nullable List<ActionHandler> afterSearch,
@@ -704,128 +828,8 @@ public class Interactions {
             throw new RuntimeException("searchFor failed for: " + Arrays.toString(resultArgs), e);
         }
     }
-    public WebElement searchFor(SearchableElementInput field, String searchTerm) { return searchFor(field, true, null, null, null, null, searchTerm); }
-    public WebElement searchForWithoutClick(SearchableElementInput field, String searchTerm) { return searchFor(field, false, null, null, null, null, searchTerm); }
-    public WebElement searchFor(SearchableElementInput field, @Nullable List<ActionHandler> beforeSearch, @Nullable List<ActionHandler> afterSearch, String searchTerm) {
-        return searchFor(field, true, beforeSearch, afterSearch, null, null, searchTerm);
-    }
-    public WebElement searchFor(SearchableElementInput field, String searchTerm, @Nullable List<ActionHandler> beforeClick, @Nullable List<ActionHandler> afterClick) {
-        return searchFor(field, true, null, null, beforeClick, afterClick, searchTerm);
-    }
-    public WebElement searchFor(SearchableElementInput field, boolean clickResult, Object... resultArgs) {
-        return searchFor(field, clickResult, null, null, null, null, resultArgs);
-    }
-    public WebElement searchFor(SearchableElementInput field, ActionHandler beforeSearch, String searchTerm) {
-        return searchFor(field, true, of(beforeSearch), null, null, null, searchTerm);
-    }
-    public WebElement searchFor(SearchableElementInput field, String searchTerm, ActionHandler afterSearch) {
-        return searchFor(field, true, null, of(afterSearch), null, null, searchTerm);
-    }
+    public WebElement searchFor(Searchable field, String searchTerm) { return searchFor(field, true, null, null, null, null, searchTerm); }
+    public WebElement searchForWithoutClick(Searchable field, String searchTerm) { return searchFor(field, false, null, null, null, null, searchTerm); }
 
-    // ======================= CHECKBOX HANDLING =======================
-
-    public void setCheckbox(
-            CheckboxElement element,
-            Boolean checkFlag,
-            @Nullable List<ActionHandler> beforeActions,
-            @Nullable List<ActionHandler> afterActions
-    ) {
-        try {
-            By locator = LocatorResolver.primary(element); // PRIMARY for checkbox element
-            WebElement checkbox = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
-            UIContext.setLastElement(checkbox);
-
-            boolean currentlyChecked = element.isChecked(driver);
-            boolean shouldClick = false;
-            String actionMsg;
-
-            if (checkFlag == null) {
-                shouldClick = true;
-                actionMsg = "Toggling (clicking) checkbox regardless of current state.";
-            } else if (checkFlag && !currentlyChecked) {
-                shouldClick = true;
-                actionMsg = "Checking checkbox (was unchecked).";
-            } else if (!checkFlag && currentlyChecked) {
-                shouldClick = true;
-                actionMsg = "Unchecking checkbox (was checked).";
-            } else {
-                actionMsg = "Checkbox already in desired state (" + (currentlyChecked ? "checked" : "unchecked") + "). No click needed.";
-            }
-
-            info.checkbox(element.getDisplayText() + ": " + actionMsg + " State: " + checkFlag);
-
-            if (shouldClick) {
-                if (beforeActions != null) for (ActionHandler before : beforeActions) if (before != null) before.execute(driver);
-                clickOn(checkbox);
-
-                if (checkFlag != null) {
-                    boolean afterChecked = element.isChecked(driver);
-                    if (checkFlag != afterChecked) {
-                        warn.failed("Checkbox '" + element.getDisplayText() + "' did not reach desired state after click.");
-                    } else {
-                        info.success("Checkbox '" + element.getDisplayText() + "' is now " + (afterChecked ? "checked" : "unchecked") + ".");
-                    }
-                }
-                if (afterActions != null) for (ActionHandler after : afterActions) if (after != null) after.execute(driver);
-            }
-        } catch (Exception e) {
-            error.failed("Failed to set checkbox: " + element.getDisplayText() + " " + e);
-            throw new RuntimeException("Checkbox action failed for: " + element.getDisplayText(), e);
-        }
-    }
-
-    public void setCheckbox(CheckboxElement element, boolean check) { setCheckbox(element, check, null, null); }
-
-    public boolean setCheckbox(
-            WebElement checkbox,
-            Boolean checkFlag,
-            @Nullable List<ActionHandler> beforeActions,
-            @Nullable List<ActionHandler> afterActions
-    ) {
-        try {
-            if (beforeActions != null) for (ActionHandler before : beforeActions) if (before != null) before.execute(driver);
-            String ariaChecked = checkbox.getAttribute("aria-checked");
-            boolean currentlyChecked = ariaChecked != null ? "true".equalsIgnoreCase(ariaChecked) : checkbox.isSelected();
-            boolean shouldClick = false;
-            String actionMsg;
-
-            if (checkFlag == null) {
-                shouldClick = true;
-                actionMsg = "Toggling (clicking) checkbox regardless of current state.";
-            } else if (checkFlag && !currentlyChecked) {
-                shouldClick = true;
-                actionMsg = "Checking checkbox (was unchecked).";
-            } else if (!checkFlag && currentlyChecked) {
-                shouldClick = true;
-                actionMsg = "Unchecking checkbox (was checked).";
-            } else {
-                actionMsg = "Checkbox already in desired state (" + (currentlyChecked ? "checked" : "unchecked") + "). No click needed.";
-            }
-
-            info.checkbox("setCheckboxByWebElement: " + actionMsg);
-
-            if (shouldClick) {
-                clickOn(checkbox);
-                if (checkFlag != null) {
-                    ariaChecked = checkbox.getAttribute("aria-checked");
-                    boolean afterChecked = ariaChecked != null ? "true".equalsIgnoreCase(ariaChecked) : checkbox.isSelected();
-                    if (checkFlag != afterChecked) {
-                        warn.failed("Checkbox did not reach desired state after click.");
-                    } else {
-                        info.success("Checkbox is now " + (afterChecked ? "checked" : "unchecked") + ".");
-                    }
-                    currentlyChecked = afterChecked;
-                }
-            }
-            if (afterActions != null) for (ActionHandler after : afterActions) if (after != null) after.execute(driver);
-            return currentlyChecked;
-        } catch (Exception e) {
-            error.failed("Failed to set checkbox by WebElement: " + e);
-            throw new RuntimeException("Checkbox action by WebElement failed.", e);
-        }
-    }
-
-    public boolean setCheckbox(WebElement checkbox, Boolean checkFlag) { return setCheckbox(checkbox, checkFlag, null, null); }
-    public boolean clickCheckbox(WebElement checkbox) { return setCheckbox(checkbox, null, null, null); }
-    public void clickOn(CheckboxElement element) { setCheckbox(element, null, null, null); }
+    // ======================= END SEARCH SECTION =======================
 }

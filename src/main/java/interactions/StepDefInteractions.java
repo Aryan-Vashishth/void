@@ -1,9 +1,10 @@
 package interactions;
 
 import Elements.EnumClassRegistry;
-import Elements.Interfaces.*;
-import core.locators.LocatorResolver; // ← centralized AUTO resolver (JSON→.properties)
+import Elements.interfacesv1.*;
+import core.resolvers.locator.LocatorResolverV1;
 import core.logging.CustomLogger;
+import core.utils.EnumResolver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -29,10 +30,16 @@ public class StepDefInteractions extends Interactions {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Enum<T> & ClickableElement & ResolvableEnum> void clickUsingCastedEnum(Class<?> rawClass, String unresolvedEnumName, ActionHandler after) {
-        Class<T> typedClass = (Class<T>) rawClass;
-        T element = stringToEnum(typedClass, unresolvedEnumName);
-        clickOn(element, after);
+    // Removed generic type parameter usage to avoid unused warning; still enforces Clickable via runtime checks.
+    private void clickUsingCastedEnum(Class<?> rawClass, String unresolvedEnumName, ActionHandler after) {
+        if (rawClass == null || !rawClass.isEnum()) {
+            throw new IllegalArgumentException("Provided class is not an enum: " + rawClass);
+        }
+        if (!Clickable.class.isAssignableFrom(rawClass)) {
+            throw new IllegalArgumentException("Enum does not implement Clickable: " + rawClass.getSimpleName());
+        }
+        Enum<?> resolvedEnum = resolveEnumConstant((Class<? extends Enum<?>>) rawClass, unresolvedEnumName);
+        clickOn((Clickable) resolvedEnum, after);
     }
 
     @SuppressWarnings("unchecked")
@@ -47,13 +54,30 @@ public class StepDefInteractions extends Interactions {
         return stringToEnum((Class<T>) rawClass, unresolvedEnumName);
     }
 
+    /**
+     * Local enum constant resolver: supports raw name (normalized) and label if ResolvableEnum.
+     */
+    private Enum<?> resolveEnumConstant(Class<? extends Enum<?>> enumClass, String input) {
+        if (input == null || input.isBlank()) {
+            throw new IllegalArgumentException("Input enum name cannot be null/blank.");
+        }
+        String normalized = EnumResolver.normalizeToEnumName(input);
+        for (Enum<?> constant : enumClass.getEnumConstants()) {
+            if (constant.name().equalsIgnoreCase(normalized)) return constant;
+            if (constant instanceof ResolvableEnum re && input.equalsIgnoreCase(re.getLabel())) return constant;
+        }
+        throw new IllegalArgumentException("No matching constant or label for '" + input + "' (normalized: " + normalized + ") in enum: " + enumClass.getSimpleName());
+    }
+
     // ========================= Click helpers (Navigation, Context) =========================
 
 
+    @SuppressWarnings("unused")
     public void clickOnFrom(String keySuffix, String unresolvedEnumName, ActionHandler after) {
         clickOnFrom(null, keySuffix, unresolvedEnumName, after);
     }
 
+    @SuppressWarnings("unused")
     public void clickOnFrom(String keyPrefix, String keySuffix, String unresolvedEnumName, ActionHandler after) {
         String resolvedContextKey = EnumClassRegistry.resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         try {
@@ -65,9 +89,9 @@ public class StepDefInteractions extends Interactions {
             if (!Enum.class.isAssignableFrom(rawEnumClass)) {
                 throw new IllegalArgumentException("Class mapped from context is not an enum: " + rawEnumClass.getSimpleName());
             }
-            if (!ClickableElement.class.isAssignableFrom(rawEnumClass) ||
+            if (!Clickable.class.isAssignableFrom(rawEnumClass) ||
                     !ResolvableEnum.class.isAssignableFrom(rawEnumClass)) {
-                throw new IllegalArgumentException("Enum must implement both ClickableElement and ResolvableEnum.");
+                throw new IllegalArgumentException("Enum must implement both Clickable and ResolvableEnum.");
             }
 
             clickUsingCastedEnum(rawEnumClass, unresolvedEnumName, after);
@@ -80,39 +104,41 @@ public class StepDefInteractions extends Interactions {
 
     // ========================= Dropdown (Context) =========================
 
-    @Override
+    @SuppressWarnings("unused")
     public void selectFromDropdownByContext(String keySuffix, String unresolvedEnumName) {
         selectFromDropdownByContext(null, keySuffix, unresolvedEnumName);
     }
 
+    @SuppressWarnings("unused")
     public void selectFromDropdownByContext(String keyPrefix, String keySuffix, String unresolvedEnumName) {
         String resolvedContextLabel = EnumClassRegistry.resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
-        if (!(resolved instanceof DropdownElement dropdown)) {
-            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a DropdownElement.");
+        if (!(resolved instanceof Dropdown dropdown)) {
+            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a Dropdown.");
         }
         selectFromDropdown(dropdown);
     }
 
+    @SuppressWarnings("unused")
     public void selectFromDropdownByContext(String keyPrefix, String keySuffix, int dropdownIndex, String unresolvedEnumName) {
         String resolvedContextLabel = EnumClassRegistry.resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
         // Prefer a specific multi-instance interface if present; otherwise fallback to singleton dropdown.
-        if (resolved instanceof MultipleIdenticalDropdownElements multiDropdownOption) {
+        if (resolved instanceof MultipleIdenticalDropdowns multiDropdownOption) {
             selectFromDropdown(dropdownIndex, multiDropdownOption);
             return;
         }
-        if (resolved instanceof DropdownElement singleDropdownOption) {
-            warn.log("Context '" + resolvedContextLabel + "' resolved to a singleton DropdownElement; index "
+        if (resolved instanceof Dropdown singleDropdownOption) {
+            warn.log("Context '" + resolvedContextLabel + "' resolved to a singleton Dropdown; index "
                     + dropdownIndex + " will be ignored.");
             selectFromDropdown(singleDropdownOption);
             return;
         }
 
         throw new IllegalArgumentException(
-                "Enum for context '" + resolvedContextLabel + "' must implement MultipleDropdownElement or DropdownElement. " +
+                "Enum for context '" + resolvedContextLabel + "' must implement MultipleDropdown or Dropdown. " +
                         "Got: " + resolved.getClass().getSimpleName()
         );
     }
@@ -141,16 +167,17 @@ public class StepDefInteractions extends Interactions {
         Class<?> enumClass = EnumClassRegistry.CONTEXT_MAP.get(resolvedContextLabel);
         Enum<?> first = getFirstEnumConstant(enumClass, resolvedContextLabel);
 
-        if (first instanceof MultipleIdenticalDropdownElements multiDropdown) {
+        if (first instanceof MultipleIdenticalDropdowns multiDropdown) {
             triggerDropdown(multiDropdown, dropdownIndex);
-        } else if (first instanceof DropdownElement singleDropdown) {
+        } else if (first instanceof Dropdown singleDropdown) {
             triggerDropdown(singleDropdown);
         } else {
             throw new IllegalArgumentException(
-                    "Enum does not implement DropdownElement or MultipleDropdownElement: " + enumClass.getSimpleName());
+                    "Enum does not implement Dropdown or MultipleDropdown: " + enumClass.getSimpleName());
         }
     }
 
+    @SuppressWarnings("unused")
     public void triggerDropdownByContext(String keyPrefix, String keySuffix) {
         triggerDropdownByContext(keyPrefix, keySuffix, null);
     }
@@ -170,12 +197,12 @@ public class StepDefInteractions extends Interactions {
             }
 
             Enum<?> firstEnum = getFirstEnumConstant(rawEnumClass, resolvedContextKey);
-            if (!(firstEnum instanceof SearchableElementInput)) {
+            if (!(firstEnum instanceof Searchable)) {
                 throw new IllegalArgumentException("Enum for context '" + resolvedContextKey + "' is not a SearchableElement.");
             }
 
             ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextKey);
-            if (!(resolved instanceof SearchableElementInput searchable)) {
+            if (!(resolved instanceof Searchable searchable)) {
                 throw new IllegalArgumentException("Resolved enum does not implement SearchableElement: " + unresolvedEnumName);
             }
 
@@ -187,6 +214,7 @@ public class StepDefInteractions extends Interactions {
         }
     }
 
+    @SuppressWarnings("unused")
     public void clickSearchableElementByContext(String keyPrefix, String keySuffix, String unresolvedEnumName, String searchTerm){
         WebElement element;
         try {
@@ -199,6 +227,7 @@ public class StepDefInteractions extends Interactions {
 
     // ========================= Visibility verification (Context) =========================
 
+    @SuppressWarnings("unused")
     public boolean verifyElementsAreVisible(String keySuffix, List<String> unresolvedEnumNames) {
         return verifyElementsAreVisible(null, keySuffix, unresolvedEnumNames);
     }
@@ -211,20 +240,8 @@ public class StepDefInteractions extends Interactions {
         for (String unresolvedEnumName : unresolvedEnumNames) {
             try {
                 ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
-
-                // Default visibility target = PRIMARY locator of the element.
-                // For dropdowns, PRIMARY = trigger (not the overlay list).
-                By locator;
-                String displayText;
-
-                if (resolved instanceof BaseElement base) {
-                    locator = LocatorResolver.primary(base);
-                    displayText = base.toString();
-                } else {
-                    warn.failed("Skipping unsupported element type for: " + unresolvedEnumName);
-                    allVisible = false;
-                    continue;
-                }
+                By locator = LocatorResolverV1.getLocator(resolved.getExternalFileName(), resolved.getPrimaryLocator(), resolved.getArgs());
+                String displayText = resolved.getLabel();
 
                 boolean visible = WaitUtils.waitForCondition(
                         "element '" + unresolvedEnumName + "' to be visible",
@@ -261,18 +278,55 @@ public class StepDefInteractions extends Interactions {
         String resolvedContextLabel = EnumClassRegistry.resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
-        if (!(resolved instanceof CheckboxElement checkbox)) {
-            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a CheckboxElement.");
+        // Using v1 Checkbox interface (replacing v2 CheckboxElement)
+        if (!(resolved instanceof Checkbox checkbox)) {
+            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a Checkbox.");
         } else {
             setCheckbox(checkbox, check);
         }
     }
 
+    @SuppressWarnings("unused")
     public void checkCheckboxByContext(String keyPrefix, String keySuffix, String unresolvedEnumName) {
         setCheckboxByContext(keyPrefix, keySuffix, unresolvedEnumName, true);
     }
 
+    @SuppressWarnings("unused")
     public void uncheckCheckboxByContext(String keyPrefix, String keySuffix, String unresolvedEnumName) {
         setCheckboxByContext(keyPrefix, keySuffix, unresolvedEnumName, false);
+    }
+
+    // Local helper to set checkbox state using v1 locator resolution only.
+    private void setCheckbox(Checkbox checkbox, boolean desiredState) {
+        try {
+            By locator = LocatorResolverV1.getLocator(checkbox);
+            WebElement cb = driver.findElement(locator);
+            // Determine current state (try aria-checked, then checked attribute, then isSelected).
+            boolean current;
+            try {
+                String aria = cb.getAttribute("aria-checked");
+                if (aria != null && !aria.isBlank()) {
+                    current = aria.equalsIgnoreCase("true");
+                } else {
+                    String checkedAttr = cb.getAttribute("checked");
+                    if (checkedAttr != null) {
+                        current = true; // presence implies checked
+                    } else {
+                        current = cb.isSelected();
+                    }
+                }
+            } catch (Exception ignored) {
+                current = cb.isSelected();
+            }
+            if (current != desiredState) {
+                clickOn(cb); // use existing click pipeline
+                info.success("Checkbox toggled → " + checkbox.getDisplayText() + " to " + desiredState);
+            } else {
+                info.validation("Checkbox already in desired state → " + checkbox.getDisplayText() + " = " + desiredState);
+            }
+        } catch (Exception e) {
+            error.failed("Failed to set checkbox: " + checkbox.getDisplayText() + " " + e.getMessage());
+            throw new RuntimeException("Failed to set checkbox state for: " + checkbox.getDisplayText(), e);
+        }
     }
 }

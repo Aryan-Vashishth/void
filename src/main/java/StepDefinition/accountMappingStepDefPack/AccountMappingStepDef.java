@@ -20,7 +20,7 @@
 //import core.driver.DriverFactory;
 //import core.utils.DataGenerator;
 //import core.utils.json.JsonLogger;
-//import core.locators.PropertiesFileLocatorReader;
+//import core.resolvers.locators.PropertiesFileLocatorReader;
 //import core.logging.CustomLogger;
 //import core.utils.KeyValuePairHandler;
 //import core.utils.TableHandler;

@@ -1,14 +1,14 @@
 package core.utils;
 
-import Elements.Interfaces.ReadOnlyElement;
+import Elements.interfacesv1.*;
 import com.beust.jcommander.internal.Nullable;
 import com.shaded.jetbrains.annotations.NotNull;
 import core.driver.DriverContext;
+import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
-import core.locators.PropertiesFileLocatorReader;
 
 import java.time.Duration;
 import java.util.List;
@@ -106,7 +106,7 @@ public class WaitUtils extends BaseUtils {
     }
 
     public static void waitForElementToDisappear(ReadOnlyElement element) {
-        By locator = PropertiesFileLocatorReader.getLocator(element);
+        By locator = LocatorResolverV1.getLocator(element);
         waitForElementToDisappear(locator);
     }
 

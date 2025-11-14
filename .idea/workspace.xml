@@ -4,16 +4,136 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f867ade8-630b-4895-b968-128681e477e2" name="Changes" comment="Deleted some stuff" />
+    <list default="true" id="f867ade8-630b-4895-b968-128681e477e2" name="Changes" comment="Deleted some stuff">
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/DemoPageElements.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/ElementRole.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/Checkbox.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/Clickable.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/Dropdown.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/Element.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/FileInputElement.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/KeyValuePair.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/ListElement.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/MultipleIdenticalDropdowns.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/ReadOnlyElement.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/SearchField.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/Searchable.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/SearchableDropdown.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/TableElement.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/TextInputField.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/ToolTipElement.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/ResolvableEnum.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/WritableTableElement.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/core/logging/LogConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/ElementLocatorResolverV1.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/LocatorReader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/LocatorResolverV1.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/json/JsonLocatorReaderV1.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/properties/PropertiesFileLocatorReaderV1.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/core/utils/properties/PropertiesReader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/testNgXml/testng.xml.new" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/void-framework.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/RenewalsWithAdminUser.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/RenewalsWithAdminUser.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/locators/account-mapping-home-elements.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/APIIntegration/DealCoach/GetAPI.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/APIIntegration/DealCoach/PostAPI.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CommonUtilMethods/ApplicationCommonElements.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/AccountMapping/HomePage/CustomReports.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/AccountMapping/HomePage/DefaultReportsTiles.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/AccountMapping/HomePage/ImportRecords/Popup.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/AccountMapping/HomePage/ImportRecordsDropdown.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/AccountMapping/HomePage/QuickSearch.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/Header.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/NavigationBar.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/RecordsPage/ActionsDropdown.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/RecordsPage/CustomReports.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/RecordsPage/DefaultReports.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/RecordsPage/Grid.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/RecordsPage/GroupByDropdown.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/RecordsPage/Record.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/Common/RecordsPage/Search.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Components/CommonComponents.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Configurations/BrowserConfigurations.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Configurations/EnvironmentConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Configurations/InitialiseBaseTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/InfoElements.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/InfoElements.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/BaseElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/BaseElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/CheckboxElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/CheckboxElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/ClickableElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/ClickableElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/DropdownElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/DropdownElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/FileInputElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/FileInputElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/Form.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/Form.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/KeyValuePairElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/KeyValuePairElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/ListElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/ListElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/MultipleIdenticalDropdownElements.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/MultipleIdenticalDropdownElements.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/ReadOnlyElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/ReadOnlyElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/ResolvableEnum.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/ResolvableEnum.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/SearchableElementInput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/SearchableElementInput.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/TableElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/TableElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/TextInputFieldElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/TextInputFieldElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/ToolTipElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv2/ToolTipElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Elements/Interfaces/WritableTableElement.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/interfacesv1/WritableTableElement.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/StepDefinition/CommonStepDef/CaseSensitive.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Elements/ManageUsersElements.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/StepDefinition/CommonStepDef/CommonStepDef.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/StepDefinition/CommonStepDef/CommonStepDef.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/StepDefinition/accountMappingStepDefPack/AccountMappingStepDef.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/StepDefinition/accountMappingStepDefPack/AccountMappingStepDef.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/WebApplication/VOID.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/WebApplication/VOID.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/locators/JsonLocatorMigrator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/json/JsonLocatorMigrator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/locators/JsonLocatorReader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/json/JsonLocatorReader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/locators/LocatorResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/LocatorResolverV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/locators/PropertiesFileLocatorReader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/properties/PropertiesFileLocatorReader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/BaseUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/BaseUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/ConfigLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/ConfigLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/DataGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/DataGenerator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/EnumResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/EnumResolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/Info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/Info.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/KeyValuePairHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/KeyValuePairHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/TableHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/TableHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/ToolTipsResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/ToolTipsResolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/Upload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/Upload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/WaitUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/WaitUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/interactions/Interactions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/interactions/Interactions.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/interactions/StepDefInteractions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/interactions/StepDefInteractions.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/feature/AccountMapping/AccountMapping.feature" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/feature/AccountMapping/AccountMapping.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_partner_user.feature" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_partner_user.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_vendor_user.feature" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_vendor_user.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/testNgXml/testng.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/testNgXml/testng.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/AccountMapping/AccountMapping.feature" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/feature/AccountMapping/AccountMapping.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_partner_user.feature" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_partner_user.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_vendor_user.feature" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/feature/AccountMapping/verify_account_mapping_ui_and_functionality_for_vendor_user.feature" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/AnalyticsDashboards.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/AutoReg.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/CreateAnAccount.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/DealCoach.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/Login.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/Renewals.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/Temp.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/feature/VartopiaHub.feature" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/locators/common-elements.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/locators/common-elements.properties" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="base-setup" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -28,37 +148,65 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/Aryan-Vashishth/void-framework.git&quot;,
-    &quot;accountId&quot;: &quot;39ed81cf-5193-4b32-ad53-dc692f35666c&quot;
+    &quot;accountId&quot;: &quot;3d408214-4159-4dd0-9bcc-27b5890dd4d4&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
 }</component>
   <component name="ProjectId" id="34Sd6i4lppFvq03sl9opVBBqIUB" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.JsonLocatorMigrator.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "development",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/manvi/IdeaProjects/void-framework",
-    "project.structure.last.edited": "SDKs",
-    "project.structure.proportion": "0.0",
+    "last_opened_file_path": "D:/void-framework",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+    "settings.editor.selected.configurable": "configurable.group.build"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\void-framework\src\main\java\Elements" />
       <recent name="C:\Users\manvi\IdeaProjects\void-framework" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\void-framework\src\main\java\interactions" />
+      <recent name="D:\void-framework\src\main\java\core\resolvers\locator" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="core.resolvers.locator.properties" />
+      <recent name="Elements.interfacesv1" />
+    </key>
   </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="void-framework" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="void-framework" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="f867ade8-630b-4895-b968-128681e477e2" name="Changes" comment="" />

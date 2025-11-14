@@ -1,0 +1,14 @@
+{
+  "DemoPageElements" : {
+    "Login" : {
+      "inputLocator" : "xpath=//input[@name=''%s']",
+      "LoginButton" : {
+        "triggerLocator" : "xpath=//button[@id='submit']"
+      }
+    },
+    "NavBar" : {
+      "triggerLocator" : "USER_TYPE_TRIGGER",
+      "listLocator" : "USER_TYPE_LIST "
+    }
+  }
+}

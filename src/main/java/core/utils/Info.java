@@ -1,88 +1,34 @@
 package core.utils;
 
-import Elements.InfoElements;
-import core.locators.PropertiesFileLocatorReader;
+import Elements.ManageUsersElements;
+import Elements.interfacesv1.ReadOnlyElement;
+import core.driver.DriverContext;
+import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static Configurations.InitialiseBaseTest.*;
-import static core.utils.ToolTipsResolver.resolveTooltipByTooltipElements;
+import static core.logging.CustomLogger.*;
 
+/**
+ * Info utilities (v1 only) supplying breadcrumb and simple page/user info access.
+ */
 public class Info extends BaseUtils {
 
-    public Info(){
-        initializer(driver);
-    }
-
-
-    public static class InvalidUserTypeException extends RuntimeException {
-        public InvalidUserTypeException(String message) {
-            super(message);
-        }
-    }
-
-    public static String currentUserType() {
-        debug.log("[DEBUG] Entered method: currentUserType()");
-        try {
-            String current = VOID.interaction().getText(InfoElements.CURRENT_USER_TYPE).trim();
-            info.log(ANSI_CYAN + "[INFO] Current user type: " + current);
-            return current;
-        } catch (Exception e) {
-            error.log("Failed to fetch current user type from UI." +e);
-            throw new RuntimeException("Unable to retrieve current user type.", e);
-        }
-    }
-
-    public static Boolean isCurrentUserType(String userType) {
-        debug.log("[DEBUG] Entered method: isCurrentUserType(userType=" + userType + ")");
-        try {
-            if (userType == null || userType.trim().isEmpty()) {
-                throw new InvalidUserTypeException("User type must not be null or empty.");
-            }
-
-            String normalized = userType.trim().toLowerCase();
-            switch (normalized) {
-                case "admin":
-                case "vendor":
-                case "distributor":
-                case "partner":
-                    break;
-                default:
-                    throw new InvalidUserTypeException("Unsupported user type: '" + userType + "'. Expected one of: Admin, Vendor, Distributor, Partner.");
-            }
-
-            String current = currentUserType();
-            boolean match = userType.equalsIgnoreCase(current);
-
-            if (match) {
-                info.log("[MATCH] User type matches expected: " + userType);
-            } else {
-                warn.log("[MISMATCH] Expected: " + userType + ", but found: " + current);
-            }
-
-            return match;
-
-        } catch (InvalidUserTypeException e) {
-            error.log("Invalid user type input: " + userType +e);
-            throw e;
-        }
-    }
+    public Info(){ initializer(); }
 
     public static String getFullBreadcrumbText() {
-        debug.breadcrumb("[DEBUG] Entered method: getFullBreadcrumbText()");
         try {
-            List<WebElement> items = driver.findElements(By.xpath("//app-breadcrumb//ul/li"));
-            List<String> textParts = new ArrayList<>();
+            List<WebElement> items = DriverContext.getDriver().findElements(By.xpath("//app-breadcrumb//ul/li"));
+            List<String> parts = new ArrayList<>();
             for (WebElement item : items) {
                 String text = item.getText().trim();
-                if (!text.isEmpty()) textParts.add(text);
+                if (!text.isEmpty()) parts.add(text);
             }
-            String breadcrumb = String.join(" > ", textParts);
+            String breadcrumb = String.join(" > ", parts);
             info.breadcrumb("Full trail: " + breadcrumb);
             return breadcrumb;
         } catch (Exception e) {
@@ -92,131 +38,49 @@ public class Info extends BaseUtils {
     }
 
     public static String getCurrentPageViaBreadcrumb() {
-        debug.log("[DEBUG] Entered method: getCurrentPage()");
         String full = getFullBreadcrumbText();
-        if (full.contains(">")) {
-            return full.substring(full.lastIndexOf(">") + 1).trim();
-        }
+        if (full.contains(">")) return full.substring(full.lastIndexOf(">") + 1).trim();
         return full.trim();
     }
 
     public static String getPreviousPage() {
-        debug.log("[DEBUG] Entered method: getPreviousPage()");
         String full = getFullBreadcrumbText();
         String[] parts = full.split(">");
         return (parts.length >= 2) ? parts[parts.length - 2].trim() : "";
     }
 
     public static class ManageUsersInfo {
-
-        public static class UserCards {
-            private final WebElement card;
-            private final Map<String, String> info;
-
-            public UserCards(WebElement tile, Map<String, String> info) {
-                this.card = tile;
-                this.info = info;
-            }
-
-            public WebElement card() {
-                return card;
-            }
-
-            public Map<String, String> info() {
-                return info;
-            }
-        }
-
-        public static UserCards getUserCard(String identifier) { //Need fix
-            debug.log("[DEBUG] Entered method: getUserCard(identifier=" + identifier + ")");
-            debug.log("[DEBUG] ClassLoader Location: " + ManageUsersInfo.class.getProtectionDomain().getCodeSource().getLocation());
-            debug.log("[DEBUG] Executing class: " + ManageUsersInfo.class.getName() + " @ " + System.currentTimeMillis());
-
+        public static java.util.Map<String,String> getUserInfo(String identifier){
+            java.util.Map<String,String> out = new java.util.LinkedHashMap<>();
             try {
-                By by = PropertiesFileLocatorReader.getLocator(
-                        ManageUsersElements.UserCards.CONTAINER.getPropertyFile(),
-                        ManageUsersElements.UserCards.CONTAINER.getKey(),
-                        ManageUsersElements.UserCards.CONTAINER.getArgs()
-                );
-
-                debug.log("[DEBUG] Resolved locator for UserCards.CONTAINER: " + by);
-
-                List<WebElement> cards = driver.findElements(by);
-                debug.log("[DEBUG] Total user cards found: " + cards.size());
-
-                if (cards.isEmpty()) {
-                    error.log("No user cards found. Locator: " + by);
-                    throw new RuntimeException("No user cards found for identifier: " + identifier);
-                }
-
-                for (WebElement card : cards) {
-                    for (ManageUsersElements.UserCards fieldToCheck : List.of(
-                            ManageUsersElements.UserCards.EMAIL,
-                            ManageUsersElements.UserCards.USERNAME
-                    )) {
-                        try {
-                            // Fully centralized resolution using Vartopia.action().getText()
-                            String resolvedValue = VOID.interaction().getText(fieldToCheck).trim();
-                            debug.log("[DEBUG] Resolved value from Vartopia.action().getText(): " + resolvedValue);
-
-                            // Optional: fallback to tooltip elements if still unresolved or truncated
-                            if (resolvedValue.isEmpty() || resolvedValue.endsWith(fieldToCheck.getEndsWith())) {
-                                debug.log("[DEBUG] Value is empty or ends with '" + fieldToCheck.getEndsWith() + "', falling back to tooltip elements.");
-                                resolvedValue = resolveTooltipByTooltipElements(identifier, InfoElements.ALL_TOOLTIPS);
-                            }
-
-                            // Match validation
-                            if (resolvedValue != null && resolvedValue.equalsIgnoreCase(identifier)) {
-                                Map<String, String> userInfo = new HashMap<>();
-                                for (ManageUsersElements.UserCards element : ManageUsersElements.UserCards.values()) {
-                                    WebElement data = card.findElement(PropertiesFileLocatorReader.getLocator(
-                                            element.getPropertyFile(),
-                                            element.getKey(),
-                                            element.getArgs()
-                                    ));
-
-                                    String rawText = data.getText().trim();
-                                    String resolvedText = rawText.contains("...") ? ToolTipsResolver.resolveTooltipValueFromTruncated(rawText) : rawText;
-
-                                    userInfo.put(element.name(), resolvedText);
-                                }
-
-                                info.log("User card resolved for identifier: " + identifier);
-                                return new UserCards(card, userInfo);
-                            }
-
-                        } catch (Exception e) {
-                            warn.log("[WARN] Failed while checking field: " + fieldToCheck.name() + e);
-                        }
+                // Find all user card containers
+                org.openqa.selenium.By containerBy = LocatorResolverV1.getLocator(ManageUsersElements.UserCards.CONTAINER);
+                java.util.List<org.openqa.selenium.WebElement> cards = DriverContext.getDriver().findElements(containerBy);
+                for (org.openqa.selenium.WebElement card : cards) {
+                    // Match identifier by email or username text
+                    String email = safeChildText(card, ManageUsersElements.UserCards.EMAIL);
+                    String username = safeChildText(card, ManageUsersElements.UserCards.USERNAME);
+                    if (identifier.equalsIgnoreCase(email) || identifier.equalsIgnoreCase(username)) {
+                        out.put("FULL_NAME", safeChildText(card, ManageUsersElements.UserCards.FULL_NAME));
+                        out.put("USERNAME", username);
+                        out.put("EMAIL", email);
+                        out.put("COMPANY", safeChildText(card, ManageUsersElements.UserCards.COMPANY));
+                        out.put("USER_TYPE", safeChildText(card, ManageUsersElements.UserCards.USER_TYPE));
+                        return out;
                     }
                 }
-
-            } catch (Exception e) {
-                error.log("Unexpected exception in getUserCard for identifier: " + identifier + e);
-                throw e;
+                warn.log("[ManageUsersInfo] No matching user card for identifier: " + identifier);
+            } catch (Exception e){
+                error.log("[ManageUsersInfo] Failed to fetch user info for: " + identifier + " " + e.getMessage());
             }
-
-            try {
-                List<WebElement> allTooltips = driver.findElements(PropertiesFileLocatorReader.getLocator(
-                        InfoElements.ALL_TOOLTIPS.getPropertyFile(),
-                        InfoElements.ALL_TOOLTIPS.getKey(),
-                        InfoElements.ALL_TOOLTIPS.getArgs()
-                ));
-                debug.log("Tooltip fallback inspection: All visible tooltips:");
-                for (int i = 0; i < allTooltips.size(); i++) {
-                    debug.log("[TOOLTIP #" + i + "] " + allTooltips.get(i).getText().trim());
-                }
-            } catch (Exception e) {
-                warn.log("[WARN] Could not fetch tooltip debug info." + e);
-            }
-
-            throw new RuntimeException("No user card found matching: " + identifier);
+            return out;
         }
-
-
-        public static Map<String, String> getUserInfo(String identifier) {
-            debug.log("Entered method: getUserInfo(identifier=" + identifier + ")");
-            return getUserCard(identifier).info();
+        private static String safeChildText(org.openqa.selenium.WebElement card, ManageUsersElements.UserCards field){
+            try {
+                org.openqa.selenium.By by = LocatorResolverV1.getLocator(field);
+                org.openqa.selenium.WebElement el = card.findElement(by);
+                return el.getText()==null?"":el.getText().trim();
+            } catch (Exception ignored){ return ""; }
         }
     }
 }
