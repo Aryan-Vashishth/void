@@ -1,9 +1,8 @@
 package core.utils;
 
-import Elements.InfoElements;
-import Elements.*;
-import Elements.interfacesv1.ResolvableEnum; // switched to v1
+import elements.api.ResolvableEnum; // switched to v1
 import com.beust.jcommander.internal.Nullable;
+import core.driver.Waiter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -12,19 +11,19 @@ import core.logging.CustomLogger;
 import java.util.Arrays;
 import java.util.List;
 
-public class EnumResolver extends BaseUtils {
+import static core.logging.CustomLogger.debug;
+import static core.logging.CustomLogger.warn;
+
+public class EnumResolver {
+
+    private EnumResolver() { /* static utility */ }
 
     private static final List<Class<?>> ENUM_CONTAINERS = List.of(
-            InfoElements.class
             // add more as needed
     );
 
-    public EnumResolver(){
-        initializer();
-    }
-
     public static void printEnumFormat(By locator){
-        List<WebElement> elements = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
+        List<WebElement> elements = Waiter.get().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
         for(WebElement element: elements){
             String enumFormated = normalizeToEnumName(element.getText().trim());
             System.out.println((enumFormated + "(\"" + element.getText() + "\"),"));

@@ -1,0 +1,11 @@
+{
+  "elements": {
+    "SEARCH_INPUT":  "//input[@type='search']",
+    "SEARCH_BUTTON": "css=button.search-btn"
+  },
+  "FLAT_KEY": "//span[@id='flat']",
+  "nested": {
+    "NESTED_KEY": "xpath=//div[@data-id='nested']"
+  }
+}
+

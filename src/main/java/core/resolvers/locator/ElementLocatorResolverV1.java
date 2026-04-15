@@ -1,8 +1,8 @@
 package core.resolvers.locator;
 
-import Elements.interfacesv1.*;
+import elements.api.*;
 import com.beust.jcommander.internal.Nullable;
-import core.utils.BaseUtils;
+import core.resolvers.locator.json.JsonLocatorReaderV1;
 import core.utils.ConfigLoader;
 import core.utils.UIContext;
 import org.openqa.selenium.Beta;
@@ -10,6 +10,8 @@ import org.openqa.selenium.By;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static core.logging.CustomLogger.*;
 
 /// LocatorResolverV1 &mdash; "behaves like old LocatorReader" but uses the new v1 interfaces.
 /// &#x2705; Parity with old reader:
@@ -23,8 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /// - resolveLocatorTemplate() returns original template when no placeholders
 /// - Auto-detects By type from prefixes:
 ///      id=, name=, class=, tag=, linkText=, partialLinkText=, css=, xpath=
-/// - Falls back to heuristic: starts with "/", "(", "." &rarr; XPath; otherwise CSS
-public class ElementLocatorResolverV1 extends BaseUtils {
+/// - Falls back to heuristic: starts with "/", "(" &rarr; XPath; ".//..." &rarr; XPath; otherwise CSS
+public class ElementLocatorResolverV1 {
 
     /** Default classpath base for locator bundles. */
     private static final String CLASSPATH_BASE = "locators/";
@@ -166,7 +168,9 @@ public class ElementLocatorResolverV1 extends BaseUtils {
     /**
      * Loads the raw locator string.
      * If fileName == null → hardcoded template (key itself).
-     * Otherwise → from cached/merged bundle via ConfigLoader.
+     * If fileName ends with ".json" → delegates to {@link JsonLocatorReaderV1} (no caching needed;
+     *   JsonLocatorReaderV1 handles its own classpath look-up under {@code locators/json/}).
+     * Otherwise → from cached/merged bundle via ConfigLoader (prepends {@code "locators/"} base).
      */
     public static String getRawLocator(@Nullable String fileName, String key) {
         if (fileName == null) {
@@ -175,6 +179,16 @@ public class ElementLocatorResolverV1 extends BaseUtils {
         }
 
         UIContext.setLastElementMeta(fileName, key, null);
+
+        // Route JSON files to the dedicated JSON reader
+        if (fileName.toLowerCase(Locale.ROOT).endsWith(".json")) {
+            String raw = JsonLocatorReaderV1.getRaw(fileName, key);
+            if (raw == null) {
+                throw new RuntimeException("Locator not found for key: " + key + " in file: " + fileName);
+            }
+            return raw;
+        }
+
         Properties bundle = BUNDLE_CACHE.computeIfAbsent(fileName, ElementLocatorResolverV1::loadBundleWithConfigLoader);
 
         String value = bundle.getProperty(key);
@@ -229,8 +243,10 @@ public class ElementLocatorResolverV1 extends BaseUtils {
         if (lower.startsWith("css="))              return By.cssSelector(trimmed.substring(4));
         if (lower.startsWith("xpath="))            return By.xpath(trimmed.substring(6));
 
-        // Heuristics: XPath if it "looks" like one; else CSS
-        if (trimmed.startsWith("/") || trimmed.startsWith("(") || trimmed.startsWith(".")) {
+        // Heuristics: XPath if it "looks" like one; else CSS.
+        // Only ".//..." (relative descendant XPath) starts with "."; CSS class selectors (.btn)
+        // must fall through to cssSelector — matching PropertiesFileLocatorReaderV1.toBy().
+        if (trimmed.startsWith("/") || trimmed.startsWith("(") || trimmed.startsWith(".//")) {
             return By.xpath(trimmed);
         }
         return By.cssSelector(trimmed);

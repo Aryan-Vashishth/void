@@ -90,7 +90,7 @@ VOID’s architecture is modular and extensible through fine-grained interfaces:
 
 ```
 void-framework/
-├── Elements/
+├── elements/
 │   ├── Interfaces/
 │   │   ├── BaseElement.java
 │   │   ├── ClickableElement.java

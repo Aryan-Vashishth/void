@@ -1,11 +1,11 @@
 // file: core/resolvers/locator/LocatorResolverV1.java
 package core.resolvers.locator;
 
-import Elements.ElementRole;
-import Elements.interfacesv1.Element;
+import elements.meta.ElementRole;
+import elements.api.Element;
 import core.resolvers.locator.json.JsonLocatorReaderV1;
 import core.resolvers.locator.properties.PropertiesFileLocatorReaderV1;
-import core.utils.BaseUtils;
+import core.utils.UIContext;
 import org.openqa.selenium.By;
 
 import java.util.LinkedHashMap;
@@ -15,13 +15,12 @@ import java.util.IllegalFormatException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class LocatorResolverV1 extends BaseUtils {
+public final class LocatorResolverV1 {
 
 
 
     private LocatorResolverV1() {
-        // prevent instantiation
-        initializer();
+        // Static utility — prevent instantiation
     }
 
     // ===== public API =====
@@ -34,11 +33,20 @@ public final class LocatorResolverV1 extends BaseUtils {
         // 2) format only if template contains (indexed or unindexed) %s
         String resolved = resolveLocatorTemplate(template, args);
 
-        // 3) parse into By using the shared prefix parser
+        // 3) record context for diagnostics (mirrors ElementLocatorResolverV1 behaviour)
+        UIContext.setLastElementMeta(fileName, key, args);
+
+        // 4) parse into By using the shared prefix parser
         return PropertiesFileLocatorReaderV1.toBy(resolved);
     }
 
-    /** Resolve PRIMARY (or best available) for a v1 Element. */
+    /**
+     * Resolve the primary locator for a v1 Element.
+     * Uses {@link Element#getPrimaryLocator()} directly — which each sub-interface overrides
+     * correctly (e.g. {@code Dropdown} → {@code getTriggerLocator()}, {@code ReadOnlyElement} →
+     * {@code getTextLocator()}). This is more robust than the old roles-map fallthrough that
+     * silently fell to "first entry" when no PRIMARY key was present.
+     */
     public static By getLocator(Element e) {
         return getBestAvailable(e);
     }
@@ -52,23 +60,38 @@ public final class LocatorResolverV1 extends BaseUtils {
         return getLocator(file, key, args);
     }
 
-    /** Resolve best available: PRIMARY → SECONDARY → first role present. */
+    /**
+     * Resolve the best available locator for a v1 Element.
+     *
+     * <p>Resolution order:
+     * <ol>
+     *   <li>{@link Element#getPrimaryLocator()} — the interface-level override always returns the
+     *       semantically correct key (e.g. trigger for {@code Dropdown}, text for
+     *       {@code ReadOnlyElement}).  This avoids the previous silent fallthrough that occurred
+     *       when the roles map had no {@code PRIMARY} entry.</li>
+     *   <li>{@link Element#getSecondaryLocator()} — used only when primary is absent.</li>
+     *   <li>First entry in {@link Element#getAllLocatorRoles()} — last-resort fallback.</li>
+     * </ol>
+     */
     public static By getBestAvailable(Element e, Object... overrideArgs) {
-        Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
-        if (roles.isEmpty()) {
-            throw new IllegalStateException("No locators defined for element: " + e.getDisplayText());
-        }
-
         String file = e.getExternalFileName();
         Object[] args = (overrideArgs != null && overrideArgs.length > 0) ? overrideArgs : e.getArgs();
 
-        String key = roles.get(ElementRole.PRIMARY);
-        if (isBlank(key)) key = roles.get(ElementRole.SECONDARY);
-        if (isBlank(key)) {
-            key = roles.values().stream().findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "No locators defined for element: " + e.getDisplayText()));
-        }
+        // 1. Prefer getPrimaryLocator() — correctly overridden by every sub-interface
+        String key = e.getPrimaryLocator();
+        if (!isBlank(key)) return getLocator(file, key, args);
+
+        // 2. Secondary fallback
+        key = e.getSecondaryLocator();
+        if (!isBlank(key)) return getLocator(file, key, args);
+
+        // 3. Last resort: first value from role map (keeps backward-compat with custom impls)
+        Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
+        key = roles.values().stream()
+                .filter(v -> v != null && !v.isBlank())
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "No locators defined for element: " + e.getDisplayText()));
         return getLocator(file, key, args);
     }
 

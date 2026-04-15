@@ -1,8 +1,12 @@
 package interactions;
 
-import Elements.ElementRole;
-import Elements.InfoElements;
-import Elements.interfacesv1.*; // v1 interfaces only
+import core.utils.web.DOMUtils;
+import core.utils.web.WaitUtils;
+import elements.meta.ElementRole;
+import elements.api.*;
+import interactions.hooks.ActionHandler;
+import interactions.hooks.Before;
+import interactions.hooks.After;
 import core.driver.DriverContext;
 import core.resolvers.locator.LocatorResolverV1;
 import core.utils.*;
@@ -70,7 +74,6 @@ public class Interactions {
     protected WebDriverWait wait;
     protected final Logger log = Logger.getLogger(Interactions.class);
 
-    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
 
     /**
      * Standard constructor, initializes driver context and logging.
@@ -84,20 +87,8 @@ public class Interactions {
         DriverContext.setDriver(driver);
     }
 
-    public String getText(InfoElements elements) {
-        By locator = LocatorResolverV1.getLocator(elements);
-        WebElement webElement = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
-        String text = webElement.getText().trim();
-        info.text("Retrieved from → " + elements.getDisplayText() + ": " + text);
-        return text;
-    }
 
-    /** Functional interface for before/after action hooks. */
-    @FunctionalInterface
-    public interface ActionHandler { void execute(WebDriver driver); }
-
-    /**
-     * Helper for collecting hooks in a single call.
+    /** Helper for collecting hooks in a single call.
      *
      * @param handlers optional list of handlers
      * @return list or null if empty
@@ -106,85 +97,7 @@ public class Interactions {
         return (handlers == null || handlers.length == 0) ? null : List.of(handlers);
     }
 
-    // ====== COMMON BEFORE/ACTION HOOKS ======
-    public static class Before {
-        public static final ActionHandler DO_NOTHING = driver -> {};
-        public static final ActionHandler LOG_INTENT = driver -> debug.log("[DEBUG] Performing UI action...");
-        public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = driver -> WaitUtils.resolveAngularLoader();
-        public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = driver -> WaitUtils.resolveLoader(WaitUtils.SPIN_SPINNER_LOADER);
-
-        /** Waits for the last resolved element to become clickable (uses UIContext). */
-        public static final ActionHandler WAIT_FOR_ELEMENT_CLICKABLE = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                new WebDriverWait(driver, DEFAULT_TIMEOUT).until(ExpectedConditions.elementToBeClickable(element));
-            }
-        };
-
-        /** Clears the last resolved element if it is an input. */
-        public static final ActionHandler CLEAR_FIELD = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                element.clear();
-            } else {
-                throw new IllegalStateException("[BEFORE] Cannot clear field – UIContext.getLastElement() is null.");
-            }
-        };
-
-        /** Waits for the last element to be visible. */
-        public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                new WebDriverWait(driver, DEFAULT_TIMEOUT).until(ExpectedConditions.visibilityOf(element));
-            }
-        };
-
-        /** Scrolls the last element into view. */
-        public static final ActionHandler SCROLL_TO_ELEMENT = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                DOMUtils.scrollToElement(element);
-            }
-        };
-
-        /** Highlights the last element for debug. */
-        public static final ActionHandler HIGHLIGHT_ELEMENT = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].style.border='6px solid red';", element);
-            }
-        };
-    }
-
-    public static class After {
-        public static final ActionHandler DO_NOTHING = driver -> {};
-        public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = driver -> WaitUtils.resolveAngularLoader();
-        public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = driver -> WaitUtils.resolveLoader(WaitUtils.SPIN_SPINNER_LOADER);
-
-        /** Waits for last element to be visible after action. */
-        public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                new WebDriverWait(driver, DEFAULT_TIMEOUT).until(ExpectedConditions.visibilityOf(element));
-            }
-        };
-
-        /** Highlights last element with green border for visual validation. */
-        public static final ActionHandler HIGHLIGHT_ELEMENT = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].style.border='6px solid green';", element);
-            }
-        };
-
-        /** Scrolls the last element into view post-action. */
-        public static final ActionHandler SCROLL_TO_ELEMENT = driver -> {
-            WebElement element = UIContext.getLastElement();
-            if (element != null) {
-                DOMUtils.scrollToElement(element);
-            }
-        };
-    }
+    // ====== COMMON BEFORE/ACTION HOOKS — see interactions.hooks.Before / After ======
 
     // ======================= GENERIC TEXT RETRIEVAL =======================
 
@@ -395,7 +308,7 @@ public class Interactions {
         } catch (StaleElementReferenceException staleEx) {
             debug.error("Stale element, retrying...");
             String currentUrl = activeDriver.getCurrentUrl();
-            if (skipRetryIfNavigated && !originalUrl.equals(currentUrl)) {
+            if (skipRetryIfNavigated && !Objects.equals(originalUrl, currentUrl)) {
                 debug.log("Page navigation detected (URL changed). Skipping stale element retry.");
                 return true; // treat as success — action likely took effect
             }
@@ -421,9 +334,6 @@ public class Interactions {
         }
     }
 
-    private void performClick(WebElement element, boolean useJSExecutor) {
-        performClick(element, useJSExecutor, DriverContext.getActiveDriver());
-    }
 
     private void performClick(WebElement element, boolean useJSExecutor, WebDriver activeDriver) {
         if (useJSExecutor) {
@@ -439,7 +349,7 @@ public class Interactions {
     }
 
     private static String safeText(WebElement el) {
-        try { return (el.getText() == null) ? "" : el.getText().trim(); } catch (Exception ignored) { return ""; }
+        try { return el.getText().trim(); } catch (Exception ignored) { return ""; }
     }
 
     // --- Shortcuts for clickOn with different signatures ---
@@ -511,13 +421,10 @@ public class Interactions {
     private void waitForOverlayToAppear() {
         WebDriver activeDriver = DriverContext.getActiveDriver();
         By overlayPane = By.cssSelector("div.cdk-overlay-pane");
-        WaitUtils.waitForCondition(
-                activeDriver,
-                drv -> {
-                    assert drv != null;
-                    return !drv.findElements(overlayPane).isEmpty();
-                },
-                overlayPane,
+                WaitUtils.waitForCondition(
+                        activeDriver,
+                        drv -> !drv.findElements(overlayPane).isEmpty(),
+                        overlayPane,
                 5,   // seconds
                 100, // polling ms
                 true,
@@ -780,22 +687,12 @@ public class Interactions {
         }
     }
 
-    /** Specialized search for shared list context. */
+    /** Specialized search for shared list context.
+     *  @deprecated Use {@link #searchAndGetResults(Searchable, String)} — identical behaviour.
+     */
+    @Deprecated
     public List<WebElement> searchThisList(Searchable field, String searchTerm) {
-        try {
-            By inputLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_INPUT);
-            WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
-            UIContext.setLastElement(inputField);
-            performSearch(null, inputField, searchTerm, null, null);
-            By resultLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_RESULT, field.getArgs());
-            return wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(resultLocator));
-        } catch (TimeoutException e) {
-            warn.log("[SearchThisList] No results found for → '" + searchTerm + "'");
-            return List.of();
-        } catch (Exception e) {
-            error.failed("[SearchThisList] Error for → " + field.getDisplayText() + ": " + e.getMessage());
-            throw new RuntimeException("SearchThisList failed for: " + field.getDisplayText(), e);
-        }
+        return searchAndGetResults(field, searchTerm);
     }
 
     /** Generic search + optional click first result. */

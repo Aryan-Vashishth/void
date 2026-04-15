@@ -15,17 +15,17 @@
 //import org.testng.Assert;
 //import core.utils.CaptureScreenShot;
 //import core.utils.ConfigLoader;
-//import core.utils.DOMUtils;
+//import core.utils.web.DOMUtils;
 //import core.driver.DriverContext;
 //import core.driver.DriverFactory;
-//import core.utils.DataGenerator;
+//import core.utils.data.DataGenerator;
 //import core.utils.json.JsonLogger;
 //import core.resolvers.locators.PropertiesFileLocatorReader;
 //import core.logging.CustomLogger;
-//import core.utils.KeyValuePairHandler;
-//import core.utils.TableHandler;
-//import core.utils.Upload;
-//import core.utils.WaitUtils;
+//import core.utils.web.KeyValuePairHandler;
+//import core.utils.web.TableHandler;
+//import core.utils.web.Upload;
+//import core.utils.web.WaitUtils;
 //
 //import java.nio.file.Path;
 //import java.util.List;

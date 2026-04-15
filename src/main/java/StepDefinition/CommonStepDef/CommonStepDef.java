@@ -18,7 +18,7 @@
 //import io.cucumber.java.ParameterType;
 //import org.openqa.selenium.By;
 //import org.testng.Assert;
-//import core.utils.DOMUtils;
+//import core.utils.web.DOMUtils;
 //import core.driver.DriverContext;
 //import core.utils.EnumResolver;
 //import core.utils.json.JsonLogger;
@@ -26,10 +26,10 @@
 //import core.resolvers.locators.JsonLocatorReader;
 //import core.logging.CustomLogger;
 //import core.utils.URLS;
-//import core.utils.TableHandler;
+//import core.utils.web.TableHandler;
 //import core.utils.UIContext;
-//import core.utils.DataVerifier;
-//import core.utils.WaitUtils;
+//import core.utils.data.DataVerifier;
+//import core.utils.web.WaitUtils;
 //import io.cucumber.java.en.And;
 //import io.cucumber.java.en.Given;
 //import io.cucumber.java.en.Then;

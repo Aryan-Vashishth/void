@@ -10,7 +10,7 @@ package StepDefinition.accountMappingStepDefPack;//package StepDefinition.Accoun
 //import Configurations.InitialiseBaseTest;
 //import Pages.AccountMappingPages.AccountMappingHomePage;
 //import Pages.Admin.AdminHomeInteractions;
-//import core.utils.WaitUtils;
+//import core.utils.web.WaitUtils;
 //import io.cucumber.java.Before;
 //import io.cucumber.java.en.*;
 //import org.openqa.selenium.By;

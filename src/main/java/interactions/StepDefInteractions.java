@@ -1,18 +1,19 @@
 package interactions;
 
-import Elements.EnumClassRegistry;
-import Elements.interfacesv1.*;
+import elements.meta.EnumClassRegistry;
+import elements.api.*;
+import interactions.hooks.ActionHandler;
 import core.resolvers.locator.LocatorResolverV1;
 import core.logging.CustomLogger;
 import core.utils.EnumResolver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import core.utils.WaitUtils;
+import core.utils.web.WaitUtils;
 
 import java.util.List;
 
-import static Elements.EnumClassRegistry.*;
+import static elements.meta.EnumClassRegistry.*;
 import static core.utils.EnumResolver.stringToEnum;
 import static core.logging.CustomLogger.*;
 
@@ -216,12 +217,8 @@ public class StepDefInteractions extends Interactions {
 
     @SuppressWarnings("unused")
     public void clickSearchableElementByContext(String keyPrefix, String keySuffix, String unresolvedEnumName, String searchTerm){
-        WebElement element;
-        try {
-            element = getSearchedElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
-        } catch (Exception e){
-            element = getSearchedElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
-        }
+        // Resolve and click in a single pass; let exceptions propagate naturally for clear failure messages.
+        WebElement element = getSearchedElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
         clickOn(element);
     }
 

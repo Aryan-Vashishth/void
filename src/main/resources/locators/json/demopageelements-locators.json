@@ -1,14 +1,14 @@
 {
   "DemoPageElements" : {
     "Login" : {
-      "inputLocator" : "xpath=//input[@name=''%s']",
+      "inputLocator" : "xpath=//input[@name='%s']",
       "LoginButton" : {
         "triggerLocator" : "xpath=//button[@id='submit']"
       }
     },
     "NavBar" : {
-      "listLocator" : "USER_TYPE_LIST ",
-      "triggerLocator" : "USER_TYPE_TRIGGER"
+      "triggerLocator" : "//*[@formcontrolname='filterUserType']",
+      "listLocator" : "//*[@role='option'][span[text()='%s']]"
     }
   }
 }

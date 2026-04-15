@@ -7,6 +7,18 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 
+/**
+ * @deprecated God-object / inheritance-for-convenience anti-pattern.
+ * <ul>
+ *   <li>For logging: {@code import static core.logging.CustomLogger.debug;} (and info/warn/error)</li>
+ *   <li>For {@code wait}: use {@link core.driver.Waiter#get()} — creates a per-call
+ *       {@link WebDriverWait} from {@link core.driver.DriverContext}, eliminating the shared-static
+ *       race condition in parallel tests.</li>
+ *   <li>For {@code VOID}: use {@code new VOID()} directly (lightweight façade).</li>
+ * </ul>
+ * No new classes should extend this.
+ */
+@Deprecated(since = "2.0", forRemoval = true)
 public abstract class BaseUtils {
     protected static CustomLogger.Debug debug = new CustomLogger.Debug();
     protected static CustomLogger.Info info = new CustomLogger.Info();
@@ -16,9 +28,9 @@ public abstract class BaseUtils {
     protected static WebDriverWait wait;
 
     /**
-     * Initializes the WebDriver context, wait, and logger.
-     * Call this ONCE per thread/test!
+     * @deprecated Use {@link core.driver.Waiter#get()} instead.
      */
+    @Deprecated(since = "2.0", forRemoval = true)
     public void initializer(WebDriver driver) {
         if (driver == null) {
             throw new IllegalArgumentException("WebDriver instance must not be null. Initialization failed.");

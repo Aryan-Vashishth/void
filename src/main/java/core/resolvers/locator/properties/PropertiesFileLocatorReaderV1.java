@@ -1,8 +1,7 @@
 // file: core/resolvers/locator/properties/PropertiesFileLocatorReaderV1.java
 package core.resolvers.locator.properties;
 
-import core.resolvers.locator.LocatorResolverV1;
-import core.utils.properties.PropertiesReader;
+import core.utils.io.properties.PropertiesReader;
 import org.openqa.selenium.By;
 
 import java.util.Locale;
@@ -17,6 +16,10 @@ import java.util.Locale;
  */
 public final class PropertiesFileLocatorReaderV1 {
 
+    /** Classpath base directory for all locator property files.
+     *  Must match {@code ElementLocatorResolverV1.CLASSPATH_BASE}. */
+    private static final String LOCATORS_BASE = "locators/";
+
     private PropertiesFileLocatorReaderV1() {}
 
     /** Convenience: read from .properties and convert directly to By (no arg formatting). */
@@ -25,9 +28,16 @@ public final class PropertiesFileLocatorReaderV1 {
         return toBy(raw);
     }
 
-    /** RAW accessor (no formatting). Prefer this for the LocatorResolverV1 path. */
+    /**
+     * RAW accessor (no formatting). Prepends {@value LOCATORS_BASE} to {@code fileName}
+     * when it is not already an absolute classpath path, keeping parity with
+     * {@code ElementLocatorResolverV1.CLASSPATH_BASE} so that both resolvers
+     * resolve the same {@code getExternalFileName()} values correctly.
+     */
     public static String getRaw(String fileName, String key) {
-        return PropertiesReader.getValue(fileName, key); // may return null
+        if (fileName == null) return null;
+        String path = fileName.startsWith(LOCATORS_BASE) ? fileName : LOCATORS_BASE + fileName;
+        return PropertiesReader.getValue(path, key); // may return null
     }
 
     /** Convert a raw locator string to {@link By}. */
@@ -49,8 +59,9 @@ public final class PropertiesFileLocatorReaderV1 {
         if (lower.startsWith("css="))              return By.cssSelector(valueAfter(trimmed, 4, "css"));
         if (lower.startsWith("xpath="))            return By.xpath(valueAfter(trimmed, 6, "xpath"));
 
-        // Fallback: infer automatically
-        if (trimmed.startsWith("/") || trimmed.startsWith("(") || trimmed.startsWith("//") || trimmed.startsWith(".//")) {
+        // Fallback: infer automatically.
+        // Note: startsWith("//") is already covered by startsWith("/"); kept for readability.
+        if (trimmed.startsWith("/") || trimmed.startsWith("(") || trimmed.startsWith(".//")) {
             return By.xpath(trimmed);
         }
         return By.cssSelector(trimmed);
