@@ -9,7 +9,6 @@ D:\void-framework\src\main\java\core\resolvers\locator\json\JsonLocatorReaderV1.
 D:\void-framework\src\main\java\core\resolvers\locator\LocatorReader.java
 D:\void-framework\src\main\java\core\resolvers\locator\LocatorResolverV1.java
 D:\void-framework\src\main\java\core\resolvers\locator\properties\PropertiesFileLocatorReaderV1.java
-D:\void-framework\src\main\java\core\utils\BaseUtils.java
 D:\void-framework\src\main\java\core\utils\ConfigLoader.java
 D:\void-framework\src\main\java\core\utils\data\DataGenerator.java
 D:\void-framework\src\main\java\core\utils\data\DataVerifier.java

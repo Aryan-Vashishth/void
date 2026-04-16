@@ -56,7 +56,6 @@ core\utils\ConfigLoader$ClasspathScope.class
 core\utils\data\DataGenerator$DataSupplier.class
 core\driver\Waiter.class
 elements\api\SearchField.class
-core\utils\BaseUtils.class
 core\driver\DriverFactory$Profile.class
 core\utils\ConfigLoader$Layered.class
 core\utils\io\json\JsonLogger$Write$MapWriter.class
