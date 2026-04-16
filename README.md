@@ -198,4 +198,4 @@ But it will expose it very clearly.
 
 ---
 
-# *Refer to /docs for detailed documents.
+## `Refer to /docs for detailed documents`
