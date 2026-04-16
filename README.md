@@ -194,5 +194,6 @@ MIT License © 2025–2026
 ## 🧩 Final Note
 
 VOID won’t magically fix bad test design.
-
 But it will expose it very clearly.
+
+*Refer to /docs for detailed documents.
