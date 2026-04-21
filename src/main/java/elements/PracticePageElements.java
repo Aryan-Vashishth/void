@@ -110,11 +110,15 @@ public interface PracticePageElements {
         @Override public String getExternalFileName() { return FILE; }
         @Override public String getTriggerLocator()   { return key; }
 
-        @Override public String getPrimaryLocator()              { return Clickable.super.getPrimaryLocator(); }
-        @Override public String getDisplayText()                 { return Clickable.super.getDisplayText(); }
-        @Override public Map<ElementRole, String> getAllLocatorRoles() { return Clickable.super.getAllLocatorRoles(); }
-        @Override public Map.Entry<String, String> toEntry()     { return ResolvableEnum.super.toEntry(); }
-        @Override public Object[] getArgs()                      { return new Object[0]; }
+        @Override public String getPrimaryLocator()  { return key; }
+        @Override public String getDisplayText()     { return key; }
+        @Override public Map<ElementRole, String> getAllLocatorRoles() {
+            Map<ElementRole, String> roles = new java.util.LinkedHashMap<>();
+            if (key != null && !key.isBlank()) roles.put(ElementRole.TRIGGER, key);
+            return roles;
+        }
+        @Override public Map.Entry<String, String> toEntry() { return ResolvableEnum.super.toEntry(); }
+        @Override public Object[] getArgs()          { return new Object[0]; }
     }
 
     // -----------------------------------------------------------------------
