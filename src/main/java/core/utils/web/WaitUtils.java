@@ -1,8 +1,8 @@
 package core.utils.web;
 
 import elements.api.*;
-import com.beust.jcommander.internal.Nullable;
-import com.shaded.jetbrains.annotations.NotNull;
+import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 import core.driver.DriverContext;
 import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.*;
