@@ -1,6 +1,5 @@
 package core.logging;
 
-import core.utils.CustomLogger;
 
 import static core.logging.AnsiColors.*;
 

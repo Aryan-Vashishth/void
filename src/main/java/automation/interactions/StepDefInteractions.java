@@ -5,7 +5,6 @@ import elements.api.*;
 import interactions.hooks.ActionHandler;
 import interactions.Interactions;
 import core.resolvers.locator.LocatorResolverV1;
-import core.logging.CustomLogger;
 import core.utils.EnumResolver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -52,7 +51,7 @@ public class StepDefInteractions extends Interactions {
 
     public StepDefInteractions(WebDriver driver) {
         super(driver);
-        CustomLogger.initialize(this.getClass());
+        core.logging.CustomLogger.initialize(this.getClass());
     }
 
     @SuppressWarnings("unchecked")
@@ -122,7 +121,7 @@ public class StepDefInteractions extends Interactions {
             clickUsingCastedEnum(rawEnumClass, unresolvedEnumName, after);
 
         } catch (Exception e) {
-            log.error("Failed to click on '" + unresolvedEnumName + "' from context: " + resolvedContextKey + e);
+            error.failed("Failed to click on '" + unresolvedEnumName + "' from context: " + resolvedContextKey + e);
             throw new RuntimeException("Failed to resolve and click on '" + unresolvedEnumName + "' from context: " + resolvedContextKey, e);
         }
     }
@@ -234,7 +233,7 @@ public class StepDefInteractions extends Interactions {
             return getSearchedElement(searchable, searchTerm);
 
         } catch (Exception e) {
-            log.error("Failed to search using '" + unresolvedEnumName + "' in context: " + resolvedContextKey, e);
+            error.failed("Failed to search using '" + unresolvedEnumName + "' in context: " + resolvedContextKey);
             throw new RuntimeException("Search failed for '" + unresolvedEnumName + "' in context: " + resolvedContextKey, e);
         }
     }

@@ -11,7 +11,6 @@ import interactions.hooks.After;
 import core.driver.DriverContext;
 import core.resolvers.locator.LocatorResolverV1;
 import core.utils.*;
-import org.apache.log4j.Logger;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -73,7 +72,6 @@ public class Interactions {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected final Logger log = Logger.getLogger(Interactions.class);
 
 
     /**

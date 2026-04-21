@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static core.utils.CustomLogger.*;
+import static core.logging.CustomLogger.*;
 
 /**
  * Focused experiment class for testing different ANSI injection strategies

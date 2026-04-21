@@ -4,15 +4,33 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f867ade8-630b-4895-b968-128681e477e2" name="Changes" comment="Add initial VOID framework documentation to README">
-      <change afterPath="$PROJECT_DIR$/docs/architecture.md" afterDir="false" />
+    <list default="true" id="f867ade8-630b-4895-b968-128681e477e2" name="Changes" comment="Refactor PracticePageElements to improve locator methods and enhance role mapping">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Locator handling for TextFieldElement (Working E2E example).pdf" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Locator handling for TextFieldElement (Working E2E example).pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VOID_README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/core/utils/BaseUtils.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/StepDefinition/CommonStepDef/CommonStepDef.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/StepDefinition/CommonStepDef/CommonStepDef.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/StepDefinition/accountMappingStepDefPack/AccountMappingStepDef.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/StepDefinition/accountMappingStepDefPack/AccountMappingStepDef.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/automation/interactions/StepDefInteractions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/automation/interactions/StepDefInteractions.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/driver/DriverContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/driver/DriverContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/driver/DriverFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/driver/DriverFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/ElementLocatorResolverV1.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/ElementLocatorResolverV1.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/json/JsonLocatorMigrator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/resolvers/locator/json/JsonLocatorMigrator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/ConfigLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/ConfigLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/EnumResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/EnumResolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/data/DataGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/data/DataGenerator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/data/DataVerifier.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/data/DataVerifier.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/io/FileUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/io/FileUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/io/json/JsonLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/io/json/JsonLogger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/io/json/JsonReader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/io/json/JsonReader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/web/DOMUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/web/DOMUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/web/KeyValuePairHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/web/KeyValuePairHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/web/TableHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/web/TableHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/web/Upload.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/web/Upload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/core/utils/web/WaitUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/core/utils/web/WaitUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/elements/meta/EnumClassRegistry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/elements/meta/EnumClassRegistry.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/interactions/Interactions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/interactions/Interactions.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/interactions/StepDefInteractions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/interactions/StepDefInteractions.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/interactions/hooks/Before.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/interactions/hooks/Before.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/core/resolvers/locator/json/test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/core/resolvers/locator/json/test.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,10 +42,13 @@
       <entry key="_D:/void-framework" value="34Sd6i4lppFvq03sl9opVBBqIUB" />
     </persistenceIdMap>
   </component>
+  <component name="CopilotUserSelectedChatMode">
+    <option name="chatModeId" value="Agent" />
+  </component>
   <component name="CopilotUserSelectedModel">
     <selectedModels>
-      <entry key="chat-panel" value="Claude Sonnet 4.6" />
-      <entry key="agent-panel" value="Claude Sonnet 4.6" />
+      <entry key="chat-panel" value="Claude Opus 4.7" />
+      <entry key="agent-panel" value="Claude Opus 4.7" />
     </selectedModels>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -39,6 +60,7 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="INCOMING_COMMITS_CHECK_STRATEGY" value="FETCH" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$" value="main" />
@@ -75,6 +97,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.JsonLocatorMigrator.executor": "Run",
+    "Application.interactions.executor": "Run",
     "Application.test.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -82,21 +105,29 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "TestNG.CustomLoggerTest.executor": "Run",
+    "TestNG.CustomLoggerTest.testClick.executor": "Run",
+    "TestNG.CustomLoggerThemeTest.executor": "Run",
     "TestNG.LocatorResolverV1Test.executor": "Run",
+    "TestNG.LogFormatterPrototypeTest.executor": "Run",
+    "TestNG.LogMultilineExperimentTest.executor": "Run",
+    "TestNG.LogPaddingTest.executor": "Run",
     "TestNG.PropertiesFileLocatorReaderV1Test.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "main",
+    "git.auto.fetch.suggestion.counter": "1",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/void-framework",
+    "last_opened_file_path": "D:/void-framework/src/main/java/core/logging",
     "nodejs_package_manager_path": "npm",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "configurable.group.build"
+    "settings.editor.selected.configurable": "reference.settings.project.maven.repository.indices"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\void-framework\src\main\java\core\logging" />
       <recent name="D:\void-framework" />
       <recent name="D:\void-framework\src\main\java\Elements" />
       <recent name="C:\Users\manvi\IdeaProjects\void-framework" />
@@ -111,20 +142,7 @@
       <recent name="Elements.interfacesv1" />
     </key>
   </component>
-  <component name="RunManager">
-    <configuration name="test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="core.resolvers.locator.json.test" />
-      <module name="VOID" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="core.resolvers.locator.json.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="TestNG.LogPaddingTest">
     <configuration default="true" type="JetRunConfigurationType">
       <module name="void-framework" />
       <method v="2">
@@ -136,9 +154,98 @@
       <option name="filePath" />
       <method v="2" />
     </configuration>
+    <configuration name="CustomLoggerTest" type="TestNG" temporary="true" nameIsGenerated="true">
+      <module name="VOID" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="core.utils.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="core.logging" />
+      <option name="MAIN_CLASS_NAME" value="core.logging.CustomLoggerTest" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CustomLoggerThemeTest" type="TestNG" temporary="true" nameIsGenerated="true">
+      <module name="VOID" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="core.utils.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="core.logging" />
+      <option name="MAIN_CLASS_NAME" value="core.logging.CustomLoggerThemeTest" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LogFormatterPrototypeTest" type="TestNG" temporary="true" nameIsGenerated="true">
+      <module name="VOID" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="core.logging.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="core.logging" />
+      <option name="MAIN_CLASS_NAME" value="core.logging.LogFormatterPrototypeTest" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LogMultilineExperimentTest" type="TestNG" temporary="true" nameIsGenerated="true">
+      <module name="VOID" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="core.utils.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="core.logging" />
+      <option name="MAIN_CLASS_NAME" value="core.logging.LogMultilineExperimentTest" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LogPaddingTest" type="TestNG" temporary="true" nameIsGenerated="true">
+      <module name="VOID" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="core.logging.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="core.logging" />
+      <option name="MAIN_CLASS_NAME" value="core.logging.LogPaddingTest" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.test" />
+        <item itemvalue="TestNG.LogPaddingTest" />
+        <item itemvalue="TestNG.CustomLoggerThemeTest" />
+        <item itemvalue="TestNG.LogFormatterPrototypeTest" />
+        <item itemvalue="TestNG.CustomLoggerTest" />
+        <item itemvalue="TestNG.LogMultilineExperimentTest" />
       </list>
     </recent_temporary>
   </component>
@@ -175,7 +282,119 @@
       <option name="project" value="LOCAL" />
       <updated>1776325441756</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Remove BaseUtils references and add architecture documentation to README">
+      <option name="closed" value="true" />
+      <created>1776326033005</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1776326033005</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Refactor CustomLogger to use a fluent builder for ThemeColors and enhance log message formatting">
+      <option name="closed" value="true" />
+      <created>1776748390811</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748390811</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Rename driver setter methods for clarity and consistency">
+      <option name="closed" value="true" />
+      <created>1776748412858</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748412858</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Add text input handling methods for enhanced interaction">
+      <option name="closed" value="true" />
+      <created>1776748430781</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748430781</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Add log4j2 configuration for enhanced logging capabilities">
+      <option name="closed" value="true" />
+      <created>1776748456066</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748456066</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Update dependency versions in pom.xml for improved compatibility and security">
+      <option name="closed" value="true" />
+      <created>1776748474068</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748474068</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Add Via class for fluent element interface handling and locator resolution">
+      <option name="closed" value="true" />
+      <created>1776748498134</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748498134</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Refactor VOID class documentation and remove step definition interaction methods">
+      <option name="closed" value="true" />
+      <created>1776748514436</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748514436</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Refactor imports in WaitUtils.java for improved clarity and consistency">
+      <option name="closed" value="true" />
+      <created>1776748531987</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748531987</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Add AutomationVOID class to extend VOID with BDD-specific helpers">
+      <option name="closed" value="true" />
+      <created>1776748546254</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748546254</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Add InteractionsTest and CustomLoggerTest for logging and interaction experiments">
+      <option name="closed" value="true" />
+      <created>1776748578724</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748578724</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Add InteractionsTest and CustomLoggerTest for logging and interaction experiments">
+      <option name="closed" value="true" />
+      <created>1776748593874</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1776748593874</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Add .gitignore to exclude Maven target, logs, compiled files, IntelliJ files, and OS junk">
+      <option name="closed" value="true" />
+      <created>1776749176976</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1776749176976</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Refactor PracticePageElements to improve locator methods and enhance role mapping">
+      <option name="closed" value="true" />
+      <created>1776749217421</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1776749217421</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -196,7 +415,20 @@
     <MESSAGE value="Deleted some stuff" />
     <MESSAGE value="Update README.md for enhanced clarity and structure" />
     <MESSAGE value="Add initial VOID framework documentation to README" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add initial VOID framework documentation to README" />
+    <MESSAGE value="Remove BaseUtils references and add architecture documentation to README" />
+    <MESSAGE value="Refactor CustomLogger to use a fluent builder for ThemeColors and enhance log message formatting" />
+    <MESSAGE value="Rename driver setter methods for clarity and consistency" />
+    <MESSAGE value="Add text input handling methods for enhanced interaction" />
+    <MESSAGE value="Add log4j2 configuration for enhanced logging capabilities" />
+    <MESSAGE value="Update dependency versions in pom.xml for improved compatibility and security" />
+    <MESSAGE value="Add Via class for fluent element interface handling and locator resolution" />
+    <MESSAGE value="Refactor VOID class documentation and remove step definition interaction methods" />
+    <MESSAGE value="Refactor imports in WaitUtils.java for improved clarity and consistency" />
+    <MESSAGE value="Add AutomationVOID class to extend VOID with BDD-specific helpers" />
+    <MESSAGE value="Add InteractionsTest and CustomLoggerTest for logging and interaction experiments" />
+    <MESSAGE value="Add .gitignore to exclude Maven target, logs, compiled files, IntelliJ files, and OS junk" />
+    <MESSAGE value="Refactor PracticePageElements to improve locator methods and enhance role mapping" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor PracticePageElements to improve locator methods and enhance role mapping" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

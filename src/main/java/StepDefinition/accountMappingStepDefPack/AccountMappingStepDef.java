@@ -21,7 +21,7 @@
 //import core.utils.data.DataGenerator;
 //import core.utils.json.JsonLogger;
 //import core.resolvers.locators.PropertiesFileLocatorReader;
-//import core.logging.CustomLogger;
+//import core.utils.CustomLogger;
 //import core.utils.web.KeyValuePairHandler;
 //import core.utils.web.TableHandler;
 //import core.utils.web.Upload;

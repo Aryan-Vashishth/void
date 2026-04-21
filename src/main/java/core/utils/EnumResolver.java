@@ -6,7 +6,6 @@ import core.driver.Waiter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import core.logging.CustomLogger;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +25,7 @@ public class EnumResolver {
         List<WebElement> elements = Waiter.get().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
         for(WebElement element: elements){
             String enumFormated = normalizeToEnumName(element.getText().trim());
-            System.out.println((enumFormated + "(\"" + element.getText() + "\"),"));
+            debug.log(enumFormated + "(\"" + element.getText() + "\"),");
         }
     }
 
@@ -51,9 +50,9 @@ public class EnumResolver {
         }
 
         for (T constant : constants) {
-            CustomLogger.debug.log("Checking: " + constant.name());
+            debug.log("Checking: " + constant.name());
             if (constant.name().equalsIgnoreCase(normalized)) {
-                CustomLogger.debug.log("Found enum constant: " + constant.name() +
+                debug.log("Found enum constant: " + constant.name() +
                         " in " + enumClass.getSimpleName());
                 return constant;
             }
@@ -76,7 +75,7 @@ public class EnumResolver {
         }
 
         String normalized = normalizeToEnumName(input);
-        CustomLogger.debug.log("Resolving enum constant '" + input + "' (normalized: " + normalized + ")"
+        debug.log("Resolving enum constant '" + input + "' (normalized: " + normalized + ")"
                 + " in enum class: " + enumClass.getName());
 
         // First, try by normalized enum constant name
@@ -88,7 +87,7 @@ public class EnumResolver {
         T[] constants = enumClass.getEnumConstants();
         for (T constant : constants) {
             if (input.equalsIgnoreCase(constant.getLabel())) {
-                CustomLogger.debug.log("Found enum by label: " + constant.name() +
+                debug.log("Found enum by label: " + constant.name() +
                         " in " + enumClass.getSimpleName());
                 return constant;
             }
@@ -124,7 +123,7 @@ public class EnumResolver {
                         T[] constants = ((Class<T>) inner).getEnumConstants();
                         for (T constant : constants) {
                             if (input.equalsIgnoreCase(constant.getLabel())) {
-                                CustomLogger.debug.log("Found enum by label: " + constant.name() +
+                                debug.log("Found enum by label: " + constant.name() +
                                         " in " + inner.getSimpleName());
                                 return constant;
                             }

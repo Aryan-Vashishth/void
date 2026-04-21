@@ -1,6 +1,5 @@
 package core.logging;
 
-import core.utils.CustomLogger;
 
 /**
  * Enumeration of all built-in log themes.
