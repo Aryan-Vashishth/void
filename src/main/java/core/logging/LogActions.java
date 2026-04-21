@@ -80,13 +80,24 @@ public class LogActions {
     public void log(List<?> list)  { logList(list); }
 
     public void log(String heading, Object... pairs) {
-        treeInternal(heading, CustomLogger.fields(pairs), LogIntent.BASE, "LOG");
+        treeInternal(heading, fields(pairs), LogIntent.BASE, "LOG");
     }
 
     /** Overridable stub — subclasses (Info/Warn/Error/Debug) override with level-specific labels. */
     public void log(String message)                         { logMessage(LogIntent.BASE, "LOG", message); }
     /** Overridable stub — subclasses (Info/Warn/Error/Debug) override with level-specific labels. */
     public void log(String heading, Map<String, ?> fields)  { treeInternal(heading, fields, LogIntent.BASE, "LOG"); }
+
+    // ── Helper: key/value field builder ──────────────────────────────────────
+
+    public static LinkedHashMap<String, Object> fields(Object... pairs) {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        if (pairs.length % 2 != 0)
+            throw new IllegalArgumentException("fields() requires an even number of key/value arguments");
+        for (int i = 0; i < pairs.length; i += 2)
+            map.put(String.valueOf(pairs[i]), pairs[i + 1]);
+        return map;
+    }
 
     private void logList(List<?> list) {
         if (list == null || list.isEmpty()) { logMessage(LogIntent.BASE, "LOG", "(empty list)"); return; }
@@ -117,14 +128,14 @@ public class LogActions {
         for (Map<?, ?> row : rows) {
             for (Object key : row.keySet()) {
                 String col = String.valueOf(key);
-                String val = CustomLogger.truncateCell(String.valueOf(row.get(key)));
+                String val = LoggerContext.truncateCell(String.valueOf(row.get(key)));
                 colWidths.put(col, Math.max(
                         colWidths.getOrDefault(col, col.length()),
                         Math.max(col.length(), val.length())));
             }
         }
         List<String> headers = new java.util.ArrayList<>(colWidths.keySet());
-        boolean ansi = CustomLogger.isAnsiEnabled();
+        boolean ansi = LogConfig.current().isAnsiEnabled();
         String color = ansi ? BuiltInThemes.getColors().resolve(logLevel, LogIntent.DATA) : "";
         String rst   = ansi ? BuiltInThemes.getColors().reset() : "";
 
@@ -132,14 +143,14 @@ public class LogActions {
                 .map(h -> "-".repeat(colWidths.get(h) + 2))
                 .reduce((a, b) -> a + "+" + b).orElse("") + "+";
         String headerRow = "|" + headers.stream()
-                .map(h -> " " + CustomLogger.truncateCell(h) + " ".repeat(colWidths.get(h) - h.length()) + " ")
+                .map(h -> " " + LoggerContext.truncateCell(h) + " ".repeat(colWidths.get(h) - h.length()) + " ")
                 .reduce((a, b) -> a + "|" + b).orElse("") + "|";
 
         StringBuilder sb = new StringBuilder();
         sb.append(hBorder).append("\n");
 
         if (title != null && !title.isEmpty()) {
-            String bold     = ansi ? BOLD  : "";
+            String bold      = ansi ? BOLD  : "";
             String resetBold = ansi ? RESET : "";
             sb.append("|").append(bold)
               .append(center(" " + title + " ", headerRow.length() - 2))
@@ -154,7 +165,7 @@ public class LogActions {
                 for (Object key : row.keySet())
                     if (String.valueOf(key).equals(h)) { v = row.get(key); break; }
                 if (v == null) v = "";
-                String s = CustomLogger.truncateCell(String.valueOf(v));
+                String s = LoggerContext.truncateCell(String.valueOf(v));
                 return " " + s + " ".repeat(colWidths.get(h) - s.length()) + " ";
             }).reduce((a, b) -> a + "|" + b).orElse("") + "|";
             sb.append(rowStr).append("\n");
@@ -170,7 +181,7 @@ public class LogActions {
         table(java.util.Collections.singletonList(row), title);
     }
 
-    public void table(Map<?, ?> row) { table(row, (String) null); }
+    public void table(Map<?, ?> row) { table(row, null); }
 
     public void row(Map<?, ?> data) {
         if (data == null || data.isEmpty()) { logMessage(LogIntent.DATA, "ROW", "(empty)"); return; }
@@ -179,8 +190,8 @@ public class LogActions {
         for (Map.Entry<?, ?> entry : data.entrySet()) {
             logMessage(LogIntent.DATA, "ROW",
                     String.format("%-" + maxKeyLen + "s : %s",
-                            String.valueOf(entry.getKey()),
-                            CustomLogger.truncateCell(String.valueOf(entry.getValue()))));
+                            entry.getKey(),
+                            LoggerContext.truncateCell(String.valueOf(entry.getValue()))));
         }
     }
 
@@ -191,7 +202,7 @@ public class LogActions {
     }
 
     public void tree(String heading, Object... pairs) {
-        treeInternal(heading, CustomLogger.fields(pairs), LogIntent.BASE, "LOG");
+        treeInternal(heading, fields(pairs), LogIntent.BASE, "LOG");
     }
 
     public void resolved(String heading, Map<String, ?> fields) {
@@ -199,7 +210,7 @@ public class LogActions {
     }
 
     public void resolved(String heading, Object... pairs) {
-        treeInternal(heading, CustomLogger.fields(pairs), LogIntent.SUCCESS, "RESOLVED");
+        treeInternal(heading, fields(pairs), LogIntent.SUCCESS, "RESOLVED");
     }
 
     /** Internal tree renderer — composes color from intent + level, then logs each branch. */
@@ -210,7 +221,7 @@ public class LogActions {
         int size = fields.size(), i = 0;
         for (Map.Entry<String, ?> entry : fields.entrySet()) {
             i++;
-            String prefix = (i < size) ? "          ├─ " : "          └─ ";
+            String prefix = (i < size) ? "          \u251C\u2500 " : "          \u2514\u2500 ";
             Object v = entry.getValue();
             String value;
             if (v != null && v.getClass().isArray()) {
@@ -240,7 +251,7 @@ public class LogActions {
      */
     protected void logMessage(LogIntent intent, String actionLabel, String message) {
         logMultiline(BuiltInThemes.getColors().resolve(logLevel, intent),
-                     actionLabel, message, CustomLogger.isDebugEnabled());
+                     actionLabel, message, LoggerContext.isDebugEnabled());
     }
 
     /**
@@ -248,50 +259,43 @@ public class LogActions {
      * Used by the table renderer which builds its own multi-line block.
      */
     protected void logMessage(String actionColor, String actionLabel, String message) {
-        logMultiline(actionColor, actionLabel, message, CustomLogger.isDebugEnabled());
+        logMultiline(actionColor, actionLabel, message, LoggerContext.isDebugEnabled());
     }
 
     /**
      * Splits {@code message} on newlines and emits one log entry per line.
-     *
-     * <p><b>Single-color-per-line (default):</b> each line is wrapped in exactly one
-     * {@code <ANSI-open>…<ANSI-reset>} block — safe for IntelliJ Test History, CI, and
-     * file appenders.</p>
-     *
-     * <p><b>{@literal @ConsoleOnly} mode</b> (when {@link CustomLogger#isCallerColorEnabled()}
-     * is {@code true}): the caller suffix gets a second ANSI segment. Do <b>not</b> enable
-     * in CI or file-appender runs.</p>
      */
     protected void logMultiline(String actionColor, String actionLabel,
                                 String message, boolean showCaller) {
         if (message == null) message = "null";
-        String ts         = "[" + java.time.LocalDateTime.now()
-                                      .format(CustomLogger.TS_FMT) + "]";
+        LogConfig cfg = LogConfig.current();
+        String ts         = java.time.LocalDateTime.now().format(cfg.getTsFormat());
         String callerText = showCaller ? getCallerString() : "";
         String[] lines    = message.split("\\R", -1);
-        boolean ansi      = CustomLogger.isAnsiEnabled();
+        boolean ansi      = cfg.isAnsiEnabled();
 
+        String div = cfg.getSegmentDivider();
         for (int i = 0; i < lines.length; i++) {
-            String body = ts + " [" + actionLabel + "] " + lines[i];
+            // e.g.  [2026-04-21 13:16:39.123] │ CLICK [>] │ message text │ Caller.method ← Parent.method
+            String body = ts + div + actionLabel + div + lines[i];
             String out;
             if (ansi) {
-                if (i == 0 && !callerText.isEmpty() && CustomLogger.isCallerColorEnabled()) {
-                    // ⚠️ @ConsoleOnly: two ANSI segments
+                if (i == 0 && !callerText.isEmpty() && cfg.isCallerColorEnabled()) {
                     out = actionColor + body + RESET
-                        + " " + BuiltInThemes.getColors().callerFg() + callerText + RESET;
+                        + div + BuiltInThemes.getColors().callerFg() + callerText + RESET;
                 } else {
-                    String cp = (i == 0 && !callerText.isEmpty()) ? " " + callerText : "";
+                    String cp = (i == 0 && !callerText.isEmpty()) ? div + callerText : "";
                     out = actionColor + body + cp + RESET;
                 }
             } else {
-                String cp = (i == 0 && !callerText.isEmpty()) ? " " + callerText : "";
+                String cp = (i == 0 && !callerText.isEmpty()) ? div + callerText : "";
                 out = body + cp;
             }
             switch (logLevel) {
-                case "ERROR" -> CustomLogger.getSafeLogger().error(out);
-                case "WARN"  -> CustomLogger.getSafeLogger().warn(out);
-                case "INFO"  -> CustomLogger.getSafeLogger().info(out);
-                default      -> CustomLogger.getSafeLogger().debug(out);
+                case "ERROR" -> LoggerContext.getLogger().error(out);
+                case "WARN"  -> LoggerContext.getLogger().warn(out);
+                case "INFO"  -> LoggerContext.getLogger().info(out);
+                default      -> LoggerContext.getLogger().debug(out);
             }
         }
     }
@@ -304,14 +308,15 @@ public class LogActions {
     }
 
     private static boolean filteredOut(String className, String methodName) {
+        LogConfig cfg = LogConfig.current();
         if (methodName != null)
-            for (String p : CustomLogger.SUPPRESS_METHOD_PREFIXES)
+            for (String p : cfg.getSuppressMethodPrefixes())
                 if (methodName.startsWith(p)) return true;
         if (className != null) {
-            if (!CustomLogger.INCLUDE_ONLY_PREFIXES.isEmpty()) {
-                if (CustomLogger.INCLUDE_ONLY_PREFIXES.stream().noneMatch(className::startsWith)) return true;
+            if (!cfg.getIncludeOnlyPrefixes().isEmpty()) {
+                if (cfg.getIncludeOnlyPrefixes().stream().noneMatch(className::startsWith)) return true;
             }
-            for (String s : CustomLogger.SUPPRESS_CONTAINS)
+            for (String s : cfg.getSuppressContains())
                 if (className.contains(s) || className.startsWith(s)) return true;
         }
         return false;

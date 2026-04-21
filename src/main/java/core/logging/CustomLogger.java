@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Central logger facade for the void-framework.
@@ -86,6 +87,33 @@ public class CustomLogger {
             map.put(String.valueOf(pairs[i]), pairs[i + 1]);
         return map;
     }
+
+    // ── LogConfig entry points ────────────────────────────────────────────────
+
+    /**
+     * Apply a fully constructed {@link LogConfig} as the live configuration.
+     * <pre>{@code
+     * CustomLogger.configure(
+     *     LogConfig.builder()
+     *         .theme(LogTheme.COCKPIT)
+     *         .tableCellLimit(60)
+     *         .callerColor(true)
+     *         .build()
+     * );
+     * }</pre>
+     */
+    public static void configure(LogConfig config)            { LogConfig.apply(config); }
+
+    /**
+     * Patch the live {@link LogConfig} in-place via a {@link Consumer}.
+     * <pre>{@code
+     * CustomLogger.configure(c -> c.setTheme(LogTheme.HIGH_CONTRAST).enableCallerColor());
+     * }</pre>
+     */
+    public static void configure(Consumer<LogConfig> mutator) { LogConfig.patch(mutator); }
+
+    /** Returns the live {@link LogConfig} instance for direct manipulation. */
+    public static LogConfig config()                          { return LogConfig.current(); }
 
     // ── Log4j logger — delegates to LoggerContext ─────────────────────────────
 

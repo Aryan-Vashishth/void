@@ -4,7 +4,7 @@ package core.logging;
  * Classifies <em>what</em> a log line is communicating — independently of the
  * log level. The theme maps each intent to a <b>foreground color</b>; the
  * log level supplies the <b>background color</b>. The two are composed at
- * render time via {@link ThemeColors#resolve(String, LogIntent)}.
+ * render time via {@code ThemeColors#resolve(String, LogIntent)}.
  *
  * <table border="1">
  * <tr><th>Intent</th><th>Actions</th></tr>

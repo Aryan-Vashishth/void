@@ -188,6 +188,24 @@ public final class BuiltInThemes {
     /** Returns the currently active {@link LogTheme} key (may be {@code null} if a custom theme is set). */
     public static LogTheme getCurrentTheme() { return currentTheme; }
 
+    /**
+     * Resolves a {@link LogTheme} key to its {@link ThemeColors} without
+     * consulting the active-theme state. Used by {@link LogConfig#resolvedTheme()}.
+     */
+    public static ThemeColors resolve(LogTheme theme) {
+        if (theme == null) return PLAIN;
+        return switch (theme) {
+            case PLAIN            -> PLAIN;
+            case SOLARIZED_DARK   -> SOLARIZED_DARK;
+            case HIGH_CONTRAST    -> HIGH_CONTRAST;
+            case MODERN_CLEAN     -> MODERN_CLEAN;
+            case INDUSTRIAL_STEEL -> INDUSTRIAL_STEEL;
+            case NIGHT_CLUB       -> NIGHT_CLUB;
+            case CARBON_ORANGE    -> CARBON_ORANGE;
+            case COCKPIT          -> COCKPIT;
+        };
+    }
+
     /** Returns the {@link ThemeColors} for the currently active theme. */
     public static ThemeColors getColors() {
         if (customTheme != null) return customTheme;

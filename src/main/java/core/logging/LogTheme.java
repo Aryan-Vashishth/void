@@ -1,9 +1,11 @@
 package core.logging;
 
+import core.utils.CustomLogger;
+
 /**
  * Enumeration of all built-in log themes.
  *
- * <p>Pass to {@link CustomLogger#setTheme(LogTheme)} to switch the active color scheme.</p>
+ * <p>Pass to {@code CustomLogger.setTheme(LogTheme)} to switch the active color scheme.</p>
  */
 public enum LogTheme {
 
