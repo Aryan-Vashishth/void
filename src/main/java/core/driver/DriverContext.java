@@ -80,7 +80,7 @@ public final class DriverContext {
      * @param key    driver key
      * @param driver driver instance
      */
-    public static void setDriver(String key, WebDriver driver) {
+    public static void setPrimaryDriver(String key, WebDriver driver) {
         debug.log("Setting driver for key: " + key);
         driverThreadLocal.get().put(key, driver);
     }
@@ -167,11 +167,11 @@ public final class DriverContext {
     // Primary / Secondary
     // ============================================================
 
-    public static void setDriver(WebDriver driver) { setDriver(PRIMARY, driver); }
+    public static void setPrimaryDriver(WebDriver driver) { setPrimaryDriver(PRIMARY, driver); }
 
     public static WebDriver getDriver() { return getDriver(PRIMARY); }
 
-    public static void setSecondaryDriver(WebDriver driver) { setDriver(SECONDARY, driver); }
+    public static void setSecondaryDriver(WebDriver driver) { setPrimaryDriver(SECONDARY, driver); }
 
     public static WebDriver getSecondaryDriver() { return getDriver(SECONDARY); }
 
