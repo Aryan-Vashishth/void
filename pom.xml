@@ -8,257 +8,176 @@
     <artifactId>VOID</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <!-- =========================================================
+         Dependency Versions — update here, nowhere else
+         ========================================================= -->
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>   <!-- ✏️ update: java.version in <properties> -->
+        <maven.compiler.target>${java.version}</maven.compiler.target>   <!-- ✏️ update: java.version in <properties> -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Core -->
+        <selenium.version>4.38.0</selenium.version>
+        <webdrivermanager.version>6.3.3</webdrivermanager.version>
+        <testng.version>7.11.0</testng.version>
+
+        <!-- Cucumber + Reporting -->
+        <cucumber.version>7.31.0</cucumber.version>
+        <extentreports-cucumber7-adapter.version>1.14.0</extentreports-cucumber7-adapter.version>
+
+        <!-- Jackson (managed via BOM — see dependencyManagement) -->
+        <jackson.version>2.19.0</jackson.version>
+
+        <!-- Annotations -->
+        <jsr305.version>3.0.2</jsr305.version>
+        <jetbrains-annotations.version>26.0.2</jetbrains-annotations.version>
+
+        <!-- Utilities -->
+        <log4j2.version>2.25.4</log4j2.version>  <!-- ✏️ update: log4j2.version in <properties> —— replaces EOL log4j 1.x (6 CVEs) -->
+        <lombok.version>1.18.42</lombok.version>
+        <javafaker.version>1.0.2</javafaker.version>
+
+        <!-- Plugins -->
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
     </properties>
 
+    <!-- =========================================================
+         Managed versions (BOM-style for Jackson)
+         ========================================================= -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>                     <!-- ✏️ update: jackson.version in <properties> -->
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- =========================================================
+         Build Plugins
+         ========================================================= -->
     <build>
         <plugins>
-            <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>${maven-compiler-plugin.version}</version>       <!-- ✏️ update: maven-compiler-plugin.version in <properties> -->
                 <configuration>
-                    <release>17</release>
-                    <source>25</source>
-                    <target>25</target>
+                    <release>${java.version}</release>                    <!-- ✏️ update: java.version in <properties> -->
                 </configuration>
             </plugin>
 
-            <!-- Surefire Plugin for Testing -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>${maven-surefire-plugin.version}</version>       <!-- ✏️ update: maven-surefire-plugin.version in <properties> -->
                 <configuration>
                     <suiteXmlFiles>
-                        <suiteXmlFile>src\testNgXml\testng.xml</suiteXmlFile>
+                        <suiteXmlFile>src/testNgXml/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
+    <!-- =========================================================
+         Dependencies
+         ========================================================= -->
     <dependencies>
-        <!-- Commons CSV -->
+
+        <!-- ── Selenium ─────────────────────────────────────── -->
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-            <version>1.14.1</version>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>                        <!-- ✏️ update: selenium.version in <properties> -->
+        </dependency>
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>${webdrivermanager.version}</version>                <!-- ✏️ update: webdrivermanager.version in <properties> -->
         </dependency>
 
-        <!-- JSON Simple -->
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-
-
-        <!-- ExtentReports Cucumber Adapter -->
-        <dependency>
-            <groupId>tech.grasshopper</groupId>
-            <artifactId>extentreports-cucumber7-adapter</artifactId>
-            <version>1.14.0</version>
-        </dependency>
-
-        <!-- JSON Library -->
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20250517</version>
-        </dependency>
-
-        <!-- Cucumber Dependencies -->
+        <!-- ── Cucumber ──────────────────────────────────────── -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
-            <version>7.31.0</version>
+            <version>${cucumber.version}</version>                        <!-- ✏️ update: cucumber.version in <properties> -->
         </dependency>
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-testng</artifactId>
-            <version>7.31.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-core</artifactId>
-            <version>7.31.0</version>
+            <version>${cucumber.version}</version>                        <!-- ✏️ update: cucumber.version in <properties> -->
         </dependency>
 
-        <!-- Protobuf -->
+        <!-- ── Reporting ─────────────────────────────────────── -->
         <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>4.33.0</version>
+            <groupId>tech.grasshopper</groupId>
+            <artifactId>extentreports-cucumber7-adapter</artifactId>
+            <version>${extentreports-cucumber7-adapter.version}</version> <!-- ✏️ update: extentreports-cucumber7-adapter.version in <properties> -->
         </dependency>
 
-        <!-- Javax Mail -->
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
-            <version>4.38.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/io.github.bonigarcia/webdrivermanager -->
-        <dependency>
-            <groupId>io.github.bonigarcia</groupId>
-            <artifactId>webdrivermanager</artifactId>
-            <version>6.3.3</version>
-        </dependency>
-
-        <!-- Microsoft SQL Server -->
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>13.2.1.jre11</version>
-        </dependency>
-
-        <!-- Logging -->
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-
-        <!-- TestNG -->
-        <!-- https://mvnrepository.com/artifact/org.testng/testng -->
+        <!-- ── TestNG ────────────────────────────────────────── -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.10.2</version>
-            <scope>test</scope>
+            <version>${testng.version}</version>                          <!-- ✏️ update: testng.version in <properties> -->
         </dependency>
 
-        <!-- Cucumber Reporting -->
-        <dependency>
-            <groupId>net.masterthought</groupId>
-            <artifactId>cucumber-reporting</artifactId>
-            <version>5.10.1</version>
-        </dependency>
-
-        <!-- FreeMarker -->
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>2.3.34</version>
-        </dependency>
-
-        <!-- ExtentReports -->
-        <dependency>
-            <groupId>com.relevantcodes</groupId>
-            <artifactId>extentreports</artifactId>
-            <version>2.41.2</version>
-        </dependency>
-
-        <!-- Apache POI -->
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>5.4.1</version>
-        </dependency>
-
-        <!-- SendGrid -->
-        <dependency>
-            <groupId>com.sendgrid</groupId>
-            <artifactId>sendgrid-java</artifactId>
-            <version>5.0.0-rc.1</version>
-        </dependency>
-
-        <!-- OpenCSV -->
-        <dependency>
-            <groupId>com.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>5.12.0</version>
-        </dependency>
-
-        <!-- SLF4J -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.1.0-alpha1</version>
-        </dependency>
-
-
-
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.42</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>7.11.0</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.github.javafaker/javafaker -->
-        <dependency>
-            <groupId>com.github.javafaker</groupId>
-            <artifactId>javafaker</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.applitools/eyes-selenium-java5 -->
-        <dependency>
-            <groupId>com.applitools</groupId>
-            <artifactId>eyes-selenium-java5</artifactId>
-            <version>5.81.8</version>
-        </dependency>
-
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>com.fasterxml.jackson.core</groupId>-->
-<!--            <artifactId>jackson-databind</artifactId>-->
-<!--            <version>2.20.0</version>-->
-<!--        </dependency>-->
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.20.1</version>
-        </dependency>
+        <!-- ── Jackson (versions managed by BOM above) ───────── -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.20.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>3.0-rc5</version>
+                                                                          <!-- ✏️ update: jackson.version in <properties> → managed by jackson-bom -->
         </dependency>
 
+        <!-- ── Logging (Log4j 2 — replaces EOL log4j 1.x) ──────── -->
         <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>5.5.6</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j2.version}</version>                          <!-- ✏️ update: log4j2.version in <properties> -->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j2.version}</version>                          <!-- ✏️ update: log4j2.version in <properties> -->
+        </dependency>
+        <!-- Bridge: keeps "import org.apache.log4j.Logger" working without code changes -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>${log4j2.version}</version>                          <!-- ✏️ update: log4j2.version in <properties> -->
+        </dependency>
+
+        <!-- ── Annotations ───────────────────────────────────── -->
+        <!-- JSR-305: provides javax.annotation.Nullable / Nonnull -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>${jsr305.version}</version>                          <!-- ✏️ update: jsr305.version in <properties> -->
+        </dependency>
+        <!-- JetBrains: provides org.jetbrains.annotations.NotNull / Nullable -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${jetbrains-annotations.version}</version>           <!-- ✏️ update: jetbrains-annotations.version in <properties> -->
+        </dependency>
+
+        <!-- ── Utilities ─────────────────────────────────────── -->
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <version>${javafaker.version}</version>                       <!-- ✏️ update: javafaker.version in <properties> -->
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>                          <!-- ✏️ update: lombok.version in <properties> -->
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
