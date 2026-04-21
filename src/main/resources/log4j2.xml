@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+
+        <!-- Console: plain %m%n so CustomLogger controls all formatting -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%m%n"/>
+        </Console>
+
+        <!-- Rolling daily file for normal test run logs -->
+        <RollingFile name="Rolling"
+                     fileName="./logs/RenewalsWithAdminUser.log"
+                     filePattern="./logs/RenewalsWithAdminUser.%d{yyyy-MM-dd}.log"
+                     append="false">
+            <PatternLayout pattern="%m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+
+        <!-- Full trace file (no ANSI) -->
+        <RollingFile name="TraceFile"
+                     fileName="./logs/full-trace.log"
+                     filePattern="./logs/full-trace.%d{yyyy-MM-dd}.log"
+                     append="false">
+            <PatternLayout pattern="%m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+        <!-- Suppress noisy framework loggers -->
+        <Logger name="io.github.bonigarcia"    level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
+        <Logger name="org.seleniumhq.selenium" level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
+        <Logger name="io.cucumber"             level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
+        <Logger name="org.apache.http"         level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
+        <Logger name="io.opentelemetry"        level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
+
+        <!-- Trace-only logger (mirrors old log4j.logger.trace) -->
+        <Logger name="trace" level="INFO" additivity="false">
+            <AppenderRef ref="TraceFile"/>
+        </Logger>
+
+        <!-- Root: DEBUG so CustomLogger's info/warn/debug/error all appear -->
+        <Root level="DEBUG">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Rolling"/>
+        </Root>
+    </Loggers>
+</Configuration>
+
