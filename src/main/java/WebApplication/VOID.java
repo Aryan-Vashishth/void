@@ -2,31 +2,62 @@ package WebApplication;
 
 import core.driver.DriverContext;
 import interactions.Interactions;
-import interactions.StepDefInteractions;
 import org.openqa.selenium.WebDriver;
 
 /**
- * Façade / entry point for the VOID framework.
- * <p>
- * Obtain an instance via your base test class (it is stored in {@code BaseUtils.VOID})
- * then chain interaction calls:
+ * Façade / entry point for the core VOID framework.
+ *
+ * <p>This class is intentionally <b>framework-only</b> — it carries no
+ * BDD / Cucumber dependencies. For step-definition helpers such as
+ * {@code stepDefInteraction()}, use
+ * {@code automation.WebApplication.AutomationVOID} which extends this class.</p>
+ *
+ * <h3>Framework layer usage</h3>
  * <pre>
- *   VOID.interaction().clickOn(MyElements.SUBMIT_BUTTON);
- *   VOID.stepDefInteraction().clickOnFrom("tiles", "admin_home", "Dashboard");
+ *   VOID app = new VOID();
+ *   app.interaction().clickOn(MyElements.SUBMIT_BUTTON);
  * </pre>
- * Interaction instances are lazily created and cached per {@code VOID} instance —
- * no new objects are allocated on every call.
+ *
+ * <h3>Automation layer usage</h3>
+ * <pre>
+ *   AutomationVOID app = new AutomationVOID();
+ *   app.interaction().clickOn(MyElements.SUBMIT_BUTTON);
+ *   app.stepDefInteraction().clickOnFrom("tiles", "admin_home", "Dashboard", After.DO_NOTHING);
+ * </pre>
+ *
+ * <h3>Layer model</h3>
+ * <pre>
+ *  ┌──────────────────────────────────────────────────────────────┐
+ *  │  automation layer  (automation.*)                            │
+ *  │    AutomationVOID  →  StepDefInteractions  (BDD actions)     │
+ *  ├──────────────────────────────────────────────────────────────┤
+ *  │  framework layer   (this class + interactions / core)        │
+ *  │    VOID            →  Interactions  (raw UI actions)         │
+ *  └──────────────────────────────────────────────────────────────┘
+ * </pre>
  */
 public class VOID {
 
     private final WebDriver driver;
 
-    /** Lazily-initialised, cached interaction helpers. */
-    private Interactions          interactions;
-    private StepDefInteractions   stepDefInteractions;
+    /** Lazily-initialised, cached interaction helper. */
+    private Interactions interactions;
+
 
     public VOID() {
         driver = DriverContext.getActiveDriver();
+    }
+
+    // ===========================
+    //   Accessible to subclasses
+    // ===========================
+
+    /**
+     * Returns the underlying {@link WebDriver} so subclasses (e.g. {@code AutomationVOID})
+     * can pass it to their own interaction helpers without re-fetching it from the context.
+     */
+    protected WebDriver getDriver() {
+        return driver;
     }
 
     // ===========================
@@ -39,13 +70,5 @@ public class VOID {
             interactions = new Interactions(driver);
         }
         return interactions;
-    }
-
-    /** Returns the (cached) step-definition interaction helper. */
-    public StepDefInteractions stepDefInteraction() {
-        if (stepDefInteractions == null) {
-            stepDefInteractions = new StepDefInteractions(driver);
-        }
-        return stepDefInteractions;
     }
 }
