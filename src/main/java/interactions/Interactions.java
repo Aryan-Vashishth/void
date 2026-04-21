@@ -4,6 +4,7 @@ import core.utils.web.DOMUtils;
 import core.utils.web.WaitUtils;
 import elements.meta.ElementRole;
 import elements.api.*;
+import elements.api.TextInputField;
 import interactions.hooks.ActionHandler;
 import interactions.hooks.Before;
 import interactions.hooks.After;
@@ -84,7 +85,7 @@ public class Interactions {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         initialize(this.getClass());
-        DriverContext.setDriver(driver);
+        DriverContext.setPrimaryDriver(driver); // register so getActiveDriver() resolves correctly
     }
 
 
@@ -729,4 +730,197 @@ public class Interactions {
     public WebElement searchForWithoutClick(Searchable field, String searchTerm) { return searchFor(field, false, null, null, null, null, searchTerm); }
 
     // ======================= END SEARCH SECTION =======================
+
+    // ======================= TEXT INPUT HANDLING =======================
+
+    /**
+     * Clears the field and types {@code text} into a raw {@link WebElement}.
+     * <ol>
+     *   <li>Scrolls into view</li>
+     *   <li>Waits for element to be visible + enabled</li>
+     *   <li>Clears existing content</li>
+     *   <li>Sends the supplied text</li>
+     * </ol>
+     *
+     * @param element target input element
+     * @param text    text to type (must not be null)
+     * @throws RuntimeException if the element is not interactable or type fails
+     */
+    public void typeInto(WebElement element, String text) {
+        try {
+            wait.until(ExpectedConditions.visibilityOf(element));
+            DOMUtils.scrollToElement(element);
+            UIContext.setLastElement(element);
+            element.clear();
+            element.sendKeys(text);
+            debug.text("Typed into element: '" + text + "'");
+        } catch (Exception e) {
+            error.failed("Failed to type into WebElement: " + e.getMessage());
+            throw new RuntimeException("typeInto(WebElement) failed", e);
+        }
+    }
+
+    /**
+     * Clears the field and types {@code text} using a raw {@link By} locator.
+     *
+     * @param locator target locator
+     * @param text    text to type
+     * @throws RuntimeException on failure
+     */
+    public void typeInto(By locator, String text) {
+        try {
+            WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            typeInto(element, text);
+        } catch (Exception e) {
+            error.failed("Failed to type into locator: " + locator + " | " + e.getMessage());
+            throw new RuntimeException("typeInto(By) failed for: " + locator, e);
+        }
+    }
+
+    /**
+     * Full-pipeline type into a {@link TextInputField} with optional before/after hooks.
+     * <p>Uses {@link core.resolvers.locator.LocatorResolverV1#getLocator(elements.api.Element)} to resolve
+     * the {@link elements.meta.ElementRole#INPUT} locator from the enum descriptor.</p>
+     *
+     * @param beforeActions optional hooks before typing (may be null)
+     * @param field         the text input field enum descriptor
+     * @param text          text to type
+     * @param afterActions  optional hooks after typing (may be null)
+     * @throws RuntimeException on failure
+     */
+    public void typeInto(@Nullable List<ActionHandler> beforeActions,
+                         TextInputField field,
+                         String text,
+                         @Nullable List<ActionHandler> afterActions) {
+        try {
+            if (beforeActions != null) for (ActionHandler a : beforeActions) if (a != null) a.execute(driver);
+            By locator = LocatorResolverV1.getLocator(field);
+            WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            DOMUtils.scrollToElement(element);
+            UIContext.setLastElement(element);
+            element.clear();
+            element.sendKeys(text);
+            info.text("Typed into '" + field.getDisplayText() + "': " + text);
+            if (afterActions != null) for (ActionHandler a : afterActions) if (a != null) a.execute(driver);
+        } catch (Exception e) {
+            error.failed("Failed to type into field '" + field.getDisplayText() + "': " + e.getMessage());
+            throw new RuntimeException("typeInto(TextInputField) failed for: " + field.getDisplayText(), e);
+        }
+    }
+
+    /** Simple overload — no hooks. */
+    public void typeInto(TextInputField field, String text) { typeInto(null, field, text, null); }
+
+    /** Overload — before hook only. */
+    public void typeInto(ActionHandler before, TextInputField field, String text) {
+        typeInto(before != null ? List.of(before) : null, field, text, null);
+    }
+
+    /** Overload — after hook only. */
+    public void typeInto(TextInputField field, String text, ActionHandler after) {
+        typeInto(null, field, text, after != null ? List.of(after) : null);
+    }
+
+    /**
+     * Appends {@code text} to an existing field value <em>without</em> clearing first.
+     * Useful when you need to add to pre-populated content.
+     *
+     * @param field the text input field enum descriptor
+     * @param text  text to append
+     * @throws RuntimeException on failure
+     */
+    public void appendTo(TextInputField field, String text) {
+        try {
+            By locator = LocatorResolverV1.getLocator(field);
+            WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            DOMUtils.scrollToElement(element);
+            UIContext.setLastElement(element);
+            element.sendKeys(text);
+            debug.text("Appended to '" + field.getDisplayText() + "': " + text);
+        } catch (Exception e) {
+            error.failed("appendTo failed for '" + field.getDisplayText() + "': " + e.getMessage());
+            throw new RuntimeException("appendTo failed for: " + field.getDisplayText(), e);
+        }
+    }
+
+    /** Appends to a raw {@link WebElement} without clearing. */
+    public void appendTo(WebElement element, String text) {
+        try {
+            DOMUtils.scrollToElement(element);
+            UIContext.setLastElement(element);
+            element.sendKeys(text);
+            debug.text("Appended to WebElement: '" + text + "'");
+        } catch (Exception e) {
+            error.failed("appendTo(WebElement) failed: " + e.getMessage());
+            throw new RuntimeException("appendTo(WebElement) failed", e);
+        }
+    }
+
+    /**
+     * Clears the content of a {@link TextInputField} without typing anything.
+     *
+     * @param field target field
+     * @throws RuntimeException on failure
+     */
+    public void clearField(TextInputField field) {
+        try {
+            By locator = LocatorResolverV1.getLocator(field);
+            WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            DOMUtils.scrollToElement(element);
+            element.clear();
+            debug.text("Cleared field: '" + field.getDisplayText() + "'");
+        } catch (Exception e) {
+            error.failed("clearField failed for '" + field.getDisplayText() + "': " + e.getMessage());
+            throw new RuntimeException("clearField failed for: " + field.getDisplayText(), e);
+        }
+    }
+
+    /** Clears a raw {@link WebElement}. */
+    public void clearField(WebElement element) {
+        try {
+            DOMUtils.scrollToElement(element);
+            element.clear();
+            debug.text("Cleared WebElement.");
+        } catch (Exception e) {
+            error.failed("clearField(WebElement) failed: " + e.getMessage());
+            throw new RuntimeException("clearField(WebElement) failed", e);
+        }
+    }
+
+    /**
+     * Types into a field and presses a {@link Keys} chord immediately after
+     * (e.g., {@link Keys#ENTER}, {@link Keys#TAB}).
+     *
+     * @param field  target text field
+     * @param text   text to type
+     * @param key    key to press after typing
+     */
+    public void typeIntoAndPress(TextInputField field, String text, Keys key) {
+        try {
+            By locator = LocatorResolverV1.getLocator(field);
+            WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            DOMUtils.scrollToElement(element);
+            UIContext.setLastElement(element);
+            element.clear();
+            element.sendKeys(text);
+            element.sendKeys(key);
+            debug.text("Typed '" + text + "' and pressed " + key + " in '" + field.getDisplayText() + "'");
+        } catch (Exception e) {
+            error.failed("typeIntoAndPress failed for '" + field.getDisplayText() + "': " + e.getMessage());
+            throw new RuntimeException("typeIntoAndPress failed for: " + field.getDisplayText(), e);
+        }
+    }
+
+    /** Presses a key on an already-located {@link WebElement} (no clear, no text). */
+    public void pressKey(WebElement element, Keys key) {
+        try {
+            element.sendKeys(key);
+            debug.text("Pressed key " + key + " on element.");
+        } catch (Exception e) {
+            error.failed("pressKey failed: " + e.getMessage());
+            throw new RuntimeException("pressKey failed", e);
+        }
+    }
+
+    // ======================= END TEXT INPUT SECTION =======================
 }
