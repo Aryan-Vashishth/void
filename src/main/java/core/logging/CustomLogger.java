@@ -2,13 +2,9 @@ package core.logging;
 
 import org.apache.log4j.Logger;
 
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Central logger facade for the void-framework.
@@ -29,23 +25,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *   <li>{@link ThemeColors}   — immutable theme model + fluent builder</li>
  *   <li>{@link BuiltInThemes} — pre-built themes + active-theme registry</li>
  *   <li>{@link LogActions}    — all action methods (click, table, success, …)</li>
+ *   <li>{@link LoggerContext} — shared runtime state (ANSI flag, logger, filters)</li>
  *   <li>{@link CustomLogger}  — (this class) global config + level instances</li>
  * </ul>
  */
 public class CustomLogger {
-
-    // ── Timestamp format (shared with LogActions) ─────────────────────────────
-    public static final DateTimeFormatter TS_FMT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-
-    // ── Cell truncation (shared with LogActions) ──────────────────────────────
-    private static final int MAX_COL_WIDTH = 40;
-
-    public static String truncateCell(String s) {
-        if (s == null) return "";
-        s = s.replaceAll("\\R", " ");
-        return s.length() > MAX_COL_WIDTH ? s.substring(0, MAX_COL_WIDTH - 3) + "..." : s;
-    }
 
     // ── Level instances ───────────────────────────────────────────────────────
 
@@ -62,7 +46,7 @@ public class CustomLogger {
 
         @Override public void log(String message)                        { logMessage(LogIntent.BASE, "DEBUG", message); }
         @Override public void log(String heading, Map<String, ?> fields) { treeInternal(heading, fields, LogIntent.BASE, "DEBUG"); }
-        @Override public void log(String heading, Object... pairs)       { log(heading, CustomLogger.fields(pairs)); }
+        @Override public void log(String heading, Object... pairs)       { log(heading, fields(pairs)); }
     }
 
     /** INFO-level logger. */
@@ -71,7 +55,7 @@ public class CustomLogger {
 
         @Override public void log(String message)                        { logMessage(LogIntent.BASE, "INFO", message); }
         @Override public void log(String heading, Map<String, ?> fields) { treeInternal(heading, fields, LogIntent.BASE, "INFO"); }
-        @Override public void log(String heading, Object... pairs)       { log(heading, CustomLogger.fields(pairs)); }
+        @Override public void log(String heading, Object... pairs)       { log(heading, fields(pairs)); }
     }
 
     /** WARN-level logger. */
@@ -80,7 +64,7 @@ public class CustomLogger {
 
         @Override public void log(String message)                        { logMessage(LogIntent.BASE, "WARN", message); }
         @Override public void log(String heading, Map<String, ?> fields) { treeInternal(heading, fields, LogIntent.BASE, "WARN"); }
-        @Override public void log(String heading, Object... pairs)       { log(heading, CustomLogger.fields(pairs)); }
+        @Override public void log(String heading, Object... pairs)       { log(heading, fields(pairs)); }
     }
 
     /** ERROR-level logger. */
@@ -89,7 +73,7 @@ public class CustomLogger {
 
         @Override public void log(String message)                        { logMessage(LogIntent.BASE, "ERROR", message); }
         @Override public void log(String heading, Map<String, ?> fields) { treeInternal(heading, fields, LogIntent.BASE, "ERROR"); }
-        @Override public void log(String heading, Object... pairs)       { log(heading, CustomLogger.fields(pairs)); }
+        @Override public void log(String heading, Object... pairs)       { log(heading, fields(pairs)); }
     }
 
     // ── Helper: key/value field builder ──────────────────────────────────────
@@ -103,38 +87,17 @@ public class CustomLogger {
         return map;
     }
 
-    // ── Log4j logger ─────────────────────────────────────────────────────────
+    // ── Log4j logger — delegates to LoggerContext ─────────────────────────────
 
-    protected static Logger log = Logger.getLogger(CustomLogger.class);
+    public static void initialize(Class<?> clazz) { LoggerContext.initLogger(clazz); }
+    public static Logger getSafeLogger()           { return LoggerContext.getLogger(); }
+    public static boolean isDebugEnabled()         { return LoggerContext.isDebugEnabled(); }
 
-    public static void initialize(Class<?> clazz) {
-        log = (clazz != null) ? Logger.getLogger(clazz) : Logger.getLogger(CustomLogger.class);
-    }
+    // ── ANSI support — delegates to LoggerContext ─────────────────────────────
 
-    public static Logger getSafeLogger() {
-        return (log != null) ? log : Logger.getLogger(CustomLogger.class);
-    }
-
-    public static boolean isDebugEnabled() { return getSafeLogger().isDebugEnabled(); }
-
-    // ── ANSI support ──────────────────────────────────────────────────────────
-
-    private static final AtomicBoolean ansiEnabled = new AtomicBoolean(detectAnsiSupport());
-
-    private static boolean detectAnsiSupport() {
-        String prop = System.getProperty("logger.ansi.enabled");
-        if (prop != null) return Boolean.parseBoolean(prop);
-        if (System.getProperty("idea.test.cyclic.buffer.size") != null) return false;
-        if (System.getProperty("idea.launcher.bin.path")       != null) return false;
-        if (System.console() != null) return true;
-        if (System.getenv("TERM")      != null) return true;
-        if ("true".equals(System.getenv("ANSICON"))) return true;
-        return System.getenv("COLORTERM") != null;
-    }
-
-    public static void enableAnsi()       { ansiEnabled.set(true);  }
-    public static void disableAnsi()      { ansiEnabled.set(false); }
-    public static boolean isAnsiEnabled() { return ansiEnabled.get(); }
+    public static void enableAnsi()       { LoggerContext.enableAnsi(); }
+    public static void disableAnsi()      { LoggerContext.disableAnsi(); }
+    public static boolean isAnsiEnabled() { return LoggerContext.isAnsiEnabled(); }
 
     // ── Theme selection — delegates to BuiltInThemes ──────────────────────────
 
@@ -142,52 +105,22 @@ public class CustomLogger {
     public static void setCustomTheme(ThemeColors colors) { BuiltInThemes.setCustomTheme(colors); }
     public static LogTheme getCurrentTheme()              { return BuiltInThemes.getCurrentTheme(); }
 
-    // ── Caller-color feature flag ─────────────────────────────────────────────
-
-    /**
-     * When {@code true}, the caller/callee suffix is rendered with its own ANSI color.
-     *
-     * <p><b>⚠️ {@literal @ConsoleOnly} — DO NOT enable in CI or file-appender runs.</b></p>
-     */
-    @ConsoleOnly
-    private static volatile boolean callerColorEnabled = false;
+    // ── Caller-color feature flag — delegates to LoggerContext ────────────────
 
     @ConsoleOnly
-    public static void enableCallerColor()       { callerColorEnabled = true;  }
-    public static void disableCallerColor()      { callerColorEnabled = false; }
-    public static boolean isCallerColorEnabled() { return callerColorEnabled;  }
+    public static void enableCallerColor()       { LoggerContext.enableCallerColor(); }
+    public static void disableCallerColor()      { LoggerContext.disableCallerColor(); }
+    public static boolean isCallerColorEnabled() { return LoggerContext.isCallerColorEnabled(); }
 
-    // ── Configurable call-chain filtering ─────────────────────────────────────
+    // ── Call-chain filtering — delegates to LoggerContext ─────────────────────
 
-    public static final Set<String> SUPPRESS_CONTAINS = java.util.Collections.synchronizedSet(new LinkedHashSet<>(List.of(
-            "core.logging.CustomLogger", "core.logging.LogActions",
-            "org.apache.log4j",
-            "java.", "sun.", "jdk.",
-            "com.sun.proxy", "jdk.proxy",
-            "net.bytebuddy", "reflect."
-    )));
+    public static final Set<String> SUPPRESS_CONTAINS         = LoggerContext.SUPPRESS_CONTAINS;
+    public static final Set<String> SUPPRESS_METHOD_PREFIXES  = LoggerContext.SUPPRESS_METHOD_PREFIXES;
+    public static final Set<String> INCLUDE_ONLY_PREFIXES     = LoggerContext.INCLUDE_ONLY_PREFIXES;
 
-    public static final Set<String> SUPPRESS_METHOD_PREFIXES = java.util.Collections.synchronizedSet(new LinkedHashSet<>(List.of(
-            "log", "debug", "info", "warn", "error", "lambda$", "invoke"
-    )));
-
-    public static final Set<String> INCLUDE_ONLY_PREFIXES = java.util.Collections.synchronizedSet(new LinkedHashSet<>());
-
-    /** Only consider stack frames whose class starts with one of these prefixes. */
-    public static void includeOnlyPackages(String... prefixes) {
-        INCLUDE_ONLY_PREFIXES.clear();
-        if (prefixes != null)
-            for (String p : prefixes) if (p != null && !p.isBlank()) INCLUDE_ONLY_PREFIXES.add(p);
-    }
-
-    /** Add class-name substrings to suppress from the call chain. */
-    public static void suppressClassContains(String... substrings) {
-        if (substrings != null)
-            for (String s : substrings) if (s != null && !s.isBlank()) SUPPRESS_CONTAINS.add(s);
-    }
-
-    /** Remove include-only filter (revert to default suppression rules). */
-    public static void clearIncludes() { INCLUDE_ONLY_PREFIXES.clear(); }
+    public static void includeOnlyPackages(String... prefixes)   { LoggerContext.includeOnlyPackages(prefixes); }
+    public static void suppressClassContains(String... substrings){ LoggerContext.suppressClassContains(substrings); }
+    public static void clearIncludes()                           { LoggerContext.clearIncludes(); }
 
     // ── Experimental utilities ────────────────────────────────────────────────
 
@@ -205,7 +138,6 @@ public class CustomLogger {
 
         /**
          * Extracts a foreground ANSI code from a combined FG+BG style string.
-         * Not used by the core rendering path; kept for experimental theme tools.
          */
         public static String fgFromStyle(String style) {
             if (style == null) return AnsiColors.FG_BRIGHT_WHITE;
@@ -230,8 +162,6 @@ public class CustomLogger {
     }
 
     // ── Backward-compat color constant aliases ────────────────────────────────
-    // These allow existing call-sites that reference CustomLogger.FG_BRIGHT_WHITE etc.
-    // to continue compiling without changes.
 
     public static final String ANSI_RESET          = AnsiColors.RESET;
     public static final String ANSI_BOLD           = AnsiColors.BOLD;
@@ -260,4 +190,3 @@ public class CustomLogger {
     public static final String FG_DARKER_PURPLE    = AnsiColors.FG_DARKER_PURPLE;
     public static final String FG_DEEP_PURPLE      = AnsiColors.FG_DEEP_PURPLE;
 }
-
