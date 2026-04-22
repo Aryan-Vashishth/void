@@ -137,6 +137,22 @@ public final class AnsiColors {
     public static final String FG_DARKER_PURPLE = RGB_FG_DARKER_PURPLE;
     public static final String FG_DEEP_PURPLE   = RGB_FG_DEEP_PURPLE;
 
+    // ── Deep-shade foregrounds (rich, saturated — readable on dark backgrounds) ─
+    /** Deep crimson red — replaces neon FG_BRIGHT_RED / RGB_FG_CORAL in themes. */
+    public static final String RGB_FG_DEEP_RED    = "\u001B[38;2;210;48;48m";
+    /** Deep emerald green — replaces neon lime in themes. */
+    public static final String RGB_FG_DEEP_GREEN  = "\u001B[38;2;38;185;72m";
+    /** Deep teal-cyan — replaces electric cyan in themes. */
+    public static final String RGB_FG_DEEP_CYAN   = "\u001B[38;2;28;188;196m";
+    /** Deep amber — replaces bright yellow/gold in themes. */
+    public static final String RGB_FG_DEEP_AMBER  = "\u001B[38;2;200;155;20m";
+    /** Deep violet — replaces pastel lavender in themes. */
+    public static final String RGB_FG_DEEP_VIOLET = "\u001B[38;2;152;88;210m";
+    /** Deep orange — replaces peach/coral in warm themes. */
+    public static final String RGB_FG_DEEP_ORANGE = "\u001B[38;2;205;88;18m";
+    /** Deep hot-pink — replaces neon hot-pink in vivid themes. */
+    public static final String RGB_FG_DEEP_PINK   = "\u001B[38;2;210;40;125m";
+
     // ── True-RGB backgrounds ──────────────────────────────────────────────────
     // Dark neutrals
     public static final String RGB_BG_CHARCOAL      = "\u001B[48;2;35;38;46m";
