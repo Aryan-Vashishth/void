@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import static core.logging.CustomLogger.*;
-import static core.logging.AnsiColors.*;
 
 /**
  * Visual / smoke test for CustomLogger.
