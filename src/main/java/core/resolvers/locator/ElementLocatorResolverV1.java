@@ -71,13 +71,13 @@ public class ElementLocatorResolverV1 {
     }
 
     public static By getDropdownTriggerLocator(MultipleIdenticalDropdowns dropdown, @Nullable Integer dropdownIndex) {
-        Object[] args = (dropdownIndex == null) ? dropdown.getArgs() : dropdown.getArgsWithIndex(dropdownIndex);
-        return getLocator(dropdown.getExternalFileName(), dropdown.getTriggerLocator(), args);
+        return getLocator(dropdown.getExternalFileName(), dropdown.getTriggerLocator(),
+                dropdown.argsForIndex(dropdownIndex));
     }
 
     public static By getDropdownListLocator(MultipleIdenticalDropdowns dropdown, @Nullable Integer dropdownIndex) {
-        Object[] args = (dropdownIndex == null) ? dropdown.getArgs() : dropdown.getArgsWithIndex(dropdownIndex);
-        return getLocator(dropdown.getExternalFileName(), dropdown.getListLocator(), args);
+        return getLocator(dropdown.getExternalFileName(), dropdown.getListLocator(),
+                dropdown.argsForIndex(dropdownIndex));
     }
 
     public static By getSearchFieldLocator(SearchField field) {
@@ -89,8 +89,7 @@ public class ElementLocatorResolverV1 {
         if (resultKey == null || resultKey.isBlank())
             throw new IllegalArgumentException("Result locator key is not set for " + searchable.getDisplayText());
 
-        Object[] args = (resultArgs != null && resultArgs.length > 0) ? resultArgs : searchable.getArgs();
-        return getLocator(searchable.getExternalFileName(), resultKey, args);
+        return getLocator(searchable.getExternalFileName(), resultKey, searchable.effectiveArgs(resultArgs));
     }
 
     public static String getLocatorTemplate(@Nullable String fileName, String key) {

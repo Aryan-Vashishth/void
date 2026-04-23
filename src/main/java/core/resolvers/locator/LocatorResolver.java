@@ -116,8 +116,7 @@ public final class LocatorResolver {
             throw new IllegalStateException("Missing locator for role: " + role +
                     (e.getDisplayText() == null ? "" : (" (element=\"" + e.getDisplayText() + "\")")));
         }
-        Object[] args = (overrideArgs != null && overrideArgs.length > 0) ? overrideArgs : e.getArgs();
-        return resolve(e.getExternalFileName(), key, args);
+        return resolve(e.getExternalFileName(), key, e.effectiveArgs(overrideArgs));
     }
 
     /**
@@ -125,7 +124,7 @@ public final class LocatorResolver {
      */
     public By resolveBest(Element e, Object... overrideArgs) {
         String file = e.getExternalFileName();
-        Object[] args = (overrideArgs != null && overrideArgs.length > 0) ? overrideArgs : e.getArgs();
+        Object[] args = e.effectiveArgs(overrideArgs);
 
         String key = e.getPrimaryLocator();
         if (!isBlank(key)) return resolve(file, key, args);
