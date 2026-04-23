@@ -3,7 +3,7 @@ package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.resolvers.locator.LocatorPaths;
+import core.resolvers.locator.api.LocatorPaths;
 import core.utils.ConfigLoader;
 
 import java.io.InputStream;

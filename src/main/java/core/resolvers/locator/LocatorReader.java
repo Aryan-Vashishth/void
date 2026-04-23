@@ -1,6 +1,9 @@
 // file: core/resolvers/locator/LocatorReader.java
 package core.resolvers.locator;
 
+import core.resolvers.locator.source.LocatorSource;
+import core.resolvers.locator.source.LocatorSourceRegistry;
+
 /**
  * Legacy two-argument reader interface.
  *

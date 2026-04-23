@@ -1,5 +1,9 @@
 package core.resolvers.locator;
 
+import core.resolvers.locator.api.LocatorRequest;
+import core.resolvers.locator.api.LocatorResolver;
+import core.resolvers.locator.api.LocatorResolvers;
+import core.resolvers.locator.template.LocatorTemplate;
 import elements.api.*;
 import com.beust.jcommander.internal.Nullable;
 import core.utils.UIContext;

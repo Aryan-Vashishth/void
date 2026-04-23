@@ -1,6 +1,6 @@
 package core.resolvers.locator.json;
 
-import core.resolvers.locator.LocatorPaths;
+import core.resolvers.locator.api.LocatorPaths;
 import core.utils.ConfigLoader;
 
 import java.util.HashMap;

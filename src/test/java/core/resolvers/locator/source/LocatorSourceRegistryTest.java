@@ -1,4 +1,6 @@
-package core.resolvers.locator;
+package core.resolvers.locator.source;
+
+import core.resolvers.locator.api.LocatorRequest;
 
 import org.testng.annotations.Test;
 

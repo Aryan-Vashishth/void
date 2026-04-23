@@ -1,4 +1,4 @@
-package core.resolvers.locator;
+package core.resolvers.locator.parser;
 
 import org.openqa.selenium.By;
 import org.testng.annotations.DataProvider;

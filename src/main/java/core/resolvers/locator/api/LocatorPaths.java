@@ -1,4 +1,4 @@
-package core.resolvers.locator;
+package core.resolvers.locator.api;
 
 /**
  * Centralised classpath base paths for locator resources.

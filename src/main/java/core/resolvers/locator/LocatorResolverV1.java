@@ -1,6 +1,10 @@
 // file: core/resolvers/locator/LocatorResolverV1.java
 package core.resolvers.locator;
 
+import core.resolvers.locator.api.LocatorRequest;
+import core.resolvers.locator.api.LocatorResolver;
+import core.resolvers.locator.api.LocatorResolvers;
+import core.resolvers.locator.template.LocatorTemplate;
 import elements.meta.ElementRole;
 import elements.api.Element;
 import org.openqa.selenium.By;

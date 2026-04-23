@@ -1,5 +1,6 @@
-package core.resolvers.locator;
+package core.resolvers.locator.source;
 
+import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.json.JsonLocatorReaderV1;
 
 import java.util.Locale;

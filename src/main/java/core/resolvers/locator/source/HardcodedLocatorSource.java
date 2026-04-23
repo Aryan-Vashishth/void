@@ -1,4 +1,6 @@
-package core.resolvers.locator;
+package core.resolvers.locator.source;
+
+import core.resolvers.locator.api.LocatorRequest;
 
 /**
  * {@link LocatorSource} for "hardcoded" templates — i.e. requests where

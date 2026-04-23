@@ -1,8 +1,8 @@
 // file: core/resolvers/locator/properties/PropertiesFileLocatorReaderV1.java
 package core.resolvers.locator.properties;
 
-import core.resolvers.locator.ByParser;
-import core.resolvers.locator.LocatorPaths;
+import core.resolvers.locator.api.LocatorPaths;
+import core.resolvers.locator.parser.ByParser;
 import core.utils.io.properties.PropertiesReader;
 import org.openqa.selenium.By;
 

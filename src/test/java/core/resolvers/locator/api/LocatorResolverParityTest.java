@@ -1,5 +1,7 @@
-package core.resolvers.locator;
+package core.resolvers.locator.api;
 
+import core.resolvers.locator.ElementLocatorResolverV1;
+import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.By;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

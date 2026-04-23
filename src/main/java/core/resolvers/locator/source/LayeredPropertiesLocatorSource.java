@@ -1,5 +1,7 @@
-package core.resolvers.locator;
+package core.resolvers.locator.source;
 
+import core.resolvers.locator.api.LocatorPaths;
+import core.resolvers.locator.api.LocatorRequest;
 import core.utils.ConfigLoader;
 
 import java.util.Locale;

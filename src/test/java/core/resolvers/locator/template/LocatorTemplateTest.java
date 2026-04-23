@@ -1,4 +1,4 @@
-package core.resolvers.locator;
+package core.resolvers.locator.template;
 
 import org.testng.annotations.Test;
 

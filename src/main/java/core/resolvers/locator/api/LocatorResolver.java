@@ -1,5 +1,9 @@
-package core.resolvers.locator;
+package core.resolvers.locator.api;
 
+import core.resolvers.locator.parser.ByParser;
+import core.resolvers.locator.source.LocatorSource;
+import core.resolvers.locator.source.LocatorSourceRegistry;
+import core.resolvers.locator.template.LocatorTemplate;
 import elements.api.Element;
 import elements.meta.ElementRole;
 import org.openqa.selenium.By;

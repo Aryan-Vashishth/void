@@ -1,4 +1,4 @@
-package core.resolvers.locator;
+package core.resolvers.locator.source;
 
 import java.util.ArrayList;
 import java.util.Collections;
