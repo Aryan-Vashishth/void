@@ -13,28 +13,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static core.logging.CustomLogger.*;
 
-/// LocatorResolverV1 &mdash; "behaves like old LocatorReader" but uses the new v1 interfaces.
-/// &#x2705; Parity with old reader:
-/// - Loads raw locator templates from classpath property bundles (with caching)
-/// - Supports hardcoded templates by passing fileName=null
-/// - Builds By with %s substitution (repeats last arg if fewer placeholders)
-/// - Case-insensitive variant lowers args (for translate() XPaths)
-/// - Universal Element-based resolvers + targeted helpers for dropdown/search patterns
-/// &#x2705; Enhancements:
-/// - Thread-safe hardcoded flag via ThreadLocal
-/// - resolveLocatorTemplate() returns original template when no placeholders
-/// - Auto-detects By type from prefixes:
-///      id=, name=, class=, tag=, linkText=, partialLinkText=, css=, xpath=
-/// - Falls back to heuristic: starts with "/", "(" &rarr; XPath; ".//..." &rarr; XPath; otherwise CSS
+/// LocatorResolverV1 &mdash; legacy "behaves like old LocatorReader" façade.
+/// Static API preserved for backward compatibility; parsing/formatting is now delegated to
+/// {@link ByParser} and {@link LocatorTemplate} (Phase&nbsp;1 OO refactor).
 public class ElementLocatorResolverV1 {
-
-    /** Default classpath base for locator bundles. */
-    private static final String CLASSPATH_BASE = "locators/";
 
     /** Cache of merged bundles keyed by the passed fileName (e.g., "common-elements.properties"). */
     private static final Map<String, Properties> BUNDLE_CACHE = new ConcurrentHashMap<>();
 
-    /** Thread-local marker for hardcoded template mode. */
+    /** Thread-local marker for hardcoded template mode (used only to tweak debug log line). */
     private static final ThreadLocal<Boolean> IS_HARDCODED = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     /* ========================================================================
@@ -61,7 +48,7 @@ public class ElementLocatorResolverV1 {
             throw new RuntimeException(buildFailureMessage("Could not resolve locator template", fileName, key, template, args));
         }
 
-        By by = toBy(resolved);
+        By by = ByParser.DEFAULT.parse(resolved);
 
         if (!Boolean.TRUE.equals(IS_HARDCODED.get())) {
             debug.log("[LOCATOR] Final resolved locator:", "Key", key, "Resolved", resolved, "By", by.toString());
@@ -102,15 +89,13 @@ public class ElementLocatorResolverV1 {
     }
 
     public static By getDropdownTriggerLocator(MultipleIdenticalDropdowns dropdown, @Nullable Integer dropdownIndex) {
-        if (dropdownIndex == null)
-            return getLocator(dropdown.getExternalFileName(), dropdown.getTriggerLocator(), dropdown.getArgs());
-        return getLocator(dropdown.getExternalFileName(), dropdown.getTriggerLocator(), dropdown.getArgsWithIndex(dropdownIndex));
+        Object[] args = (dropdownIndex == null) ? dropdown.getArgs() : dropdown.getArgsWithIndex(dropdownIndex);
+        return getLocator(dropdown.getExternalFileName(), dropdown.getTriggerLocator(), args);
     }
 
     public static By getDropdownListLocator(MultipleIdenticalDropdowns dropdown, @Nullable Integer dropdownIndex) {
-        if (dropdownIndex == null)
-            return getLocator(dropdown.getExternalFileName(), dropdown.getListLocator(), dropdown.getArgs());
-        return getLocator(dropdown.getExternalFileName(), dropdown.getListLocator(), dropdown.getArgsWithIndex(dropdownIndex));
+        Object[] args = (dropdownIndex == null) ? dropdown.getArgs() : dropdown.getArgsWithIndex(dropdownIndex);
+        return getLocator(dropdown.getExternalFileName(), dropdown.getListLocator(), args);
     }
 
     public static By getSearchFieldLocator(SearchField field) {
@@ -133,31 +118,19 @@ public class ElementLocatorResolverV1 {
         return (n > 0) ? template : null;
     }
 
+    /** Case-insensitive {@code %s}/{@code %S} count — delegates to {@link LocatorTemplate}. */
     public static int countPlaceholders(String template) {
-        if (template == null || template.isEmpty()) return 0;
-        int count = 0, idx = 0;
-        String lower = template.toLowerCase(Locale.ROOT);
-        while ((idx = lower.indexOf("%s", idx)) != -1) {
-            count++;
-            idx += 2;
-        }
-        return count;
+        return LocatorTemplate.padded(template).placeholderCount();
     }
 
+    /** Pad-last formatter — delegates to {@link LocatorTemplate} with {@link LocatorTemplate.Policy#PAD_LAST}. */
     public static String resolveLocatorTemplate(String template, Object... args) {
         if (template == null) return null;
-        int n = countPlaceholders(template);
-        if (n == 0) return template;
-
-        if (args == null) args = new Object[0];
-        if (n > args.length) {
-            Object[] padded = new Object[n];
-            for (int i = 0; i < n; i++) padded[i] = (i < args.length) ? args[i] : args[args.length - 1];
-            args = padded;
-        }
-
-        String resolved = String.format(template, args);
-        debug.log("[LOCATOR TEMPLATE RESOLVE]", "Template", template, "Args", Arrays.toString(args), "Resolved", resolved);
+        LocatorTemplate t = LocatorTemplate.padded(template);
+        if (!t.hasPlaceholders()) return template;
+        String resolved = t.format(args);
+        debug.log("[LOCATOR TEMPLATE RESOLVE]", "Template", template, "Args",
+                Arrays.toString(args == null ? new Object[0] : args), "Resolved", resolved);
         return resolved;
     }
 
@@ -167,10 +140,11 @@ public class ElementLocatorResolverV1 {
 
     /**
      * Loads the raw locator string.
-     * If fileName == null → hardcoded template (key itself).
-     * If fileName ends with ".json" → delegates to {@link JsonLocatorReaderV1} (no caching needed;
-     *   JsonLocatorReaderV1 handles its own classpath look-up under {@code locators/json/}).
-     * Otherwise → from cached/merged bundle via ConfigLoader (prepends {@code "locators/"} base).
+     * <ul>
+     *   <li>{@code fileName == null} → hardcoded template (key itself).</li>
+     *   <li>{@code .json} → delegates to {@link JsonLocatorReaderV1}.</li>
+     *   <li>otherwise → cached/merged bundle via {@link ConfigLoader} under {@link LocatorPaths#PROPERTIES_BASE}.</li>
+     * </ul>
      */
     public static String getRawLocator(@Nullable String fileName, String key) {
         if (fileName == null) {
@@ -199,22 +173,16 @@ public class ElementLocatorResolverV1 {
     }
 
     /**
-     * Loads/merges a single locator bundle using ConfigLoader:
-     * - Classpath TEST then MAIN: "propertiesfiles/locators/<fileName>"
-     * - Optional external override file from -Dlocators.override or ENV LOCATORS_OVERRIDE
-     * - System properties and ENV last
+     * Loads/merges a single locator bundle using ConfigLoader.
      */
     private static Properties loadBundleWithConfigLoader(String fileName) {
-        String cpPath = CLASSPATH_BASE + fileName;
+        String cpPath = LocatorPaths.underProperties(fileName);
 
         Properties merged = ConfigLoader.Layered.builder()
-                // Prefer TEST scope first, then MAIN (keeps your test/resources overrides clean)
                 .addClasspath(cpPath, true)     // TEST
                 .addClasspath(cpPath, false)    // MAIN
-                // Optional external override file (set path via -Dlocators.override=/path/locators.properties or ENV)
                 .externalOverrideKeys("locators.override", "LOCATORS_OVERRIDE")
                 .allowExternalOverride(true)
-                // System + ENV last (handy if you export individual keys for ad-hoc tweaks)
                 .includeSystemProperties(true)
                 .includeEnvironment(true)
                 .build();
@@ -225,31 +193,6 @@ public class ElementLocatorResolverV1 {
                 "Keys", String.valueOf(merged.size()));
 
         return merged;
-    }
-
-    /** Convert a final locator string to Selenium By, supporting rich prefixes. */
-    private static By toBy(String locator) {
-        if (locator == null) throw new IllegalArgumentException("Locator is null.");
-
-        String trimmed = locator.trim();
-        String lower = trimmed.toLowerCase(Locale.ROOT);
-
-        if (lower.startsWith("id="))               return By.id(trimmed.substring(3));
-        if (lower.startsWith("name="))             return By.name(trimmed.substring(5));
-        if (lower.startsWith("class="))            return By.className(trimmed.substring(6));
-        if (lower.startsWith("tag="))              return By.tagName(trimmed.substring(4));
-        if (lower.startsWith("linktext="))         return By.linkText(trimmed.substring(9));
-        if (lower.startsWith("partiallinktext="))  return By.partialLinkText(trimmed.substring(16));
-        if (lower.startsWith("css="))              return By.cssSelector(trimmed.substring(4));
-        if (lower.startsWith("xpath="))            return By.xpath(trimmed.substring(6));
-
-        // Heuristics: XPath if it "looks" like one; else CSS.
-        // Only ".//..." (relative descendant XPath) starts with "."; CSS class selectors (.btn)
-        // must fall through to cssSelector — matching PropertiesFileLocatorReaderV1.toBy().
-        if (trimmed.startsWith("/") || trimmed.startsWith("(") || trimmed.startsWith(".//")) {
-            return By.xpath(trimmed);
-        }
-        return By.cssSelector(trimmed);
     }
 
     private static String buildFailureMessage(String prefix,

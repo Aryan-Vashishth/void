@@ -11,13 +11,8 @@ import org.openqa.selenium.By;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.IllegalFormatException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public final class LocatorResolverV1 {
-
-
 
     private LocatorResolverV1() {
         // Static utility — prevent instantiation
@@ -36,17 +31,11 @@ public final class LocatorResolverV1 {
         // 3) record context for diagnostics (mirrors ElementLocatorResolverV1 behaviour)
         UIContext.setLastElementMeta(fileName, key, args);
 
-        // 4) parse into By using the shared prefix parser
-        return PropertiesFileLocatorReaderV1.toBy(resolved);
+        // 4) parse into By using the shared canonical parser
+        return ByParser.DEFAULT.parse(resolved);
     }
 
-    /**
-     * Resolve the primary locator for a v1 Element.
-     * Uses {@link Element#getPrimaryLocator()} directly — which each sub-interface overrides
-     * correctly (e.g. {@code Dropdown} → {@code getTriggerLocator()}, {@code ReadOnlyElement} →
-     * {@code getTextLocator()}). This is more robust than the old roles-map fallthrough that
-     * silently fell to "first entry" when no PRIMARY key was present.
-     */
+    /** Resolve the primary locator for a v1 Element. */
     public static By getLocator(Element e) {
         return getBestAvailable(e);
     }
@@ -60,24 +49,12 @@ public final class LocatorResolverV1 {
         return getLocator(file, key, args);
     }
 
-    /**
-     * Resolve the best available locator for a v1 Element.
-     *
-     * <p>Resolution order:
-     * <ol>
-     *   <li>{@link Element#getPrimaryLocator()} — the interface-level override always returns the
-     *       semantically correct key (e.g. trigger for {@code Dropdown}, text for
-     *       {@code ReadOnlyElement}).  This avoids the previous silent fallthrough that occurred
-     *       when the roles map had no {@code PRIMARY} entry.</li>
-     *   <li>{@link Element#getSecondaryLocator()} — used only when primary is absent.</li>
-     *   <li>First entry in {@link Element#getAllLocatorRoles()} — last-resort fallback.</li>
-     * </ol>
-     */
+    /** Resolve the best available locator for a v1 Element (PRIMARY → SECONDARY → first available). */
     public static By getBestAvailable(Element e, Object... overrideArgs) {
         String file = e.getExternalFileName();
         Object[] args = (overrideArgs != null && overrideArgs.length > 0) ? overrideArgs : e.getArgs();
 
-        // 1. Prefer getPrimaryLocator() — correctly overridden by every sub-interface
+        // 1. Prefer getPrimaryLocator()
         String key = e.getPrimaryLocator();
         if (!isBlank(key)) return getLocator(file, key, args);
 
@@ -85,7 +62,7 @@ public final class LocatorResolverV1 {
         key = e.getSecondaryLocator();
         if (!isBlank(key)) return getLocator(file, key, args);
 
-        // 3. Last resort: first value from role map (keeps backward-compat with custom impls)
+        // 3. Last resort: first non-blank value from role map
         Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
         key = roles.values().stream()
                 .filter(v -> v != null && !v.isBlank())
@@ -115,21 +92,12 @@ public final class LocatorResolverV1 {
                 "Unsupported locator file extension: " + fileName + " (expected .properties or .json, or null for hardcoded)");
     }
 
-    // Match %s or %1$s (we intentionally scope to 's' conversions for locator strings)
-    private static final Pattern S_PLACEHOLDER = Pattern.compile("%(\\d+\\$)?s");
-
-    /** Format when template contains (indexed or unindexed) %s; wrap format errors with context. */
+    /**
+     * Format a template under {@link LocatorTemplate.Policy#STRICT}: supports {@code %s}/{@code %n$s},
+     * throws {@link IllegalStateException} on too few args.
+     */
     public static String resolveLocatorTemplate(String template, Object... args) {
-        if (template == null) return null;
-        Matcher m = S_PLACEHOLDER.matcher(template);
-        if (!m.find()) return template; // no %s → return as-is
-        try {
-            return String.format(Locale.ROOT, template, args == null ? new Object[0] : args);
-        } catch (IllegalFormatException ex) {
-            String argSummary = (args == null) ? "null" : ("len=" + args.length);
-            throw new IllegalStateException(
-                    "Locator template format error. template=\"" + template + "\", args(" + argSummary + ")", ex);
-        }
+        return LocatorTemplate.strict(template).format(args);
     }
 
     private static String requireRoleKey(Map<ElementRole, String> roles, ElementRole role, String elementName) {
