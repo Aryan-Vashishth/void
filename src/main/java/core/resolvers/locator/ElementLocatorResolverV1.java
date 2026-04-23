@@ -20,10 +20,11 @@ import static core.logging.CustomLogger.debug;
  * has been removed — hardcoded-mode logging now flows through
  * {@link LocatorRequest#isHardcoded()}.</p>
  *
- * @deprecated New code should use {@link LocatorResolvers#legacyPadded()}
- *             (or, preferably, {@link LocatorResolvers#strict()}) directly.
+ * @deprecated since the Phase&nbsp;3 OO refactor. New code should use {@link LocatorResolvers#legacyPadded()}
+ *             (or, preferably, {@link LocatorResolvers#strict()}) directly. This class will be removed
+ *             after callers have migrated.
  */
-@Deprecated
+@Deprecated(forRemoval = true, since = "Phase 3 OO refactor")
 public class ElementLocatorResolverV1 {
 
     private static LocatorResolver R() { return LocatorResolvers.legacyPadded(); }

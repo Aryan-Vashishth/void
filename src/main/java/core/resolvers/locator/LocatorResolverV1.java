@@ -10,9 +10,10 @@ import org.openqa.selenium.By;
  *
  * <p>All orchestration now delegates to {@link LocatorResolvers#strict()}.</p>
  *
- * @deprecated New code should use {@link LocatorResolvers#strict()} directly.
+ * @deprecated since the Phase&nbsp;3 OO refactor. New code should use {@link LocatorResolvers#strict()}
+ *             directly. This class will be removed after callers have migrated.
  */
-@Deprecated
+@Deprecated(forRemoval = true, since = "Phase 3 OO refactor")
 public final class LocatorResolverV1 {
 
     private LocatorResolverV1() { /* Static utility — prevent instantiation */ }
