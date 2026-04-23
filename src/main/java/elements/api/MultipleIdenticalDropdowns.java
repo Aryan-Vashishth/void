@@ -46,6 +46,17 @@ public interface MultipleIdenticalDropdowns extends Element {
     }
 
     /**
+     * Returns the appropriate argument array for the given (possibly {@code null}) dropdown index:
+     * {@link #getArgs()} when {@code index == null}, else {@link #getArgsWithIndex(int)}.
+     *
+     * <p>Encapsulates the {@code index == null ? getArgs() : getArgsWithIndex(index)} ternary
+     * that was repeated at every resolver call site.</p>
+     */
+    default Object[] argsForIndex(Integer index) {
+        return (index == null) ? getArgs() : getArgsWithIndex(index);
+    }
+
+    /**
      * Returns a map of all locators for this element, including trigger and list keys.
      */
     /** Build role map with MULTI_TRIGGER and MULTI_LIST keys. */

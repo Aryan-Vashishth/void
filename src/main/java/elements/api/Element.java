@@ -38,6 +38,15 @@ public interface Element {
     /** @return dynamic arguments used to format locator templates containing %s tokens. */
     Object[] getArgs();
 
+    /**
+     * Returns {@code overrides} when it is non-null and non-empty; otherwise returns {@link #getArgs()}.
+     * <p>Centralises the "override args take precedence over the element's own args" rule that used to
+     * be repeated as a ternary in every resolver call site.</p>
+     */
+    default Object[] effectiveArgs(Object... overrides) {
+        return (overrides != null && overrides.length > 0) ? overrides : getArgs();
+    }
+
     /** @return human friendly label for logs; default uses first arg or empty string. */
     default String getDisplayText() {
         Object[] args = getArgs();
