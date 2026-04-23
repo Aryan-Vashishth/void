@@ -1,14 +1,9 @@
-package core.logging;
+package core.logging.theme;
 
-import static core.logging.AnsiColors.*;
+import static core.logging.ansi.AnsiColors.*;
 
 /**
  * Registry of all built-in {@link ThemeColors} instances and the active-theme selector.
- *
- * <p>Call {@link #setTheme(LogTheme)} to change the active theme at runtime.
- * Call {@link #getColors()} to retrieve the currently active {@link ThemeColors}.</p>
- *
- * <p>You may also register your own custom theme via {@link #setCustomTheme(ThemeColors)}.</p>
  */
 public final class BuiltInThemes {
 
@@ -128,7 +123,7 @@ public final class BuiltInThemes {
             .callerFg      ("\u001B[38;2;110;118;130m")
             .build();
 
-    // ── NIGHT_CLUB (DISCO) ────────────────────────────────────────────────────
+    // ── NIGHT_CLUB ────────────────────────────────────────────────────────────
     public static final ThemeColors NIGHT_CLUB = ThemeColors.builder()
             .infoBg  (RGB_BG_DARK_TEAL)
             .warnBg  (RGB_BG_HOT_PINK)
@@ -171,27 +166,17 @@ public final class BuiltInThemes {
     private static volatile LogTheme currentTheme = LogTheme.PLAIN;
     private static volatile ThemeColors customTheme = null;
 
-    /** Sets the active theme from the built-in {@link LogTheme} catalogue. */
     public static void setTheme(LogTheme theme) {
         currentTheme  = theme;
         customTheme   = null;
     }
 
-    /**
-     * Overrides the active theme with a fully custom {@link ThemeColors} instance.
-     * Call {@link #setTheme(LogTheme)} to revert to a built-in theme.
-     */
     public static void setCustomTheme(ThemeColors colors) {
         customTheme = colors;
     }
 
-    /** Returns the currently active {@link LogTheme} key (may be {@code null} if a custom theme is set). */
     public static LogTheme getCurrentTheme() { return currentTheme; }
 
-    /**
-     * Resolves a {@link LogTheme} key to its {@link ThemeColors} without
-     * consulting the active-theme state. Used by {@link LogConfig#resolvedTheme()}.
-     */
     public static ThemeColors resolve(LogTheme theme) {
         if (theme == null) return PLAIN;
         return switch (theme) {
@@ -206,19 +191,9 @@ public final class BuiltInThemes {
         };
     }
 
-    /** Returns the {@link ThemeColors} for the currently active theme. */
     public static ThemeColors getColors() {
         if (customTheme != null) return customTheme;
-        return switch (currentTheme) {
-            case PLAIN            -> PLAIN;
-            case SOLARIZED_DARK   -> SOLARIZED_DARK;
-            case HIGH_CONTRAST    -> HIGH_CONTRAST;
-            case MODERN_CLEAN     -> MODERN_CLEAN;
-            case INDUSTRIAL_STEEL -> INDUSTRIAL_STEEL;
-            case NIGHT_CLUB       -> NIGHT_CLUB;
-            case CARBON_ORANGE    -> CARBON_ORANGE;
-            case COCKPIT          -> COCKPIT;
-        };
+        return resolve(currentTheme);
     }
 }
 

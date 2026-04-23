@@ -1,21 +1,22 @@
-package core.logging;
+package core.logging.render;
+
+import core.logging.config.LogConfig;
+import core.logging.config.LoggerContext;
+import core.logging.intent.LogIntent;
+import core.logging.theme.BuiltInThemes;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static core.logging.AnsiColors.*;
+import static core.logging.ansi.AnsiColors.*;
 
 /**
  * Base class for all log-level instances (Info, Warn, Error, Debug).
  *
  * <p>Every action method resolves its ANSI style via
- * {@link ThemeColors#resolve(String, LogIntent)}, compositing the action's
+ * {@code ThemeColors#resolve(String, LogIntent)}, compositing the action's
  * {@link LogIntent} foreground with the current log level's background.</p>
- *
- * <p>This means the same action (e.g. {@code click()}) automatically renders with a
- * different background when called through {@code debug.*} vs {@code info.*} —
- * no per-level overrides required.</p>
  */
 public class LogActions {
 
@@ -245,26 +246,15 @@ public class LogActions {
 
     // ── Core rendering ────────────────────────────────────────────────────────
 
-    /**
-     * Primary render path — resolves ANSI style from {@code intent} + {@code logLevel},
-     * then delegates to {@link #logMultiline}.
-     */
     protected void logMessage(LogIntent intent, String actionLabel, String message) {
         logMultiline(BuiltInThemes.getColors().resolve(logLevel, intent),
                      actionLabel, message, LoggerContext.isDebugEnabled());
     }
 
-    /**
-     * Low-level render path with an explicit pre-composed ANSI style string.
-     * Used by the table renderer which builds its own multi-line block.
-     */
     protected void logMessage(String actionColor, String actionLabel, String message) {
         logMultiline(actionColor, actionLabel, message, LoggerContext.isDebugEnabled());
     }
 
-    /**
-     * Splits {@code message} on newlines and emits one log entry per line.
-     */
     protected void logMultiline(String actionColor, String actionLabel,
                                 String message, boolean showCaller) {
         if (message == null) message = "null";
@@ -276,7 +266,6 @@ public class LogActions {
 
         String div = cfg.getSegmentDivider();
         for (int i = 0; i < lines.length; i++) {
-            // e.g.  [2026-04-21 13:16:39.123] │ CLICK [>] │ message text │ Caller.method ← Parent.method
             String body = ts + div + actionLabel + div + lines[i];
             String out;
             if (ansi) {
@@ -343,7 +332,7 @@ public class LogActions {
                 + ("<init>".equals(pm) ? "(constructor)" : "<clinit>".equals(pm) ? "(static init)" : pm);
     }
 
-    /** Convenience for callers that need a pre-composed style (e.g. table renderer). */
+    /** Convenience for callers that need a pre-composed style. */
     protected String getLevelColor() {
         return BuiltInThemes.getColors().resolve(logLevel, LogIntent.BASE);
     }

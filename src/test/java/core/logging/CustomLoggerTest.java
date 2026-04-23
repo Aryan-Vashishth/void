@@ -1,5 +1,8 @@
 package core.logging;
 
+import core.logging.render.LogActions;
+import core.logging.theme.LogTheme;
+
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;

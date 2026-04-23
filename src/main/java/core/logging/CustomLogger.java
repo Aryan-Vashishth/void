@@ -1,5 +1,14 @@
 package core.logging;
 
+import core.logging.ansi.AnsiColors;
+import core.logging.config.LogConfig;
+import core.logging.config.LoggerContext;
+import core.logging.intent.LogIntent;
+import core.logging.render.LogActions;
+import core.logging.theme.BuiltInThemes;
+import core.logging.theme.LogTheme;
+import core.logging.theme.ThemeColors;
+
 import org.apache.log4j.Logger;
 
 import java.util.LinkedHashMap;
@@ -20,14 +29,16 @@ import java.util.function.Consumer;
  *
  * <h2>Architecture</h2>
  * <ul>
- *   <li>{@link AnsiColors}    — all ANSI escape-code constants</li>
- *   <li>{@link LogIntent}     — semantic intent enum (INTERACTION, NAVIGATION, …)</li>
- *   <li>{@link LogTheme}      — theme selection enum</li>
- *   <li>{@link ThemeColors}   — immutable theme model + fluent builder</li>
- *   <li>{@link BuiltInThemes} — pre-built themes + active-theme registry</li>
- *   <li>{@link LogActions}    — all action methods (click, table, success, …)</li>
- *   <li>{@link LoggerContext} — shared runtime state (ANSI flag, logger, filters)</li>
- *   <li>{@link CustomLogger}  — (this class) global config + level instances</li>
+ *   <li>{@link core.logging.ansi.AnsiEscape}      — ANSI escape factory</li>
+ *   <li>{@link core.logging.ansi.AnsiColors}      — named color constants</li>
+ *   <li>{@link LogIntent}                         — semantic intent enum</li>
+ *   <li>{@link LogTheme}                          — theme selection enum</li>
+ *   <li>{@link ThemeColors}                       — immutable theme model + builder</li>
+ *   <li>{@link BuiltInThemes}                     — built-in themes + active-theme registry</li>
+ *   <li>{@link LogActions}                        — action methods (click, table, success, …)</li>
+ *   <li>{@link LoggerContext}                     — Log4j logger holder + filter delegates</li>
+ *   <li>{@link LogConfig}                         — single-source-of-truth runtime config</li>
+ *   <li>{@link CustomLogger}                      — (this class) global config + level instances</li>
  * </ul>
  */
 public class CustomLogger {
@@ -41,7 +52,6 @@ public class CustomLogger {
 
     // ── Level classes ─────────────────────────────────────────────────────────
 
-    /** DEBUG-level logger. Composites every intent foreground with {@link ThemeColors#debugBg()}. */
     public static class Debug extends LogActions {
         public Debug() { super("DEBUG"); }
 
@@ -50,7 +60,6 @@ public class CustomLogger {
         @Override public void log(String heading, Object... pairs)       { log(heading, fields(pairs)); }
     }
 
-    /** INFO-level logger. */
     public static class Info extends LogActions {
         public Info() { super("INFO"); }
 
@@ -59,7 +68,6 @@ public class CustomLogger {
         @Override public void log(String heading, Object... pairs)       { log(heading, fields(pairs)); }
     }
 
-    /** WARN-level logger. */
     public static class Warn extends LogActions {
         public Warn() { super("WARN"); }
 
@@ -68,7 +76,6 @@ public class CustomLogger {
         @Override public void log(String heading, Object... pairs)       { log(heading, fields(pairs)); }
     }
 
-    /** ERROR-level logger. */
     public static class Error extends LogActions {
         public Error() { super("ERROR"); }
 
@@ -90,57 +97,36 @@ public class CustomLogger {
 
     // ── LogConfig entry points ────────────────────────────────────────────────
 
-    /**
-     * Apply a fully constructed {@link LogConfig} as the live configuration.
-     * <pre>{@code
-     * CustomLogger.configure(
-     *     LogConfig.builder()
-     *         .theme(LogTheme.COCKPIT)
-     *         .tableCellLimit(60)
-     *         .callerColor(true)
-     *         .build()
-     * );
-     * }</pre>
-     */
     public static void configure(LogConfig config)            { LogConfig.apply(config); }
-
-    /**
-     * Patch the live {@link LogConfig} in-place via a {@link Consumer}.
-     * <pre>{@code
-     * CustomLogger.configure(c -> c.setTheme(LogTheme.HIGH_CONTRAST).enableCallerColor());
-     * }</pre>
-     */
     public static void configure(Consumer<LogConfig> mutator) { LogConfig.patch(mutator); }
-
-    /** Returns the live {@link LogConfig} instance for direct manipulation. */
     public static LogConfig config()                          { return LogConfig.current(); }
 
-    // ── Log4j logger — delegates to LoggerContext ─────────────────────────────
+    // ── Log4j logger ──────────────────────────────────────────────────────────
 
     public static void initialize(Class<?> clazz) { LoggerContext.initLogger(clazz); }
     public static Logger getSafeLogger()           { return LoggerContext.getLogger(); }
     public static boolean isDebugEnabled()         { return LoggerContext.isDebugEnabled(); }
 
-    // ── ANSI support — delegates to LoggerContext ─────────────────────────────
+    // ── ANSI ──────────────────────────────────────────────────────────────────
 
     public static void enableAnsi()       { LoggerContext.enableAnsi(); }
     public static void disableAnsi()      { LoggerContext.disableAnsi(); }
     public static boolean isAnsiEnabled() { return LoggerContext.isAnsiEnabled(); }
 
-    // ── Theme selection — delegates to BuiltInThemes ──────────────────────────
+    // ── Theme selection ───────────────────────────────────────────────────────
 
     public static void setTheme(LogTheme theme)           { BuiltInThemes.setTheme(theme); }
     public static void setCustomTheme(ThemeColors colors) { BuiltInThemes.setCustomTheme(colors); }
     public static LogTheme getCurrentTheme()              { return BuiltInThemes.getCurrentTheme(); }
 
-    // ── Caller-color feature flag — delegates to LoggerContext ────────────────
+    // ── Caller-color feature flag ─────────────────────────────────────────────
 
     @ConsoleOnly
     public static void enableCallerColor()       { LoggerContext.enableCallerColor(); }
     public static void disableCallerColor()      { LoggerContext.disableCallerColor(); }
     public static boolean isCallerColorEnabled() { return LoggerContext.isCallerColorEnabled(); }
 
-    // ── Call-chain filtering — delegates to LoggerContext ─────────────────────
+    // ── Call-chain filtering ──────────────────────────────────────────────────
 
     public static final Set<String> SUPPRESS_CONTAINS         = LoggerContext.SUPPRESS_CONTAINS;
     public static final Set<String> SUPPRESS_METHOD_PREFIXES  = LoggerContext.SUPPRESS_METHOD_PREFIXES;
@@ -152,21 +138,13 @@ public class CustomLogger {
 
     // ── Experimental utilities ────────────────────────────────────────────────
 
-    /**
-     * Helpers that are <b>not</b> part of the stable logging API.
-     * May be removed or changed without notice.
-     */
     public static final class Experimental {
         private Experimental() {}
 
-        /** Strips all ANSI escape sequences from {@code str}. */
         public static String stripAnsi(String str) {
             return str == null ? "" : str.replaceAll("\\u001B\\[[;\\d]*m", "");
         }
 
-        /**
-         * Extracts a foreground ANSI code from a combined FG+BG style string.
-         */
         public static String fgFromStyle(String style) {
             if (style == null) return AnsiColors.FG_BRIGHT_WHITE;
             java.util.regex.Matcher fg = java.util.regex.Pattern
@@ -190,54 +168,56 @@ public class CustomLogger {
     }
 
     // ── Backward-compat color constant aliases ────────────────────────────────
+    // ⚠ Deprecated: import core.logging.ansi.AnsiColors.* directly in new code.
 
-    public static final String ANSI_RESET          = AnsiColors.RESET;
-    public static final String ANSI_BOLD           = AnsiColors.BOLD;
-    public static final String ANSI_DIM            = AnsiColors.DIM;
-    public static final String ANSI_ITALIC         = AnsiColors.ITALIC;
-    public static final String FG_BLACK            = AnsiColors.FG_BLACK;
-    public static final String FG_RED              = AnsiColors.FG_RED;
-    public static final String FG_GREEN            = AnsiColors.FG_GREEN;
-    public static final String FG_YELLOW           = AnsiColors.FG_YELLOW;
-    public static final String FG_BLUE             = AnsiColors.FG_BLUE;
-    public static final String FG_MAGENTA          = AnsiColors.FG_MAGENTA;
-    public static final String FG_CYAN             = AnsiColors.FG_CYAN;
-    public static final String FG_WHITE            = AnsiColors.FG_WHITE;
-    public static final String FG_BRIGHT_BLACK     = AnsiColors.FG_BRIGHT_BLACK;
-    public static final String FG_BRIGHT_RED       = AnsiColors.FG_BRIGHT_RED;
-    public static final String FG_BRIGHT_GREEN     = AnsiColors.FG_BRIGHT_GREEN;
-    public static final String FG_BRIGHT_YELLOW    = AnsiColors.FG_BRIGHT_YELLOW;
-    public static final String FG_BRIGHT_BLUE      = AnsiColors.FG_BRIGHT_BLUE;
-    public static final String FG_BRIGHT_MAGENTA   = AnsiColors.FG_BRIGHT_MAGENTA;
-    public static final String FG_BRIGHT_CYAN      = AnsiColors.FG_BRIGHT_CYAN;
-    public static final String FG_BRIGHT_WHITE     = AnsiColors.FG_BRIGHT_WHITE;
-    public static final String BG_BLACK            = AnsiColors.BG_BLACK;
-    public static final String BG_RED              = AnsiColors.BG_RED;
-    public static final String BG_GREEN            = AnsiColors.BG_GREEN;
-    public static final String BG_YELLOW           = AnsiColors.BG_YELLOW;
-    public static final String BG_BLUE             = AnsiColors.BG_BLUE;
-    public static final String BG_MAGENTA          = AnsiColors.BG_MAGENTA;
-    public static final String BG_CYAN             = AnsiColors.BG_CYAN;
-    public static final String BG_WHITE            = AnsiColors.BG_WHITE;
-    public static final String BG_BRIGHT_BLACK     = AnsiColors.BG_BRIGHT_BLACK;
-    public static final String BG_BRIGHT_RED       = AnsiColors.BG_BRIGHT_RED;
-    public static final String BG_BRIGHT_GREEN     = AnsiColors.BG_BRIGHT_GREEN;
-    public static final String BG_BRIGHT_YELLOW    = AnsiColors.BG_BRIGHT_YELLOW;
-    public static final String BG_BRIGHT_BLUE      = AnsiColors.BG_BRIGHT_BLUE;
-    public static final String BG_BRIGHT_MAGENTA   = AnsiColors.BG_BRIGHT_MAGENTA;
-    public static final String BG_BRIGHT_CYAN      = AnsiColors.BG_BRIGHT_CYAN;
-    public static final String BG_BRIGHT_WHITE     = AnsiColors.BG_BRIGHT_WHITE;
-    public static final String BG_BRIGHT_GREY      = AnsiColors.BG_BRIGHT_GREY;
-    public static final String BG_GREY_100         = AnsiColors.BG_GREY_100;
-    public static final String BG_ORANGE_208       = AnsiColors.BG_ORANGE_208;
-    public static final String BG_DARKER_GREY      = AnsiColors.BG_DARKER_GREY;
-    public static final String BG_DARKER_BLUE      = AnsiColors.BG_DARKER_BLUE;
-    public static final String BG_DARKER_GREEN     = AnsiColors.BG_DARKER_GREEN;
-    public static final String BG_DARKER_MAGENTA   = AnsiColors.BG_DARKER_MAGENTA;
-    public static final String BG_DARKER_YELLOW    = AnsiColors.BG_DARKER_YELLOW;
-    public static final String BG_DARKER_RED       = AnsiColors.BG_DARKER_RED;
-    public static final String BG_MAROON_RED       = AnsiColors.BG_MAROON_RED;
-    public static final String FG_PURPLE           = AnsiColors.FG_PURPLE;
-    public static final String FG_DARKER_PURPLE    = AnsiColors.FG_DARKER_PURPLE;
-    public static final String FG_DEEP_PURPLE      = AnsiColors.FG_DEEP_PURPLE;
+    /** @deprecated Use {@link AnsiColors#RESET}. */          @Deprecated public static final String ANSI_RESET          = AnsiColors.RESET;
+    /** @deprecated Use {@link AnsiColors#BOLD}. */           @Deprecated public static final String ANSI_BOLD           = AnsiColors.BOLD;
+    /** @deprecated Use {@link AnsiColors#DIM}. */            @Deprecated public static final String ANSI_DIM            = AnsiColors.DIM;
+    /** @deprecated Use {@link AnsiColors#ITALIC}. */         @Deprecated public static final String ANSI_ITALIC         = AnsiColors.ITALIC;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BLACK            = AnsiColors.FG_BLACK;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_RED              = AnsiColors.FG_RED;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_GREEN            = AnsiColors.FG_GREEN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_YELLOW           = AnsiColors.FG_YELLOW;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BLUE             = AnsiColors.FG_BLUE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_MAGENTA          = AnsiColors.FG_MAGENTA;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_CYAN             = AnsiColors.FG_CYAN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_WHITE            = AnsiColors.FG_WHITE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_BLACK     = AnsiColors.FG_BRIGHT_BLACK;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_RED       = AnsiColors.FG_BRIGHT_RED;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_GREEN     = AnsiColors.FG_BRIGHT_GREEN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_YELLOW    = AnsiColors.FG_BRIGHT_YELLOW;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_BLUE      = AnsiColors.FG_BRIGHT_BLUE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_MAGENTA   = AnsiColors.FG_BRIGHT_MAGENTA;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_CYAN      = AnsiColors.FG_BRIGHT_CYAN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_BRIGHT_WHITE     = AnsiColors.FG_BRIGHT_WHITE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BLACK            = AnsiColors.BG_BLACK;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_RED              = AnsiColors.BG_RED;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_GREEN            = AnsiColors.BG_GREEN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_YELLOW           = AnsiColors.BG_YELLOW;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BLUE             = AnsiColors.BG_BLUE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_MAGENTA          = AnsiColors.BG_MAGENTA;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_CYAN             = AnsiColors.BG_CYAN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_WHITE            = AnsiColors.BG_WHITE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_BLACK     = AnsiColors.BG_BRIGHT_BLACK;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_RED       = AnsiColors.BG_BRIGHT_RED;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_GREEN     = AnsiColors.BG_BRIGHT_GREEN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_YELLOW    = AnsiColors.BG_BRIGHT_YELLOW;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_BLUE      = AnsiColors.BG_BRIGHT_BLUE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_MAGENTA   = AnsiColors.BG_BRIGHT_MAGENTA;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_CYAN      = AnsiColors.BG_BRIGHT_CYAN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_WHITE     = AnsiColors.BG_BRIGHT_WHITE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_BRIGHT_GREY      = AnsiColors.BG_BRIGHT_GREY;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_GREY_100         = AnsiColors.BG_GREY_100;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_ORANGE_208       = AnsiColors.BG_ORANGE_208;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_DARKER_GREY      = AnsiColors.BG_DARKER_GREY;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_DARKER_BLUE      = AnsiColors.BG_DARKER_BLUE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_DARKER_GREEN     = AnsiColors.BG_DARKER_GREEN;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_DARKER_MAGENTA   = AnsiColors.BG_DARKER_MAGENTA;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_DARKER_YELLOW    = AnsiColors.BG_DARKER_YELLOW;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_DARKER_RED       = AnsiColors.BG_DARKER_RED;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String BG_MAROON_RED       = AnsiColors.BG_MAROON_RED;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_PURPLE           = AnsiColors.FG_PURPLE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_DARKER_PURPLE    = AnsiColors.FG_DARKER_PURPLE;
+    /** @deprecated Use {@link AnsiColors}. */                @Deprecated public static final String FG_DEEP_PURPLE      = AnsiColors.FG_DEEP_PURPLE;
 }
+

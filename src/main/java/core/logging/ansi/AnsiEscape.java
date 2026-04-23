@@ -1,4 +1,4 @@
-package core.logging;
+package core.logging.ansi;
 
 /**
  * Stateless factory for ANSI SGR (Select Graphic Rendition) escape sequences.
@@ -54,13 +54,6 @@ public final class AnsiEscape {
 
     // ── Standard 16-color palette ─────────────────────────────────────────────
 
-    /**
-     * Build a standard 16-color ANSI foreground escape sequence.
-     *
-     * @param code SGR foreground code: 30–37 (normal) or 90–97 (bright)
-     * @return ANSI escape sequence, e.g. {@code \u001B[<code>m}
-     * @throws IllegalArgumentException if {@code code} is not in 30–37 or 90–97
-     */
     public static String fg16(int code) {
         if (!((code >= 30 && code <= 37) || (code >= 90 && code <= 97))) {
             throw new IllegalArgumentException(
@@ -69,13 +62,6 @@ public final class AnsiEscape {
         return sgr(code);
     }
 
-    /**
-     * Build a standard 16-color ANSI background escape sequence.
-     *
-     * @param code SGR background code: 40–47 (normal) or 100–107 (bright)
-     * @return ANSI escape sequence, e.g. {@code \u001B[<code>m}
-     * @throws IllegalArgumentException if {@code code} is not in 40–47 or 100–107
-     */
     public static String bg16(int code) {
         if (!((code >= 40 && code <= 47) || (code >= 100 && code <= 107))) {
             throw new IllegalArgumentException(
@@ -86,75 +72,31 @@ public final class AnsiEscape {
 
     // ── True RGB (24-bit) ─────────────────────────────────────────────────────
 
-    /**
-     * Build a true-color (24-bit) ANSI foreground escape sequence.
-     *
-     * @param r red component   (0–255)
-     * @param g green component (0–255)
-     * @param b blue component  (0–255)
-     * @return ANSI escape sequence, e.g. {@code \u001B[38;2;R;G;Bm}
-     * @throws IllegalArgumentException if any component is outside 0–255
-     */
     public static String rgbFg(int r, int g, int b) {
         validateRgb(r, g, b);
         return "\u001B[38;2;" + r + ";" + g + ";" + b + "m";
     }
 
-    /**
-     * Build a true-color (24-bit) ANSI background escape sequence.
-     *
-     * @param r red component   (0–255)
-     * @param g green component (0–255)
-     * @param b blue component  (0–255)
-     * @return ANSI escape sequence, e.g. {@code \u001B[48;2;R;G;Bm}
-     * @throws IllegalArgumentException if any component is outside 0–255
-     */
     public static String rgbBg(int r, int g, int b) {
         validateRgb(r, g, b);
         return "\u001B[48;2;" + r + ";" + g + ";" + b + "m";
     }
 
-    /**
-     * Convenience overload accepting a packed 24-bit RGB integer (0xRRGGBB).
-     *
-     * @param rgb packed color, e.g. {@code 0xFF8800}
-     * @return ANSI foreground escape sequence
-     */
     public static String rgbFg(int rgb) {
         return rgbFg((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
     }
 
-    /**
-     * Convenience overload accepting a packed 24-bit RGB integer (0xRRGGBB).
-     *
-     * @param rgb packed color, e.g. {@code 0xFF8800}
-     * @return ANSI background escape sequence
-     */
     public static String rgbBg(int rgb) {
         return rgbBg((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
     }
 
     // ── 256-color palette ─────────────────────────────────────────────────────
 
-    /**
-     * Build a 256-color ANSI foreground escape sequence.
-     *
-     * @param code palette index (0–255)
-     * @return ANSI escape sequence, e.g. {@code \u001B[38;5;<code>m}
-     * @throws IllegalArgumentException if {@code code} is outside 0–255
-     */
     public static String fg256(int code) {
         validate256(code);
         return "\u001B[38;5;" + code + "m";
     }
 
-    /**
-     * Build a 256-color ANSI background escape sequence.
-     *
-     * @param code palette index (0–255)
-     * @return ANSI escape sequence, e.g. {@code \u001B[48;5;<code>m}
-     * @throws IllegalArgumentException if {@code code} is outside 0–255
-     */
     public static String bg256(int code) {
         validate256(code);
         return "\u001B[48;5;" + code + "m";
@@ -162,16 +104,10 @@ public final class AnsiEscape {
 
     // ── Composition helpers ───────────────────────────────────────────────────
 
-    /**
-     * Wrap text with a foreground (or any) ANSI sequence and an automatic {@link #RESET}.
-     */
     public static String colorize(String text, String ansi) {
         return ansi + text + RESET;
     }
 
-    /**
-     * Wrap text with foreground and background ANSI sequences plus an automatic {@link #RESET}.
-     */
     public static String colorize(String text, String fg, String bg) {
         return fg + bg + text + RESET;
     }

@@ -1,18 +1,12 @@
-package core.logging;
+package core.logging.theme;
 
+import core.logging.ConsoleOnly;
+import core.logging.intent.LogIntent;
 
-import static core.logging.AnsiColors.*;
+import static core.logging.ansi.AnsiColors.*;
 
 /**
- * Immutable value object that holds the two color axes defining a theme:
- *
- * <ol>
- *   <li><b>Level backgrounds</b> — ANSI background applied to the entire line per log level.</li>
- *   <li><b>Level foregrounds</b> — text color used for {@link LogIntent#BASE} lines.</li>
- *   <li><b>Intent foregrounds</b> — text color for each {@link LogIntent} group,
- *       combined with the current level background at render time via
- *       {@link #resolve(String, LogIntent)}.</li>
- * </ol>
+ * Immutable value object that holds the two color axes defining a theme.
  *
  * <p><b>Creating a custom theme:</b></p>
  * <pre>{@code
@@ -89,13 +83,7 @@ public final class ThemeColors {
 
     /**
      * Composes a ready-to-use ANSI style string for the given log level and intent.
-     *
-     * <p>Formula: {@code intentFg + levelBg}. For {@link LogIntent#BASE} the intent
-     * foreground is the level-specific foreground ({@code infoFg}, {@code warnFg}, …).</p>
-     *
-     * @param logLevel the current log level string ("INFO", "WARN", "ERROR", "DEBUG")
-     * @param intent   the semantic intent of the log line
-     * @return a combined ANSI style string ready for prepending to log output
+     * Formula: {@code intentFg + levelBg}.
      */
     public String resolve(String logLevel, LogIntent intent) {
         String bg = switch (logLevel) {
@@ -124,9 +112,7 @@ public final class ThemeColors {
     /** Entry-point for the fluent builder. */
     public static Builder builder() { return new Builder(); }
 
-    /**
-     * @deprecated Use {@link #builder()} instead.
-     */
+    /** @deprecated Use {@link #builder()} instead. */
     @Deprecated
     public static Builder theme() { return builder(); }
 
@@ -153,24 +139,22 @@ public final class ThemeColors {
         private String successFg     = FG_BRIGHT_GREEN  + BOLD;
         private String alertFg       = FG_BRIGHT_RED    + BOLD;
 
+        @SuppressWarnings("deprecation")
         private String callerFg = FG_DIM_WHITE;
         private String reset    = RESET;
 
         private Builder() {}
 
-        // Level backgrounds
         public Builder infoBg(String bg)  { this.infoBg  = bg; return this; }
         public Builder warnBg(String bg)  { this.warnBg  = bg; return this; }
         public Builder errorBg(String bg) { this.errorBg = bg; return this; }
         public Builder debugBg(String bg) { this.debugBg = bg; return this; }
 
-        // Level foregrounds (BASE intent)
         public Builder infoFg(String fg)  { this.infoFg  = fg; return this; }
         public Builder warnFg(String fg)  { this.warnFg  = fg; return this; }
         public Builder errorFg(String fg) { this.errorFg = fg; return this; }
         public Builder debugFg(String fg) { this.debugFg = fg; return this; }
 
-        // Intent foregrounds
         public Builder interactionFg(String fg) { this.interactionFg = fg; return this; }
         public Builder navigationFg(String fg)  { this.navigationFg  = fg; return this; }
         public Builder observeFg(String fg)     { this.observeFg     = fg; return this; }
@@ -178,15 +162,9 @@ public final class ThemeColors {
         public Builder successFg(String fg)     { this.successFg     = fg; return this; }
         public Builder alertFg(String fg)       { this.alertFg       = fg; return this; }
 
-        /**
-         * ANSI foreground applied to the caller/callee suffix.
-         * <p>Only used when {@link CustomLogger#enableCallerColor()} is active
-         * ({@link ConsoleOnly}).</p>
-         */
         public Builder callerFg(String fg)  { this.callerFg = fg; return this; }
         public Builder reset(String seq)    { this.reset    = seq; return this; }
 
-        /** Builds and returns the immutable {@link ThemeColors} instance. */
         public ThemeColors build() { return new ThemeColors(this); }
     }
 }

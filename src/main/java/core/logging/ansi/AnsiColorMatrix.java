@@ -1,4 +1,4 @@
-package core.logging;
+package core.logging.ansi;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -7,26 +7,12 @@ import java.util.List;
 
 /**
  * Prints every possible Foreground × Background combination defined in
- * {@link AnsiColors} so you can visually preview which pairs are readable
- * in your terminal.
- *
- * <p>It uses reflection to discover every {@code public static final String}
- * constant whose name begins with {@code FG_} or {@code BG_} (including the
- * {@code RGB_FG_} / {@code RGB_BG_} variants).</p>
+ * {@link AnsiColors}. Diagnostic / preview tool — not used at runtime.
  *
  * <h3>Usage</h3>
  * <pre>{@code
- *   mvn -q exec:java -Dexec.mainClass=core.logging.AnsiColorMatrix
- *   // or simply run the main method from your IDE
+ *   mvn -q exec:java -Dexec.mainClass=core.logging.ansi.AnsiColorMatrix
  * }</pre>
- *
- * <p>Optional CLI flags:</p>
- * <ul>
- *   <li>{@code --sample "TEXT"}  — text used for each cell (default: {@code  Sample 12345 }).</li>
- *   <li>{@code --bold}           — apply bold to every cell.</li>
- *   <li>{@code --grid}           — print as a compact grid (FG rows × BG columns)
- *                                   instead of one line per pair.</li>
- * </ul>
  */
 public final class AnsiColorMatrix {
 
@@ -46,7 +32,7 @@ public final class AnsiColorMatrix {
                 case "--help":
                     System.out.println("Usage: AnsiColorMatrix [--sample TEXT] [--bold] [--grid]");
                     return;
-                default: /* ignore */ break;
+                default: break;
             }
         }
 
@@ -68,10 +54,6 @@ public final class AnsiColorMatrix {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Output modes
-    // ─────────────────────────────────────────────────────────────────────────
-
     private static void printList(List<NamedCode> fgs, List<NamedCode> bgs,
                                   String sample, String style) {
         int fgw = maxNameWidth(fgs);
@@ -89,7 +71,6 @@ public final class AnsiColorMatrix {
     private static void printGrid(List<NamedCode> fgs, List<NamedCode> bgs,
                                   String sample, String style) {
         int fgw = maxNameWidth(fgs);
-        // Header row with abbreviated BG indices
         StringBuilder header = new StringBuilder();
         header.append(pad("FG \\ BG", fgw)).append(" │ ");
         for (int i = 0; i < bgs.size(); i++) header.append(String.format("%-4d", i));
@@ -112,10 +93,6 @@ public final class AnsiColorMatrix {
             System.out.printf("  %2d = %s%n", i, bgs.get(i).name);
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Reflection helpers
-    // ─────────────────────────────────────────────────────────────────────────
 
     private static List<NamedCode> collect(String kind) throws IllegalAccessException {
         List<NamedCode> out = new ArrayList<>();

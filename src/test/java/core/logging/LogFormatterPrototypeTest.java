@@ -1,5 +1,7 @@
 package core.logging;
 
+import core.logging.config.LogConfig;
+
 import org.testng.annotations.Test;
 
 import java.time.LocalDateTime;

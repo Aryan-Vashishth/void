@@ -1,30 +1,18 @@
-package core.logging;
+package core.logging.ansi;
 
-import static core.logging.AnsiEscape.bg16;
-import static core.logging.AnsiEscape.bg256;
-import static core.logging.AnsiEscape.fg16;
-import static core.logging.AnsiEscape.fg256;
-import static core.logging.AnsiEscape.rgbBg;
-import static core.logging.AnsiEscape.rgbFg;
-import static core.logging.AnsiEscape.sgr;
+import static core.logging.ansi.AnsiEscape.bg16;
+import static core.logging.ansi.AnsiEscape.bg256;
+import static core.logging.ansi.AnsiEscape.fg16;
+import static core.logging.ansi.AnsiEscape.fg256;
+import static core.logging.ansi.AnsiEscape.rgbBg;
+import static core.logging.ansi.AnsiEscape.rgbFg;
+import static core.logging.ansi.AnsiEscape.sgr;
 
 /**
  * Catalog of named ANSI color and style constants.
  *
  * <p>This class is intentionally <strong>data only</strong>: it contains no
- * behavior. All escape-sequence construction lives in {@link AnsiEscape}, which
- * this class uses to build its constants so that the encoding rules exist in
- * exactly one place.</p>
- *
- * <p>Three tiers are provided:</p>
- * <ol>
- *   <li><b>Standard 16-color</b> — {@code \u001B[<code>m} — supported everywhere.</li>
- *   <li><b>256-color</b> — {@code \u001B[38;5;<n>m} (FG) / {@code \u001B[48;5;<n>m} (BG)</li>
- *   <li><b>True RGB</b> — {@code \u001B[38;2;R;G;Bm} (FG) / {@code \u001B[48;2;R;G;Bm} (BG)</li>
- * </ol>
- *
- * @see AnsiEscape for dynamic factory methods (e.g. {@code rgbFg(r,g,b)},
- *      {@code colorize(text, fg, bg)}).
+ * behavior. All escape-sequence construction lives in {@link AnsiEscape}.</p>
  */
 public final class AnsiColors {
 
@@ -74,7 +62,6 @@ public final class AnsiColors {
     public static final String BG_BRIGHT_MAGENTA = bg16(105);
     public static final String BG_BRIGHT_CYAN    = bg16(106);
     public static final String BG_BRIGHT_WHITE   = bg16(107);
-    // aliases
     public static final String BG_GREY_100       = BG_BRIGHT_BLACK;
     public static final String BG_BRIGHT_GREY    = BG_WHITE;
 
@@ -94,7 +81,6 @@ public final class AnsiColors {
     public static final String FG_256_MAROON     = fg256(88);
     public static final String FG_256_OLIVE      = fg256(100);
     public static final String FG_256_INDIGO     = fg256(54);
-    // backward-compat aliases
     public static final String FG_ORANGE_208      = FG_256_ORANGE;
     public static final String FG_BOLD_ORANGE_208 = sgr(38, 5, 208, 1);
     public static final String FG_NAVY_BLUE       = FG_256_NAVY;
@@ -111,7 +97,6 @@ public final class AnsiColors {
     public static final String BG_256_DARK_RED    = bg256(52);
     public static final String BG_256_MAROON      = bg256(88);
     public static final String BG_256_INDIGO      = bg256(54);
-    // backward-compat aliases
     public static final String BG_ORANGE_208     = BG_256_ORANGE;
     public static final String BG_DARKER_GREY    = BG_256_DARK_GREY;
     public static final String BG_DARKER_BLUE    = BG_256_NAVY;
@@ -122,62 +107,48 @@ public final class AnsiColors {
     public static final String BG_MAROON_RED     = BG_256_MAROON;
 
     // ── True-RGB foregrounds ──────────────────────────────────────────────────
-    // Neutrals
     public static final String RGB_FG_SNOW_WHITE    = rgbFg(240, 242, 245);
     public static final String RGB_FG_SOFT_WHITE    = rgbFg(210, 215, 220);
     public static final String RGB_FG_COOL_GREY     = rgbFg(140, 150, 165);
     public static final String RGB_FG_WARM_GREY     = rgbFg(160, 158, 150);
     public static final String RGB_FG_DEEP_CHARCOAL = rgbFg(28, 30, 38);
-    // Warm
     public static final String RGB_FG_GOLD          = rgbFg(255, 200, 50);
     public static final String RGB_FG_AMBER         = rgbFg(255, 170, 0);
     public static final String RGB_FG_PEACH         = rgbFg(255, 185, 110);
     public static final String RGB_FG_CORAL         = rgbFg(255, 105, 85);
     public static final String RGB_FG_SALMON        = rgbFg(255, 140, 105);
     public static final String RGB_FG_HOT_PINK      = rgbFg(255, 75, 170);
-    // Cool
     public static final String RGB_FG_SKY_BLUE      = rgbFg(80, 185, 255);
     public static final String RGB_FG_ELECTRIC_BLUE = rgbFg(50, 140, 255);
     public static final String RGB_FG_STEEL_CYAN    = rgbFg(90, 220, 220);
     public static final String RGB_FG_MINT          = rgbFg(60, 220, 175);
     public static final String RGB_FG_LIME_GREEN    = rgbFg(100, 240, 120);
     public static final String RGB_FG_NEON_GREEN    = rgbFg(80, 255, 120);
-    // Purple family
     public static final String RGB_FG_LAVENDER      = rgbFg(185, 155, 255);
     public static final String RGB_FG_VIOLET        = rgbFg(160, 100, 255);
     public static final String RGB_FG_PURPLE        = rgbFg(155, 111, 224);
     public static final String RGB_FG_DARKER_PURPLE = rgbFg(122, 79, 196);
     public static final String RGB_FG_DEEP_PURPLE   = rgbFg(90, 54, 163);
-    // backward-compat aliases
     public static final String FG_PURPLE        = RGB_FG_PURPLE;
     public static final String FG_DARKER_PURPLE = RGB_FG_DARKER_PURPLE;
     public static final String FG_DEEP_PURPLE   = RGB_FG_DEEP_PURPLE;
 
-    // ── Deep-shade foregrounds (rich, saturated — readable on dark backgrounds) ─
-    /** Deep crimson red — replaces neon FG_BRIGHT_RED / RGB_FG_CORAL in themes. */
+    // ── Deep-shade foregrounds ────────────────────────────────────────────────
     public static final String RGB_FG_DEEP_RED    = rgbFg(210, 48, 48);
-    /** Deep emerald green — replaces neon lime in themes. */
     public static final String RGB_FG_DEEP_GREEN  = rgbFg(38, 185, 72);
-    /** Deep teal-cyan — replaces electric cyan in themes. */
     public static final String RGB_FG_DEEP_CYAN   = rgbFg(28, 188, 196);
-    /** Deep amber — replaces bright yellow/gold in themes. */
     public static final String RGB_FG_DEEP_AMBER  = rgbFg(200, 155, 20);
-    /** Deep violet — replaces pastel lavender in themes. */
     public static final String RGB_FG_DEEP_VIOLET = rgbFg(152, 88, 210);
-    /** Deep orange — replaces peach/coral in warm themes. */
     public static final String RGB_FG_DEEP_ORANGE = rgbFg(205, 88, 18);
-    /** Deep hot-pink — replaces neon hot-pink in vivid themes. */
     public static final String RGB_FG_DEEP_PINK   = rgbFg(210, 40, 125);
 
     // ── True-RGB backgrounds ──────────────────────────────────────────────────
-    // Dark neutrals
     public static final String RGB_BG_CHARCOAL      = rgbBg(35, 38, 46);
     public static final String RGB_BG_DARK_SLATE    = rgbBg(28, 32, 42);
     public static final String RGB_BG_MIDNIGHT      = rgbBg(16, 18, 26);
     public static final String RGB_BG_NEAR_BLACK    = rgbBg(20, 22, 30);
     public static final String RGB_BG_CARBON        = rgbBg(28, 28, 32);
     public static final String RGB_BG_STEEL_DARK    = rgbBg(48, 52, 62);
-    // Warm dark
     public static final String RGB_BG_DARK_AMBER    = rgbBg(95, 62, 0);
     public static final String RGB_BG_VIVID_AMBER   = rgbBg(170, 105, 0);
     public static final String RGB_BG_RUST          = rgbBg(110, 48, 20);
@@ -185,20 +156,18 @@ public final class AnsiColors {
     public static final String RGB_BG_DARK_WINE     = rgbBg(90, 16, 36);
     public static final String RGB_BG_MAROON        = rgbBg(110, 22, 22);
     public static final String RGB_BG_ORANGE_VIVID  = rgbBg(200, 100, 0);
-    // Cool dark
     public static final String RGB_BG_DARK_FOREST   = rgbBg(18, 52, 28);
     public static final String RGB_BG_DARK_OCEAN    = rgbBg(14, 38, 72);
     public static final String RGB_BG_DARK_TEAL     = rgbBg(14, 66, 66);
     public static final String RGB_BG_DARK_INDIGO   = rgbBg(28, 24, 68);
     public static final String RGB_BG_DARK_PURPLE   = rgbBg(45, 22, 72);
     public static final String RGB_BG_DARK_CYAN     = rgbBg(0, 80, 100);
-    // Bright / light
     public static final String RGB_BG_SOFT_WHITE    = rgbBg(238, 240, 245);
     public static final String RGB_BG_LIGHT_GREY    = rgbBg(205, 210, 218);
     public static final String RGB_BG_WARM_AMBER_LT = rgbBg(190, 140, 15);
     public static final String RGB_BG_TOMATO_RED    = rgbBg(190, 45, 45);
-    // Vivid
     public static final String RGB_BG_HOT_PINK      = rgbBg(195, 38, 115);
     public static final String RGB_BG_NEON_PURPLE   = rgbBg(115, 18, 175);
     public static final String RGB_BG_ELECTRIC_TEAL = rgbBg(0, 150, 170);
 }
+

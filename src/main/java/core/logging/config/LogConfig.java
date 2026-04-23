@@ -1,4 +1,9 @@
-package core.logging;
+package core.logging.config;
+
+import core.logging.ConsoleOnly;
+import core.logging.theme.BuiltInThemes;
+import core.logging.theme.LogTheme;
+import core.logging.theme.ThemeColors;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -8,43 +13,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * ─────────────────────────────────────────────────────────────────────────────
  * Central configuration object for the void-framework logging system.
- * ─────────────────────────────────────────────────────────────────────────────
  *
  * <p>All previously scattered constants and flags — column widths, cell limits,
  * ANSI toggle, caller-color, theme, segment divider, call-chain filters — are
  * owned here as a single, coherent configuration unit.</p>
- *
- * <h2>Usage — builder (initial setup)</h2>
- * <pre>{@code
- * LogConfig.builder()
- *     .tsWidth(23).levelWidth(7).actionWidth(18)
- *     .tableCellLimit(40)
- *     .segmentDivider(" │ ")
- *     .ansi(true)
- *     .callerColor(false)
- *     .theme(LogTheme.MODERN_CLEAN)
- *     .suppressContaining("com.example.internal")
- *     .build()
- *     .apply();          // ← makes this the live config
- * }</pre>
- *
- * <h2>Usage — runtime toggle (no rebuild needed)</h2>
- * <pre>{@code
- * LogConfig.current().setAnsi(true);
- * LogConfig.current().setTheme(LogTheme.COCKPIT);
- * LogConfig.current().setTableCellLimit(60);
- * LogConfig.current().disableTableCellLimit();   // unlimited
- * }</pre>
- *
- * <h2>Usage — patch a single field via Consumer</h2>
- * <pre>{@code
- * LogConfig.patch(c -> c.setTheme(LogTheme.HIGH_CONTRAST));
- * }</pre>
- *
- * <p>{@link LoggerContext} and {@link LogActions} read exclusively from
- * {@link #current()} — they no longer hold their own state.</p>
  */
 public final class LogConfig {
 
@@ -52,36 +25,24 @@ public final class LogConfig {
 
     private static volatile LogConfig CURRENT = new Builder().build();
 
-    /** Returns the currently active configuration. Never {@code null}. */
     public static LogConfig current() { return CURRENT; }
 
-    /**
-     * Replaces the active configuration with {@code config}.
-     * Thread-safe (volatile write).
-     */
     public static void apply(LogConfig config) {
         if (config != null) CURRENT = config;
     }
 
-    /**
-     * Convenience: mutate the live config in-place via a {@link Consumer}.
-     * <pre>{@code LogConfig.patch(c -> c.setTheme(LogTheme.COCKPIT)); }</pre>
-     */
     public static void patch(Consumer<LogConfig> mutator) {
         if (mutator != null) mutator.accept(CURRENT);
     }
 
-    // ── Column widths (for fixed-width columnar output) ───────────────────────
+    // ── Column widths ─────────────────────────────────────────────────────────
 
     private volatile int tsWidth;
     private volatile int levelWidth;
     private volatile int actionWidth;
 
-    /** Timestamp column visible-character width. Default: {@value Builder#DEFAULT_TS_WIDTH}. */
     public int getTsWidth()     { return tsWidth; }
-    /** Level column visible-character width. Default: {@value Builder#DEFAULT_LEVEL_WIDTH}. */
     public int getLevelWidth()  { return levelWidth; }
-    /** Action column visible-character width. Default: {@value Builder#DEFAULT_ACTION_WIDTH}. */
     public int getActionWidth() { return actionWidth; }
 
     public LogConfig setTsWidth(int w)     { this.tsWidth     = Math.max(0, w); return this; }
@@ -92,7 +53,6 @@ public final class LogConfig {
 
     private volatile DateTimeFormatter tsFormat;
 
-    /** Default: {@code yyyy-MM-dd HH:mm:ss.SSS}. */
     public DateTimeFormatter getTsFormat() { return tsFormat; }
     public LogConfig setTsFormat(String pattern) {
         this.tsFormat = DateTimeFormatter.ofPattern(pattern);
@@ -107,11 +67,6 @@ public final class LogConfig {
 
     private volatile String segmentDivider;
 
-    /**
-     * Visual separator printed between log segments
-     * (timestamp, level, action, message, trace).
-     * Default: {@code " │ "}.
-     */
     public String getSegmentDivider() { return segmentDivider; }
     public LogConfig setSegmentDivider(String div) {
         this.segmentDivider = (div != null) ? div : " \u2502 ";
@@ -122,10 +77,6 @@ public final class LogConfig {
 
     private volatile String traceArrow;
 
-    /**
-     * Separator between the message and the caller-trace suffix.
-     * Default: {@code " → "}.
-     */
     public String getTraceArrow() { return traceArrow; }
     public LogConfig setTraceArrow(String arrow) {
         this.traceArrow = (arrow != null) ? arrow : " \u2192 ";
@@ -137,11 +88,6 @@ public final class LogConfig {
     private volatile int  tableCellLimit;
     private volatile boolean tableCellLimitEnabled;
 
-    /**
-     * Maximum visible characters per table cell before truncation with {@code "..."}.
-     * Only active when {@link #isTableCellLimitEnabled()} is {@code true}.
-     * Default: {@value Builder#DEFAULT_TABLE_CELL_LIMIT}.
-     */
     public int  getTableCellLimit()        { return tableCellLimit; }
     public boolean isTableCellLimitEnabled() { return tableCellLimitEnabled; }
 
@@ -150,15 +96,9 @@ public final class LogConfig {
         this.tableCellLimitEnabled = true;
         return this;
     }
-    /** Turn off cell truncation — table cells will display their full value. */
     public LogConfig disableTableCellLimit() { this.tableCellLimitEnabled = false; return this; }
-    /** Re-enable cell truncation at the current limit. */
     public LogConfig enableTableCellLimit()  { this.tableCellLimitEnabled = true;  return this; }
 
-    /**
-     * Applies the cell limit to {@code s} if enabled; returns the original string otherwise.
-     * Newlines are always collapsed to spaces.
-     */
     public String truncateCell(String s) {
         if (s == null) return "";
         s = s.replaceAll("\\R", " ");
@@ -204,7 +144,6 @@ public final class LogConfig {
         return this;
     }
 
-    /** Returns the resolved {@link ThemeColors} for the active theme or custom override. */
     public ThemeColors resolvedTheme() {
         if (customTheme != null) return customTheme;
         return BuiltInThemes.resolve(theme);
@@ -216,11 +155,8 @@ public final class LogConfig {
     private final Set<String> suppressMethodPrefixes;
     private final Set<String> includeOnlyPrefixes;
 
-    /** Class-name substrings to suppress from caller resolution. */
     public Set<String> getSuppressContains()        { return suppressContains; }
-    /** Method-name prefixes to suppress from caller resolution. */
     public Set<String> getSuppressMethodPrefixes()  { return suppressMethodPrefixes; }
-    /** If non-empty, only class names matching one of these prefixes are shown. */
     public Set<String> getIncludeOnlyPrefixes()     { return includeOnlyPrefixes; }
 
     public LogConfig suppressContaining(String... substrings) {
@@ -261,7 +197,6 @@ public final class LogConfig {
         this.includeOnlyPrefixes   = Collections.synchronizedSet(new LinkedHashSet<>(b.includeOnlyPrefixes));
     }
 
-    /** Makes this instance the globally active configuration and returns {@code this}. */
     public LogConfig apply() { LogConfig.apply(this); return this; }
 
     // ── Builder ───────────────────────────────────────────────────────────────
@@ -270,11 +205,10 @@ public final class LogConfig {
 
     public static final class Builder {
 
-        // ── Defaults ──────────────────────────────────────────────────────────
-        static final int    DEFAULT_TS_WIDTH         = 0;   // 0 = no fixed width (free-flow)
-        static final int    DEFAULT_LEVEL_WIDTH       = 0;   // 0 = no fixed width
-        static final int    DEFAULT_ACTION_WIDTH      = 0;   // 0 = no fixed width
-        static final int    DEFAULT_TABLE_CELL_LIMIT  = 40;  // used only when limit is enabled
+        public static final int    DEFAULT_TS_WIDTH         = 0;
+        public static final int    DEFAULT_LEVEL_WIDTH      = 0;
+        public static final int    DEFAULT_ACTION_WIDTH     = 0;
+        public static final int    DEFAULT_TABLE_CELL_LIMIT = 40;
 
         private int    tsWidth               = DEFAULT_TS_WIDTH;
         private int    levelWidth            = DEFAULT_LEVEL_WIDTH;
@@ -284,14 +218,16 @@ public final class LogConfig {
         private String segmentDivider        = " \u2502 ";   // " │ "
         private String traceArrow            = " \u2192 ";   // " → "
         private int    tableCellLimit        = DEFAULT_TABLE_CELL_LIMIT;
-        private boolean tableCellLimitEnabled = false;  // off by default — no truncation
+        private boolean tableCellLimitEnabled = false;
         private boolean ansiEnabled          = detectAnsiSupport();
         private boolean callerColorEnabled   = false;
         private LogTheme    theme            = LogTheme.PLAIN;
         private ThemeColors customTheme      = null;
         private final Set<String> suppressContains = new LinkedHashSet<>(List.of(
-                "core.logging.CustomLogger", "core.logging.LogActions", "core.logging.LoggerContext",
-                "core.logging.LogConfig",
+                "core.logging.CustomLogger",
+                "core.logging.render.LogActions",
+                "core.logging.config.LoggerContext",
+                "core.logging.config.LogConfig",
                 "org.apache.log4j",
                 "java.", "sun.", "jdk.",
                 "com.sun.proxy", "jdk.proxy",
@@ -302,12 +238,10 @@ public final class LogConfig {
         ));
         private final Set<String> includeOnlyPrefixes = new LinkedHashSet<>();
 
-        // ── Column widths ─────────────────────────────────────────────────────
         public Builder tsWidth(int w)     { this.tsWidth     = Math.max(0, w); return this; }
         public Builder levelWidth(int w)  { this.levelWidth  = Math.max(0, w); return this; }
         public Builder actionWidth(int w) { this.actionWidth = Math.max(0, w); return this; }
 
-        // ── Timestamp ─────────────────────────────────────────────────────────
         public Builder tsFormat(String pattern) {
             this.tsFormat = DateTimeFormatter.ofPattern(pattern); return this;
         }
@@ -315,29 +249,23 @@ public final class LogConfig {
             if (fmt != null) this.tsFormat = fmt; return this;
         }
 
-        // ── Dividers ──────────────────────────────────────────────────────────
         public Builder segmentDivider(String div)  { this.segmentDivider = div; return this; }
         public Builder traceArrow(String arrow)    { this.traceArrow     = arrow; return this; }
 
-        // ── Cell limit ────────────────────────────────────────────────────────
         public Builder tableCellLimit(int limit) {
             this.tableCellLimit = Math.max(4, limit); return this;
         }
         public Builder tableCellLimitEnabled(boolean on) {
             this.tableCellLimitEnabled = on; return this;
         }
-        /** Disable cell truncation — full values always shown. */
         public Builder noTableCellLimit() { this.tableCellLimitEnabled = false; return this; }
 
-        // ── ANSI / color ──────────────────────────────────────────────────────
         public Builder ansi(boolean enabled)        { this.ansiEnabled       = enabled; return this; }
         public Builder callerColor(boolean enabled) { this.callerColorEnabled = enabled; return this; }
 
-        // ── Theme ─────────────────────────────────────────────────────────────
         public Builder theme(LogTheme t)            { this.theme = t; this.customTheme = null; return this; }
         public Builder customTheme(ThemeColors c)   { this.customTheme = c; return this; }
 
-        // ── Call-chain filters ────────────────────────────────────────────────
         public Builder suppressContaining(String... substrings) {
             if (substrings != null)
                 for (String s : substrings) if (s != null && !s.isBlank()) suppressContains.add(s);
@@ -355,13 +283,10 @@ public final class LogConfig {
             return this;
         }
 
-        /** Build the {@link LogConfig} instance (does NOT automatically apply it). */
         public LogConfig build() { return new LogConfig(this); }
 
-        /** Build and immediately {@link LogConfig#apply() apply} as the live config. */
         public LogConfig buildAndApply() { return build().apply(); }
 
-        // ── ANSI auto-detection (mirrors previous LoggerContext logic) ─────────
         private static boolean detectAnsiSupport() {
             String prop = System.getProperty("logger.ansi.enabled");
             if (prop != null) return Boolean.parseBoolean(prop);
@@ -374,3 +299,4 @@ public final class LogConfig {
         }
     }
 }
+

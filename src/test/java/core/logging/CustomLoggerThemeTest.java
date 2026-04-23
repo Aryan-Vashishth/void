@@ -7,7 +7,11 @@ import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 import java.util.List;
-import static core.logging.AnsiColors.*;
+import core.logging.intent.LogIntent;
+import core.logging.theme.LogTheme;
+import core.logging.theme.ThemeColors;
+
+import static core.logging.ansi.AnsiColors.*;
 import static core.logging.CustomLogger.debug;
 import static core.logging.CustomLogger.info;
 import static core.logging.CustomLogger.warn;
