@@ -2,27 +2,31 @@ package core.resolvers.locator;
 
 import elements.api.*;
 import com.beust.jcommander.internal.Nullable;
-import core.resolvers.locator.json.JsonLocatorReaderV1;
-import core.utils.ConfigLoader;
 import core.utils.UIContext;
 import org.openqa.selenium.Beta;
 import org.openqa.selenium.By;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.Locale;
 
-import static core.logging.CustomLogger.*;
+import static core.logging.CustomLogger.debug;
 
-/// LocatorResolverV1 &mdash; legacy "behaves like old LocatorReader" façade.
-/// Static API preserved for backward compatibility; parsing/formatting is now delegated to
-/// {@link ByParser} and {@link LocatorTemplate} (Phase&nbsp;1 OO refactor).
+/**
+ * Legacy static façade — preserved for backward compatibility.
+ *
+ * <p>All orchestration now delegates to {@link LocatorResolvers#legacyPadded()},
+ * which composes {@link LocatorTemplate.Policy#PAD_LAST} with a
+ * {@link LayeredPropertiesLocatorSource}. The {@code IS_HARDCODED} {@code ThreadLocal}
+ * has been removed — hardcoded-mode logging now flows through
+ * {@link LocatorRequest#isHardcoded()}.</p>
+ *
+ * @deprecated New code should use {@link LocatorResolvers#legacyPadded()}
+ *             (or, preferably, {@link LocatorResolvers#strict()}) directly.
+ */
+@Deprecated
 public class ElementLocatorResolverV1 {
 
-    /** Cache of merged bundles keyed by the passed fileName (e.g., "common-elements.properties"). */
-    private static final Map<String, Properties> BUNDLE_CACHE = new ConcurrentHashMap<>();
-
-    /** Thread-local marker for hardcoded template mode (used only to tweak debug log line). */
-    private static final ThreadLocal<Boolean> IS_HARDCODED = ThreadLocal.withInitial(() -> Boolean.FALSE);
+    private static LocatorResolver R() { return LocatorResolvers.legacyPadded(); }
 
     /* ========================================================================
      * Public API
@@ -30,34 +34,13 @@ public class ElementLocatorResolverV1 {
 
     public static By getLocator(@Nullable String fileName, String key, Object... args) {
         if (args == null) args = new Object[0];
-
-        String template = getRawLocator(fileName, key);
-        debug.log("[LOCATOR] Raw locator template:", "Template", template);
-
-        debug.log("[LOCATOR] Resolving locator:",
-                "Property File", fileName,
-                "Key", key,
-                "Args", args.length > 0 ? Arrays.toString(args) : "[]");
-
         UIContext.setLastElementMeta(fileName, key, args);
-
-        String resolved = resolveLocatorTemplate(template, args);
-        if (resolved == null) {
-            error.log("[LOCATOR] Could not resolve locator template (missing %s or mismatch)",
-                    "Key", key, "Template", template, "Args", Arrays.toString(args));
-            throw new RuntimeException(buildFailureMessage("Could not resolve locator template", fileName, key, template, args));
+        try {
+            return R().resolve(LocatorRequest.of(fileName, key, args));
+        } catch (IllegalStateException ex) {
+            // Preserve the legacy contract: missing key / unresolved template → RuntimeException
+            throw new RuntimeException(ex.getMessage(), ex);
         }
-
-        By by = ByParser.DEFAULT.parse(resolved);
-
-        if (!Boolean.TRUE.equals(IS_HARDCODED.get())) {
-            debug.log("[LOCATOR] Final resolved locator:", "Key", key, "Resolved", resolved, "By", by.toString());
-        } else {
-            debug.log("[LOCATOR] Final resolved locator (HARDCODED):", "Key", key, "Resolved", resolved, "By", by.toString());
-            IS_HARDCODED.set(Boolean.FALSE);
-        }
-
-        return by;
     }
 
     @Beta
@@ -69,7 +52,6 @@ public class ElementLocatorResolverV1 {
         return getLocator(fileName, key, lowerArgs);
     }
 
-    // Universal, type-safe
     public static By getLocator(Element element) {
         return getLocator(element.getExternalFileName(), element.getPrimaryLocator(), element.getArgs());
     }
@@ -79,7 +61,7 @@ public class ElementLocatorResolverV1 {
         return getLocatorCaseInsensitive(element.getExternalFileName(), element.getPrimaryLocator(), element.getArgs());
     }
 
-    // Dropdown/Search helpers (unchanged signatures)
+    // Dropdown / Search helpers — preserved signatures
     public static By getDropdownTriggerLocator(Dropdown dropdown) {
         return getLocator(dropdown.getExternalFileName(), dropdown.getTriggerLocator(), dropdown.getArgs());
     }
@@ -123,7 +105,7 @@ public class ElementLocatorResolverV1 {
         return LocatorTemplate.padded(template).placeholderCount();
     }
 
-    /** Pad-last formatter — delegates to {@link LocatorTemplate} with {@link LocatorTemplate.Policy#PAD_LAST}. */
+    /** Pad-last formatter — delegates to {@link LocatorTemplate.Policy#PAD_LAST}. */
     public static String resolveLocatorTemplate(String template, Object... args) {
         if (template == null) return null;
         LocatorTemplate t = LocatorTemplate.padded(template);
@@ -134,78 +116,15 @@ public class ElementLocatorResolverV1 {
         return resolved;
     }
 
-    /* ========================================================================
-     * Internals
-     * ====================================================================== */
-
     /**
-     * Loads the raw locator string.
-     * <ul>
-     *   <li>{@code fileName == null} → hardcoded template (key itself).</li>
-     *   <li>{@code .json} → delegates to {@link JsonLocatorReaderV1}.</li>
-     *   <li>otherwise → cached/merged bundle via {@link ConfigLoader} under {@link LocatorPaths#PROPERTIES_BASE}.</li>
-     * </ul>
+     * Loads the raw locator string. Preserves legacy {@link RuntimeException} on missing key.
      */
     public static String getRawLocator(@Nullable String fileName, String key) {
-        if (fileName == null) {
-            IS_HARDCODED.set(Boolean.TRUE);
-            return key;
-        }
-
         UIContext.setLastElementMeta(fileName, key, null);
-
-        // Route JSON files to the dedicated JSON reader
-        if (fileName.toLowerCase(Locale.ROOT).endsWith(".json")) {
-            String raw = JsonLocatorReaderV1.getRaw(fileName, key);
-            if (raw == null) {
-                throw new RuntimeException("Locator not found for key: " + key + " in file: " + fileName);
-            }
-            return raw;
+        try {
+            return R().rawTemplate(LocatorRequest.of(fileName, key));
+        } catch (IllegalStateException ex) {
+            throw new RuntimeException("Locator not found for key: " + key + " in file: " + fileName, ex);
         }
-
-        Properties bundle = BUNDLE_CACHE.computeIfAbsent(fileName, ElementLocatorResolverV1::loadBundleWithConfigLoader);
-
-        String value = bundle.getProperty(key);
-        if (value == null) {
-            throw new RuntimeException("Locator not found for key: " + key + " in file: " + fileName);
-        }
-        return value;
-    }
-
-    /**
-     * Loads/merges a single locator bundle using ConfigLoader.
-     */
-    private static Properties loadBundleWithConfigLoader(String fileName) {
-        String cpPath = LocatorPaths.underProperties(fileName);
-
-        Properties merged = ConfigLoader.Layered.builder()
-                .addClasspath(cpPath, true)     // TEST
-                .addClasspath(cpPath, false)    // MAIN
-                .externalOverrideKeys("locators.override", "LOCATORS_OVERRIDE")
-                .allowExternalOverride(true)
-                .includeSystemProperties(true)
-                .includeEnvironment(true)
-                .build();
-
-        debug.log("[LOCATOR BUNDLE LOAD]",
-                "FileName", fileName,
-                "Classpath", cpPath,
-                "Keys", String.valueOf(merged.size()));
-
-        return merged;
-    }
-
-    private static String buildFailureMessage(String prefix,
-                                              @Nullable String fileName,
-                                              String key,
-                                              String template,
-                                              Object[] args) {
-        return prefix + " [" +
-                "file=" + fileName + ", " +
-                "key=" + key + ", " +
-                "template=" + template + ", " +
-                "args=" + Arrays.toString(args) + ", " +
-                "uiContext=" + UIContext.getLastElementMeta() +
-                "]";
     }
 }
