@@ -3,13 +3,10 @@ package core.resolvers.locator;
 
 import elements.meta.ElementRole;
 import elements.api.Element;
-import core.resolvers.locator.json.JsonLocatorReaderV1;
-import core.resolvers.locator.properties.PropertiesFileLocatorReaderV1;
 import core.utils.UIContext;
 import org.openqa.selenium.By;
 
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public final class LocatorResolverV1 {
@@ -75,22 +72,16 @@ public final class LocatorResolverV1 {
     // ===== helpers =====
 
     public static String getRawLocator(String fileName, String key) {
-        LocatorReader reader = pickReader(fileName);
-        String raw = reader.getRaw(fileName, key);
+        LocatorSource source = LocatorSourceRegistry.DEFAULT.select(fileName);
+        String raw = source.readRaw(LocatorRequest.of(fileName, key));
         if (raw == null) {
-            throw new IllegalStateException("Locator not found (no raw template): file=" + fileName + " key=" + key);
+            throw new IllegalStateException(
+                    "Locator not found (no raw template): file=" + fileName + " key=" + key +
+                    " source=" + source.name());
         }
         return raw;
     }
 
-    private static LocatorReader pickReader(String fileName) {
-        if (fileName == null) return (f, k) -> k; // hardcoded: key is the template
-        String lower = fileName.toLowerCase(Locale.ROOT);
-        if (lower.endsWith(".properties")) return PropertiesFileLocatorReaderV1::getRaw;
-        if (lower.endsWith(".json"))       return JsonLocatorReaderV1::getRaw;
-        throw new IllegalArgumentException(
-                "Unsupported locator file extension: " + fileName + " (expected .properties or .json, or null for hardcoded)");
-    }
 
     /**
      * Format a template under {@link LocatorTemplate.Policy#STRICT}: supports {@code %s}/{@code %n$s},
