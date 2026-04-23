@@ -1,7 +1,20 @@
 package core.logging;
 
+import static core.logging.AnsiEscape.bg16;
+import static core.logging.AnsiEscape.bg256;
+import static core.logging.AnsiEscape.fg16;
+import static core.logging.AnsiEscape.fg256;
+import static core.logging.AnsiEscape.rgbBg;
+import static core.logging.AnsiEscape.rgbFg;
+import static core.logging.AnsiEscape.sgr;
+
 /**
- * ANSI escape-code constants for terminal styling.
+ * Catalog of named ANSI color and style constants.
+ *
+ * <p>This class is intentionally <strong>data only</strong>: it contains no
+ * behavior. All escape-sequence construction lives in {@link AnsiEscape}, which
+ * this class uses to build its constants so that the encoding rules exist in
+ * exactly one place.</p>
  *
  * <p>Three tiers are provided:</p>
  * <ol>
@@ -9,92 +22,95 @@ package core.logging;
  *   <li><b>256-color</b> — {@code \u001B[38;5;<n>m} (FG) / {@code \u001B[48;5;<n>m} (BG)</li>
  *   <li><b>True RGB</b> — {@code \u001B[38;2;R;G;Bm} (FG) / {@code \u001B[48;2;R;G;Bm} (BG)</li>
  * </ol>
+ *
+ * @see AnsiEscape for dynamic factory methods (e.g. {@code rgbFg(r,g,b)},
+ *      {@code colorize(text, fg, bg)}).
  */
 public final class AnsiColors {
 
     private AnsiColors() {}
 
-    // ── Control sequences ─────────────────────────────────────────────────────
-    public static final String RESET  = "\u001B[0m";
-    public static final String BOLD   = "\u001B[1m";
-    public static final String DIM    = "\u001B[2m";
-    public static final String ITALIC = "\u001B[3m";
+    // ── Control sequences (delegated to AnsiEscape — single source of truth) ─
+    public static final String RESET  = AnsiEscape.RESET;
+    public static final String BOLD   = AnsiEscape.BOLD;
+    public static final String DIM    = AnsiEscape.DIM;
+    public static final String ITALIC = AnsiEscape.ITALIC;
 
     // ── Standard 16-color foregrounds ─────────────────────────────────────────
-    public static final String FG_BLACK          = "\u001B[30m";
-    public static final String FG_RED            = "\u001B[31m";
-    public static final String FG_GREEN          = "\u001B[32m";
-    public static final String FG_YELLOW         = "\u001B[33m";
-    public static final String FG_BLUE           = "\u001B[34m";
-    public static final String FG_MAGENTA        = "\u001B[35m";
-    public static final String FG_CYAN           = "\u001B[36m";
-    public static final String FG_WHITE          = "\u001B[37m";
-    public static final String FG_BRIGHT_BLACK   = "\u001B[90m";
-    public static final String FG_BRIGHT_RED     = "\u001B[91m";
-    public static final String FG_BRIGHT_GREEN   = "\u001B[92m";
-    public static final String FG_BRIGHT_YELLOW  = "\u001B[93m";
-    public static final String FG_BRIGHT_BLUE    = "\u001B[94m";
-    public static final String FG_BRIGHT_MAGENTA = "\u001B[95m";
-    public static final String FG_BRIGHT_CYAN    = "\u001B[96m";
-    public static final String FG_BRIGHT_WHITE   = "\u001B[97m";
+    public static final String FG_BLACK          = fg16(30);
+    public static final String FG_RED            = fg16(31);
+    public static final String FG_GREEN          = fg16(32);
+    public static final String FG_YELLOW         = fg16(33);
+    public static final String FG_BLUE           = fg16(34);
+    public static final String FG_MAGENTA        = fg16(35);
+    public static final String FG_CYAN           = fg16(36);
+    public static final String FG_WHITE          = fg16(37);
+    public static final String FG_BRIGHT_BLACK   = fg16(90);
+    public static final String FG_BRIGHT_RED     = fg16(91);
+    public static final String FG_BRIGHT_GREEN   = fg16(92);
+    public static final String FG_BRIGHT_YELLOW  = fg16(93);
+    public static final String FG_BRIGHT_BLUE    = fg16(94);
+    public static final String FG_BRIGHT_MAGENTA = fg16(95);
+    public static final String FG_BRIGHT_CYAN    = fg16(96);
+    public static final String FG_BRIGHT_WHITE   = fg16(97);
     /** @deprecated Use {@link #FG_BRIGHT_BLACK} */
     @Deprecated
-    public static final String FG_DIM_WHITE      = "\u001B[37;2m";
+    public static final String FG_DIM_WHITE      = sgr(37, 2);
 
     // ── Standard 16-color backgrounds ─────────────────────────────────────────
-    public static final String BG_BLACK          = "\u001B[40m";
-    public static final String BG_RED            = "\u001B[41m";
-    public static final String BG_GREEN          = "\u001B[42m";
-    public static final String BG_YELLOW         = "\u001B[43m";
-    public static final String BG_BLUE           = "\u001B[44m";
-    public static final String BG_MAGENTA        = "\u001B[45m";
-    public static final String BG_CYAN           = "\u001B[46m";
-    public static final String BG_WHITE          = "\u001B[47m";
-    public static final String BG_BRIGHT_BLACK   = "\u001B[100m";
-    public static final String BG_BRIGHT_RED     = "\u001B[101m";
-    public static final String BG_BRIGHT_GREEN   = "\u001B[102m";
-    public static final String BG_BRIGHT_YELLOW  = "\u001B[103m";
-    public static final String BG_BRIGHT_BLUE    = "\u001B[104m";
-    public static final String BG_BRIGHT_MAGENTA = "\u001B[105m";
-    public static final String BG_BRIGHT_CYAN    = "\u001B[106m";
-    public static final String BG_BRIGHT_WHITE   = "\u001B[107m";
+    public static final String BG_BLACK          = bg16(40);
+    public static final String BG_RED            = bg16(41);
+    public static final String BG_GREEN          = bg16(42);
+    public static final String BG_YELLOW         = bg16(43);
+    public static final String BG_BLUE           = bg16(44);
+    public static final String BG_MAGENTA        = bg16(45);
+    public static final String BG_CYAN           = bg16(46);
+    public static final String BG_WHITE          = bg16(47);
+    public static final String BG_BRIGHT_BLACK   = bg16(100);
+    public static final String BG_BRIGHT_RED     = bg16(101);
+    public static final String BG_BRIGHT_GREEN   = bg16(102);
+    public static final String BG_BRIGHT_YELLOW  = bg16(103);
+    public static final String BG_BRIGHT_BLUE    = bg16(104);
+    public static final String BG_BRIGHT_MAGENTA = bg16(105);
+    public static final String BG_BRIGHT_CYAN    = bg16(106);
+    public static final String BG_BRIGHT_WHITE   = bg16(107);
     // aliases
     public static final String BG_GREY_100       = BG_BRIGHT_BLACK;
     public static final String BG_BRIGHT_GREY    = BG_WHITE;
 
     // ── 256-color foregrounds ─────────────────────────────────────────────────
-    public static final String FG_256_ORANGE     = "\u001B[38;5;208m";
-    public static final String FG_256_GOLD       = "\u001B[38;5;220m";
-    public static final String FG_256_LIME       = "\u001B[38;5;118m";
-    public static final String FG_256_SKY        = "\u001B[38;5;117m";
-    public static final String FG_256_VIOLET     = "\u001B[38;5;135m";
-    public static final String FG_256_PINK       = "\u001B[38;5;205m";
-    public static final String FG_256_TEAL       = "\u001B[38;5;80m";
-    public static final String FG_256_SALMON     = "\u001B[38;5;209m";
-    public static final String FG_256_GREY_DARK  = "\u001B[38;5;240m";
-    public static final String FG_256_GREY_MID   = "\u001B[38;5;246m";
-    public static final String FG_256_GREY_LIGHT = "\u001B[38;5;252m";
-    public static final String FG_256_NAVY       = "\u001B[38;5;17m";
-    public static final String FG_256_MAROON     = "\u001B[38;5;88m";
-    public static final String FG_256_OLIVE      = "\u001B[38;5;100m";
-    public static final String FG_256_INDIGO     = "\u001B[38;5;54m";
+    public static final String FG_256_ORANGE     = fg256(208);
+    public static final String FG_256_GOLD       = fg256(220);
+    public static final String FG_256_LIME       = fg256(118);
+    public static final String FG_256_SKY        = fg256(117);
+    public static final String FG_256_VIOLET     = fg256(135);
+    public static final String FG_256_PINK       = fg256(205);
+    public static final String FG_256_TEAL       = fg256(80);
+    public static final String FG_256_SALMON     = fg256(209);
+    public static final String FG_256_GREY_DARK  = fg256(240);
+    public static final String FG_256_GREY_MID   = fg256(246);
+    public static final String FG_256_GREY_LIGHT = fg256(252);
+    public static final String FG_256_NAVY       = fg256(17);
+    public static final String FG_256_MAROON     = fg256(88);
+    public static final String FG_256_OLIVE      = fg256(100);
+    public static final String FG_256_INDIGO     = fg256(54);
     // backward-compat aliases
     public static final String FG_ORANGE_208      = FG_256_ORANGE;
-    public static final String FG_BOLD_ORANGE_208 = "\u001B[38;5;208;1m";
+    public static final String FG_BOLD_ORANGE_208 = sgr(38, 5, 208, 1);
     public static final String FG_NAVY_BLUE       = FG_256_NAVY;
 
     // ── 256-color backgrounds ─────────────────────────────────────────────────
-    public static final String BG_256_ORANGE      = "\u001B[48;5;208m";
-    public static final String BG_256_DARK_GREY   = "\u001B[48;5;235m";
-    public static final String BG_256_MID_GREY    = "\u001B[48;5;238m";
-    public static final String BG_256_NAVY        = "\u001B[48;5;17m";
-    public static final String BG_256_DARK_GREEN  = "\u001B[48;5;22m";
-    public static final String BG_256_DARK_TEAL   = "\u001B[48;5;23m";
-    public static final String BG_256_DARK_PURPLE = "\u001B[48;5;53m";
-    public static final String BG_256_DARK_OLIVE  = "\u001B[48;5;94m";
-    public static final String BG_256_DARK_RED    = "\u001B[48;5;52m";
-    public static final String BG_256_MAROON      = "\u001B[48;5;88m";
-    public static final String BG_256_INDIGO      = "\u001B[48;5;54m";
+    public static final String BG_256_ORANGE      = bg256(208);
+    public static final String BG_256_DARK_GREY   = bg256(235);
+    public static final String BG_256_MID_GREY    = bg256(238);
+    public static final String BG_256_NAVY        = bg256(17);
+    public static final String BG_256_DARK_GREEN  = bg256(22);
+    public static final String BG_256_DARK_TEAL   = bg256(23);
+    public static final String BG_256_DARK_PURPLE = bg256(53);
+    public static final String BG_256_DARK_OLIVE  = bg256(94);
+    public static final String BG_256_DARK_RED    = bg256(52);
+    public static final String BG_256_MAROON      = bg256(88);
+    public static final String BG_256_INDIGO      = bg256(54);
     // backward-compat aliases
     public static final String BG_ORANGE_208     = BG_256_ORANGE;
     public static final String BG_DARKER_GREY    = BG_256_DARK_GREY;
@@ -107,31 +123,31 @@ public final class AnsiColors {
 
     // ── True-RGB foregrounds ──────────────────────────────────────────────────
     // Neutrals
-    public static final String RGB_FG_SNOW_WHITE    = "\u001B[38;2;240;242;245m";
-    public static final String RGB_FG_SOFT_WHITE    = "\u001B[38;2;210;215;220m";
-    public static final String RGB_FG_COOL_GREY     = "\u001B[38;2;140;150;165m";
-    public static final String RGB_FG_WARM_GREY     = "\u001B[38;2;160;158;150m";
-    public static final String RGB_FG_DEEP_CHARCOAL = "\u001B[38;2;28;30;38m";
+    public static final String RGB_FG_SNOW_WHITE    = rgbFg(240, 242, 245);
+    public static final String RGB_FG_SOFT_WHITE    = rgbFg(210, 215, 220);
+    public static final String RGB_FG_COOL_GREY     = rgbFg(140, 150, 165);
+    public static final String RGB_FG_WARM_GREY     = rgbFg(160, 158, 150);
+    public static final String RGB_FG_DEEP_CHARCOAL = rgbFg(28, 30, 38);
     // Warm
-    public static final String RGB_FG_GOLD          = "\u001B[38;2;255;200;50m";
-    public static final String RGB_FG_AMBER         = "\u001B[38;2;255;170;0m";
-    public static final String RGB_FG_PEACH         = "\u001B[38;2;255;185;110m";
-    public static final String RGB_FG_CORAL         = "\u001B[38;2;255;105;85m";
-    public static final String RGB_FG_SALMON        = "\u001B[38;2;255;140;105m";
-    public static final String RGB_FG_HOT_PINK      = "\u001B[38;2;255;75;170m";
+    public static final String RGB_FG_GOLD          = rgbFg(255, 200, 50);
+    public static final String RGB_FG_AMBER         = rgbFg(255, 170, 0);
+    public static final String RGB_FG_PEACH         = rgbFg(255, 185, 110);
+    public static final String RGB_FG_CORAL         = rgbFg(255, 105, 85);
+    public static final String RGB_FG_SALMON        = rgbFg(255, 140, 105);
+    public static final String RGB_FG_HOT_PINK      = rgbFg(255, 75, 170);
     // Cool
-    public static final String RGB_FG_SKY_BLUE      = "\u001B[38;2;80;185;255m";
-    public static final String RGB_FG_ELECTRIC_BLUE = "\u001B[38;2;50;140;255m";
-    public static final String RGB_FG_STEEL_CYAN    = "\u001B[38;2;90;220;220m";
-    public static final String RGB_FG_MINT          = "\u001B[38;2;60;220;175m";
-    public static final String RGB_FG_LIME_GREEN    = "\u001B[38;2;100;240;120m";
-    public static final String RGB_FG_NEON_GREEN    = "\u001B[38;2;80;255;120m";
+    public static final String RGB_FG_SKY_BLUE      = rgbFg(80, 185, 255);
+    public static final String RGB_FG_ELECTRIC_BLUE = rgbFg(50, 140, 255);
+    public static final String RGB_FG_STEEL_CYAN    = rgbFg(90, 220, 220);
+    public static final String RGB_FG_MINT          = rgbFg(60, 220, 175);
+    public static final String RGB_FG_LIME_GREEN    = rgbFg(100, 240, 120);
+    public static final String RGB_FG_NEON_GREEN    = rgbFg(80, 255, 120);
     // Purple family
-    public static final String RGB_FG_LAVENDER      = "\u001B[38;2;185;155;255m";
-    public static final String RGB_FG_VIOLET        = "\u001B[38;2;160;100;255m";
-    public static final String RGB_FG_PURPLE        = "\u001B[38;2;155;111;224m";
-    public static final String RGB_FG_DARKER_PURPLE = "\u001B[38;2;122;79;196m";
-    public static final String RGB_FG_DEEP_PURPLE   = "\u001B[38;2;90;54;163m";
+    public static final String RGB_FG_LAVENDER      = rgbFg(185, 155, 255);
+    public static final String RGB_FG_VIOLET        = rgbFg(160, 100, 255);
+    public static final String RGB_FG_PURPLE        = rgbFg(155, 111, 224);
+    public static final String RGB_FG_DARKER_PURPLE = rgbFg(122, 79, 196);
+    public static final String RGB_FG_DEEP_PURPLE   = rgbFg(90, 54, 163);
     // backward-compat aliases
     public static final String FG_PURPLE        = RGB_FG_PURPLE;
     public static final String FG_DARKER_PURPLE = RGB_FG_DARKER_PURPLE;
@@ -139,51 +155,50 @@ public final class AnsiColors {
 
     // ── Deep-shade foregrounds (rich, saturated — readable on dark backgrounds) ─
     /** Deep crimson red — replaces neon FG_BRIGHT_RED / RGB_FG_CORAL in themes. */
-    public static final String RGB_FG_DEEP_RED    = "\u001B[38;2;210;48;48m";
+    public static final String RGB_FG_DEEP_RED    = rgbFg(210, 48, 48);
     /** Deep emerald green — replaces neon lime in themes. */
-    public static final String RGB_FG_DEEP_GREEN  = "\u001B[38;2;38;185;72m";
+    public static final String RGB_FG_DEEP_GREEN  = rgbFg(38, 185, 72);
     /** Deep teal-cyan — replaces electric cyan in themes. */
-    public static final String RGB_FG_DEEP_CYAN   = "\u001B[38;2;28;188;196m";
+    public static final String RGB_FG_DEEP_CYAN   = rgbFg(28, 188, 196);
     /** Deep amber — replaces bright yellow/gold in themes. */
-    public static final String RGB_FG_DEEP_AMBER  = "\u001B[38;2;200;155;20m";
+    public static final String RGB_FG_DEEP_AMBER  = rgbFg(200, 155, 20);
     /** Deep violet — replaces pastel lavender in themes. */
-    public static final String RGB_FG_DEEP_VIOLET = "\u001B[38;2;152;88;210m";
+    public static final String RGB_FG_DEEP_VIOLET = rgbFg(152, 88, 210);
     /** Deep orange — replaces peach/coral in warm themes. */
-    public static final String RGB_FG_DEEP_ORANGE = "\u001B[38;2;205;88;18m";
+    public static final String RGB_FG_DEEP_ORANGE = rgbFg(205, 88, 18);
     /** Deep hot-pink — replaces neon hot-pink in vivid themes. */
-    public static final String RGB_FG_DEEP_PINK   = "\u001B[38;2;210;40;125m";
+    public static final String RGB_FG_DEEP_PINK   = rgbFg(210, 40, 125);
 
     // ── True-RGB backgrounds ──────────────────────────────────────────────────
     // Dark neutrals
-    public static final String RGB_BG_CHARCOAL      = "\u001B[48;2;35;38;46m";
-    public static final String RGB_BG_DARK_SLATE    = "\u001B[48;2;28;32;42m";
-    public static final String RGB_BG_MIDNIGHT      = "\u001B[48;2;16;18;26m";
-    public static final String RGB_BG_NEAR_BLACK    = "\u001B[48;2;20;22;30m";
-    public static final String RGB_BG_CARBON        = "\u001B[48;2;28;28;32m";
-    public static final String RGB_BG_STEEL_DARK    = "\u001B[48;2;48;52;62m";
+    public static final String RGB_BG_CHARCOAL      = rgbBg(35, 38, 46);
+    public static final String RGB_BG_DARK_SLATE    = rgbBg(28, 32, 42);
+    public static final String RGB_BG_MIDNIGHT      = rgbBg(16, 18, 26);
+    public static final String RGB_BG_NEAR_BLACK    = rgbBg(20, 22, 30);
+    public static final String RGB_BG_CARBON        = rgbBg(28, 28, 32);
+    public static final String RGB_BG_STEEL_DARK    = rgbBg(48, 52, 62);
     // Warm dark
-    public static final String RGB_BG_DARK_AMBER    = "\u001B[48;2;95;62;0m";
-    public static final String RGB_BG_VIVID_AMBER   = "\u001B[48;2;170;105;0m";
-    public static final String RGB_BG_RUST          = "\u001B[48;2;110;48;20m";
-    public static final String RGB_BG_CRIMSON       = "\u001B[48;2;100;20;25m";
-    public static final String RGB_BG_DARK_WINE     = "\u001B[48;2;90;16;36m";
-    public static final String RGB_BG_MAROON        = "\u001B[48;2;110;22;22m";
-    public static final String RGB_BG_ORANGE_VIVID  = "\u001B[48;2;200;100;0m";
+    public static final String RGB_BG_DARK_AMBER    = rgbBg(95, 62, 0);
+    public static final String RGB_BG_VIVID_AMBER   = rgbBg(170, 105, 0);
+    public static final String RGB_BG_RUST          = rgbBg(110, 48, 20);
+    public static final String RGB_BG_CRIMSON       = rgbBg(100, 20, 25);
+    public static final String RGB_BG_DARK_WINE     = rgbBg(90, 16, 36);
+    public static final String RGB_BG_MAROON        = rgbBg(110, 22, 22);
+    public static final String RGB_BG_ORANGE_VIVID  = rgbBg(200, 100, 0);
     // Cool dark
-    public static final String RGB_BG_DARK_FOREST   = "\u001B[48;2;18;52;28m";
-    public static final String RGB_BG_DARK_OCEAN    = "\u001B[48;2;14;38;72m";
-    public static final String RGB_BG_DARK_TEAL     = "\u001B[48;2;14;66;66m";
-    public static final String RGB_BG_DARK_INDIGO   = "\u001B[48;2;28;24;68m";
-    public static final String RGB_BG_DARK_PURPLE   = "\u001B[48;2;45;22;72m";
-    public static final String RGB_BG_DARK_CYAN     = "\u001B[48;2;0;80;100m";
+    public static final String RGB_BG_DARK_FOREST   = rgbBg(18, 52, 28);
+    public static final String RGB_BG_DARK_OCEAN    = rgbBg(14, 38, 72);
+    public static final String RGB_BG_DARK_TEAL     = rgbBg(14, 66, 66);
+    public static final String RGB_BG_DARK_INDIGO   = rgbBg(28, 24, 68);
+    public static final String RGB_BG_DARK_PURPLE   = rgbBg(45, 22, 72);
+    public static final String RGB_BG_DARK_CYAN     = rgbBg(0, 80, 100);
     // Bright / light
-    public static final String RGB_BG_SOFT_WHITE    = "\u001B[48;2;238;240;245m";
-    public static final String RGB_BG_LIGHT_GREY    = "\u001B[48;2;205;210;218m";
-    public static final String RGB_BG_WARM_AMBER_LT = "\u001B[48;2;190;140;15m";
-    public static final String RGB_BG_TOMATO_RED    = "\u001B[48;2;190;45;45m";
+    public static final String RGB_BG_SOFT_WHITE    = rgbBg(238, 240, 245);
+    public static final String RGB_BG_LIGHT_GREY    = rgbBg(205, 210, 218);
+    public static final String RGB_BG_WARM_AMBER_LT = rgbBg(190, 140, 15);
+    public static final String RGB_BG_TOMATO_RED    = rgbBg(190, 45, 45);
     // Vivid
-    public static final String RGB_BG_HOT_PINK      = "\u001B[48;2;195;38;115m";
-    public static final String RGB_BG_NEON_PURPLE   = "\u001B[48;2;115;18;175m";
-    public static final String RGB_BG_ELECTRIC_TEAL = "\u001B[48;2;0;150;170m";
+    public static final String RGB_BG_HOT_PINK      = rgbBg(195, 38, 115);
+    public static final String RGB_BG_NEON_PURPLE   = rgbBg(115, 18, 175);
+    public static final String RGB_BG_ELECTRIC_TEAL = rgbBg(0, 150, 170);
 }
-
