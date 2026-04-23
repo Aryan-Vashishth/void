@@ -11,6 +11,7 @@ clean object-oriented architecture — all without requiring any external loggin
 1. [Quick Start](#1-quick-start)
 2. [Architecture Overview](#2-architecture-overview)
 3. [Class Reference](#3-class-reference)
+   - [AnsiEscape](#ansiescape)
    - [AnsiColors](#ansicolors)
    - [LogIntent](#logintent)
    - [LogTheme](#logtheme)
@@ -84,12 +85,13 @@ CustomLogger.configure(
 
 ## 2. Architecture Overview
 
-The package is split into **9 single-responsibility classes** — each with one clear job:
+The package is split into **10 single-responsibility classes** — each with one clear job:
 
 ```
 core.logging/
 │
-├── AnsiColors.java       ← All ANSI escape-code constants (16-color, 256-color, True-RGB)
+├── AnsiEscape.java       ← Stateless factory for ANSI escape sequences (rgbFg, fg256, sgr, …)
+├── AnsiColors.java       ← Pure data catalog of named color constants (built via AnsiEscape)
 ├── ConsoleOnly.java      ← @ConsoleOnly annotation — marks terminal-only features
 ├── LogIntent.java        ← Enum: semantic intent of a log line (INTERACTION, DATA, …)
 ├── LogTheme.java         ← Enum: theme catalogue (PLAIN, COCKPIT, MODERN_CLEAN, …)
@@ -100,6 +102,11 @@ core.logging/
 ├── LogActions.java       ← All action methods base class (click, table, success, …)
 └── CustomLogger.java     ← Public facade — debug/info/warn/error instances + config API
 ```
+
+> **Design note (SRP):** `AnsiEscape` owns the *behavior* of building ANSI strings (and validates
+> all inputs). `AnsiColors` owns the *data* — a stable catalog of named constants, every one of
+> which is built by an `AnsiEscape` factory call. The escape grammar (`\u001B[…m`) lives in
+> exactly one place.
 
 ### Rendering formula
 
@@ -125,17 +132,56 @@ The segment divider (`│`) and timestamp format are configurable via `LogConfig
 
 ## 3. Class Reference
 
+### `AnsiEscape`
+
+Stateless **factory** for ANSI SGR (Select Graphic Rendition) escape sequences. The single
+source of truth for *building* escape strings — every constant in `AnsiColors` is produced
+by one of these methods.
+
+| API | Purpose |
+|---|---|
+| `RESET`, `BOLD`, `DIM`, `ITALIC` | SGR control constants |
+| `sgr(int... codes)` | Generic builder — `\u001B[c1;c2;…m`. Used for combos like `sgr(38, 5, 208, 1)` (256-color orange + bold). |
+| `fg16(int code)` / `bg16(int code)` | Standard 16-color FG (30–37 / 90–97) / BG (40–47 / 100–107) with range validation |
+| `fg256(int code)` / `bg256(int code)` | 256-color palette FG/BG (0–255) with range validation |
+| `rgbFg(int r, int g, int b)` / `rgbBg(int r, int g, int b)` | True-color (24-bit) FG/BG with 0–255 validation |
+| `rgbFg(int rgb)` / `rgbBg(int rgb)` | Packed `0xRRGGBB` overloads |
+| `colorize(text, fg)` / `colorize(text, fg, bg)` | Wrap text with style + auto-`RESET` |
+
+All builders **validate at call time** — an out-of-range value throws `IllegalArgumentException`
+immediately rather than producing a silently broken escape sequence at runtime.
+
+```java
+import static core.logging.AnsiEscape.*;
+
+// Build colors on the fly
+String brand   = rgbFg(255, 136, 0);          // bespoke orange FG
+String banner  = rgbBg(0x101820);             // packed-int BG
+String bgRed   = bg16(41);                    // standard red BG
+String warning = sgr(38, 5, 208, 1);          // 256-color orange + bold
+
+// Compose with auto-reset
+System.out.println(colorize("WARNING", warning, RESET));
+System.out.println(colorize("Build complete", rgbFg(80, 255, 120)));
+```
+
+---
+
 ### `AnsiColors`
 
-Constants-only utility class. **Never instantiated.**
+**Pure data catalog** of named color constants — contains no behavior. Every constant is
+built by an `AnsiEscape` factory call so the escape grammar exists in exactly one place.
 
-Three tiers of ANSI codes:
+Three tiers of constants:
 
-| Tier | Format | Example |
+| Tier | Built via | Example |
 |---|---|---|
-| Standard 16-color | `\u001B[<n>m` | `FG_BRIGHT_WHITE`, `BG_BLACK` |
-| 256-color | `\u001B[38;5;<n>m` | `FG_256_ORANGE`, `BG_256_DARK_GREEN` |
-| True RGB | `\u001B[38;2;R;G;Bm` | `RGB_FG_SNOW_WHITE`, `RGB_BG_CRIMSON` |
+| Standard 16-color | `fg16(n)` / `bg16(n)` | `FG_BRIGHT_WHITE`, `BG_BLACK` |
+| 256-color | `fg256(n)` / `bg256(n)` | `FG_256_ORANGE`, `BG_256_DARK_GREEN` |
+| True RGB | `rgbFg(r,g,b)` / `rgbBg(r,g,b)` | `RGB_FG_SNOW_WHITE`, `RGB_BG_CRIMSON` |
+
+The control constants (`RESET`, `BOLD`, `DIM`, `ITALIC`) are re-exported from `AnsiEscape`
+for convenient single-import use.
 
 ```java
 // Use directly or via static import
@@ -143,6 +189,11 @@ import static core.logging.AnsiColors.*;
 
 String myStyle = RGB_FG_LIME_GREEN + BOLD + RGB_BG_DARK_FOREST;
 ```
+
+> **When to use which:**
+> - Reach for **`AnsiColors.*`** when you want a named, semantic palette entry.
+> - Reach for **`AnsiEscape.*`** when you need an ad-hoc color from raw RGB / 256-palette
+>   indices, or to build SGR combos.
 
 ---
 
