@@ -113,7 +113,7 @@ core.logging/
 Every log line is composed as:
 
 ```
-intentFg + levelBg  →  rendered line  →  ANSI_RESET
+intentFg + levelBg  →  rendered line  →  RESET
 ```
 
 - **`levelBg`** — background color for the **entire** line, driven by log level (`info.*`, `warn.*`, …).

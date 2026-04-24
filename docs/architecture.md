@@ -18,8 +18,8 @@ VOID (Versatile Object-Oriented Integration for Debugging) is a **next-generatio
 - Nested enums (e.g., `ManageUsersElements.UserCards`) organise elements by page and functional context.
 - Each enum constant carries its own locator key, external file reference, dynamic args, and display text.
 
-### 📍 Role-Based Locator Resolution (`LocatorResolverV1`)
-- All locator lookups go through `LocatorResolverV1`, which dispatches to **JSON** or **`.properties`** readers.
+### 📍 Role-Based Locator Resolution (`LocatorResolvers`)
+- All locator lookups go through `LocatorResolvers` (`strict()` for clean role-keyed JSON, `legacyPadded()` for legacy properties files), which dispatch to **JSON** or **`.properties`** readers via a `LocatorRequest`.
 - Locator roles are typed via `ElementRole` enum — `PRIMARY`, `SECONDARY`, `TRIGGER`, `LIST`, `SEARCH_INPUT`, `SEARCH_RESULT`, `TOOLTIP_CONTENT`, `TABLE`, `ROW`, `CELL`, `MULTI_TRIGGER`, etc.
 - Dynamic `%s` substitutions in locator templates are applied at resolve time.
 - `UIContext` records the last resolved element/meta for stale-element retry and diagnostics.
@@ -99,7 +99,7 @@ VOID (Versatile Object-Oriented Integration for Debugging) is a **next-generatio
 - Page load strategies: `NORMAL`, `EAGER`, `NONE`.
 - Configured entirely via `driver.properties` — no code changes required.
 
-**`DriverContext`** — manages active driver per thread; accessed by `Interactions` and `LocatorResolverV1`.
+**`DriverContext`** — manages active driver per thread; accessed by `Interactions` and `LocatorResolvers`.
 
 **`UIContext`** — thread-local state holding the last resolved `WebElement` and its meta (`propertyFile`, `key`, `args`) for stale-element re-resolution.
 
@@ -129,10 +129,10 @@ Locators live under `src/main/resources/locators/` in two formats:
 
 | Format | Example | Reader |
 |---|---|---|
-| `.properties` | `manage-users-elements.properties` | `PropertiesFileLocatorReaderV1` |
-| `.json` | `manage-users-elements.json`, `admin-home-page-elements.json` | `JsonLocatorReaderV1` |
+| `.properties` | `manage-users-elements.properties` | `PropertiesFileLocatorReader` |
+| `.json` | `manage-users-elements.json`, `admin-home-page-elements.json` | `JsonLocatorReader` |
 
-`LocatorResolverV1` auto-selects the format at runtime. `JsonLocatorMigrator` converts `.properties` files to JSON.
+`LocatorResolvers` auto-selects the format at runtime. `JsonMigratorCli` converts `.properties` files to JSON.
 
 ---
 
@@ -190,14 +190,15 @@ void-framework/
 │   │   │   ├── CustomLogger.java
 │   │   │   └── LogConfig.java
 │   │   ├── resolvers/locator/
-│   │   │   ├── LocatorResolverV1.java
-│   │   │   ├── LocatorReader.java
-│   │   │   ├── ElementLocatorResolverV1.java
+│   │   │   ├── LocatorResolvers.java          ← strict() + legacyPadded() factories
+│   │   │   ├── LocatorResolver.java           ← resolver interface
+│   │   │   ├── LocatorRequest.java            ← (file, key, args) value object
+│   │   │   ├── LocatorSource.java             ← reader contract
 │   │   │   ├── json/
-│   │   │   │   ├── JsonLocatorReaderV1.java
-│   │   │   │   └── JsonLocatorMigrator.java
+│   │   │   │   ├── JsonLocatorReader.java
+│   │   │   │   └── JsonMigratorCli.java       ← .properties → .json migrator CLI
 │   │   │   └── properties/
-│   │   │       └── PropertiesFileLocatorReaderV1.java
+│   │   │       └── PropertiesFileLocatorReader.java
 │   │   └── utils/
 │   │       ├── ConfigLoader.java
 │   │       ├── EnumResolver.java
@@ -335,9 +336,21 @@ locators.template.output.dir=locators/
 ## 🧾 Log Output Example
 
 ```
-[INFO]  2026-04-16 10:23:01.452  Interactions.clickOn  Clicked on: Login As  ← StepDefInteractions.clickOnFrom
-[DEBUG] 2026-04-16 10:23:01.391  LocatorResolverV1.getLocator  Resolved JSON locator for manage-users-elements.json#LOGIN_AS_BUTTON
-[WARN]  2026-04-16 10:23:02.100  Interactions.clickOn  Selenium click failed, retrying with JavaScript click...
+2026-04-24 13:15:37.584 │ INFO │ === InteractionsEndToEndTest starting === │ InteractionsEndToEndTest.setupClass ← TestMethodWorker.run
+2026-04-24 13:15:37.663 │ DEBUG │ Setting driver for key: primary │ DriverContext.setPrimaryDriver ← Interactions.(constructor)
+2026-04-24 13:15:37.668 │ DEBUG │ [get] key=locator.properties.base.path src=DEFAULT val=locators/properties/ │ ConfigLoader.get ← LocatorPaths.(static init)
+2026-04-24 13:15:37.668 │ DEBUG │ [get] key=locator.json.base.path src=DEFAULT val=locators/json/ │ ConfigLoader.get ← LocatorPaths.(static init)
+2026-04-24 13:15:37.672 │ DEBUG │ [LOCATOR] Resolving: │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.673 │ DEBUG │           ├─ File        : test-locators.properties │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.673 │ DEBUG │           ├─ Key         : TEMPLATE_WITH_ARG │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.674 │ DEBUG │           ├─ Args        : [username] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.674 │ DEBUG │           └─ Hardcoded   : false │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.678 │ DEBUG │ [LOCATOR] Final: │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.679 │ DEBUG │           ├─ Key         : TEMPLATE_WITH_ARG │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.679 │ DEBUG │           ├─ Resolved    : //input[@placeholder='username'] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.679 │ DEBUG │           └─ By          : By.xpath: //input[@placeholder='username'] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.685 │ DEBUG │ Getting driver for key: primary │ DriverContext.getDriver ← DOMUtils.scrollToElement
+2026-04-24 13:15:37.688 │ TEXT [T] │ Appended to 'username': -extra │ Interactions.appendTo ← InteractionsEndToEndTest.interactions_appendTo_doesNotClearButTypes
 ```
 
 ---
@@ -358,7 +371,7 @@ FULL_NAME=xpath=//div[@class='user-card']//span[@class='name']
 EMAIL=css=.user-card .email
 ```
 
-Prefix tokens supported by `PropertiesFileLocatorReaderV1`: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLinkText=`.
+Prefix tokens supported by `PropertiesFileLocatorReader`: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLinkText=`.
 
 ---
 
