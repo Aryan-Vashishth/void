@@ -1,7 +1,6 @@
 package core.utils.data;
 
 import core.utils.io.FileUtils;
-import core.utils.io.json.JsonLogger;
 import elements.api.ResolvableEnum;
 import com.github.javafaker.Faker;
 
@@ -79,21 +78,6 @@ public class DataGenerator {
     @FunctionalInterface
     private interface DataSupplier { String get(); }
 
-    /** Writes one sample value per FieldType to JSON (uses JsonLogger defaults). */
-    @Deprecated(since = "2.0")
-    // ⚠ Crosses layer boundary — DataGenerator should not write I/O.
-    // Replace with: JsonLogger.Write.MapWriter.writeFlatMap(null, path, DataGenerator.generateAllSamples());
-    public static void saveFieldTypeSamples(String relativePath) {
-        JsonLogger.Write.MapWriter.writeFlatMap(null, relativePath, generateAllSamples());
-    }
-
-    /** Persists fieldName -> FieldType map to JSON (stringified values). */
-    @Deprecated(since = "2.0")
-    // ⚠ Crosses layer boundary — DataGenerator should not write I/O.
-    // Replace with: JsonLogger.Write.MapWriter.writeFlatMap(null, path, DataGenerator.toStringifiedMap(map));
-    public static void saveFieldTypeMapAsJson(Map<String, FieldType> fieldTypeMap, String relativePath) {
-        JsonLogger.Write.MapWriter.writeFlatMap(null, relativePath, toStringifiedMap(fieldTypeMap));
-    }
 
     /**
      * Returns one generated sample value per {@link FieldType}.

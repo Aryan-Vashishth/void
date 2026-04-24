@@ -64,52 +64,6 @@ public class TableHandler {
         }
     }
 
-    /**
-     * @deprecated This method orchestrates Upload + DataGenerator + Waiter — it is a test flow,
-     * not a table utility. Move this logic into your step definition or page object.
-     * TableHandler's responsibility is reading/writing table data only.
-     */
-    @Deprecated(since = "2.0")
-    public static void insertNewRecords(
-            String filePath,
-            FileInputElement fileUploadElement,
-            @Nullable By iframeLocator,
-            TableElementV1 tableElement,
-            Map<String, DataGenerator.FieldType> fieldTypeMap
-    ) {
-        try {
-            WebDriver driver = DriverContext.getDriver();
-            // 1. Upload the file
-            Upload.uploadFile(fileUploadElement, filePath);
-
-            // 2. Switch back if iframe used (already handled in uploadFile)
-
-
-            // 3. Generate test data
-            Map<String, String> generatedTestData = DataGenerator.generateTestData(fieldTypeMap, null);
-
-            // 4. Insert the generated row into the Import Records Table
-            insertRowInTable(generatedTestData, tableElement);
-
-            // 5. Add Row (Click 'Add' Button if needed)
-            WebElement addButton = driver.findElement(LocatorResolverV1.getLocator(tableElement.getExternalFileName(), "IMPORT_RECORDS_TABLE_ADD_ROW_BUTTON"));
-            DOMUtils.scrollToElement(addButton);
-            addButton.click();
-            info.log("[TABLE] Clicked 'Add Row' button successfully.");
-
-
-            // 6. Click "Next" button to proceed
-            WebElement nextButton = Waiter.get().until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(@class, 'btn btn-primary ml-1')]")));
-            DOMUtils.scrollToElement(nextButton);
-            nextButton.click();
-            info.log("[POPUP] Clicked 'Next' button successfully.");
-
-
-        } catch (Exception e) {
-            error.log("Failed to insert new records process.");
-            throw new RuntimeException("Failed during Insert New Records flow", e);
-        }
-    }
 
     public static List<String> getColumnHeaders(TableElementV1 tableElement) {
         try {
