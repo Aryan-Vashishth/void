@@ -690,13 +690,6 @@ public class Interactions {
         }
     }
 
-    /** Specialized search for shared list context.
-     *  @deprecated Use {@link #searchAndGetResults(Searchable, String)} Ã¢â‚¬â€ identical behaviour.
-     */
-    @Deprecated
-    public List<WebElement> searchThisList(Searchable field, String searchTerm) {
-        return searchAndGetResults(field, searchTerm);
-    }
 
     /** Generic search + optional click first result. */
     public WebElement searchFor(

@@ -112,9 +112,6 @@ public final class ThemeColors {
     /** Entry-point for the fluent builder. */
     public static Builder builder() { return new Builder(); }
 
-    /** @deprecated Use {@link #builder()} instead. */
-    @Deprecated
-    public static Builder theme() { return builder(); }
 
     // ── Fluent Builder ────────────────────────────────────────────────────────
     public static final class Builder {

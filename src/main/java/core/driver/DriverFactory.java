@@ -290,11 +290,6 @@ public final class DriverFactory {
         return createPropertiesTemplate(path, includeComments, includeExamples, overwrite, false);
     }
 
-    /** Legacy alias. */
-    @Deprecated
-    public static Path createEmptyTemplate() {
-        return createPropertiesTemplate(Profile.DEFAULT, true, true, false, false);
-    }
 
     public static Path createDefaultTemplate(Boolean overwriteProperties) {
         return createPropertiesTemplate(Profile.DEFAULT, true, true, overwriteProperties, true);
