@@ -24,7 +24,6 @@
 //import core.utils.json.JsonLogger;
 //import core.utils.json.JsonReader;
 //import core.resolvers.locators.JsonLocatorReader;
-//import core.utils.CustomLogger;
 //import core.utils.URLS;
 //import core.utils.web.TableHandler;
 //import core.utils.UIContext;
@@ -53,7 +52,6 @@
 //
 //    // ✅ Add constructor to initialize DriverContext
 //    public CommonStepDef() {
-//       CustomLogger.initialize(this.getClass());
 //        DriverContext.setDriver(driver);
 //        vartopia = new Vartopia();
 //    }

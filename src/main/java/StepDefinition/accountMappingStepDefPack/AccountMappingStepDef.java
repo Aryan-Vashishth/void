@@ -21,7 +21,6 @@
 //import core.utils.data.DataGenerator;
 //import core.utils.json.JsonLogger;
 //import core.resolvers.locators.PropertiesFileLocatorReader;
-//import core.utils.CustomLogger;
 //import core.utils.web.KeyValuePairHandler;
 //import core.utils.web.TableHandler;
 //import core.utils.web.Upload;
@@ -45,7 +44,6 @@
 //            driver.manage().window().maximize();
 //        }catch (Exception ignored){warn.failed("Failed to change window state");}
 //
-//        CustomLogger.initialize(this.getClass());
 //        new DOMUtils().initializer(driver);
 //
 //
