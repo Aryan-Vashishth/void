@@ -9,7 +9,8 @@ import interactions.hooks.ActionHandler;
 import interactions.hooks.Before;
 import interactions.hooks.After;
 import core.driver.DriverContext;
-import core.resolvers.locator.LocatorResolverV1;
+import core.resolvers.locator.api.LocatorResolver;
+import core.resolvers.locator.api.LocatorResolvers;
 import core.utils.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -29,7 +30,7 @@ import static core.logging.CustomLogger.*;
  *
  * <h3>Key ideas</h3>
  * <ul>
- *   <li>Resolve everything from enums → locators via properties/json resolver,
+ *   <li>Resolve everything from enums Ã¢â€ â€™ locators via properties/json resolver,
  *       keeping all CSS/XPath selectors in properties files.</li>
  *   <li>Provide before/after action hooks so callers can compose behaviors
  *       (e.g., waits, scrolls, highlights).</li>
@@ -42,11 +43,11 @@ import static core.logging.CustomLogger.*;
  *   <li>Trigger (row index) and List Item (label) must be treated separately:</li>
  *   <ul>
  *     <li><b>Trigger property</b> (example): <code>(//td[@role='cell']/button)[%s]</code>
- *         → expects one argument: the row index.</li>
+ *         Ã¢â€ â€™ expects one argument: the row index.</li>
  *     <li><b>List property</b> (example):<br/>
  *         <code>(//div[contains(@class,'cdk-overlay-pane')]//div[@role='menu']//
  *         button[@role='menuitem' and normalize-space()='%s'])[last()]</code><br/>
- *         → expects one argument: the visible label (e.g., "View Registration").</li>
+ *         Ã¢â€ â€™ expects one argument: the visible label (e.g., "View Registration").</li>
  *   </ul>
  *   <li>After clicking the trigger, Angular CDK renders the menu into a detached
  *       overlay. Always wait for the overlay to appear using
@@ -69,6 +70,9 @@ import static core.logging.CustomLogger.*;
  */
 
 public class Interactions {
+
+    /** Strict locator resolver — replaces the deprecated {@code LocatorResolverV1} façade. */
+    private static final LocatorResolver LOCATORS = LocatorResolvers.strict();
 
     protected WebDriver driver;
     protected WebDriverWait wait;
@@ -96,7 +100,7 @@ public class Interactions {
         return (handlers == null || handlers.length == 0) ? null : List.of(handlers);
     }
 
-    // ====== COMMON BEFORE/ACTION HOOKS — see interactions.hooks.Before / After ======
+    // ====== COMMON BEFORE/ACTION HOOKS Ã¢â‚¬â€ see interactions.hooks.Before / After ======
 
     // ======================= GENERIC TEXT RETRIEVAL =======================
 
@@ -113,7 +117,7 @@ public class Interactions {
             try { DOMUtils.scrollToElement(targetText); } catch (Exception ignored) {}
             UIContext.setLastElement(targetText);
             String text = targetText.getText().trim();
-            debug.text("Retrieved from → " + locator + ": " + text);
+            debug.text("Retrieved from Ã¢â€ â€™ " + locator + ": " + text);
             return text;
         } catch (Exception e) {
             error.log("Failed to get text from element: " + locator + " " + e);
@@ -133,7 +137,7 @@ public class Interactions {
                           ReadOnlyElement element,
                           @Nullable List<ActionHandler> afterActions) {
         if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
-        By locator = LocatorResolverV1.getLocator(element); // role-based best available
+        By locator = LOCATORS.resolve(element); // role-based best available
         if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
         return getTextByWebElement(locator);
     }
@@ -157,10 +161,10 @@ public class Interactions {
                                     boolean enableResolveTooltip) {
         try {
             if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
-            By locator = LocatorResolverV1.getLocator(element); // role-based best available
+            By locator = LOCATORS.resolve(element); // role-based best available
             WebElement targetElement = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
             String unresolvedText = getTextByWebElement(locator);
-            info.text("Retrieved from → " + element.getDisplayText() + " Unresolved Text: " + unresolvedText);
+            info.text("Retrieved from Ã¢â€ â€™ " + element.getDisplayText() + " Unresolved Text: " + unresolvedText);
             if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
 
             // If truncated, try hover-based resolver or title/aria-label fallbacks
@@ -173,7 +177,7 @@ public class Interactions {
                 String ariaLabelAttr = targetElement.getAttribute("aria-label");
                 String tooltipFallback = tooltipAttr != null && !tooltipAttr.trim().isEmpty() ? tooltipAttr.trim() : ariaLabelAttr;
                 if (tooltipFallback != null && !tooltipFallback.trim().isEmpty()) {
-                    info.fallback("Fallback to tooltip attribute for → " + element.getDisplayText() + ": " + tooltipFallback);
+                    info.fallback("Fallback to tooltip attribute for Ã¢â€ â€™ " + element.getDisplayText() + ": " + tooltipFallback);
                     return tooltipFallback;
                 }
             }
@@ -199,7 +203,7 @@ public class Interactions {
                         @Nullable List<ActionHandler> afterActions) {
         try {
             if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
-            By locator = LocatorResolverV1.getLocator(element); // role-based best available
+            By locator = LOCATORS.resolve(element); // role-based best available
             WebElement clickable = driver.findElement(locator);
             UIContext.setLastElement(clickable);
             clickOn(clickable);
@@ -239,8 +243,8 @@ public class Interactions {
      * High-level click pipeline:
      * 1) Wait visible + clickable + highlight (for human debugging)
      * 2) Try Selenium click
-     * 3) If that fails → JS click as a fallback
-     * 4) If stale → try re-resolve via UIContext meta and click again
+     * 3) If that fails Ã¢â€ â€™ JS click as a fallback
+     * 4) If stale Ã¢â€ â€™ try re-resolve via UIContext meta and click again
      *
      * @param element target element
      */
@@ -309,10 +313,10 @@ public class Interactions {
             String currentUrl = activeDriver.getCurrentUrl();
             if (skipRetryIfNavigated && !Objects.equals(originalUrl, currentUrl)) {
                 debug.log("Page navigation detected (URL changed). Skipping stale element retry.");
-                return true; // treat as success — action likely took effect
+                return true; // treat as success Ã¢â‚¬â€ action likely took effect
             }
             try {
-                By retryLocator = LocatorResolverV1.getLocator(
+                By retryLocator = LOCATORS.resolve(
                         UIContext.getLastElementMeta().getPropertyFile(),
                         UIContext.getLastElementMeta().getKey(),
                         UIContext.getLastElementMeta().getArgs()
@@ -395,7 +399,7 @@ public class Interactions {
      */
     public void clickOnWithin(WebElement scope, Clickable element) {
         try {
-            By locator = LocatorResolverV1.getLocator(element); // role-based best available
+            By locator = LOCATORS.resolve(element); // role-based best available
             WebElement target = scope.findElement(locator);
             DOMUtils.scrollToElement(target);
             wait.until(ExpectedConditions.elementToBeClickable(target)).click();
@@ -473,10 +477,10 @@ public class Interactions {
      */
     public void selectFromDropdown(Dropdown option) {
         try {
-            By trigger = LocatorResolverV1.getLocator(option, ElementRole.TRIGGER);
-            By listOption = LocatorResolverV1.getLocator(option, ElementRole.LIST, option.getArgs());
+            By trigger = LOCATORS.resolve(option, ElementRole.TRIGGER);
+            By listOption = LOCATORS.resolve(option, ElementRole.LIST, option.getArgs());
             selectFromDropdown(trigger, listOption);
-            debug.dropdown("Selected → " + option.getDisplayText());
+            debug.dropdown("Selected Ã¢â€ â€™ " + option.getDisplayText());
         } catch (Exception e) {
             debug.error("Dropdown selection failed: " + option.getDisplayText());
             throw new RuntimeException("Dropdown selection failed: " + option.getDisplayText() + " ", e);
@@ -503,8 +507,8 @@ public class Interactions {
             boolean useJSExecutor
     ) {
         try {
-            By trigger = LocatorResolverV1.getLocator(option, ElementRole.TRIGGER);
-            By listOption = LocatorResolverV1.getLocator(option, ElementRole.LIST, option.getArgs());
+            By trigger = LOCATORS.resolve(option, ElementRole.TRIGGER);
+            By listOption = LOCATORS.resolve(option, ElementRole.LIST, option.getArgs());
             WebElement triggerElement = driver.findElement(trigger);
 
             // Open
@@ -521,7 +525,7 @@ public class Interactions {
             clickOn(null, optionElement, useJSExecutor, null);
             if (afterOptionActions != null) for (ActionHandler a : afterOptionActions) if (a != null) a.execute(driver);
 
-            debug.dropdown("Selected → " + option.getDisplayText());
+            debug.dropdown("Selected Ã¢â€ â€™ " + option.getDisplayText());
         } catch (Exception e) {
             debug.error("Dropdown selection failed: " + option.getDisplayText());
             throw new RuntimeException("Dropdown selection failed: " + option.getDisplayText(), e);
@@ -543,8 +547,8 @@ public class Interactions {
     public void triggerDropdown(MultipleIdenticalDropdowns dropdown, @Nullable Integer dropdownIndex) {
         try {
             By triggerLocator = (dropdownIndex == null)
-                    ? LocatorResolverV1.getLocator(dropdown, ElementRole.MULTI_TRIGGER)
-                    : LocatorResolverV1.getLocator(dropdown, ElementRole.MULTI_TRIGGER, dropdownIndex);
+                    ? LOCATORS.resolve(dropdown, ElementRole.MULTI_TRIGGER)
+                    : LOCATORS.resolve(dropdown, ElementRole.MULTI_TRIGGER, dropdownIndex);
             WebElement triggerElement = driver.findElement(triggerLocator);
             clickOn(triggerElement);
         } catch (Exception e) {
@@ -572,8 +576,8 @@ public class Interactions {
             // 2) Wait overlay appear (Angular menu)
             waitForOverlayToAppear();
 
-            // 3) Resolve list with LABEL ONLY — ignore dropdownIndex here
-            By optionLocator = LocatorResolverV1.getLocator(option.getExternalFileName(), option.getListLocator(), option.getArgs()); // list uses label only
+            // 3) Resolve list with LABEL ONLY Ã¢â‚¬â€ ignore dropdownIndex here
+            By optionLocator = LOCATORS.resolve(option.getExternalFileName(), option.getListLocator(), option.getArgs()); // list uses label only
             WebElement optionElement = driver.findElement(optionLocator);
             clickOn(optionElement);
 
@@ -597,7 +601,7 @@ public class Interactions {
      */
     public void triggerDropdown(Dropdown dropdown) {
         try {
-            By triggerLocator = LocatorResolverV1.getLocator(dropdown, ElementRole.TRIGGER);
+            By triggerLocator = LOCATORS.resolve(dropdown, ElementRole.TRIGGER);
             WebElement triggerElement = driver.findElement(triggerLocator);
             clickOn(triggerElement);
         } catch (Exception e) {
@@ -648,11 +652,11 @@ public class Interactions {
      */
     public WebElement getSearchedElement(Searchable field, String searchTerm) {
         try {
-            By inputLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_INPUT);
+            By inputLocator = LOCATORS.resolve(field, ElementRole.SEARCH_INPUT);
             WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
             UIContext.setLastElement(inputField);
             performSearch(null, inputField, searchTerm, null, null);
-            By resultLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_RESULT, searchTerm);
+            By resultLocator = LOCATORS.resolve(field, ElementRole.SEARCH_RESULT, searchTerm);
             DOMUtils.scrollToElement(driver.findElement(resultLocator));
             return wait.until(ExpectedConditions.visibilityOfElementLocated(resultLocator));
         } catch (Exception e) {
@@ -671,11 +675,11 @@ public class Interactions {
     /** Performs a search and returns all result WebElements (list may be empty). */
     public List<WebElement> searchAndGetResults(Searchable field, String searchTerm) {
         try {
-            By inputLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_INPUT);
+            By inputLocator = LOCATORS.resolve(field, ElementRole.SEARCH_INPUT);
             WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(inputLocator));
             UIContext.setLastElement(inputField);
             performSearch(null, inputField, searchTerm, null, null);
-            By resultLocator = LocatorResolverV1.getLocator(field, ElementRole.SEARCH_RESULT, field.getArgs());
+            By resultLocator = LOCATORS.resolve(field, ElementRole.SEARCH_RESULT, field.getArgs());
             return wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(resultLocator));
         } catch (TimeoutException e) {
             warn.log("[SEARCH] No results found for term: '" + searchTerm + "' in " + field.getDisplayText());
@@ -687,7 +691,7 @@ public class Interactions {
     }
 
     /** Specialized search for shared list context.
-     *  @deprecated Use {@link #searchAndGetResults(Searchable, String)} — identical behaviour.
+     *  @deprecated Use {@link #searchAndGetResults(Searchable, String)} Ã¢â‚¬â€ identical behaviour.
      */
     @Deprecated
     public List<WebElement> searchThisList(Searchable field, String searchTerm) {
@@ -777,7 +781,7 @@ public class Interactions {
 
     /**
      * Full-pipeline type into a {@link TextInputField} with optional before/after hooks.
-     * <p>Uses {@link core.resolvers.locator.LocatorResolverV1#getLocator(elements.api.Element)} to resolve
+     * <p>Uses {@link core.resolvers.locator.api.LocatorResolver#resolve(elements.api.Element)} to resolve
      * the {@link elements.meta.ElementRole#INPUT} locator from the enum descriptor.</p>
      *
      * @param beforeActions optional hooks before typing (may be null)
@@ -792,7 +796,7 @@ public class Interactions {
                          @Nullable List<ActionHandler> afterActions) {
         try {
             if (beforeActions != null) for (ActionHandler a : beforeActions) if (a != null) a.execute(driver);
-            By locator = LocatorResolverV1.getLocator(field);
+            By locator = LOCATORS.resolve(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             UIContext.setLastElement(element);
@@ -806,15 +810,15 @@ public class Interactions {
         }
     }
 
-    /** Simple overload — no hooks. */
+    /** Simple overload Ã¢â‚¬â€ no hooks. */
     public void typeInto(TextInputField field, String text) { typeInto(null, field, text, null); }
 
-    /** Overload — before hook only. */
+    /** Overload Ã¢â‚¬â€ before hook only. */
     public void typeInto(ActionHandler before, TextInputField field, String text) {
         typeInto(before != null ? List.of(before) : null, field, text, null);
     }
 
-    /** Overload — after hook only. */
+    /** Overload Ã¢â‚¬â€ after hook only. */
     public void typeInto(TextInputField field, String text, ActionHandler after) {
         typeInto(null, field, text, after != null ? List.of(after) : null);
     }
@@ -829,7 +833,7 @@ public class Interactions {
      */
     public void appendTo(TextInputField field, String text) {
         try {
-            By locator = LocatorResolverV1.getLocator(field);
+            By locator = LOCATORS.resolve(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             UIContext.setLastElement(element);
@@ -862,7 +866,7 @@ public class Interactions {
      */
     public void clearField(TextInputField field) {
         try {
-            By locator = LocatorResolverV1.getLocator(field);
+            By locator = LOCATORS.resolve(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             element.clear();
@@ -895,7 +899,7 @@ public class Interactions {
      */
     public void typeIntoAndPress(TextInputField field, String text, Keys key) {
         try {
-            By locator = LocatorResolverV1.getLocator(field);
+            By locator = LOCATORS.resolve(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             UIContext.setLastElement(element);
