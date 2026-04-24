@@ -38,7 +38,7 @@ It replaces the way things are modeled.
 Each UI element is a **first-class, typed entity** — not a string buried in a page file.
 
 ### 🔹 Locators are resolved, not hardcoded
-Dynamic, role-based resolution through `LocatorResolverV1`.
+Dynamic, role-based resolution through `LocatorResolvers` (strict + legacy-padded variants).
 
 ### 🔹 Actions are pipelines, not method calls
 Every interaction supports **before/after hooks** — composable, reusable, predictable.
@@ -79,7 +79,7 @@ That’s just future debugging debt.
 ---
 
 ### 📍 Role-Based Locator Resolution
-- Centralized via `LocatorResolverV1`
+- Centralized via `LocatorResolvers` (`strict()` + `legacyPadded()` resolvers operating on `LocatorRequest`)
 - Supports `.json` and `.properties`
 - Uses `ElementRole`
 - Dynamic `%s` substitution at runtime
@@ -154,9 +154,9 @@ Test → VOID → Interactions → LocatorResolver → WebDriver
 ## 🧾 Logging Example
 
 ```
-[INFO]  Interactions.clickOn  Clicked on: Login As
-[DEBUG] LocatorResolverV1     Resolved JSON locator
-[WARN]  Interactions.clickOn  Selenium failed, retrying with JS...
+[INFO]  Interactions.clickOn   Clicked on: Login As
+[DEBUG] LocatorResolvers       Resolved JSON locator
+[WARN]  Interactions.clickOn   Selenium failed, retrying with JS...
 ```
 
 ---

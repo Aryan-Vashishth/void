@@ -20,32 +20,24 @@ public final class LoggerContext {
 
     private LoggerContext() {}
 
-    /** Returns {@link LogConfig#current()} — the single source of truth. */
+    /** Returns {@link LogConfig#current()} â€” the single source of truth. */
     public static LogConfig config() { return LogConfig.current(); }
 
-    // ── Timestamp format ──────────────────────────────────────────────────────
-
-    /** @deprecated Read from {@link LogConfig#current()}.getTsFormat() directly. */
-    @Deprecated
-    public static DateTimeFormatter TS_FMT_get() { return LogConfig.current().getTsFormat(); }
+    // â”€â”€ Timestamp format â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public static final DateTimeFormatter TS_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-    // ── Segment divider ───────────────────────────────────────────────────────
+    // â”€â”€ Segment divider â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public static void   setSegmentDivider(String d) { LogConfig.current().setSegmentDivider(d); }
     public static String getSegmentDivider()          { return LogConfig.current().getSegmentDivider(); }
 
-    // ── Cell truncation ───────────────────────────────────────────────────────
-
-    /** @deprecated Use {@link LogConfig#current()}.getTableCellLimit(). */
-    @Deprecated
-    public static int MAX_COL_WIDTH = LogConfig.Builder.DEFAULT_TABLE_CELL_LIMIT;
+    // â”€â”€ Cell truncation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public static String truncateCell(String s) { return LogConfig.current().truncateCell(s); }
 
-    // ── Log4j logger ─────────────────────────────────────────────────────────
+    // â”€â”€ Log4j logger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static volatile Logger log = Logger.getLogger(CustomLogger.class);
 
@@ -55,7 +47,7 @@ public final class LoggerContext {
     public static Logger getLogger() { return (log != null) ? log : Logger.getLogger(CustomLogger.class); }
     public static boolean isDebugEnabled() { return getLogger().isDebugEnabled(); }
 
-    // ── ANSI / caller-color delegates ─────────────────────────────────────────
+    // â”€â”€ ANSI / caller-color delegates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public static void    enableAnsi()       { LogConfig.current().enableAnsi();  }
     public static void    disableAnsi()      { LogConfig.current().disableAnsi(); }
@@ -66,7 +58,7 @@ public final class LoggerContext {
     public static void    disableCallerColor()      { LogConfig.current().disableCallerColor(); }
     public static boolean isCallerColorEnabled()    { return LogConfig.current().isCallerColorEnabled(); }
 
-    // ── Call-chain filter delegates ───────────────────────────────────────────
+    // â”€â”€ Call-chain filter delegates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public static Set<String> SUPPRESS_CONTAINS         = LogConfig.current().getSuppressContains();
     public static Set<String> SUPPRESS_METHOD_PREFIXES  = LogConfig.current().getSuppressMethodPrefixes();

@@ -18,13 +18,13 @@ public final class AnsiColors {
 
     private AnsiColors() {}
 
-    // ── Control sequences (delegated to AnsiEscape — single source of truth) ─
+    // â”€â”€ Control sequences (delegated to AnsiEscape â€” single source of truth) â”€
     public static final String RESET  = AnsiEscape.RESET;
     public static final String BOLD   = AnsiEscape.BOLD;
     public static final String DIM    = AnsiEscape.DIM;
     public static final String ITALIC = AnsiEscape.ITALIC;
 
-    // ── Standard 16-color foregrounds ─────────────────────────────────────────
+    // â”€â”€ Standard 16-color foregrounds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public static final String FG_BLACK          = fg16(30);
     public static final String FG_RED            = fg16(31);
     public static final String FG_GREEN          = fg16(32);
@@ -41,11 +41,8 @@ public final class AnsiColors {
     public static final String FG_BRIGHT_MAGENTA = fg16(95);
     public static final String FG_BRIGHT_CYAN    = fg16(96);
     public static final String FG_BRIGHT_WHITE   = fg16(97);
-    /** @deprecated Use {@link #FG_BRIGHT_BLACK} */
-    @Deprecated
-    public static final String FG_DIM_WHITE      = sgr(37, 2);
 
-    // ── Standard 16-color backgrounds ─────────────────────────────────────────
+    // â”€â”€ Standard 16-color backgrounds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public static final String BG_BLACK          = bg16(40);
     public static final String BG_RED            = bg16(41);
     public static final String BG_GREEN          = bg16(42);
@@ -65,7 +62,7 @@ public final class AnsiColors {
     public static final String BG_GREY_100       = BG_BRIGHT_BLACK;
     public static final String BG_BRIGHT_GREY    = BG_WHITE;
 
-    // ── 256-color foregrounds ─────────────────────────────────────────────────
+    // â”€â”€ 256-color foregrounds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public static final String FG_256_ORANGE     = fg256(208);
     public static final String FG_256_GOLD       = fg256(220);
     public static final String FG_256_LIME       = fg256(118);
@@ -85,7 +82,7 @@ public final class AnsiColors {
     public static final String FG_BOLD_ORANGE_208 = sgr(38, 5, 208, 1);
     public static final String FG_NAVY_BLUE       = FG_256_NAVY;
 
-    // ── 256-color backgrounds ─────────────────────────────────────────────────
+    // â”€â”€ 256-color backgrounds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public static final String BG_256_ORANGE      = bg256(208);
     public static final String BG_256_DARK_GREY   = bg256(235);
     public static final String BG_256_MID_GREY    = bg256(238);
@@ -106,7 +103,7 @@ public final class AnsiColors {
     public static final String BG_DARKER_RED     = BG_256_DARK_RED;
     public static final String BG_MAROON_RED     = BG_256_MAROON;
 
-    // ── True-RGB foregrounds ──────────────────────────────────────────────────
+    // â”€â”€ True-RGB foregrounds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public static final String RGB_FG_SNOW_WHITE    = rgbFg(240, 242, 245);
     public static final String RGB_FG_SOFT_WHITE    = rgbFg(210, 215, 220);
     public static final String RGB_FG_COOL_GREY     = rgbFg(140, 150, 165);
@@ -133,7 +130,7 @@ public final class AnsiColors {
     public static final String FG_DARKER_PURPLE = RGB_FG_DARKER_PURPLE;
     public static final String FG_DEEP_PURPLE   = RGB_FG_DEEP_PURPLE;
 
-    // ── Deep-shade foregrounds ────────────────────────────────────────────────
+    // â”€â”€ Deep-shade foregrounds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public static final String RGB_FG_DEEP_RED    = rgbFg(210, 48, 48);
     public static final String RGB_FG_DEEP_GREEN  = rgbFg(38, 185, 72);
     public static final String RGB_FG_DEEP_CYAN   = rgbFg(28, 188, 196);
@@ -142,7 +139,7 @@ public final class AnsiColors {
     public static final String RGB_FG_DEEP_ORANGE = rgbFg(205, 88, 18);
     public static final String RGB_FG_DEEP_PINK   = rgbFg(210, 40, 125);
 
-    // ── True-RGB backgrounds ──────────────────────────────────────────────────
+    // â”€â”€ True-RGB backgrounds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     public static final String RGB_BG_CHARCOAL      = rgbBg(35, 38, 46);
     public static final String RGB_BG_DARK_SLATE    = rgbBg(28, 32, 42);
     public static final String RGB_BG_MIDNIGHT      = rgbBg(16, 18, 26);

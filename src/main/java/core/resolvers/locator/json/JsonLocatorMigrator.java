@@ -95,12 +95,4 @@ public final class JsonLocatorMigrator {
         }
     }
 
-    /**
-     * @deprecated CLI behaviour has moved to {@link JsonMigratorCli#main(String[])}.
-     *             This entry point delegates for backward compatibility.
-     */
-    @Deprecated
-    public static void main(String[] args) {
-        JsonMigratorCli.main(args);
-    }
 }

@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import core.resolvers.locator.ElementLocatorResolverV1;
+import core.resolvers.locator.api.LocatorResolvers;
 
 /**
  * Represents a checkbox (or checkbox group) UI element that is clickable and checkable.
@@ -18,7 +18,7 @@ public interface Checkbox extends Clickable {
      * Works on single checkbox case.
      */
     default boolean isChecked(WebDriver driver) {
-        WebElement element = driver.findElement(ElementLocatorResolverV1.getLocator(this));
+        WebElement element = driver.findElement(LocatorResolvers.strict().resolve(this));
         return element.isSelected();
     }
 

@@ -16,8 +16,6 @@
  *       {@code LocatorSource} interface + {@code Hardcoded}, {@code Properties},
  *       {@code LayeredProperties}, {@code Json} impls + {@code LocatorSourceRegistry}.</li>
  *   <li>{@code json} / {@code properties} — format-specific readers and the JSON migrator.</li>
- *   <li><i>(this root package)</i> — legacy {@code @Deprecated(forRemoval = true)} façades:
- *       {@code ElementLocatorResolverV1}, {@code LocatorResolverV1}, {@code LocatorReader}.</li>
  * </ul>
  *
  * <h2>For new code</h2>

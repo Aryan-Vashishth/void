@@ -1040,7 +1040,7 @@ public class CustomLoggerThemeTest {
                 .dataFg        (FG_BRIGHT_CYAN   + BOLD)
                 .successFg     (FG_BRIGHT_GREEN  + BOLD)
                 .alertFg       (FG_BRIGHT_RED    + BOLD)
-                .callerFg      (FG_DIM_WHITE)
+                .callerFg      (FG_BRIGHT_BLACK)
                 .build();
 
         // Apply as active theme through CustomLogger.
