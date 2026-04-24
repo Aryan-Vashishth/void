@@ -1,7 +1,9 @@
 package interactions;
 
+import core.resolvers.locator.api.LocatorRequest;
+import core.resolvers.locator.api.LocatorResolvers;
+
 import core.driver.DriverContext;
-import core.resolvers.locator.LocatorResolverV1;
 import elements.api.*;
 import elements.meta.ElementRole;
 import org.openqa.selenium.By;
@@ -198,13 +200,13 @@ public final class Via {
 
     /**
      * Resolves the best-available {@link By} locator for any {@link Element} descriptor
-     * using {@link LocatorResolverV1#getLocator(Element)}.
+     * using {@link LocatorResolvers#strict()}.
      *
      * @param element any {@link Element} enum descriptor
      * @return resolved {@link By}
      */
     public static By locator(Element element) {
-        return LocatorResolverV1.getLocator(element);
+        return LocatorResolvers.strict().resolve(element);
     }
 
     /**
@@ -216,12 +218,12 @@ public final class Via {
      * @return resolved {@link By}
      */
     public static By locator(Element element, ElementRole role, Object... overrideArgs) {
-        return LocatorResolverV1.getLocator(element, role, overrideArgs);
+        return LocatorResolvers.strict().resolve(element, role, overrideArgs);
     }
 
     /**
      * Resolves a {@link By} locator from an explicit file name + property key + args.
-     * Delegates directly to {@link LocatorResolverV1#getLocator(String, String, Object...)}.
+     * Delegates directly to {@link LocatorResolvers#strict()}.
      *
      * @param fileName properties or JSON file (e.g. "common-elements.json") — may be null for hardcoded
      * @param key      locator key / template string
@@ -229,7 +231,7 @@ public final class Via {
      * @return resolved {@link By}
      */
     public static By locator(String fileName, String key, Object... args) {
-        return LocatorResolverV1.getLocator(fileName, key, args);
+        return LocatorResolvers.strict().resolve(LocatorRequest.of(fileName, key, args));
     }
 
     // ─────────────────────────────────────────────────────────────────────

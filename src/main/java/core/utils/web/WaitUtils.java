@@ -1,10 +1,11 @@
 package core.utils.web;
 
+import core.resolvers.locator.api.LocatorResolvers;
+
 import elements.api.*;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import core.driver.DriverContext;
-import core.resolvers.locator.LocatorResolverV1;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -108,7 +109,7 @@ public class WaitUtils {
     }
 
     public static void waitForElementToDisappear(ReadOnlyElement element) {
-        By locator = LocatorResolverV1.getLocator(element);
+        By locator = LocatorResolvers.strict().resolve(element);
         waitForElementToDisappear(locator);
     }
 

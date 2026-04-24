@@ -1,10 +1,12 @@
 package automation.interactions;
 
+import core.resolvers.locator.api.LocatorRequest;
+import core.resolvers.locator.api.LocatorResolvers;
+
 import elements.meta.EnumClassRegistry;
 import elements.api.*;
 import interactions.hooks.ActionHandler;
 import interactions.Interactions;
-import core.resolvers.locator.LocatorResolverV1;
 import core.utils.EnumResolver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -260,7 +262,7 @@ public class StepDefInteractions extends Interactions {
         for (String unresolvedEnumName : unresolvedEnumNames) {
             try {
                 ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
-                By locator = LocatorResolverV1.getLocator(resolved.getExternalFileName(), resolved.getPrimaryLocator(), resolved.getArgs());
+                By locator = LocatorResolvers.strict().resolve(LocatorRequest.of(resolved.getExternalFileName(), resolved.getPrimaryLocator(), resolved.getArgs()));
                 String displayText = resolved.getLabel();
 
                 boolean visible = WaitUtils.waitForCondition(
@@ -318,7 +320,7 @@ public class StepDefInteractions extends Interactions {
     // Local helper to set checkbox state using v1 locator resolution only.
     private void setCheckbox(Checkbox checkbox, boolean desiredState) {
         try {
-            By locator = LocatorResolverV1.getLocator(checkbox);
+            By locator = LocatorResolvers.strict().resolve(checkbox);
             WebElement cb = driver.findElement(locator);
             boolean current;
             try {

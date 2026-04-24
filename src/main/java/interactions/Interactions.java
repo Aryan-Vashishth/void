@@ -71,7 +71,7 @@ import static core.logging.CustomLogger.*;
 
 public class Interactions {
 
-    /** Strict locator resolver — replaces the deprecated {@code LocatorResolverV1} façade. */
+    /** Strict locator resolver. */
     private static final LocatorResolver LOCATORS = LocatorResolvers.strict();
 
     protected WebDriver driver;

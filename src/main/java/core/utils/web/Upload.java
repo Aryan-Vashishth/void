@@ -4,7 +4,7 @@ import core.utils.ConfigLoader;
 import core.utils.io.FileUtils;
 import elements.api.FileInputElement;
 import core.driver.Waiter;
-import core.resolvers.locator.LocatorResolverV1;
+import core.resolvers.locator.api.LocatorResolvers;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -30,7 +30,7 @@ public class Upload {
      */
     public static void uploadFile(FileInputElement fileElement, String filePath) {
         try {
-            By locator = LocatorResolverV1.getLocator(fileElement); // v1 resolution
+            By locator = LocatorResolvers.strict().resolve(fileElement);
             WebElement fileInput = Waiter.get().until(ExpectedConditions.presenceOfElementLocated(locator));
 
             String absolutePath = FileUtils.resolveResourceAbsolutePath(UPLOAD_BASE_PATH, filePath, null);

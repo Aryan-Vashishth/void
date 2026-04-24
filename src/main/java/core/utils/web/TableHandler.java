@@ -1,16 +1,13 @@
 package core.utils.web;
 
-import core.utils.data.DataGenerator;
-import elements.api.FileInputElement; // v1
 import elements.api.ReadOnlyElement; // if table headers treated as read-only
 import core.driver.DriverContext;
-import core.driver.Waiter;
-import core.resolvers.locator.LocatorResolverV1;
+import core.resolvers.locator.api.LocatorRequest;
+import core.resolvers.locator.api.LocatorResolvers;
 import org.openqa.selenium.WebDriver;
 import com.beust.jcommander.internal.Nullable;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,7 +39,7 @@ public class TableHandler {
     public static void insertRowInTable(Map<String, String> fieldNameToValue, TableElementV1 tableElement) {
         try {
             WebDriver driver = DriverContext.getDriver();
-            By headersBy = LocatorResolverV1.getLocator(tableElement.getExternalFileName(), tableElement.getHeaderLocator());
+            By headersBy = LocatorResolvers.strict().resolve(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
             List<WebElement> headers = driver.findElements(headersBy);
             List<String> headerNames = new ArrayList<>();
             for (WebElement header : headers) headerNames.add(header.getText().trim());
@@ -68,7 +65,7 @@ public class TableHandler {
     public static List<String> getColumnHeaders(TableElementV1 tableElement) {
         try {
             WebDriver driver = DriverContext.getDriver();
-            By headerBy = LocatorResolverV1.getLocator(tableElement.getExternalFileName(), tableElement.getHeaderLocator());
+            By headerBy = LocatorResolvers.strict().resolve(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
             List<WebElement> headerElements = driver.findElements(headerBy);
             List<String> headers = new ArrayList<>();
             for (WebElement header : headerElements) {
@@ -93,7 +90,7 @@ public class TableHandler {
             WebDriver driver = DriverContext.getDriver();
             int startIndex = (rowNumber == null) ? 0 : rowNumber - 1;
             List<String> headers = getColumnHeaders(tableElement);
-            By rowsBy = LocatorResolverV1.getLocator(tableElement.getExternalFileName(), tableElement.getRowLocator());
+            By rowsBy = LocatorResolvers.strict().resolve(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getRowLocator()));
             List<WebElement> rows = driver.findElements(rowsBy);
             if (rows.isEmpty()) throw new RuntimeException("No rows found for table: " + tableElement.getDisplayText());
             List<Map<String, String>> rowDataList = new ArrayList<>();
