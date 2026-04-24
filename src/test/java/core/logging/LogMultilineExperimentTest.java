@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static core.logging.CustomLogger.*;
+import static core.logging.ansi.AnsiColors.*;
+
 
 /**
  * Focused experiment class for testing different ANSI injection strategies
@@ -17,7 +19,7 @@ import static core.logging.CustomLogger.*;
  * ║  DEFINITIVE FINDINGS  (run 2026-04-20)                                  ║
  * ╠══════════════════════════════════════════════════════════════════════════╣
  * ║  IntelliJ's TestNG output viewer splits at EVERY ANSI escape sequence,  ║
- * ║  not just at ANSI_RESET.  The rule is exact:                            ║
+ * ║  not just at RESET.  The rule is exact:                            ║
  * ║                                                                          ║
  * ║    N ANSI codes in the string  =  N styled text runs  =  N lines        ║
  * ║                                   in Test History                        ║
@@ -39,7 +41,7 @@ import static core.logging.CustomLogger.*;
  * ║                                                                          ║
  * ║  CONCLUSION: The ONLY approaches that produce a single line are:        ║
  * ║    1. Zero ANSI codes — plain text                                       ║
- * ║    2. Exactly one ANSI open + one ANSI_RESET (single block)             ║
+ * ║    2. Exactly one ANSI open + one RESET (single block)             ║
  * ║                                                                          ║
  * ║  Per-part coloring (ts grey, label colored, message colored, caller     ║
  * ║  grey) is INCOMPATIBLE with single-line Test History output.            ║
@@ -86,7 +88,7 @@ public class LogMultilineExperimentTest {
     }
 
     /**
-     * BASELINE B — Single ANSI open + single ANSI_RESET.
+     * BASELINE B — Single ANSI open + single RESET.
      * Expected: 1 line in Test History ✅ (proven)
      */
     @Test(priority = 2, description = "Baseline B — single ANSI block [OPEN...RESET]")
@@ -94,7 +96,7 @@ public class LogMultilineExperimentTest {
         out("LABEL: [single ANSI block]");
         String line = BG_GREY_100 + FG_BLACK
                 + ts() + " [INFO] This is a single-block line  testMethod ← runMethod"
-                + ANSI_RESET;
+                + RESET;
         out(line);
     }
 
@@ -106,10 +108,10 @@ public class LogMultilineExperimentTest {
     public void baselineMultipleBlocksWithReset() {
         out("LABEL: [multiple blocks + intermediate RESET — expect broken in Test History]");
         String line =
-                BG_GREY_100 + FG_BLACK + ts() + ANSI_RESET           // ts chip
-                + " " + BG_MAGENTA + FG_BRIGHT_WHITE + "[INFO]" + ANSI_RESET  // label chip
-                + " " + FG_BRIGHT_WHITE + "This is the message" + ANSI_RESET  // message
-                + " " + BG_GREY_100 + FG_BRIGHT_CYAN + "testMethod ← runMethod" + ANSI_RESET; // caller chip
+                BG_GREY_100 + FG_BLACK + ts() + RESET           // ts chip
+                + " " + BG_MAGENTA + FG_BRIGHT_WHITE + "[INFO]" + RESET  // label chip
+                + " " + FG_BRIGHT_WHITE + "This is the message" + RESET  // message
+                + " " + BG_GREY_100 + FG_BRIGHT_CYAN + "testMethod ← runMethod" + RESET; // caller chip
         out(line);
     }
 
@@ -133,7 +135,7 @@ public class LogMultilineExperimentTest {
                 + BG_MAGENTA + "[INFO] "               // label: magenta bg, NO RESET, just BG change
                 + BG_BLACK + FG_BRIGHT_WHITE + "This is the message  " // message: black bg
                 + BG_GREY_100 + FG_BRIGHT_CYAN + "testMethod ← runMethod"  // caller: dark-grey
-                + ANSI_RESET;                          // ONE reset at end
+                + RESET;                          // ONE reset at end
         out(line);
     }
 
@@ -149,7 +151,7 @@ public class LogMultilineExperimentTest {
                 + FG_BRIGHT_WHITE + "[INFO] "                     // label: bright-white fg
                 + FG_BRIGHT_YELLOW + "This is the message  "      // message: yellow fg
                 + FG_BRIGHT_CYAN + "testMethod ← runMethod"       // caller: cyan fg
-                + ANSI_RESET;                                      // ONE reset
+                + RESET;                                      // ONE reset
         out(line);
     }
 
@@ -164,7 +166,7 @@ public class LogMultilineExperimentTest {
                 + BG_MAGENTA + FG_BRIGHT_WHITE + "[INFO] "        // label: magenta bg, white fg
                 + BG_BLACK + FG_BRIGHT_WHITE + "This is the message  "  // message: black bg
                 + BG_GREY_100 + FG_BRIGHT_CYAN + "testMethod ← runMethod"  // caller
-                + ANSI_RESET;                                      // ONE reset
+                + RESET;                                      // ONE reset
         out(line);
     }
 
@@ -188,7 +190,7 @@ public class LogMultilineExperimentTest {
                 + BOLD_ON  + "[INFO] " + BOLD_OFF                 // label: bold, then back to normal
                 + "This is the message  "                          // message: normal
                 + BOLD_OFF + FG_BRIGHT_CYAN + "testMethod ← runMethod"  // caller: dimmer
-                + ANSI_RESET;
+                + RESET;
         out(line);
     }
 
@@ -205,7 +207,7 @@ public class LogMultilineExperimentTest {
                 BG_GREY_100 + FG_BRIGHT_WHITE
                 + ts() + " [INFO] This is the message  "
                 + DIM + "testMethod ← runMethod" + NORMAL
-                + ANSI_RESET;
+                + RESET;
         out(line);
     }
 
@@ -245,7 +247,7 @@ public class LogMultilineExperimentTest {
                 + BG_MAGENTA + FG_BRIGHT_WHITE + "[INFO] "        // label segment
                 + BG_BLACK + FG_BRIGHT_WHITE + message + "  "     // message segment
                 + BG_GREY_100 + FG_BRIGHT_CYAN + caller           // caller segment
-                + ANSI_RESET;                                      // single RESET
+                + RESET;                                      // single RESET
         out(line);
 
         // Also try warn:
@@ -254,7 +256,7 @@ public class LogMultilineExperimentTest {
                 + BG_YELLOW + FG_BLACK + "[WARN] "
                 + BG_BLACK + FG_BRIGHT_YELLOW + "This is a chained-color WARN line  "
                 + BG_GREY_100 + FG_BRIGHT_CYAN + caller
-                + ANSI_RESET;
+                + RESET;
         out(warnLine);
     }
 
@@ -271,8 +273,8 @@ public class LogMultilineExperimentTest {
         out("LABEL: [exactly 2 ANSI blocks — does Test History show 1 or 2 lines?]");
         // Block 1: ts+label  Block 2: message+caller
         String line =
-                BG_GREY_100 + FG_BLACK + ts() + " [INFO] " + ANSI_RESET
-                + BG_MAGENTA + FG_BRIGHT_WHITE + "message  testMethod ← runMethod" + ANSI_RESET;
+                BG_GREY_100 + FG_BLACK + ts() + " [INFO] " + RESET
+                + BG_MAGENTA + FG_BRIGHT_WHITE + "message  testMethod ← runMethod" + RESET;
         out(line);
     }
 
@@ -283,9 +285,9 @@ public class LogMultilineExperimentTest {
     public void exp4B_threeBlocks() {
         out("LABEL: [exactly 3 ANSI blocks — does Test History show 1, 2, or 3 lines?]");
         String line =
-                BG_GREY_100 + FG_BLACK + ts() + " [INFO] " + ANSI_RESET
-                + BG_MAGENTA + FG_BRIGHT_WHITE + "message" + ANSI_RESET
-                + " " + BG_GREY_100 + FG_BRIGHT_CYAN + "testMethod ← runMethod" + ANSI_RESET;
+                BG_GREY_100 + FG_BLACK + ts() + " [INFO] " + RESET
+                + BG_MAGENTA + FG_BRIGHT_WHITE + "message" + RESET
+                + " " + BG_GREY_100 + FG_BRIGHT_CYAN + "testMethod ← runMethod" + RESET;
         out(line);
     }
 
@@ -302,15 +304,15 @@ public class LogMultilineExperimentTest {
         out("LABEL: [ideal chained-color format — readable AND (hopefully) single-line]");
 
         // INFO
-        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_WHITE + FG_BLACK + "[INFO] " + BG_BLACK + FG_BRIGHT_WHITE + "Login successful  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + ANSI_RESET);
+        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_WHITE + FG_BLACK + "[INFO] " + BG_BLACK + FG_BRIGHT_WHITE + "Login successful  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + RESET);
         // WARN
-        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_YELLOW + FG_BLACK + "[WARN] " + BG_BLACK + FG_BRIGHT_YELLOW + "Session expiring soon  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + ANSI_RESET);
+        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_YELLOW + FG_BLACK + "[WARN] " + BG_BLACK + FG_BRIGHT_YELLOW + "Session expiring soon  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + RESET);
         // ERROR
-        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_DARKER_RED + FG_BRIGHT_WHITE + "[ERROR] " + BG_BLACK + FG_BRIGHT_RED + "Element not found  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + ANSI_RESET);
+        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_DARKER_RED + FG_BRIGHT_WHITE + "[ERROR] " + BG_BLACK + FG_BRIGHT_RED + "Element not found  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + RESET);
         // CLICK
-        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_MAGENTA + FG_BRIGHT_WHITE + "[CLICK [>]] " + BG_BLACK + FG_BRIGHT_WHITE + "Clicked Submit  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + ANSI_RESET);
+        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_MAGENTA + FG_BRIGHT_WHITE + "[CLICK [>]] " + BG_BLACK + FG_BRIGHT_WHITE + "Clicked Submit  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + RESET);
         // SUCCESS
-        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_GREEN + FG_BLACK + "[SUCCESS [+]] " + BG_BLACK + FG_BRIGHT_GREEN + "All assertions passed  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + ANSI_RESET);
+        out(BG_GREY_100 + FG_BLACK + ts() + " " + BG_GREEN + FG_BLACK + "[SUCCESS [+]] " + BG_BLACK + FG_BRIGHT_GREEN + "All assertions passed  " + BG_GREY_100 + FG_BRIGHT_CYAN + "MyPage.login ← TestRunner.run" + RESET);
     }
 }
 

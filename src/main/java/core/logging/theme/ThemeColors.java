@@ -136,8 +136,7 @@ public final class ThemeColors {
         private String successFg     = FG_BRIGHT_GREEN  + BOLD;
         private String alertFg       = FG_BRIGHT_RED    + BOLD;
 
-        @SuppressWarnings("deprecation")
-        private String callerFg = FG_DIM_WHITE;
+        private String callerFg = FG_BRIGHT_BLACK;
         private String reset    = RESET;
 
         private Builder() {}
