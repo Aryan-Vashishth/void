@@ -1,11 +1,17 @@
 # Maven
 target/
+*.versionsBackup
 
 # Logs
 *.log
+logs/
 
 # Compiled files
 *.class
+bin/
+
+# Editor / scratch
+*.new
 
 # IntelliJ
 .idea/
