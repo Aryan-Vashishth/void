@@ -20,8 +20,8 @@ import io.reactivex.rxjava3.annotations.Nullable;
  * This enables compile‑time discoverability and consistent fallback sequencing.
  * </p>
  * <p>
- * The legacy {@link #getAllLocators()} method is retained (and deprecated) to ease incremental migration.
- * New code should prefer {@link #getAllLocatorRoles()}.
+ * Locator roles are exposed via {@link #getAllLocatorRoles()}, returning a map keyed by
+ * {@link ElementRole} for type-safe role access.
  * </p>
  */
 public interface Element {
@@ -66,14 +66,4 @@ public interface Element {
         return roles;
     }
 
-    /**
-     * LEGACY adapter: returns a map keyed by {@link ElementRole#name()}. Prefer {@link #getAllLocatorRoles()}.
-     * @deprecated Use {@link #getAllLocatorRoles()} for type-safe role access.
-     */
-    @Deprecated
-    default java.util.Map<String,String> getAllLocators(){
-        java.util.Map<String,String> legacy = new java.util.LinkedHashMap<>();
-        getAllLocatorRoles().forEach((role,val)-> legacy.put(role.name(), val));
-        return legacy;
-    }
 }

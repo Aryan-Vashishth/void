@@ -28,11 +28,4 @@ public interface ReadOnlyElement extends Element {
         return roles;
     }
 
-    /** @deprecated Use {@link #getAllLocatorRoles()} */
-    @Deprecated
-    default java.util.Map<String,String> getAllLocators(){
-        java.util.Map<String,String> legacy = new java.util.LinkedHashMap<>();
-        getAllLocatorRoles().forEach((r,v)-> legacy.put(r.name(), v));
-        return legacy;
-    }
 }

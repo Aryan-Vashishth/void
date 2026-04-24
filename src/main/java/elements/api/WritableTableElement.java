@@ -40,12 +40,4 @@ public interface WritableTableElement extends TableElement {
         return roles;
     }
 
-    /** @deprecated Use {@link #getAllLocatorRoles()} */
-    @Deprecated
-    @Override
-    default java.util.Map<String,String> getAllLocators(){
-        java.util.Map<String,String> legacy = new java.util.LinkedHashMap<>();
-        getAllLocatorRoles().forEach((r,v)-> legacy.put(r.name(), v));
-        return legacy;
-    }
 }
