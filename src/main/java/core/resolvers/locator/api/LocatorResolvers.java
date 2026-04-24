@@ -1,9 +1,6 @@
 package core.resolvers.locator.api;
 
-import core.resolvers.locator.source.HardcodedLocatorSource;
-import core.resolvers.locator.source.JsonLocatorSource;
-import core.resolvers.locator.source.LayeredPropertiesLocatorSource;
-import core.resolvers.locator.source.LocatorSourceRegistry;
+import core.resolvers.locator.source.*;
 import core.resolvers.locator.template.LocatorTemplate;
 
 import java.util.List;

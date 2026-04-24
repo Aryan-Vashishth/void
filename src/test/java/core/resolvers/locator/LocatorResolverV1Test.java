@@ -37,8 +37,8 @@ public class LocatorResolverV1Test {
     // Shared fixture paths
     // =====================================================================
 
-    private static final String PROP_FILE = "locators/test-locators.properties";
-    private static final String JSON_FILE = "test-locators.json";   // base prepended by JsonLocatorReaderV1
+    private static final String PROP_FILE = "test-locators.properties";  // base prepended by resolver
+    private static final String JSON_FILE = "test-locators.json";        // base prepended by JsonLocatorReaderV1
 
     // =====================================================================
     // Helper: minimal anonymous Element implementations

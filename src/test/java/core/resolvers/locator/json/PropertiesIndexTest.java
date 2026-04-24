@@ -41,7 +41,7 @@ public class PropertiesIndexTest {
     @Test
     public void get_acceptsAlreadyPrefixedPath() {
         PropertiesIndex idx = new PropertiesIndex();
-        Properties p = idx.get("locators/" + PROP_FILE);
+        Properties p = idx.get("locators/properties/" + PROP_FILE);
         assertTrue(p.size() > 0);
     }
 

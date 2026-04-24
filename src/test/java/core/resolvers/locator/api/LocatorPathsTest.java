@@ -9,12 +9,13 @@ public class LocatorPathsTest {
 
     @Test
     public void underProperties_prependsBaseWhenMissing() {
-        assertEquals(LocatorPaths.underProperties("foo.properties"), "locators/foo.properties");
+        assertEquals(LocatorPaths.underProperties("foo.properties"), "locators/properties/foo.properties");
     }
 
     @Test
     public void underProperties_leavesAlreadyPrefixedPathUntouched() {
-        assertEquals(LocatorPaths.underProperties("locators/foo.properties"), "locators/foo.properties");
+        assertEquals(LocatorPaths.underProperties("locators/properties/foo.properties"),
+                "locators/properties/foo.properties");
     }
 
     @Test
