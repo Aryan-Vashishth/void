@@ -6,13 +6,13 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Unit tests for {@link JsonLocatorReaderV1}.
+ * Unit tests for {@link JsonLocatorReader}.
  * <p>
  * All tests are driver-free: they exercise pure classpath JSON-lookup logic only.
  * </p>
  *
  * <p><b>Test fixture:</b> {@code src/test/resources/locators/json/test-locators.json}</p>
- * <p>{@link JsonLocatorReaderV1} prepends {@code "locators/json/"} ({@code LOCATOR_BASE_PATH})
+ * <p>{@link JsonLocatorReader} prepends {@code "locators/json/"} ({@code LOCATOR_BASE_PATH})
  * to the fileName, so pass {@code "test-locators.json"} (base name only).</p>
  *
  * <pre>
@@ -31,7 +31,7 @@ import static org.testng.Assert.*;
  *
  * Coverage:
  * <ul>
- *   <li>{@link JsonLocatorReaderV1#getRaw(String, String)} – dot-path, flat, deep, null/blank
+ *   <li>{@link JsonLocatorReader#getRaw(String, String)} – dot-path, flat, deep, null/blank
  *       key, null fileName, missing file, missing key</li>
  * </ul>
  */
@@ -51,23 +51,23 @@ public class JsonLocatorReaderV1Test {
     @Test(description = "null fileName (hardcoded safeguard) → key is returned as-is")
     public void getRaw_nullFileName_returnsKeyAsTemplate() {
         String key = "xpath=//button[@id='submit']";
-        assertEquals(JsonLocatorReaderV1.getRaw(null, key), key,
+        assertEquals(JsonLocatorReader.getRaw(null, key), key,
                 "Null file should return the key itself (hardcoded safeguard)");
     }
 
     @Test(description = "null key → returns null")
     public void getRaw_nullKey_returnsNull() {
-        assertNull(JsonLocatorReaderV1.getRaw(JSON_FILE, null));
+        assertNull(JsonLocatorReader.getRaw(JSON_FILE, null));
     }
 
     @Test(description = "Blank key (spaces only) → returns null")
     public void getRaw_blankKey_returnsNull() {
-        assertNull(JsonLocatorReaderV1.getRaw(JSON_FILE, "   "));
+        assertNull(JsonLocatorReader.getRaw(JSON_FILE, "   "));
     }
 
     @Test(description = "Empty string key → returns null")
     public void getRaw_emptyKey_returnsNull() {
-        assertNull(JsonLocatorReaderV1.getRaw(JSON_FILE, ""));
+        assertNull(JsonLocatorReader.getRaw(JSON_FILE, ""));
     }
 
     // =====================================================================
@@ -76,7 +76,7 @@ public class JsonLocatorReaderV1Test {
 
     @Test(description = "Non-existent file → returns null (load returns null gracefully)")
     public void getRaw_missingFile_returnsNull() {
-        assertNull(JsonLocatorReaderV1.getRaw("no-such-file.json", "FLAT_KEY"));
+        assertNull(JsonLocatorReader.getRaw("no-such-file.json", "FLAT_KEY"));
     }
 
     // =====================================================================
@@ -85,7 +85,7 @@ public class JsonLocatorReaderV1Test {
 
     @Test(description = "Flat top-level key → correct raw value returned")
     public void getRaw_flatKey_returnsCorrectValue() {
-        String raw = JsonLocatorReaderV1.getRaw(JSON_FILE, "FLAT_KEY");
+        String raw = JsonLocatorReader.getRaw(JSON_FILE, "FLAT_KEY");
         assertNotNull(raw, "FLAT_KEY should exist in fixture");
         assertEquals(raw.trim(), "//span[@id='flat']");
     }
@@ -96,21 +96,21 @@ public class JsonLocatorReaderV1Test {
 
     @Test(description = "Dot-path key for SEARCH_INPUT → raw XPath returned")
     public void getRaw_dotPath_searchInput_returnsXpath() {
-        String raw = JsonLocatorReaderV1.getRaw(JSON_FILE, "elements.SEARCH_INPUT");
+        String raw = JsonLocatorReader.getRaw(JSON_FILE, "elements.SEARCH_INPUT");
         assertNotNull(raw, "elements.SEARCH_INPUT should exist in fixture");
         assertEquals(raw.trim(), "//input[@type='search']");
     }
 
     @Test(description = "Dot-path key for SEARCH_BUTTON → raw CSS selector returned")
     public void getRaw_dotPath_searchButton_returnsCss() {
-        String raw = JsonLocatorReaderV1.getRaw(JSON_FILE, "elements.SEARCH_BUTTON");
+        String raw = JsonLocatorReader.getRaw(JSON_FILE, "elements.SEARCH_BUTTON");
         assertNotNull(raw, "elements.SEARCH_BUTTON should exist in fixture");
         assertEquals(raw.trim(), "css=button.search-btn");
     }
 
     @Test(description = "Deep dot-path key nested.NESTED_KEY → raw value returned")
     public void getRaw_deepDotPath_nestedKey_returnsValue() {
-        String raw = JsonLocatorReaderV1.getRaw(JSON_FILE, "nested.NESTED_KEY");
+        String raw = JsonLocatorReader.getRaw(JSON_FILE, "nested.NESTED_KEY");
         assertNotNull(raw, "nested.NESTED_KEY should exist in fixture");
         assertEquals(raw.trim(), "xpath=//div[@data-id='nested']");
     }
@@ -122,14 +122,14 @@ public class JsonLocatorReaderV1Test {
     @Test(description = "Key with no dot (field search fallback) – NESTED_KEY found anywhere in tree")
     public void getRaw_flatKeyFallback_nestedKeyFoundAnywhere() {
         // No dot-path; deepFindField will find NESTED_KEY inside the 'nested' object
-        String raw = JsonLocatorReaderV1.getRaw(JSON_FILE, "NESTED_KEY");
+        String raw = JsonLocatorReader.getRaw(JSON_FILE, "NESTED_KEY");
         assertNotNull(raw, "NESTED_KEY should be discoverable via deep field search");
         assertTrue(raw.contains("nested"), "Expected a value referencing 'nested'; got: " + raw);
     }
 
     @Test(description = "SEARCH_INPUT found via deep field search (no dot prefix)")
     public void getRaw_flatKeyFallback_searchInputFoundAnywhere() {
-        String raw = JsonLocatorReaderV1.getRaw(JSON_FILE, "SEARCH_INPUT");
+        String raw = JsonLocatorReader.getRaw(JSON_FILE, "SEARCH_INPUT");
         assertNotNull(raw);
         assertTrue(raw.contains("search"), "Expected a search-related locator; got: " + raw);
     }
@@ -140,12 +140,12 @@ public class JsonLocatorReaderV1Test {
 
     @Test(description = "Key not present in the JSON file → null returned")
     public void getRaw_missingKey_returnsNull() {
-        assertNull(JsonLocatorReaderV1.getRaw(JSON_FILE, "COMPLETELY_MISSING_KEY_XYZ"));
+        assertNull(JsonLocatorReader.getRaw(JSON_FILE, "COMPLETELY_MISSING_KEY_XYZ"));
     }
 
     @Test(description = "Dot-path with non-existent intermediate node → null returned")
     public void getRaw_dotPath_missingIntermediateNode_returnsNull() {
-        assertNull(JsonLocatorReaderV1.getRaw(JSON_FILE, "nonExistent.SOME_KEY"));
+        assertNull(JsonLocatorReader.getRaw(JSON_FILE, "nonExistent.SOME_KEY"));
     }
 
     // =====================================================================
@@ -155,7 +155,7 @@ public class JsonLocatorReaderV1Test {
     @Test(description = "fileName already has locators/json/ prefix → not doubled")
     public void getRaw_fileNameWithFullPrefix_notDoubled() {
         // If the full path is passed, joinBase should not prepend again
-        String raw = JsonLocatorReaderV1.getRaw("locators/json/test-locators.json", "FLAT_KEY");
+        String raw = JsonLocatorReader.getRaw("locators/json/test-locators.json", "FLAT_KEY");
         assertNotNull(raw, "FLAT_KEY should still be found when full prefix is included");
         assertEquals(raw.trim(), "//span[@id='flat']");
     }
@@ -179,7 +179,7 @@ public class JsonLocatorReaderV1Test {
             description   = "All fixture keys return the expected raw locator string"
     )
     public void getRaw_allFixtureKeys_returnExpectedValues(String key, String expectedValue) {
-        String raw = JsonLocatorReaderV1.getRaw(JSON_FILE, key);
+        String raw = JsonLocatorReader.getRaw(JSON_FILE, key);
         assertNotNull(raw, "Expected non-null value for key: " + key);
         assertEquals(raw.trim(), expectedValue, "Key: '" + key + "'");
     }

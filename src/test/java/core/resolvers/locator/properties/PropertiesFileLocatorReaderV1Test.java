@@ -7,14 +7,14 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Unit tests for {@link PropertiesFileLocatorReaderV1}.
+ * Unit tests for {@link PropertiesFileLocatorReader}.
  * <p>
  * Covers:
  * <ul>
- *   <li>{@link PropertiesFileLocatorReaderV1#toBy(String)} – all explicit prefixes, heuristic fallback,
+ *   <li>{@link PropertiesFileLocatorReader#toBy(String)} – all explicit prefixes, heuristic fallback,
  *       case-insensitivity, whitespace trimming, and error cases</li>
- *   <li>{@link PropertiesFileLocatorReaderV1#getRaw(String, String)} – classpath property file lookup</li>
- *   <li>{@link PropertiesFileLocatorReaderV1#getLocatorValueSafely(String, String)} – end-to-end convenience method</li>
+ *   <li>{@link PropertiesFileLocatorReader#getRaw(String, String)} – classpath property file lookup</li>
+ *   <li>{@link PropertiesFileLocatorReader#getLocatorValueSafely(String, String)} – end-to-end convenience method</li>
  * </ul>
  * </p>
  *
@@ -27,7 +27,7 @@ public class PropertiesFileLocatorReaderV1Test {
     // Constants – shared test fixture path
     // =====================================================================
 
-    private static final String FIXTURE_FILE = "locators/test-locators.properties";
+    private static final String FIXTURE_FILE = "test-locators.properties";  // base prepended by reader
 
     // =====================================================================
     // toBy() – Explicit Prefixes (happy path)
@@ -35,50 +35,50 @@ public class PropertiesFileLocatorReaderV1Test {
 
     @Test(description = "id= prefix → By.id")
     public void toBy_idPrefix_returnsById() {
-        By result = PropertiesFileLocatorReaderV1.toBy("id=loginBtn");
+        By result = PropertiesFileLocatorReader.toBy("id=loginBtn");
         assertEquals(result.toString(), By.id("loginBtn").toString(),
                 "Expected By.id but got: " + result);
     }
 
     @Test(description = "name= prefix → By.name")
     public void toBy_namePrefix_returnsByName() {
-        By result = PropertiesFileLocatorReaderV1.toBy("name=email");
+        By result = PropertiesFileLocatorReader.toBy("name=email");
         assertEquals(result.toString(), By.name("email").toString());
     }
 
     @Test(description = "class= prefix → By.className")
     public void toBy_classPrefix_returnsByClassName() {
-        By result = PropertiesFileLocatorReaderV1.toBy("class=btn-primary");
+        By result = PropertiesFileLocatorReader.toBy("class=btn-primary");
         assertEquals(result.toString(), By.className("btn-primary").toString());
     }
 
     @Test(description = "tag= prefix → By.tagName")
     public void toBy_tagPrefix_returnsByTagName() {
-        By result = PropertiesFileLocatorReaderV1.toBy("tag=input");
+        By result = PropertiesFileLocatorReader.toBy("tag=input");
         assertEquals(result.toString(), By.tagName("input").toString());
     }
 
     @Test(description = "linkText= prefix → By.linkText")
     public void toBy_linkTextPrefix_returnsByLinkText() {
-        By result = PropertiesFileLocatorReaderV1.toBy("linkText=Click here");
+        By result = PropertiesFileLocatorReader.toBy("linkText=Click here");
         assertEquals(result.toString(), By.linkText("Click here").toString());
     }
 
     @Test(description = "partialLinkText= prefix → By.partialLinkText")
     public void toBy_partialLinkTextPrefix_returnsByPartialLinkText() {
-        By result = PropertiesFileLocatorReaderV1.toBy("partialLinkText=Read more");
+        By result = PropertiesFileLocatorReader.toBy("partialLinkText=Read more");
         assertEquals(result.toString(), By.partialLinkText("Read more").toString());
     }
 
     @Test(description = "css= prefix → By.cssSelector")
     public void toBy_cssPrefix_returnsByCssSelector() {
-        By result = PropertiesFileLocatorReaderV1.toBy("css=div.container > span");
+        By result = PropertiesFileLocatorReader.toBy("css=div.container > span");
         assertEquals(result.toString(), By.cssSelector("div.container > span").toString());
     }
 
     @Test(description = "xpath= prefix → By.xpath")
     public void toBy_xpathPrefix_returnsByXpath() {
-        By result = PropertiesFileLocatorReaderV1.toBy("xpath=//div[@id='main']");
+        By result = PropertiesFileLocatorReader.toBy("xpath=//div[@id='main']");
         assertEquals(result.toString(), By.xpath("//div[@id='main']").toString());
     }
 
@@ -88,37 +88,37 @@ public class PropertiesFileLocatorReaderV1Test {
 
     @Test(description = "ID= (uppercase) prefix is recognised case-insensitively")
     public void toBy_idPrefix_caseInsensitive_upper() {
-        By result = PropertiesFileLocatorReaderV1.toBy("ID=myId");
+        By result = PropertiesFileLocatorReader.toBy("ID=myId");
         assertEquals(result.toString(), By.id("myId").toString());
     }
 
     @Test(description = "XPATH= (uppercase) prefix is recognised case-insensitively")
     public void toBy_xpathPrefix_caseInsensitive_upper() {
-        By result = PropertiesFileLocatorReaderV1.toBy("XPATH=//span");
+        By result = PropertiesFileLocatorReader.toBy("XPATH=//span");
         assertEquals(result.toString(), By.xpath("//span").toString());
     }
 
     @Test(description = "CSS= (uppercase) prefix is recognised case-insensitively")
     public void toBy_cssPrefix_caseInsensitive_upper() {
-        By result = PropertiesFileLocatorReaderV1.toBy("CSS=.active");
+        By result = PropertiesFileLocatorReader.toBy("CSS=.active");
         assertEquals(result.toString(), By.cssSelector(".active").toString());
     }
 
     @Test(description = "Name= (mixed case) prefix is recognised case-insensitively")
     public void toBy_namePrefix_caseInsensitive_mixed() {
-        By result = PropertiesFileLocatorReaderV1.toBy("Name=q");
+        By result = PropertiesFileLocatorReader.toBy("Name=q");
         assertEquals(result.toString(), By.name("q").toString());
     }
 
     @Test(description = "LINKTEXT= (uppercase) prefix is recognised case-insensitively")
     public void toBy_linkTextPrefix_caseInsensitive_upper() {
-        By result = PropertiesFileLocatorReaderV1.toBy("LINKTEXT=Home");
+        By result = PropertiesFileLocatorReader.toBy("LINKTEXT=Home");
         assertEquals(result.toString(), By.linkText("Home").toString());
     }
 
     @Test(description = "PARTIALLINKTEXT= (uppercase) prefix is recognised case-insensitively")
     public void toBy_partialLinkTextPrefix_caseInsensitive_upper() {
-        By result = PropertiesFileLocatorReaderV1.toBy("PARTIALLINKTEXT=Home");
+        By result = PropertiesFileLocatorReader.toBy("PARTIALLINKTEXT=Home");
         assertEquals(result.toString(), By.partialLinkText("Home").toString());
     }
 
@@ -128,37 +128,37 @@ public class PropertiesFileLocatorReaderV1Test {
 
     @Test(description = "String starting with // → heuristic XPath")
     public void toBy_doubleSlash_heuristicXpath() {
-        By result = PropertiesFileLocatorReaderV1.toBy("//div[@class='row']");
+        By result = PropertiesFileLocatorReader.toBy("//div[@class='row']");
         assertEquals(result.toString(), By.xpath("//div[@class='row']").toString());
     }
 
     @Test(description = "String starting with / → heuristic XPath")
     public void toBy_singleSlash_heuristicXpath() {
-        By result = PropertiesFileLocatorReaderV1.toBy("/html/body/div");
+        By result = PropertiesFileLocatorReader.toBy("/html/body/div");
         assertEquals(result.toString(), By.xpath("/html/body/div").toString());
     }
 
     @Test(description = "String starting with ( → heuristic XPath (indexed)")
     public void toBy_openParen_heuristicXpath() {
-        By result = PropertiesFileLocatorReaderV1.toBy("(//table//tr)[1]");
+        By result = PropertiesFileLocatorReader.toBy("(//table//tr)[1]");
         assertEquals(result.toString(), By.xpath("(//table//tr)[1]").toString());
     }
 
     @Test(description = "String starting with .// → heuristic XPath (relative)")
     public void toBy_dotDoubleSlash_heuristicXpath() {
-        By result = PropertiesFileLocatorReaderV1.toBy(".//td[2]");
+        By result = PropertiesFileLocatorReader.toBy(".//td[2]");
         assertEquals(result.toString(), By.xpath(".//td[2]").toString());
     }
 
     @Test(description = "Plain CSS selector string → heuristic cssSelector")
     public void toBy_plainString_heuristicCss() {
-        By result = PropertiesFileLocatorReaderV1.toBy("div.my-class");
+        By result = PropertiesFileLocatorReader.toBy("div.my-class");
         assertEquals(result.toString(), By.cssSelector("div.my-class").toString());
     }
 
     @Test(description = "CSS attribute selector string → heuristic cssSelector")
     public void toBy_cssAttributeSelector_heuristicCss() {
-        By result = PropertiesFileLocatorReaderV1.toBy("input[type='submit']");
+        By result = PropertiesFileLocatorReader.toBy("input[type='submit']");
         assertEquals(result.toString(), By.cssSelector("input[type='submit']").toString());
     }
 
@@ -168,13 +168,13 @@ public class PropertiesFileLocatorReaderV1Test {
 
     @Test(description = "Leading and trailing whitespace is trimmed before parsing")
     public void toBy_withSurroundingWhitespace_trims() {
-        By result = PropertiesFileLocatorReaderV1.toBy("  id=trimmed  ");
+        By result = PropertiesFileLocatorReader.toBy("  id=trimmed  ");
         assertEquals(result.toString(), By.id("trimmed").toString());
     }
 
     @Test(description = "Whitespace between prefix and value is trimmed")
     public void toBy_whitespaceAfterPrefix_trimmedFromValue() {
-        By result = PropertiesFileLocatorReaderV1.toBy("name=  fieldName  ");
+        By result = PropertiesFileLocatorReader.toBy("name=  fieldName  ");
         // valueAfter trims the substring, so value should be "fieldName"
         assertEquals(result.toString(), By.name("fieldName").toString());
     }
@@ -188,7 +188,7 @@ public class PropertiesFileLocatorReaderV1Test {
         expectedExceptions = IllegalStateException.class
     )
     public void toBy_null_throwsIllegalState() {
-        PropertiesFileLocatorReaderV1.toBy(null);
+        PropertiesFileLocatorReader.toBy(null);
     }
 
     @Test(
@@ -196,7 +196,7 @@ public class PropertiesFileLocatorReaderV1Test {
         expectedExceptions = IllegalStateException.class
     )
     public void toBy_blank_throwsIllegalState() {
-        PropertiesFileLocatorReaderV1.toBy("   ");
+        PropertiesFileLocatorReader.toBy("   ");
     }
 
     @Test(
@@ -204,7 +204,7 @@ public class PropertiesFileLocatorReaderV1Test {
         expectedExceptions = IllegalStateException.class
     )
     public void toBy_emptyString_throwsIllegalState() {
-        PropertiesFileLocatorReaderV1.toBy("");
+        PropertiesFileLocatorReader.toBy("");
     }
 
     @Test(
@@ -212,7 +212,7 @@ public class PropertiesFileLocatorReaderV1Test {
         expectedExceptions = IllegalStateException.class
     )
     public void toBy_idPrefixEmptyValue_throwsIllegalState() {
-        PropertiesFileLocatorReaderV1.toBy("id=");
+        PropertiesFileLocatorReader.toBy("id=");
     }
 
     @Test(
@@ -220,7 +220,7 @@ public class PropertiesFileLocatorReaderV1Test {
         expectedExceptions = IllegalStateException.class
     )
     public void toBy_xpathPrefixEmptyValue_throwsIllegalState() {
-        PropertiesFileLocatorReaderV1.toBy("xpath=");
+        PropertiesFileLocatorReader.toBy("xpath=");
     }
 
     @Test(
@@ -228,7 +228,7 @@ public class PropertiesFileLocatorReaderV1Test {
         expectedExceptions = IllegalStateException.class
     )
     public void toBy_cssPrefixWhitespaceValue_throwsIllegalState() {
-        PropertiesFileLocatorReaderV1.toBy("css=   ");
+        PropertiesFileLocatorReader.toBy("css=   ");
     }
 
     // =====================================================================
@@ -254,7 +254,7 @@ public class PropertiesFileLocatorReaderV1Test {
         description   = "All explicit prefixes map to the correct By strategy"
     )
     public void toBy_explicitPrefixes_parametrized(String locatorString, String expectedToString) {
-        By result = PropertiesFileLocatorReaderV1.toBy(locatorString);
+        By result = PropertiesFileLocatorReader.toBy(locatorString);
         assertEquals(result.toString(), expectedToString,
                 "Locator: '" + locatorString + "'");
     }
@@ -265,14 +265,14 @@ public class PropertiesFileLocatorReaderV1Test {
 
     @Test(description = "getRaw returns the raw value for an existing key")
     public void getRaw_existingKey_returnsRawValue() {
-        String raw = PropertiesFileLocatorReaderV1.getRaw(FIXTURE_FILE, "BUTTON_TRIGGER");
+        String raw = PropertiesFileLocatorReader.getRaw(FIXTURE_FILE, "BUTTON_TRIGGER");
         assertNotNull(raw, "Expected a non-null value for BUTTON_TRIGGER");
         assertTrue(raw.contains("submit"), "Expected value to reference 'submit'; got: " + raw);
     }
 
     @Test(description = "getRaw returns null for a non-existent key")
     public void getRaw_missingKey_returnsNull() {
-        String raw = PropertiesFileLocatorReaderV1.getRaw(FIXTURE_FILE, "NON_EXISTENT_KEY_XYZ");
+        String raw = PropertiesFileLocatorReader.getRaw(FIXTURE_FILE, "NON_EXISTENT_KEY_XYZ");
         assertNull(raw, "Expected null for missing key");
     }
 
@@ -284,7 +284,7 @@ public class PropertiesFileLocatorReaderV1Test {
             "XPATH_ELEMENT", "TEMPLATE_WITH_ARG", "TEMPLATE_TWO_ARGS"
         };
         for (String key : keys) {
-            String raw = PropertiesFileLocatorReaderV1.getRaw(FIXTURE_FILE, key);
+            String raw = PropertiesFileLocatorReader.getRaw(FIXTURE_FILE, key);
             assertNotNull(raw, "Expected non-null value for key: " + key);
             assertFalse(raw.isBlank(), "Expected non-blank value for key: " + key);
         }
@@ -296,35 +296,35 @@ public class PropertiesFileLocatorReaderV1Test {
 
     @Test(description = "getLocatorValueSafely converts raw XPath value to By.xpath")
     public void getLocatorValueSafely_rawXpath_returnsByXpath() {
-        By result = PropertiesFileLocatorReaderV1.getLocatorValueSafely(FIXTURE_FILE, "BUTTON_TRIGGER");
+        By result = PropertiesFileLocatorReader.getLocatorValueSafely(FIXTURE_FILE, "BUTTON_TRIGGER");
         assertNotNull(result);
         assertEquals(result.toString(), By.xpath("//button[@id='submit']").toString());
     }
 
     @Test(description = "getLocatorValueSafely converts css= prefixed value to By.cssSelector")
     public void getLocatorValueSafely_cssPrefix_returnsByCssSelector() {
-        By result = PropertiesFileLocatorReaderV1.getLocatorValueSafely(FIXTURE_FILE, "LOGIN_INPUT");
+        By result = PropertiesFileLocatorReader.getLocatorValueSafely(FIXTURE_FILE, "LOGIN_INPUT");
         assertNotNull(result);
         assertEquals(result.toString(), By.cssSelector("input#username").toString());
     }
 
     @Test(description = "getLocatorValueSafely converts id= prefixed value to By.id")
     public void getLocatorValueSafely_idPrefix_returnsById() {
-        By result = PropertiesFileLocatorReaderV1.getLocatorValueSafely(FIXTURE_FILE, "SUBMIT_BUTTON");
+        By result = PropertiesFileLocatorReader.getLocatorValueSafely(FIXTURE_FILE, "SUBMIT_BUTTON");
         assertNotNull(result);
         assertEquals(result.toString(), By.id("submitBtn").toString());
     }
 
     @Test(description = "getLocatorValueSafely converts name= prefixed value to By.name")
     public void getLocatorValueSafely_namePrefix_returnsByName() {
-        By result = PropertiesFileLocatorReaderV1.getLocatorValueSafely(FIXTURE_FILE, "NAME_ELEMENT");
+        By result = PropertiesFileLocatorReader.getLocatorValueSafely(FIXTURE_FILE, "NAME_ELEMENT");
         assertNotNull(result);
         assertEquals(result.toString(), By.name("searchField").toString());
     }
 
     @Test(description = "getLocatorValueSafely converts xpath= prefixed value to By.xpath")
     public void getLocatorValueSafely_xpathPrefix_returnsByXpath() {
-        By result = PropertiesFileLocatorReaderV1.getLocatorValueSafely(FIXTURE_FILE, "XPATH_ELEMENT");
+        By result = PropertiesFileLocatorReader.getLocatorValueSafely(FIXTURE_FILE, "XPATH_ELEMENT");
         assertNotNull(result);
         assertEquals(result.toString(), By.xpath("//div[@class='container']").toString());
     }

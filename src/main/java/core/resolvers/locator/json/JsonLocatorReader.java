@@ -4,7 +4,6 @@ package core.resolvers.locator.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import core.resolvers.locator.api.LocatorPaths;
-import core.utils.ConfigLoader;
 
 import java.io.InputStream;
 
@@ -13,25 +12,19 @@ import java.io.InputStream;
  * Returns the RAW (unformatted) locator template for {@code (fileName, key)}.
  *
  * <p><b>Refactor note:</b> traversal logic moved to {@link JsonNodeLookup} so it can be
- * unit-tested in isolation. Class-path resolution uses {@link LocatorPaths}.</p>
+ * unit-tested in isolation. Class-path resolution uses {@link LocatorPaths#underJson(String)}.</p>
  */
-public final class JsonLocatorReaderV1 {
+public final class JsonLocatorReader {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    /** Configurable classpath base (default {@link LocatorPaths#JSON_BASE_DEFAULT}). */
-    private static final String LOCATOR_BASE_PATH = ConfigLoader.get(
-            "locator.json.base.path",
-            LocatorPaths.JSON_BASE_DEFAULT
-    );
-
-    private JsonLocatorReaderV1() {}
+    private JsonLocatorReader() {}
 
     /** RAW accessor — no formatting here. */
     public static String getRaw(String fileName, String key) {
         if (fileName == null) return key; // hardcoded safeguard
         if (key == null || key.isBlank()) return null;
 
-        JsonNode root = load(LocatorPaths.under(LOCATOR_BASE_PATH, fileName));
+        JsonNode root = load(LocatorPaths.underJson(fileName));
         if (root == null) return null;
 
         return JsonNodeLookup.findText(root, key);

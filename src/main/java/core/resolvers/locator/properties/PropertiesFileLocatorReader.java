@@ -13,9 +13,9 @@ import org.openqa.selenium.By;
  * retained as a thin façade for backward compatibility. New code should use {@link ByParser}
  * directly.</p>
  */
-public final class PropertiesFileLocatorReaderV1 {
+public final class PropertiesFileLocatorReader {
 
-    private PropertiesFileLocatorReaderV1() {}
+    private PropertiesFileLocatorReader() {}
 
     /** Convenience: read from .properties and convert directly to By (no arg formatting). */
     public static By getLocatorValueSafely(String fileName, String key) {

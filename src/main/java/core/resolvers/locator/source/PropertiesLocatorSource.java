@@ -1,14 +1,15 @@
 package core.resolvers.locator.source;
 
+import core.resolvers.locator.api.LocatorPaths;
 import core.resolvers.locator.api.LocatorRequest;
-import core.resolvers.locator.properties.PropertiesFileLocatorReaderV1;
+import core.resolvers.locator.properties.PropertiesFileLocatorReader;
 
 import java.util.Locale;
 
 /**
  * {@link LocatorSource} for {@code .properties} bundles on the classpath.
  *
- * <p>Currently delegates to {@link PropertiesFileLocatorReaderV1#getRaw(String, String)}
+ * <p>Currently delegates to {@link PropertiesFileLocatorReader#getRaw(String, String)}
  * — i.e. simple {@code PropertiesReader} lookup under
  * {@link LocatorPaths#PROPERTIES_BASE}. The legacy layered/cached
  * {@code ConfigLoader} path used by {@code ElementLocatorResolverV1} is preserved
@@ -33,7 +34,7 @@ public final class PropertiesLocatorSource implements LocatorSource {
             throw new IllegalArgumentException(
                     "PropertiesLocatorSource does not support fileName: " + request.fileName());
         }
-        return PropertiesFileLocatorReaderV1.getRaw(request.fileName(), request.key());
+        return PropertiesFileLocatorReader.getRaw(request.fileName(), request.key());
     }
 
     @Override
