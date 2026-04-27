@@ -18,6 +18,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.*;
 import com.beust.jcommander.internal.Nullable;
+import core.logging.CustomLogger;
 import static core.logging.CustomLogger.*;
 
 /**
@@ -86,7 +87,7 @@ public class Interactions {
     public Interactions(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        initialize(this.getClass());
+        CustomLogger.initialize(this.getClass());
         DriverContext.setPrimaryDriver(driver); // register so getActiveDriver() resolves correctly
     }
 
