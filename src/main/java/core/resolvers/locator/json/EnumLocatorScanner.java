@@ -2,28 +2,29 @@ package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import elements.api.Element;
+import elements.meta.ElementRole;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 
 import static core.logging.CustomLogger.debug;
 import static core.logging.CustomLogger.warn;
 
 /**
- * Pure reflection helper that scans an enum class for {@code getXxxLocator()} methods,
- * resolves their values against an optional external {@code .properties} bundle, and writes
- * the resulting {@code key → value} pairs into a Jackson {@link ObjectNode}.
+ * Scans an enum class and emits one JSON entry per enum constant. For each constant
+ * that implements {@link Element}, the constant's {@code name()} becomes the JSON key
+ * and its resolved locator(s) become the value.
  *
- * <p>Extracted from the monolithic {@code JsonLocatorMigrator.writeEnumMethodLocators}
- * to follow the Single Responsibility Principle: this class knows only about enum
- * reflection and key/value emission; class-tree recursion lives in {@link JsonTreeBuilder},
- * properties caching lives in {@link PropertiesIndex}.</p>
+ * <ul>
+ *   <li><b>Single-role</b> element (e.g. {@code ReadOnlyElement}, {@code Clickable}):
+ *       emitted as {@code "CONSTANT_NAME" : "resolvedLocator"}.</li>
+ *   <li><b>Multi-role</b> element (e.g. {@code Dropdown}):
+ *       emitted as {@code "CONSTANT_NAME" : { "TRIGGER" : "…", "LIST" : "…" }}.</li>
+ * </ul>
  *
- * <p>Discovery rule for "locator method": no parameters, returns {@link String}, name starts
- * with {@code get} and ends with {@code Locator}. The JSON key is the middle portion
- * decapitalised (e.g. {@code getInputLocator → "inputLocator"}).</p>
+ * <p>Locator values are resolved against the external {@code .properties} bundle
+ * referenced by the element (if any). Class-tree recursion lives in
+ * {@link JsonTreeBuilder}; properties caching lives in {@link PropertiesIndex}.</p>
  */
 public final class EnumLocatorScanner {
 
@@ -34,7 +35,7 @@ public final class EnumLocatorScanner {
     }
 
     /**
-     * Append discovered {@code locatorKey → resolvedValue} entries to {@code into}.
+     * Append discovered {@code constantName → resolvedLocator} entries to {@code into}.
      *
      * @return number of entries added
      */
@@ -44,10 +45,6 @@ public final class EnumLocatorScanner {
             warn.log("[enum] empty " + enumClass.getSimpleName());
             return 0;
         }
-        Object target = Arrays.stream(constants)
-                .filter(c -> c instanceof Element)
-                .findFirst()
-                .orElse(constants[0]);
 
         Properties props = loadPropsFor(constants);
         if (props != null) {
@@ -55,23 +52,32 @@ public final class EnumLocatorScanner {
         }
 
         int added = 0, resolved = 0, raw = 0;
-        for (Method m : enumClass.getDeclaredMethods()) {
-            if (!isLocatorMethod(m)) continue;
-            String keyName = decapitalize(m.getName().substring(3));
-            try {
-                m.setAccessible(true);
-                Object rawVal = m.invoke(target);
-                if (!(rawVal instanceof String val) || val.isBlank()) continue;
+        for (Object constant : constants) {
+            if (!(constant instanceof Element element)) continue;
+            String constantName = ((Enum<?>) constant).name();
+            Map<ElementRole, String> roles = element.getAllLocatorRoles();
 
-                String resolvedVal = (props == null) ? null : props.getProperty(val.trim());
-                String finalVal = (resolvedVal != null && !resolvedVal.isBlank()) ? resolvedVal.trim() : val;
-                into.put(keyName, finalVal);
+            if (roles.isEmpty()) continue;
+
+            if (roles.size() == 1) {
+                // Single-role: emit as simple string value
+                String rawVal = roles.values().iterator().next();
+                if (rawVal == null || rawVal.isBlank()) continue;
+                String resolvedVal = resolve(props, rawVal);
+                into.put(constantName, resolvedVal);
                 added++;
-                if (resolvedVal != null && !resolvedVal.isBlank()) resolved++;
-                else                                              raw++;
-            } catch (ReflectiveOperationException e) {
-                warn.log("[enum] reflectFail enum=" + enumClass.getSimpleName()
-                        + " method=" + m.getName() + " msg=" + e.getMessage());
+                if (!resolvedVal.equals(rawVal)) resolved++; else raw++;
+            } else {
+                // Multi-role: emit as nested object { ROLE_NAME: resolvedValue }
+                ObjectNode rolesNode = into.putObject(constantName);
+                for (Map.Entry<ElementRole, String> entry : roles.entrySet()) {
+                    String rawVal = entry.getValue();
+                    if (rawVal == null || rawVal.isBlank()) continue;
+                    String resolvedVal = resolve(props, rawVal);
+                    rolesNode.put(entry.getKey().name(), resolvedVal);
+                    added++;
+                    if (!resolvedVal.equals(rawVal)) resolved++; else raw++;
+                }
             }
         }
         debug.log("[enum] name=" + enumClass.getSimpleName()
@@ -82,13 +88,11 @@ public final class EnumLocatorScanner {
 
     // ---- internal -----------------------------------------------------------
 
-    /** Locator method: {@code public String getXxxLocator()} with no parameters. */
-    private static boolean isLocatorMethod(Method m) {
-        String name = m.getName();
-        return name.startsWith("get")
-                && name.endsWith("Locator")
-                && m.getParameterCount() == 0
-                && String.class.equals(m.getReturnType());
+    /** Resolve a raw locator key against the properties bundle; return as-is if no match. */
+    private static String resolve(Properties props, String rawVal) {
+        if (props == null) return rawVal;
+        String resolved = props.getProperty(rawVal.trim());
+        return (resolved != null && !resolved.isBlank()) ? resolved.trim() : rawVal;
     }
 
     /** Find first {@link Element} constant with a non-blank external file name and load its props. */
@@ -102,12 +106,6 @@ public final class EnumLocatorScanner {
             }
         }
         return null;
-    }
-
-    private static String decapitalize(String s) {
-        if (s == null || s.isEmpty()) return s;
-        if (s.length() == 1) return s.toLowerCase(Locale.ROOT);
-        return Character.toLowerCase(s.charAt(0)) + s.substring(1);
     }
 }
 

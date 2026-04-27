@@ -13,22 +13,21 @@ public class EnumLocatorScannerTest {
     private static final ObjectMapper M = new ObjectMapper();
 
     @Test
-    public void writeInto_hardcodedEnum_emitsLocatorEntries() {
+    public void writeInto_hardcodedEnum_emitsOneEntryPerConstant() {
         ObjectNode node = M.createObjectNode();
         EnumLocatorScanner scanner = new EnumLocatorScanner(new PropertiesIndex());
-        // DemoPageElements.Login is hardcoded (no external props file)
+        // DemoPageElements.Login has 2 constants: USERNAME, PASSWORD
         int added = scanner.writeInto(node, DemoPageElements.Login.class);
-        assertTrue(added > 0, "Expected at least one locator method discovered; got " + added);
-        assertEquals(node.size(), added);
+        assertTrue(added > 0, "Expected at least one entry per constant; got " + added);
+        assertEquals(node.size(), 2, "Expected one entry per Login constant (USERNAME, PASSWORD)");
     }
 
     @Test
-    public void writeInto_keyNamesAreDecapitalised() {
+    public void writeInto_keysAreEnumConstantNames() {
         ObjectNode node = M.createObjectNode();
         new EnumLocatorScanner(new PropertiesIndex()).writeInto(node, DemoPageElements.Login.class);
-        node.fieldNames().forEachRemaining(name -> assertTrue(
-                Character.isLowerCase(name.charAt(0)),
-                "Expected JSON key to start lowercase; got: " + name));
+        assertTrue(node.has("USERNAME"), "Expected 'USERNAME' key from Login enum constant");
+        assertTrue(node.has("PASSWORD"), "Expected 'PASSWORD' key from Login enum constant");
     }
 
     @Test
@@ -40,10 +39,20 @@ public class EnumLocatorScannerTest {
     }
 
     @Test
-    public void writeInto_skipsNonLocatorMethods() {
+    public void writeInto_valuesAreLocatorStrings() {
         ObjectNode node = M.createObjectNode();
         new EnumLocatorScanner(new PropertiesIndex()).writeInto(node, DemoPageElements.Login.class);
-        // Standard enum/object methods like getDeclaringClass, ordinal, name, getClass should NOT appear
+        // Login enum constants have hardcoded getInputLocator() returning an xpath template
+        String val = node.path("USERNAME").asText();
+        assertFalse(val.isBlank(), "Expected non-blank locator value for USERNAME");
+        assertTrue(val.contains("input"), "Expected XPath referencing an input element; got: " + val);
+    }
+
+    @Test
+    public void writeInto_skipsNonElementConstants() {
+        ObjectNode node = M.createObjectNode();
+        new EnumLocatorScanner(new PropertiesIndex()).writeInto(node, DemoPageElements.Login.class);
+        // Only Element constants should appear; standard enum/object fields should NOT
         node.fieldNames().forEachRemaining(name -> {
             assertFalse(name.equals("class"));
             assertFalse(name.equals("declaringClass"));

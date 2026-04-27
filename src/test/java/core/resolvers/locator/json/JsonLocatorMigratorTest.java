@@ -120,51 +120,65 @@ public class JsonLocatorMigratorTest {
     }
 
     // =====================================================================
-    // buildResolvedJson() – enum key naming via decapitalise
+    // buildResolvedJson() – enum constant names as JSON keys
     // =====================================================================
 
-    @Test(description = "Login enum method 'getInputLocator' → JSON key 'inputLocator'")
-    public void buildResolvedJson_loginEnum_inputLocatorKeyPresent() throws IOException {
+    @Test(description = "Login enum constant 'USERNAME' is present as JSON key")
+    public void buildResolvedJson_loginEnum_usernameKeyPresent() throws IOException {
         JsonNode loginNode = getLoginNode();
-        assertTrue(loginNode.has("inputLocator"),
-                "Expected 'inputLocator' key in Login node; found: " + loginNode.fieldNames());
+        assertTrue(loginNode.has("USERNAME"),
+                "Expected 'USERNAME' key in Login node; found: " + loginNode.fieldNames());
     }
 
-    @Test(description = "Login.inputLocator value is the hardcoded XPath template string")
-    public void buildResolvedJson_loginEnum_inputLocatorValue_isHardcodedXpath() throws IOException {
+    @Test(description = "Login enum constant 'PASSWORD' is present as JSON key")
+    public void buildResolvedJson_loginEnum_passwordKeyPresent() throws IOException {
         JsonNode loginNode = getLoginNode();
-        String val = loginNode.path("inputLocator").asText();
-        assertFalse(val.isBlank(), "Expected non-blank inputLocator value");
+        assertTrue(loginNode.has("PASSWORD"),
+                "Expected 'PASSWORD' key in Login node; found: " + loginNode.fieldNames());
+    }
+
+    @Test(description = "Login.USERNAME value is the hardcoded XPath template string")
+    public void buildResolvedJson_loginEnum_usernameValue_isHardcodedXpath() throws IOException {
+        JsonNode loginNode = getLoginNode();
+        String val = loginNode.path("USERNAME").asText();
+        assertFalse(val.isBlank(), "Expected non-blank USERNAME value");
         assertTrue(val.contains("input"),
                 "Expected the XPath to reference an input element; got: " + val);
     }
 
-    @Test(description = "NavBar enum method 'getTriggerLocator' → JSON key 'triggerLocator'")
-    public void buildResolvedJson_navBarEnum_triggerLocatorKeyPresent() throws IOException {
+    @Test(description = "NavBar enum constant 'PARTNER' is present as JSON key")
+    public void buildResolvedJson_navBarEnum_partnerKeyPresent() throws IOException {
         JsonNode navBarNode = getNavBarNode();
-        assertTrue(navBarNode.has("triggerLocator"),
-                "Expected 'triggerLocator' key in NavBar node; found: " + navBarNode.fieldNames());
+        assertTrue(navBarNode.has("PARTNER"),
+                "Expected 'PARTNER' key in NavBar node; found: " + navBarNode.fieldNames());
     }
 
-    @Test(description = "NavBar enum method 'getListLocator' → JSON key 'listLocator'")
-    public void buildResolvedJson_navBarEnum_listLocatorKeyPresent() throws IOException {
+    @Test(description = "NavBar enum constant 'VENDOR' is present as JSON key")
+    public void buildResolvedJson_navBarEnum_vendorKeyPresent() throws IOException {
         JsonNode navBarNode = getNavBarNode();
-        assertTrue(navBarNode.has("listLocator"),
-                "Expected 'listLocator' key in NavBar node; found: " + navBarNode.fieldNames());
+        assertTrue(navBarNode.has("VENDOR"),
+                "Expected 'VENDOR' key in NavBar node; found: " + navBarNode.fieldNames());
     }
 
-    @Test(description = "NavBar.triggerLocator value is non-blank")
-    public void buildResolvedJson_navBarEnum_triggerLocatorValue_nonBlank() throws IOException {
+    @Test(description = "NavBar.PARTNER has TRIGGER role with non-blank value")
+    public void buildResolvedJson_navBarEnum_partnerTriggerValue_nonBlank() throws IOException {
         JsonNode navBarNode = getNavBarNode();
-        String val = navBarNode.path("triggerLocator").asText();
-        assertFalse(val.isBlank(), "Expected non-blank triggerLocator value for NavBar");
+        JsonNode partnerNode = navBarNode.path("PARTNER");
+        // Multi-role (Dropdown): emitted as { "TRIGGER": "…", "LIST": "…" }
+        assertTrue(partnerNode.has("TRIGGER"),
+                "Expected 'TRIGGER' role under PARTNER; found: " + partnerNode);
+        assertFalse(partnerNode.path("TRIGGER").asText().isBlank(),
+                "Expected non-blank TRIGGER value for PARTNER");
     }
 
-    @Test(description = "NavBar.listLocator value is non-blank")
-    public void buildResolvedJson_navBarEnum_listLocatorValue_nonBlank() throws IOException {
+    @Test(description = "NavBar.PARTNER has LIST role with non-blank value")
+    public void buildResolvedJson_navBarEnum_partnerListValue_nonBlank() throws IOException {
         JsonNode navBarNode = getNavBarNode();
-        String val = navBarNode.path("listLocator").asText();
-        assertFalse(val.isBlank(), "Expected non-blank listLocator value for NavBar");
+        JsonNode partnerNode = navBarNode.path("PARTNER");
+        assertTrue(partnerNode.has("LIST"),
+                "Expected 'LIST' role under PARTNER; found: " + partnerNode);
+        assertFalse(partnerNode.path("LIST").asText().isBlank(),
+                "Expected non-blank LIST value for PARTNER");
     }
 
     // =====================================================================
@@ -179,42 +193,42 @@ public class JsonLocatorMigratorTest {
                 "Expected 'LoginButton' node somewhere in the JSON tree");
     }
 
-    @Test(description = "LoginButton enum 'getTriggerLocator' → JSON key 'triggerLocator'")
-    public void buildResolvedJson_loginButton_triggerLocatorKeyPresent() throws IOException {
+    @Test(description = "LoginButton enum constant 'SUBMIT' → JSON key 'SUBMIT'")
+    public void buildResolvedJson_loginButton_submitKeyPresent() throws IOException {
         JsonNode root = parseJson(DemoPageElements.class);
         JsonNode loginButtonNode = findNodeAnywhere(root, "LoginButton");
         assertNotNull(loginButtonNode, "LoginButton node not found in JSON");
-        assertTrue(loginButtonNode.has("triggerLocator"),
-                "Expected 'triggerLocator' in LoginButton node; found: " + loginButtonNode.fieldNames());
+        assertTrue(loginButtonNode.has("SUBMIT"),
+                "Expected 'SUBMIT' in LoginButton node; found: " + loginButtonNode.fieldNames());
     }
 
-    @Test(description = "LoginButton.triggerLocator contains XPath for a button element")
-    public void buildResolvedJson_loginButton_triggerLocatorValue_containsButton() throws IOException {
+    @Test(description = "LoginButton.SUBMIT contains XPath for a button element")
+    public void buildResolvedJson_loginButton_submitValue_containsButton() throws IOException {
         JsonNode root = parseJson(DemoPageElements.class);
         JsonNode loginButtonNode = findNodeAnywhere(root, "LoginButton");
         assertNotNull(loginButtonNode, "LoginButton node not found");
-        String val = loginButtonNode.path("triggerLocator").asText();
+        String val = loginButtonNode.path("SUBMIT").asText();
         assertTrue(val.contains("button"),
-                "Expected triggerLocator to reference a button; got: " + val);
+                "Expected SUBMIT to reference a button; got: " + val);
     }
 
     // =====================================================================
-    // buildResolvedJson() – non-Locator methods are NOT included
+    // buildResolvedJson() – non-Element keys are NOT included
     // =====================================================================
 
-    @Test(description = "getExternalFileName is NOT emitted (does not end with 'Locator')")
+    @Test(description = "getExternalFileName is NOT emitted (not an enum constant name)")
     public void buildResolvedJson_externalFileNameKey_notPresent() {
         String json = JsonLocatorMigrator.buildResolvedJson(DemoPageElements.class);
-        // The key "externalFileName" must not appear anywhere (not a locator key)
+        // The key "externalFileName" must not appear anywhere (not an enum constant name)
         assertFalse(json.contains("\"externalFileName\""),
-                "getExternalFileName should not be emitted as a locator key");
+                "getExternalFileName should not be emitted as a key");
     }
 
-    @Test(description = "getArgs is NOT emitted (does not end with 'Locator')")
+    @Test(description = "getArgs is NOT emitted (not an enum constant name)")
     public void buildResolvedJson_argsKey_notPresent() {
         String json = JsonLocatorMigrator.buildResolvedJson(DemoPageElements.class);
         assertFalse(json.contains("\"args\""),
-                "getArgs should not be emitted as a locator key");
+                "getArgs should not be emitted as a key");
     }
 
     // =====================================================================

@@ -31,7 +31,7 @@ import static core.logging.CustomLogger.*;
  *
  * <h3>Key ideas</h3>
  * <ul>
- *   <li>Resolve everything from enums Ã¢â€ â€™ locators via properties/json resolver,
+ *   <li>Resolve everything from enums to locators via properties/json resolver,
  *       keeping all CSS/XPath selectors in properties files.</li>
  *   <li>Provide before/after action hooks so callers can compose behaviors
  *       (e.g., waits, scrolls, highlights).</li>
