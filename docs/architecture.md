@@ -49,7 +49,7 @@ VOID (Versatile Object-Oriented Integration for Debugging) is a **next-generatio
 | `TextInputField`                 | Text input fields.                                                |
 | `KeyValuePair`                   | Key-value display or edit pairs.                                  |
 | `ReadOnlyElement`                | Non-editable / display-only elements.                             |
-| `ResolvableEnum`                 | Reflection-driven enum resolution via `EnumClassRegistry`.        |
+| `ResolvableEnum`                 | Mixin for name↔label enum resolution (lives in `core.utils`, not `elements.api`). |
 
 ---
 
@@ -86,6 +86,7 @@ VOID (Versatile Object-Oriented Integration for Debugging) is a **next-generatio
 - ANSI color-coded console output with timestamps (`yyyy-MM-dd HH:mm:ss.SSS`).
 - Log format: `[LEVEL] OriginClass.method <message> ← CallerClass.method`.
 - Dual-channel: real-time console + full-depth persistent trace log file.
+- Powered by **Log4j 2** (with a 1.x API bridge for compatibility).
 - Initialised per class via `CustomLogger.initialize(this.getClass())`.
 
 ---
@@ -151,6 +152,11 @@ void-framework/
 ├── src/main/java/
 │   ├── WebApplication/
 │   │   └── VOID.java                        ← Framework entry point / façade
+│   ├── automation/
+│   │   ├── interactions/
+│   │   │   └── StepDefInteractions.java      ← BDD-layer interactions
+│   │   └── WebApplication/
+│   │       └── AutomationVOID.java           ← Extends VOID with stepDefInteraction()
 │   ├── elements/
 │   │   ├── api/                             ← Element interfaces
 │   │   │   ├── Element.java
@@ -168,15 +174,14 @@ void-framework/
 │   │   │   ├── FileInputElement.java
 │   │   │   ├── TextInputField.java
 │   │   │   ├── KeyValuePair.java
-│   │   │   ├── ReadOnlyElement.java
-│   │   │   └── ResolvableEnum.java
+│   │   │   └── ReadOnlyElement.java
 │   │   ├── meta/
 │   │   │   ├── ElementRole.java             ← Role enum (PRIMARY, TRIGGER, LIST, …)
 │   │   │   └── EnumClassRegistry.java       ← Context key → enum class registry
-│   │   └── ManageUsersElements.java         ← Example page element enum
+│   │   └── exapmlepages/                    ← Example page element enums
 │   ├── interactions/
 │   │   ├── Interactions.java                ← Core UI interaction methods
-│   │   ├── StepDefInteractions.java         ← BDD-layer interactions
+│   │   ├── Via.java                         ← Static casting / locator / WebElement helpers
 │   │   └── hooks/
 │   │       ├── ActionHandler.java
 │   │       ├── Before.java                  ← Pre-action hooks
@@ -187,21 +192,55 @@ void-framework/
 │   │   │   ├── DriverContext.java
 │   │   │   └── Waiter.java
 │   │   ├── logging/
-│   │   │   ├── CustomLogger.java
-│   │   │   └── LogConfig.java
+│   │   │   ├── CustomLogger.java            ← Public facade
+│   │   │   ├── ConsoleOnly.java             ← @ConsoleOnly annotation
+│   │   │   ├── ansi/
+│   │   │   │   ├── AnsiEscape.java
+│   │   │   │   ├── AnsiColors.java
+│   │   │   │   └── AnsiColorMatrix.java
+│   │   │   ├── config/
+│   │   │   │   ├── LogConfig.java
+│   │   │   │   └── LoggerContext.java
+│   │   │   ├── intent/
+│   │   │   │   └── LogIntent.java
+│   │   │   ├── render/
+│   │   │   │   └── LogActions.java
+│   │   │   └── theme/
+│   │   │       ├── LogTheme.java
+│   │   │       ├── ThemeColors.java
+│   │   │       └── BuiltInThemes.java
 │   │   ├── resolvers/locator/
-│   │   │   ├── LocatorResolvers.java          ← strict() + legacyPadded() factories
-│   │   │   ├── LocatorResolver.java           ← resolver interface
-│   │   │   ├── LocatorRequest.java            ← (file, key, args) value object
-│   │   │   ├── LocatorSource.java             ← reader contract
+│   │   │   ├── api/
+│   │   │   │   ├── LocatorResolvers.java    ← strict() + legacyPadded() factories
+│   │   │   │   ├── LocatorResolver.java     ← resolver interface
+│   │   │   │   ├── LocatorRequest.java      ← (file, key, args) value object
+│   │   │   │   └── LocatorPaths.java        ← base path constants
+│   │   │   ├── source/
+│   │   │   │   ├── LocatorSource.java       ← reader contract
+│   │   │   │   ├── LocatorSourceRegistry.java
+│   │   │   │   ├── JsonLocatorSource.java
+│   │   │   │   ├── PropertiesLocatorSource.java
+│   │   │   │   ├── LayeredPropertiesLocatorSource.java
+│   │   │   │   └── HardcodedLocatorSource.java
+│   │   │   ├── parser/
+│   │   │   │   ├── ByParser.java
+│   │   │   │   └── ByPrefixStrategy.java
+│   │   │   ├── template/
+│   │   │   │   └── LocatorTemplate.java
 │   │   │   ├── json/
 │   │   │   │   ├── JsonLocatorReader.java
-│   │   │   │   └── JsonMigratorCli.java       ← .properties → .json migrator CLI
+│   │   │   │   ├── JsonNodeLookup.java
+│   │   │   │   ├── JsonLocatorMigrator.java
+│   │   │   │   ├── JsonTreeBuilder.java
+│   │   │   │   ├── EnumLocatorScanner.java
+│   │   │   │   ├── PropertiesIndex.java
+│   │   │   │   └── JsonMigratorCli.java     ← .properties → .json migrator CLI
 │   │   │   └── properties/
 │   │   │       └── PropertiesFileLocatorReader.java
 │   │   └── utils/
 │   │       ├── ConfigLoader.java
 │   │       ├── EnumResolver.java
+│   │       ├── ResolvableEnum.java          ← Mixin for name↔label enum resolution
 │   │       ├── UIContext.java
 │   │       ├── web/
 │   │       │   ├── DOMUtils.java
@@ -214,6 +253,8 @@ void-framework/
 │   │       │   └── DataGenerator.java
 │   │       └── io/
 │   │           ├── FileUtils.java
+│   │           ├── properties/
+│   │           │   └── PropertiesReader.java
 │   │           └── json/
 │   │               ├── JsonReader.java
 │   │               └── JsonLogger.java
@@ -225,12 +266,12 @@ void-framework/
 │   │   ├── driver.properties
 │   │   └── test.properties
 │   ├── locators/
-│   │   ├── *.properties
-│   │   └── *.json
+│   │   ├── properties/                      ← *.properties locator files
+│   │   └── json/                            ← *.json locator files
 │   ├── feature/
 │   ├── fallbacks/
 │   ├── extent.properties
-│   └── log4j.properties
+│   └── log4j2.xml
 └── src/testNgXml/
     └── testng.xml
 ```
@@ -240,8 +281,8 @@ void-framework/
 ## ⚙️ Execution Flow
 
 1. **VOID instantiation** → `DriverContext.getActiveDriver()` provides the WebDriver.
-2. **Element resolution** → enum constant's `getExternalFileName()` + `getPrimaryLocator()` + `getArgs()` feed `LocatorResolverV1`.
-3. **Locator lookup** → JSON reader tried first, falls back to `.properties` reader; template args substituted.
+2. **Element resolution** → enum constant's `getExternalFileName()` + `getPrimaryLocator()` + `getArgs()` feed `LocatorResolvers.strict()` (or `legacyPadded()`) via a `LocatorRequest`.
+3. **Locator lookup** → `LocatorSourceRegistry` dispatches to JSON or `.properties` readers; template args substituted.
 4. **Hook pipeline** → `Before.*` hooks execute (wait visible, wait clickable, highlight, Angular wait).
 5. **Action execution** → Selenium action; JS fallback on failure; stale-element retry via `UIContext` meta.
 6. **Hook pipeline** → `After.*` hooks execute.
@@ -253,35 +294,36 @@ void-framework/
 
 ```java
 // Instantiate framework entry point
-VOID void = new VOID();
+VOID app = new VOID();
 
 // Click using a Clickable enum
-void.interaction().clickOn(ManageUsersElements.UserCards.LOGIN_AS_BUTTON);
+app.interaction().clickOn(ManageUsersElements.UserCards.LOGIN_AS_BUTTON);
 
 // Click with before/after hooks
-void.interaction().clickOn(
+app.interaction().clickOn(
     List.of(Before.WAIT_FOR_ANGULAR_LOADER),
     MyElements.SUBMIT_BUTTON,
     List.of(After.DO_NOTHING)
 );
 
 // Select from a dropdown
-void.interaction().selectFromDropdown(CommonElements.AppSwitcher.ADMIN);
+app.interaction().selectFromDropdown(CommonElements.AppSwitcher.ADMIN);
 
 // Select from indexed three-dots menu (row 2)
-void.interaction().selectFromDropdown(2, ManageUsersElements.ActionsMenu.VIEW_REGISTRATION);
+app.interaction().selectFromDropdown(2, ManageUsersElements.ActionsMenu.VIEW_REGISTRATION);
 
 // Read text from a read-only element
-String name = void.interaction().getText(ManageUsersElements.UserCards.FULL_NAME);
+String name = app.interaction().getText(ManageUsersElements.UserCards.FULL_NAME);
 
 // Read tooltip-resolved text
-String email = void.interaction().getTextViaToolTip(null, ManageUsersElements.UserCards.EMAIL, null, true);
+String email = app.interaction().getTextViaToolTip(null, ManageUsersElements.UserCards.EMAIL, null, true);
 
 // Search and click first result
-void.interaction().searchFor(CommonElements.GlobalSearch.SEARCH, "Deal Registration");
+app.interaction().searchFor(CommonElements.GlobalSearch.SEARCH, "Deal Registration");
 
 // Step-definition layer (BDD)
-void.stepDefInteraction().clickOnFrom("tiles", "admin_home", "Account Mapping");
+AutomationVOID bddApp = new AutomationVOID();
+bddApp.stepDefInteraction().clickOnFrom("tiles", "admin_home", "Account Mapping");
 ```
 
 ---
@@ -321,13 +363,14 @@ locators.template.output.dir=locators/
 | `selenium-java` | 4.38.0 | WebDriver API |
 | `webdrivermanager` | 6.3.3 | Automatic driver binary management |
 | `cucumber-java` / `cucumber-testng` | 7.31.0 | BDD test execution |
-| `testng` | 7.10.2 | Test runner |
+| `testng` | 7.11.0 | Test runner |
 | `extentreports-cucumber7-adapter` | 1.14.0 | HTML reporting |
-| `cucumber-reporting` | 5.10.1 | Cucumber reports |
-| `log4j` | 1.2.17 | Logging backend |
-| `org.json` | 20250517 | JSON parsing |
-| `commons-csv` | 1.14.1 | CSV data handling |
-| `mssql-jdbc` | 13.2.1.jre11 | SQL Server connectivity |
+| `jackson-databind` | 2.19.0 (managed via BOM) | JSON parsing |
+| `log4j-api` / `log4j-core` / `log4j-1.2-api` | 2.25.4 | Logging (Log4j 2 with 1.x bridge) |
+| `lombok` | 1.18.42 | Boilerplate reduction |
+| `javafaker` | 1.0.2 | Test data generation |
+| `jsr305` | 3.0.2 | `@Nullable` / `@Nonnull` annotations |
+| `jetbrains-annotations` | 26.0.2 | `@NotNull` / `@Nullable` annotations |
 
 > **Java 17**, **Maven 3.x** required.
 
