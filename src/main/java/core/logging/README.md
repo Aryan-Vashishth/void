@@ -1,7 +1,7 @@
 # `core.logging` — CustomLogger Package
 
 A structured, ANSI-colored, theme-aware logger for Selenium/TestNG automation frameworks.
-Wraps **Apache Log4j** with semantic action methods, multiple built-in color themes, and a
+Wraps **Apache Log4j 2** (with a 1.x bridge for API compatibility) with semantic action methods, multiple built-in color themes, and a
 clean object-oriented architecture — all without requiring any external logging framework changes.
 
 ---
@@ -85,22 +85,28 @@ CustomLogger.configure(
 
 ## 2. Architecture Overview
 
-The package is split into **10 single-responsibility classes** — each with one clear job:
+The package is split into **single-responsibility classes** organised by subpackage:
 
 ```
 core.logging/
 │
-├── AnsiEscape.java       ← Stateless factory for ANSI escape sequences (rgbFg, fg256, sgr, …)
-├── AnsiColors.java       ← Pure data catalog of named color constants (built via AnsiEscape)
-├── ConsoleOnly.java      ← @ConsoleOnly annotation — marks terminal-only features
-├── LogIntent.java        ← Enum: semantic intent of a log line (INTERACTION, DATA, …)
-├── LogTheme.java         ← Enum: theme catalogue (PLAIN, COCKPIT, MODERN_CLEAN, …)
-├── ThemeColors.java      ← Immutable theme model + fluent builder
-├── BuiltInThemes.java    ← 8 pre-built theme instances + active-theme registry
-├── LogConfig.java        ← Central config object (ANSI, theme, cell limit, filters, divider, …)
-├── LoggerContext.java    ← Log4j logger holder + ANSI/caller-color delegates into LogConfig
-├── LogActions.java       ← All action methods base class (click, table, success, …)
-└── CustomLogger.java     ← Public facade — debug/info/warn/error instances + config API
+├── ansi/
+│   ├── AnsiEscape.java       ← Stateless factory for ANSI escape sequences (rgbFg, fg256, sgr, …)
+│   ├── AnsiColors.java       ← Pure data catalog of named color constants (built via AnsiEscape)
+│   └── AnsiColorMatrix.java  ← Color matrix utilities
+├── config/
+│   ├── LogConfig.java        ← Central config object (ANSI, theme, cell limit, filters, divider, …)
+│   └── LoggerContext.java    ← Log4j logger holder + ANSI/caller-color delegates into LogConfig
+├── intent/
+│   └── LogIntent.java        ← Enum: semantic intent of a log line (INTERACTION, DATA, …)
+├── render/
+│   └── LogActions.java       ← All action methods base class (click, table, success, …)
+├── theme/
+│   ├── LogTheme.java         ← Enum: theme catalogue (PLAIN, COCKPIT, MODERN_CLEAN, …)
+│   ├── ThemeColors.java      ← Immutable theme model + fluent builder
+│   └── BuiltInThemes.java    ← 8 pre-built theme instances + active-theme registry
+├── ConsoleOnly.java          ← @ConsoleOnly annotation — marks terminal-only features
+└── CustomLogger.java         ← Public facade — debug/info/warn/error instances + config API
 ```
 
 > **Design note (SRP):** `AnsiEscape` owns the *behavior* of building ANSI strings (and validates
@@ -152,7 +158,7 @@ All builders **validate at call time** — an out-of-range value throws `Illegal
 immediately rather than producing a silently broken escape sequence at runtime.
 
 ```java
-import static core.logging.AnsiEscape.*;
+import static core.logging.ansi.AnsiEscape.*;
 
 // Build colors on the fly
 String brand   = rgbFg(255, 136, 0);          // bespoke orange FG
@@ -185,14 +191,14 @@ for convenient single-import use.
 
 ```java
 // Use directly or via static import
-import static core.logging.AnsiColors.*;
+import static core.logging.ansi.AnsiColors.*;
 
 String myStyle = RGB_FG_LIME_GREEN + BOLD + RGB_BG_DARK_FOREST;
 ```
 
 > **When to use which:**
-> - Reach for **`AnsiColors.*`** when you want a named, semantic palette entry.
-> - Reach for **`AnsiEscape.*`** when you need an ad-hoc color from raw RGB / 256-palette
+> - Reach for **`AnsiColors.*`** (`core.logging.ansi`) when you want a named, semantic palette entry.
+> - Reach for **`AnsiEscape.*`** (`core.logging.ansi`) when you need an ad-hoc color from raw RGB / 256-palette
 >   indices, or to build SGR combos.
 
 ---
@@ -362,13 +368,13 @@ CustomLogger.config().setAnsi(true);
 
 ### `LoggerContext`
 
-Singleton holder for the **Log4j `Logger` instance**. Runtime flags (ANSI, caller-color,
+Singleton holder for the **Log4j 2 `Logger` instance**. Runtime flags (ANSI, caller-color,
 filters) are now delegated to `LogConfig` — `LoggerContext` exists mainly to provide
-the Log4j logger and a handful of compatibility delegates.
+the Log4j 2 logger and a handful of compatibility delegates.
 
 | What it holds | How to configure it |
 |---|---|
-| Log4j `Logger` instance | `LoggerContext.initLogger(Class<?>)` |
+| Log4j 2 `Logger` instance | `LoggerContext.initLogger(Class<?>)` |
 | ANSI enabled delegate | `LoggerContext.enableAnsi()` / `disableAnsi()` → `LogConfig.current()` |
 | Caller-color delegate | `LoggerContext.enableCallerColor()` → `LogConfig.current()` |
 | Call-chain filter delegates | `SUPPRESS_CONTAINS`, `SUPPRESS_METHOD_PREFIXES`, `INCLUDE_ONLY_PREFIXES` |
@@ -392,7 +398,7 @@ logMessage(intent, label, text)
     └─ logMultiline(style, label, text, showCaller)
         └─ split on newlines
         └─ wrap each line: style + "[timestamp] │ [LABEL] │ text" + RESET
-        └─ dispatch to Log4j at the correct level
+        └─ dispatch to Log4j 2 at the correct level
 ```
 
 ---
@@ -413,8 +419,8 @@ CustomLogger.configure(LogConfig)          // replace live config with a built i
 CustomLogger.configure(Consumer<LogConfig>)// patch live config in-place
 CustomLogger.config()                      // access live LogConfig directly
 
-// Log4j logger
-CustomLogger.initialize(Class<?>)          // set Log4j logger category
+// Log4j 2 logger
+CustomLogger.initialize(Class<?>)          // set Log4j 2 logger category
 
 // ANSI (also available via LogConfig)
 CustomLogger.enableAnsi() / disableAnsi()
@@ -685,7 +691,7 @@ Output:
 ### Full example
 
 ```java
-import static core.logging.AnsiColors.*;
+import static core.logging.ansi.AnsiColors.*;
 
 ThemeColors myTheme = ThemeColors.builder()
     // ── Level backgrounds ────────────────────────────────────
