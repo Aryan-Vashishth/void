@@ -18,6 +18,9 @@ public interface MultipleIdenticalDropdowns extends Element {
      */
     String getListLocator();
 
+    @Override
+    default String getPrimaryLocator() { return getTriggerLocator(); }
+
     /**
      * Optionally includes additional arguments (e.g., index, context) for dynamic XPaths.
      */

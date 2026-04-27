@@ -13,6 +13,9 @@ public interface FileInputElement extends Element {
      */
     String getInputLocator();
 
+    @Override
+    default String getPrimaryLocator() { return getInputLocator(); }
+
     /**
      * Returns a display-friendly text for logging/debugging.
      * Uses the first argument if present, otherwise the key.
