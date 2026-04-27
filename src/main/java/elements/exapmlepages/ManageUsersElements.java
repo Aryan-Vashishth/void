@@ -1,4 +1,4 @@
-package elements;
+package elements.exapmlepages;
 
 import elements.api.*;
 import core.utils.ResolvableEnum;

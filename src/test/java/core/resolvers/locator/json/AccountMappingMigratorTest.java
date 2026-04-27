@@ -2,7 +2,7 @@ package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import elements.AccountMappingElements;
+import elements.exapmlepages.AccountMappingElements;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
