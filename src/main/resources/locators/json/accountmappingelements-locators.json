@@ -1,0 +1,89 @@
+{
+  "AccountMappingElements" : {
+    "Header" : {
+      "PAGE_TITLE" : "//h1[contains(@class,'page-title')]",
+      "BREADCRUMB" : "//nav[@aria-label='breadcrumb']//li[last()]",
+      "LAST_SYNCED_LABEL" : "//span[@data-testid='last-synced']"
+    },
+    "SearchBar" : {
+      "ACCOUNT_SEARCH" : {
+        "SEARCH_INPUT" : "//input[@placeholder='Search accounts...']",
+        "SEARCH_BUTTON" : "//button[@aria-label='Search']"
+      }
+    },
+    "FilterPanel" : {
+      "StatusDropdown" : {
+        "USER_STATUS" : {
+          "TRIGGER" : "//mat-select[@formcontrolname='status']",
+          "SEARCH_INPUT" : "//input[@placeholder='Filter statuses...']",
+          "SEARCH_BUTTON" : "//button[@aria-label='Apply status filter']",
+          "SEARCH_RESULT" : "//mat-option[span[contains(text(),'%s')]]"
+        }
+      },
+      "DateRange" : {
+        "DATE_FROM" : "//input[@formcontrolname='dateFrom']",
+        "DATE_TO" : "//input[@formcontrolname='dateTo']"
+      },
+      "ActiveOnly" : {
+        "ACTIVE_ONLY_TOGGLE" : "//mat-checkbox[@formcontrolname='activeOnly']"
+      },
+      "ApplyButton" : {
+        "APPLY" : "//button[span[normalize-space()='Apply']]",
+        "RESET" : "//button[span[normalize-space()='Reset']]"
+      }
+    },
+    "AccountTable" : {
+      "MAPPING_GRID" : {
+        "TABLE" : "//table[@id='account-mapping-grid']",
+        "ROW" : "//table[@id='account-mapping-grid']//tbody/tr[%s]",
+        "COLUMN" : "//table[@id='account-mapping-grid']//tbody/tr/td[%s]",
+        "CELL" : "//table[@id='account-mapping-grid']//tbody/tr[%s]/td[%s]",
+        "HEADER" : "//table[@id='account-mapping-grid']//thead/th[%s]",
+        "ADD_ROW_BUTTON" : "//button[@data-testid='add-mapping-row']",
+        "REMOVE_ROW_BUTTON" : "//button[@data-testid='remove-row-%s']",
+        "FOOTER_INPUT_ROW" : "//table[@id='account-mapping-grid']//tfoot//input[%s]"
+      },
+      "InlineEditor" : {
+        "CELL_EDITOR" : "//tr[@data-row='%s']//input[@data-col='%s']"
+      }
+    },
+    "ActionBar" : {
+      "BulkActions" : {
+        "BULK_MENU" : {
+          "TRIGGER" : "//button[@id='bulk-actions-btn']",
+          "LIST" : "//ul[@role='menu']//li[normalize-space()='%s']"
+        }
+      },
+      "ExportButton" : {
+        "EXPORT" : "//button[@data-testid='export-btn']"
+      }
+    },
+    "DetailPanel" : {
+      "TooltipField" : {
+        "ACCOUNT_NAME" : {
+          "TEXT" : ".//span[@class='acct-name truncate']",
+          "TOOLTIP_CONTENT" : "//div[@class='cdk-overlay-container']//div[contains(@class,'tooltip')]"
+        }
+      },
+      "RoleSelector" : {
+        "ROLE_DROPDOWN" : {
+          "MULTI_TRIGGER" : "(//mat-select[@formcontrolname='role'])[%s]",
+          "MULTI_LIST" : "//mat-option[span[contains(text(),'%s')]]"
+        }
+      },
+      "FileUpload" : {
+        "MAPPING_CSV" : "//input[@type='file' and @data-testid='mapping-upload']"
+      }
+    },
+    "Pagination" : {
+      "NEXT_PAGE" : "//button[@aria-label='Next page']",
+      "PREV_PAGE" : "//button[@aria-label='Previous page']",
+      "PageSizeDropdown" : {
+        "PAGE_SIZE" : {
+          "TRIGGER" : "//mat-select[@aria-label='Items per page']",
+          "LIST" : "//mat-option[span[text()='%s']]"
+        }
+      }
+    }
+  }
+}

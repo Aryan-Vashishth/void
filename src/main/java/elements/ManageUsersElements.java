@@ -1,9 +1,7 @@
 package elements;
 
 import elements.api.*;
-import elements.meta.ElementRole;
-
-import java.util.Map;
+import core.utils.ResolvableEnum;
 
 public interface ManageUsersElements {
 
@@ -18,26 +16,6 @@ public interface ManageUsersElements {
         private final String key; UserCards(String k){this.key=k;}
         @Override public String getExternalFileName(){ return "manage-users-elements.properties"; }
         @Override public String getTextLocator(){ return key; }
-
-        @Override
-        public String getPrimaryLocator() {
-            return ReadOnlyElement.super.getPrimaryLocator();
-        }
-
-        @Override
-        public String getDisplayText() {
-            return ReadOnlyElement.super.getDisplayText();
-        }
-
-        @Override
-        public Map<ElementRole, String> getAllLocatorRoles() {
-            return ReadOnlyElement.super.getAllLocatorRoles();
-        }
-
-        @Override
-        public Map.Entry<String, String> toEntry() {
-            return ResolvableEnum.super.toEntry();
-        }
 
         @Override public Object[] getArgs(){ return new Object[0]; }
     }
