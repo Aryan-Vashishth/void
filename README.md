@@ -210,4 +210,6 @@ But it will expose it very clearly.
 
 ---
 
-## `Refer to /docs for detailed documents`
+## Documentation
+
+See [`/docs`](./docs) for detailed documentation.
