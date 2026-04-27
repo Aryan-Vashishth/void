@@ -105,9 +105,9 @@ Reusable hooks like:
 ### 🧭 Centralized Interactions API
 
 ```java
-void.interaction().clickOn(element);
-void.interaction().selectFromDropdown(dropdown);
-void.interaction().searchFor(searchField, "text");
+app.interaction().clickOn(element);
+app.interaction().selectFromDropdown(dropdown);
+app.interaction().searchFor(searchField, "text");
 ```
 
 ---
@@ -115,21 +115,21 @@ void.interaction().searchFor(searchField, "text");
 ## 🧠 Example Usage
 
 ```java
-VOID void = new VOID();
+VOID app = new VOID();
 
-void.interaction().clickOn(ManageUsersElements.UserCards.LOGIN_AS_BUTTON);
+app.interaction().clickOn(ManageUsersElements.UserCards.LOGIN_AS_BUTTON);
 
-void.interaction().clickOn(
+app.interaction().clickOn(
     List.of(Before.WAIT_FOR_ANGULAR_LOADER),
     MyElements.SUBMIT_BUTTON,
     List.of(After.DO_NOTHING)
 );
 
-void.interaction().selectFromDropdown(CommonElements.AppSwitcher.ADMIN);
+app.interaction().selectFromDropdown(CommonElements.AppSwitcher.ADMIN);
 
-String name = void.interaction().getText(ManageUsersElements.UserCards.FULL_NAME);
+String name = app.interaction().getText(ManageUsersElements.UserCards.FULL_NAME);
 
-void.interaction().searchFor(CommonElements.GlobalSearch.SEARCH, "Deal Registration");
+app.interaction().searchFor(CommonElements.GlobalSearch.SEARCH, "Deal Registration");
 ```
 
 ---
