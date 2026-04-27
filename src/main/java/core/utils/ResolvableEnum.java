@@ -1,13 +1,19 @@
-package elements.api;
+package core.utils;
 
-import elements.meta.ElementRole;
+import java.util.Map;
 
 /**
- * Adds standardized name/label semantics to enums so they can be surfaced
- * as {@link KeyValuePair} instances, enabling consistent logging or UI selection flows.
- * <p>Default label formatting: transforms ENUM_CONSTANT to "Enum Constant".</p>
+ * Mixin for enums that need standardized name→label resolution.
+ * <p>
+ * Used by {@link EnumResolver} to match user-facing text
+ * (e.g., step definition parameters) to enum constants.
+ * </p>
+ * <p><b>This is NOT a locator interface.</b> Enums that also need locator
+ * behaviour should additionally implement the appropriate {@link elements.api.Element}
+ * sub-interface ({@code Clickable}, {@code TextInputField}, etc.).</p>
+ * <p>Default label formatting: transforms ENUM_CONSTANT → "Enum Constant".</p>
  */
-public interface ResolvableEnum extends KeyValuePair<String,String> {
+public interface ResolvableEnum {
 
     /** @return raw enum constant name. */
     default String getName() {
@@ -29,7 +35,7 @@ public interface ResolvableEnum extends KeyValuePair<String,String> {
         return sb.toString().trim();
     }
 
-    /** @return lowerCamel variant (ENUM_CONSTANT -> enumConstant). */
+    /** @return lowerCamel variant (ENUM_CONSTANT → enumConstant). */
     default String toLowerCamel() {
         String raw = getName().toLowerCase();
         String[] parts = raw.split("_");
@@ -43,16 +49,9 @@ public interface ResolvableEnum extends KeyValuePair<String,String> {
         return b.toString();
     }
 
-    @Override default String getKey(){ return getName(); }
-    @Override default String getValue(){ return getLabel(); }
-    default String getPrimaryLocator(){ return getKey(); }
-    default String getExternalFileName(){ return null; }
-    default Object[] getArgs(){ return new Object[0]; }
-    default String getDisplayText(){ return getLabel(); }
-    default java.util.Map<ElementRole,String> getAllLocatorRoles(){
-        java.util.Map<ElementRole,String> roles = new java.util.LinkedHashMap<>();
-        String primary = getPrimaryLocator();
-        if(primary!=null && !primary.isBlank()) roles.put(ElementRole.TEXT, primary);
-        return roles;
+    /** @return immutable Map.Entry of name→label. */
+    default Map.Entry<String, String> toEntry() {
+        return Map.entry(getName(), getLabel());
     }
 }
+

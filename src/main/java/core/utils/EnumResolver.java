@@ -1,6 +1,5 @@
 package core.utils;
 
-import elements.api.ResolvableEnum; // switched to v1
 import com.beust.jcommander.internal.Nullable;
 import core.driver.Waiter;
 import org.openqa.selenium.By;

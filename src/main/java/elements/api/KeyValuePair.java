@@ -28,9 +28,8 @@ public interface KeyValuePair<K, V>  extends Element{
     /** @return alias to {@link #toEntry()} for semantic clarity in streaming contexts. */
     default Map.Entry<K, V> keyValuePair() { return toEntry(); }
 
-    // bridging helpers (not Element inheritance)
-    default String getPrimaryLocator() { return getKey() == null ? null : getKey().toString(); }
+    // bridging helpers (Element defaults for KeyValuePair implementors)
+    default String getExternalFileName() { return null; }
     default String getSecondaryLocator() { return getValue() == null ? null : getValue().toString(); }
     default Object[] getArgs() { return new Object[0]; }
-    default String getDisplayText() { return getValue() == null ? "" : getValue().toString(); }
 }
