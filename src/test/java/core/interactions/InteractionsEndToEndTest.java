@@ -7,7 +7,7 @@ import core.resolvers.locator.api.LocatorResolver;
 import core.resolvers.locator.api.LocatorResolvers;
 import elements.api.Clickable;
 import elements.api.ReadOnlyElement;
-import elements.api.ResolvableEnum;
+import core.utils.ResolvableEnum;
 import elements.api.TextInputField;
 import elements.meta.ElementRole;
 import interactions.Interactions;
@@ -89,11 +89,6 @@ public class InteractionsEndToEndTest {
         @Override public String getExternalFileName() { return FILE; }
         @Override public String getInputLocator()     { return key; }
         @Override public Object[] getArgs()           { return args; }
-
-        @Override public String getPrimaryLocator()                 { return TextInputField.super.getPrimaryLocator(); }
-        @Override public String getDisplayText()                    { return TextInputField.super.getDisplayText(); }
-        @Override public Map<ElementRole, String> getAllLocatorRoles() { return TextInputField.super.getAllLocatorRoles(); }
-        @Override public Map.Entry<String, String> toEntry()        { return ResolvableEnum.super.toEntry(); }
     }
 
     /** Two-arg XPath template: {@code //tr[@data-row='%s']//td[@data-col='%s']}. */
@@ -107,11 +102,6 @@ public class InteractionsEndToEndTest {
         @Override public String getExternalFileName() { return FILE; }
         @Override public String getInputLocator()     { return key; }
         @Override public Object[] getArgs()           { return args; }
-
-        @Override public String getPrimaryLocator()                 { return TextInputField.super.getPrimaryLocator(); }
-        @Override public String getDisplayText()                    { return TextInputField.super.getDisplayText(); }
-        @Override public Map<ElementRole, String> getAllLocatorRoles() { return TextInputField.super.getAllLocatorRoles(); }
-        @Override public Map.Entry<String, String> toEntry()        { return ResolvableEnum.super.toEntry(); }
     }
 
     /** No-arg XPath: {@code //button[@id='submit']} (BUTTON_TRIGGER). */
@@ -124,11 +114,6 @@ public class InteractionsEndToEndTest {
         @Override public String getExternalFileName() { return FILE; }
         @Override public String getTriggerLocator()   { return key; }
         @Override public Object[] getArgs()           { return new Object[0]; }
-
-        @Override public String getPrimaryLocator()                 { return Clickable.super.getPrimaryLocator(); }
-        @Override public String getDisplayText()                    { return Clickable.super.getDisplayText(); }
-        @Override public Map<ElementRole, String> getAllLocatorRoles() { return Clickable.super.getAllLocatorRoles(); }
-        @Override public Map.Entry<String, String> toEntry()        { return ResolvableEnum.super.toEntry(); }
     }
 
     /** CSS prefix: {@code css=input#username} (LOGIN_INPUT). */
@@ -141,11 +126,6 @@ public class InteractionsEndToEndTest {
         @Override public String getExternalFileName() { return FILE; }
         @Override public String getInputLocator()     { return key; }
         @Override public Object[] getArgs()           { return new Object[0]; }
-
-        @Override public String getPrimaryLocator()                 { return TextInputField.super.getPrimaryLocator(); }
-        @Override public String getDisplayText()                    { return TextInputField.super.getDisplayText(); }
-        @Override public Map<ElementRole, String> getAllLocatorRoles() { return TextInputField.super.getAllLocatorRoles(); }
-        @Override public Map.Entry<String, String> toEntry()        { return ResolvableEnum.super.toEntry(); }
     }
 
     /** Read-only element keyed off TEXT role (defaults from ResolvableEnum). */
@@ -158,11 +138,6 @@ public class InteractionsEndToEndTest {
         @Override public String getExternalFileName() { return FILE; }
         @Override public String getTextLocator()      { return key; }
         @Override public Object[] getArgs()           { return new Object[0]; }
-
-        @Override public String getPrimaryLocator()                 { return ReadOnlyElement.super.getPrimaryLocator(); }
-        @Override public String getDisplayText()                    { return ReadOnlyElement.super.getDisplayText(); }
-        @Override public Map<ElementRole, String> getAllLocatorRoles() { return ReadOnlyElement.super.getAllLocatorRoles(); }
-        @Override public Map.Entry<String, String> toEntry()        { return ResolvableEnum.super.toEntry(); }
     }
 
     // ---------------------------------------------------------------------
