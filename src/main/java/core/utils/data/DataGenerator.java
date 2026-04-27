@@ -1,7 +1,7 @@
 package core.utils.data;
 
 import core.utils.io.FileUtils;
-import elements.api.ResolvableEnum;
+import core.utils.ResolvableEnum;
 import com.github.javafaker.Faker;
 
 import javax.annotation.Nullable;

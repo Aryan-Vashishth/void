@@ -5,6 +5,7 @@ import core.resolvers.locator.api.LocatorResolvers;
 
 import elements.meta.EnumClassRegistry;
 import elements.api.*;
+import core.utils.ResolvableEnum;
 import interactions.hooks.ActionHandler;
 import interactions.Interactions;
 import core.utils.EnumResolver;
@@ -262,7 +263,8 @@ public class StepDefInteractions extends Interactions {
         for (String unresolvedEnumName : unresolvedEnumNames) {
             try {
                 ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
-                By locator = LocatorResolvers.strict().resolve(LocatorRequest.of(resolved.getExternalFileName(), resolved.getPrimaryLocator(), resolved.getArgs()));
+                Element el = (Element) resolved;
+                By locator = LocatorResolvers.strict().resolve(LocatorRequest.of(el.getExternalFileName(), el.getPrimaryLocator(), el.getArgs()));
                 String displayText = resolved.getLabel();
 
                 boolean visible = WaitUtils.waitForCondition(
