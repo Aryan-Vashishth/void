@@ -1,8 +1,8 @@
-# VOID Framework — Versatile Object-Oriented Integration for Debugging
+# VOID — Versatile Object-Oriented Interactions for DOM
 
 ## Overview
 
-VOID (Versatile Object-Oriented Integration for Debugging) is a **next-generation Selenium test automation framework** — not a wrapper, but a **complete re-engineering of how Selenium frameworks are structured and executed**. Built on Java 17 with Maven, it combines an enum-driven element model, role-based locator resolution, and deep observability tooling into a cohesive, enterprise-ready platform.
+VOID (Versatile Object-Oriented Interactions for DOM) is a **structured Selenium automation system**. It ships as a Maven dependency, but internally enforces an opinionated model for element definition, locator resolution, action execution, and failure reporting. Built on Java 17, it combines an enum-driven element model, role-based locator resolution, composable hook pipelines, and deep observability tooling into a cohesive, enterprise-ready platform.
 
 ---
 
@@ -420,19 +420,20 @@ Prefix tokens supported by `PropertiesFileLocatorReader`: `xpath=`, `css=`, `id=
 
 ## 🧠 Design Philosophy
 
-> *VOID is not a Selenium wrapper.* It's a **scalable, object-oriented automation platform** purpose-built for clarity, extensibility, and precision debugging.
+> *VOID is not a Selenium wrapper. It's not a framework. And it's not an optional toolkit.*
+> It's a structured automation system — consumed as a dependency, but opinionated about how elements are modeled, how locators are resolved, and how actions execute.
 > Every line of code is designed for introspection — enabling you to see not only what failed, but **why** and **how**.
 
 ---
 
-## 🧪 Authors & Maintainers
+## 🧪 Author
 
-**VOID Framework Team**  
-Maintained by: Automation Engineering Group  
+**VOID**  
+A personal project.  
 Inspired by: Clean Architecture × Enum-Driven Design × Precision Debugging
 
 ---
 
 ## 📜 License
 
-MIT License © 2025–2026 VOID Framework Project
+MIT License © 2025–2026 VOID Project

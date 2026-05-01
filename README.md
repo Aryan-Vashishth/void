@@ -1,67 +1,108 @@
-# VOID Framework  
-**Versatile Object-Oriented Integration for Debugging**
+# VOID
+
+**Versatile Object-Oriented Interactions for DOM**
+
+![Java](https://img.shields.io/badge/Java-17+-blue?logo=openjdk)
+![Selenium](https://img.shields.io/badge/Selenium-4.38-green?logo=selenium)
+![Maven](https://img.shields.io/badge/Maven-3.x-C71A36?logo=apachemaven)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Version](https://img.shields.io/badge/Version-2.0--SNAPSHOT-orange)
 
 ---
 
-## 🧠 What This Is (and What It Isn’t)
+## 🧠 What This Is (and What It Isn't)
 
-VOID is **not** another Selenium wrapper.
+VOID is not a Selenium wrapper.  
+It's not a framework in the Spring/JUnit sense — it doesn't own your test runner or project layout.  
+And it's not a loose SDK you wire together however you feel like.
 
-It doesn’t try to make Selenium “simpler.”  
-It makes it **structured, observable, and debuggable** — which is what you actually need once things stop working.
+VOID is a **structured automation system**. It ships as a dependency, but inside it enforces a specific model for how elements are defined, how locators are resolved, how actions execute, and how failures are reported.
 
-Most frameworks focus on *running tests*.  
+You adopt the model. The model gives you consistency, traceability, and debuggability in return.
+
+This is a deliberate trade: you don't get to invent your own element abstraction or locator strategy and still benefit from what VOID provides. The system works because the parts agree on how things are done.
+
+Most automation tooling focuses on *running* tests.  
 VOID focuses on **understanding them when they fail**.
 
 ---
 
-## ❌ The Problem (You’ve Seen This Before)
+## ❌ The Problem (You've Seen This Before)
 
-If you’ve worked with Selenium long enough, you already know:
+If you've worked with Selenium long enough, you already know:
 
 - Page Objects start clean → end up as 2,000-line nightmares  
 - Locators live in 6 different places → none of them updated  
-- Failures say *“element not found”* → thanks, very helpful  
+- Failures say *"element not found"* → thanks, very helpful  
 - Debugging = scroll logs + guess + retry  
 
-At scale, automation doesn’t fail because of Selenium.  
+At scale, automation doesn't fail because of Selenium.  
 It fails because of **lack of structure and visibility**.
 
 ---
 
 ## ✅ What VOID Does Differently
 
-VOID doesn’t patch these problems.  
-It replaces the way things are modeled.
+VOID doesn't patch these problems.  
+It replaces the way things are modeled — and expects you to follow the replacement.
 
-### 🔹 Elements are not classes. They’re enums.
-Each UI element is a **first-class, typed entity** — not a string buried in a page file.
+### 🔹 Elements are not classes. They're enums.
+Each UI element is a **first-class, typed entity** implementing a behavioral interface (`Clickable`, `Dropdown`, `TableElement`, etc.). This isn't optional — it's how the locator resolver, the interaction layer, and the logging system identify what you're working with.
 
 ### 🔹 Locators are resolved, not hardcoded
-Dynamic, role-based resolution through `LocatorResolvers` (strict + legacy-padded variants).
+Locators live in external `.json` or `.properties` files, resolved at runtime through `LocatorResolvers` with role-based dispatch via `ElementRole`. You don't call `By.xpath(...)` in test code. The system handles it.
 
 ### 🔹 Actions are pipelines, not method calls
-Every interaction supports **before/after hooks** — composable, reusable, predictable.
+Every interaction runs through a **before/after hook pipeline** — wait conditions, highlights, loader guards — all composable, all declared at the call site. The pipeline is what makes actions observable and retryable.
 
 ### 🔹 Logging actually explains things
 Not just *what failed*, but:
 - where it failed  
 - why it failed  
 - what was attempted  
+- what the locator resolved to  
+- who called whom  
+
+This isn't bolted on. It's structural — the interaction layer, resolver, and hooks all feed into the same tracing system.
+
 
 ---
 
-## ⚡ Why VOID Exists
+## 📋 Prerequisites
 
-Because this:
+| Tool        | Version | Notes                                                        |
+|-------------|---------|--------------------------------------------------------------|
+| **Java**    | 17+     | `JAVA_HOME` must point to a JDK 17+ installation            |
+| **Maven**   | 3.x     | Used for building and running tests                          |
+| **Browser** | Latest  | Chrome (default), Firefox, or Edge                           |
 
-```java
-driver.findElement(By.xpath("//div[3]/span[2]")).click();
+> WebDriver binaries are managed automatically by [WebDriverManager](https://github.com/bonigarcia/webdrivermanager) — no manual driver downloads needed.
+
+---
+
+## ⚡ Quick Start
+
+```bash
+# Clone and build
+git clone <your-repo-url> void-framework
+cd void-framework
+mvn clean install -DskipTests
+
+# Run all tests
+mvn clean test
 ```
 
-…is not automation.
+Then write your first test:
 
-That’s just future debugging debt.
+```java
+VOID app = new VOID();
+
+app.interaction().clickOn(LoginPageElements.Actions.SIGN_IN_BUTTON);
+app.interaction().typeInto(LoginPageElements.Credentials.USERNAME_INPUT, "admin@example.com");
+app.interaction().selectFromDropdown(CommonElements.AppSwitcher.ADMIN);
+```
+
+> 📖 See the full [Quick Start Guide](docs/quick-start.md) for step-by-step instructions.
 
 ---
 
@@ -84,6 +125,8 @@ That’s just future debugging debt.
 - Uses `ElementRole`
 - Dynamic `%s` substitution at runtime
 
+> 📖 See [Locator Resolution Guide](docs/locator-resolution.md) for the full pipeline.
+
 ---
 
 ### 🪝 Hook-Based Execution Pipeline
@@ -93,22 +136,31 @@ Reusable hooks like:
 - HIGHLIGHT_ELEMENT  
 - WAIT_FOR_ANGULAR_LOADER  
 
+> 📖 See [Hooks Guide](docs/hooks-guide.md) for composing custom pipelines.
+
 ---
 
 ### 🧠 Debug-Oriented Logging
-- Color-coded logs  
+- Color-coded logs with 8 built-in themes  
 - Call-site tracing  
 - Console + persistent logs  
+- Semantic action methods (`click`, `dropdown`, `success`, `fallback`, …)
+
+> 📖 See the full [`core.logging` README](src/main/java/core/logging/README.md) for theme reference and configuration.
 
 ---
 
 ### 🧭 Centralized Interactions API
+
+All UI actions go through `Interactions`. Not some of them. All of them.
 
 ```java
 app.interaction().clickOn(element);
 app.interaction().selectFromDropdown(dropdown);
 app.interaction().searchFor(searchField, "text");
 ```
+
+This is the single surface area for DOM interaction — one class, one contract, full hook and logging integration on every call.
 
 ---
 
@@ -136,9 +188,48 @@ app.interaction().searchFor(CommonElements.GlobalSearch.SEARCH, "Deal Registrati
 
 ## 🧱 Architecture
 
-Test → VOID → Interactions → LocatorResolver → WebDriver  
-                        ↓  
-                   Hooks + Logging + Context  
+```
+Test → VOID → Interactions → LocatorResolver → WebDriver
+                        ↓
+                   Hooks + Logging + Context
+```
+
+Every layer enforces a contract. Tests talk to `VOID`. `VOID` delegates to `Interactions`. `Interactions` resolves locators, runs hooks, executes actions, and logs the result. There's no back door.
+
+> 📖 See the full [Architecture Deep-Dive](docs/architecture.md) for details.
+
+---
+
+## 📂 Project Structure
+
+```
+void-framework/
+├── src/main/java/
+│   ├── WebApplication/          ← Entry point (VOID façade)
+│   ├── automation/              ← BDD/step-definition layer (AutomationVOID, StepDefInteractions)
+│   ├── elements/
+│   │   ├── api/                 ← Element interfaces — the contracts you implement
+│   │   ├── meta/                ← ElementRole enum, EnumClassRegistry
+│   │   └── exapmlepages/        ← Example page element enums
+│   ├── interactions/
+│   │   ├── Interactions.java    ← The single interaction surface
+│   │   ├── Via.java             ← Static casting / locator / WebElement helpers
+│   │   └── hooks/               ← ActionHandler, Before.*, After.* hook constants
+│   ├── core/
+│   │   ├── driver/              ← DriverFactory, DriverContext, Waiter
+│   │   ├── logging/             ← CustomLogger, ANSI themes, LogConfig
+│   │   ├── resolvers/locator/   ← LocatorResolvers, LocatorRequest, JSON/properties readers
+│   │   └── utils/               ← ConfigLoader, DOMUtils, WaitUtils, Upload, TableHandler, …
+│   └── StepDefinition/          ← Cucumber step definitions
+├── src/main/resources/
+│   ├── config/                  ← driver.properties, test.properties
+│   ├── locators/                ← .properties and .json locator files
+│   ├── feature/                 ← Cucumber .feature files
+│   └── extent.properties        ← Extent Reports config
+├── src/test/java/               ← Unit and integration tests
+├── src/testNgXml/testng.xml     ← TestNG suite definition
+└── docs/                        ← Architecture, quick-start, and configuration guides
+```
 
 ---
 
@@ -149,6 +240,8 @@ Test → VOID → Interactions → LocatorResolver → WebDriver
 - Headless, proxy, mobile emulation  
 - Config via `driver.properties`  
 
+> 📖 See the full [Configuration Reference](docs/configuration-reference.md) for all keys and layering behavior.
+
 ---
 
 ## 🧾 Logging Example
@@ -157,34 +250,26 @@ Test → VOID → Interactions → LocatorResolver → WebDriver
 2026-04-24 13:15:37.584 │ INFO │ === InteractionsEndToEndTest starting === │ InteractionsEndToEndTest.setupClass ← TestMethodWorker.run
 2026-04-24 13:15:37.663 │ DEBUG │ Setting driver for key: primary │ DriverContext.setPrimaryDriver ← Interactions.(constructor)
 2026-04-24 13:15:37.668 │ DEBUG │ [get] key=locator.properties.base.path src=DEFAULT val=locators/properties/ │ ConfigLoader.get ← LocatorPaths.(static init)
-2026-04-24 13:15:37.668 │ DEBUG │ [get] key=locator.json.base.path src=DEFAULT val=locators/json/ │ ConfigLoader.get ← LocatorPaths.(static init)
 2026-04-24 13:15:37.672 │ DEBUG │ [LOCATOR] Resolving: │ LocatorResolver.resolve ← LocatorResolver.resolveBest
 2026-04-24 13:15:37.673 │ DEBUG │           ├─ File        : test-locators.properties │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.673 │ DEBUG │           ├─ Key         : TEMPLATE_WITH_ARG │ LocatorResolver.resolve ← LocatorResolver.resolveBest
 2026-04-24 13:15:37.674 │ DEBUG │           ├─ Args        : [username] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
 2026-04-24 13:15:37.674 │ DEBUG │           └─ Hardcoded   : false │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.678 │ DEBUG │ [LOCATOR] Final: │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.679 │ DEBUG │           ├─ Key         : TEMPLATE_WITH_ARG │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.679 │ DEBUG │           ├─ Resolved    : //input[@placeholder='username'] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.679 │ DEBUG │           └─ By          : By.xpath: //input[@placeholder='username'] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
 2026-04-24 13:15:37.685 │ DEBUG │ Getting driver for key: primary │ DriverContext.getDriver ← DOMUtils.scrollToElement
-2026-04-24 13:15:37.688 │ TEXT [T] │ Appended to 'username': -extra │ Interactions.appendTo ← InteractionsEndToEndTest.interactions_appendTo_doesNotClearButTypes
 ```
-
----
-
-## 📂 Project Structure
-
-- elements/  
-- interactions/  
-- core/  
-- utils/  
 
 ---
 
 ## 🧠 Design Philosophy
 
-Automation should be understandable under failure — not just execution.
+VOID is consumed like an SDK — you add it as a dependency, not a project template.  
+But internally, it's an opinionated system with its own execution model, element contracts, and resolution pipeline.
+
+You're not expected to invent your own abstractions on top of Selenium and then wire VOID in sideways. You're expected to define elements as typed enums, declare locators externally, run actions through `Interactions`, and let the hook/logging pipeline do its job.
+
+This is the deal: adopt the model, and the model gives you **structured, observable, debuggable automation** — the kind where a failure log tells you exactly what happened, not just that something went wrong.
+
+Fight the model, and you're back to `driver.findElement(By.xpath("//div[3]/span[2]")).click()`.  
+Which... technically works. In the same way that `goto` technically works.
 
 ---
 
@@ -194,6 +279,24 @@ Automation should be understandable under failure — not just execution.
 - Selenium 4  
 - TestNG + Cucumber  
 - Extent Reports  
+- Jackson (JSON)
+- Log4j 2
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Quick Start Guide](docs/quick-start.md) | Get up and running in under 10 minutes |
+| [Architecture Deep-Dive](docs/architecture.md) | Full architecture and execution flow |
+| [Configuration Reference](docs/configuration-reference.md) | All configuration keys, layering, and defaults |
+| [Locator Resolution Guide](docs/locator-resolution.md) | Locator pipeline, formats, roles, and migration |
+| [Hooks Guide](docs/hooks-guide.md) | Composable Before/After hook pipeline |
+| [Logging README](src/main/java/core/logging/README.md) | CustomLogger themes, actions, and configuration |
+| [JSON Locator Package](src/main/java/core/resolvers/locator/json/README.md) | JSON migration tool internals |
+| [Changelog](CHANGELOG.md) | Version history and migration notes |
+| [Contributing](CONTRIBUTING.md) | How to contribute to the project |
 
 ---
 
@@ -205,11 +308,6 @@ MIT License © 2025–2026
 
 ## 🧩 Final Note
 
-VOID won’t magically fix bad test design.
-But it will expose it very clearly.
-
----
-
-## Documentation
-
-See [`/docs`](./docs) for detailed documentation.
+VOID won't magically fix bad test design.  
+But it will make bad test design *extremely* visible.  
+Which, arguably, is the more useful outcome.

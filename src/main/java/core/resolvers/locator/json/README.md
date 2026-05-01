@@ -6,7 +6,7 @@ JSON-backed locator readers and migration utilities for the `core.resolvers.loca
 
 This package provides two core capabilities:
 
-1. **Runtime reading** of pre-built JSON locator files (used by the framework during test execution).
+1. **Runtime reading** of pre-built JSON locator files (used by the SDK during test execution).
 2. **Migration / code-generation** of JSON locator files from enum-based page-element descriptors and their companion `.properties` bundles.
 
 The original implementation was a single ~300-line monolith (`JsonLocatorMigrator`). It was decomposed in **Phase 5** into five focused classes following the Single Responsibility Principle.

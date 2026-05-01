@@ -1,6 +1,6 @@
-# VOID Framework — Quick Start Guide
+# VOID — Quick Start Guide
 
-Get up and running with the VOID framework in under 10 minutes.
+Get up and running with VOID in under 10 minutes.
 
 ---
 
@@ -335,7 +335,7 @@ Example log line:
 | **Role-based resolution** | `LocatorResolvers.strict()` (recommended) and `LocatorResolvers.legacyPadded()` (backward compat) resolve locators by `ElementRole`. |
 | **`ResolvableEnum`** | Standalone mixin (`core.utils.ResolvableEnum`) for name↔label resolution (used by `EnumResolver`). **Not** a locator interface — add it alongside a role interface when you need step-definition string-to-enum matching. |
 | **Hook pipeline** | Pass `Before.*` / `After.*` hooks to any interaction for composable pre/post behavior. |
-| **VOID façade** | `new VOID()` is the framework entry point; call `interaction()` for all UI actions. |
+| **VOID façade** | `new VOID()` is the entry point; call `interaction()` for all UI actions. |
 | **AutomationVOID** | Extends `VOID` with `stepDefInteraction()` for BDD / Cucumber step-definition helpers. |
 | **`Via` helper** | Static utility for casting elements, resolving locators, and finding `WebElement`s without touching resolvers directly. |
 | **JSON migration** | `JsonLocatorMigrator` and `JsonMigratorCli` auto-generate JSON locator files from enum + `.properties` definitions. |
@@ -428,4 +428,4 @@ if (Via.isDropdown(element)) { ... }
 
 ---
 
-*MIT License © 2025–2026 VOID Framework Project*
+*MIT License © 2025–2026 VOID Project*
