@@ -34,7 +34,7 @@ Thank you for considering contributing to VOID! This document outlines the stand
 |-----------|---------|
 | **Java**  | 17+     |
 | **Maven** | 3.x     |
-| **IDE**   | IntelliJ IDEA recommended (Lombok plugin required) |
+| **IDE**   | IntelliJ IDEA recommended |
 
 ### Build & Test
 
@@ -54,7 +54,6 @@ mvn test -Dtest=InteractionsTest#clickOn_clickable_delegatesToSelenium
 
 ### IDE Setup
 
-- Install the **Lombok** plugin and enable annotation processing.
 - Set the project SDK to **Java 17**.
 - Mark `src/main/java` and `src/test/java` as source/test roots.
 - The TestNG suite is at `src/testNgXml/testng.xml`.
@@ -69,6 +68,7 @@ mvn test -Dtest=InteractionsTest#clickOn_clickable_delegatesToSelenium
 - Follow existing package conventions — don't create new top-level packages without discussion.
 - Prefer composition over inheritance.
 - Keep classes focused (Single Responsibility Principle).
+- **No compile-time code generation** — do not introduce Lombok, AutoValue, or similar annotation processors. All constructors, getters, setters, and utility methods must be explicit in the source for transparency and debuggability.
 
 ### Enum-Driven Design
 
