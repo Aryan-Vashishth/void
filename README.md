@@ -205,21 +205,22 @@ Every layer enforces a contract. Tests talk to `VOID`. `VOID` delegates to `Inte
 ```
 void-framework/
 ├── src/main/java/
-│   ├── WebApplication/          ← Entry point (VOID façade)
-│   ├── automation/              ← BDD/step-definition layer (AutomationVOID, StepDefInteractions)
-│   ├── elements/
-│   │   ├── api/                 ← Element interfaces — the contracts you implement
-│   │   ├── meta/                ← ElementRole enum, EnumClassRegistry
-│   │   └── exapmlepages/        ← Example page element enums
-│   ├── interactions/
-│   │   ├── Interactions.java    ← The single interaction surface
-│   │   ├── Via.java             ← Static casting / locator / WebElement helpers
-│   │   └── hooks/               ← ActionHandler, Before.*, After.* hook constants
 │   ├── core/
+│   │   ├── runtime/             ← Entry point (VOID façade)
+│   │   ├── interactions/        ← The single interaction surface
+│   │   │   ├── Interactions.java
+│   │   │   ├── Via.java         ← Static casting / locator / WebElement helpers
+│   │   │   └── hooks/           ← ActionHandler, Before.*, After.* hook constants
 │   │   ├── driver/              ← DriverFactory, DriverContext, Waiter
 │   │   ├── logging/             ← CustomLogger, ANSI themes, LogConfig
 │   │   ├── resolvers/locator/   ← LocatorResolvers, LocatorRequest, JSON/properties readers
 │   │   └── utils/               ← ConfigLoader, DOMUtils, WaitUtils, Upload, TableHandler, …
+│   ├── dsl/
+│   │   └── VoidDSL.java         ← Context-driven DSL (optional intent layer)
+│   ├── elements/
+│   │   ├── api/                 ← Element interfaces — the contracts you implement
+│   │   ├── meta/                ← ElementRole enum, EnumClassRegistry
+│   │   └── exapmlepages/        ← Example page element enums
 │   └── StepDefinition/          ← Cucumber step definitions (optional adapter layer)
 ├── src/main/resources/
 │   ├── config/                  ← driver.properties, test.properties
