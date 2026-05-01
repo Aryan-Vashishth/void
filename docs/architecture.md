@@ -86,7 +86,7 @@ VOID (Versatile Object-Oriented Interactions for DOM) is a **structured Selenium
 - ANSI color-coded console output with timestamps (`yyyy-MM-dd HH:mm:ss.SSS`).
 - Log format: `[LEVEL] OriginClass.method <message> ← CallerClass.method`.
 - Dual-channel: real-time console + full-depth persistent trace log file.
-- Powered by **Log4j 2** (with a 1.x API bridge for compatibility).
+- Powered by **Log4j 2**.
 - Initialised per class via `CustomLogger.initialize(this.getClass())`.
 
 ---
@@ -137,13 +137,6 @@ Locators live under `src/main/resources/locators/` in two formats:
 
 ---
 
-### 🧾 Extent Reporting
-
-- Configured via `src/main/resources/extent.properties`.
-- Integrated through `extentreports-cucumber7-adapter` + `cucumber-reporting`.
-- HTML spark reports generated under `target/ExtentReports/SparkReports/`.
-
----
 
 ## 📂 Actual Project Structure
 
@@ -259,8 +252,7 @@ void-framework/
 │   │               ├── JsonReader.java
 │   │               └── JsonLogger.java
 │   └── StepDefinition/
-│       ├── accountMappingStepDefPack/
-│       └── CommonStepDef/
+│       └── package-info.java                 ← Optional Cucumber adapter layer
 ├── src/main/resources/
 │   ├── config/
 │   │   ├── driver.properties
@@ -270,7 +262,6 @@ void-framework/
 │   │   └── json/                            ← *.json locator files
 │   ├── feature/
 │   ├── fallbacks/
-│   ├── extent.properties
 │   └── log4j2.xml
 └── src/testNgXml/
     └── testng.xml
@@ -361,15 +352,12 @@ locators.template.output.dir=locators/
 | Dependency | Version | Purpose |
 |---|---|---|
 | `selenium-java` | 4.38.0 | WebDriver API |
-| `webdrivermanager` | 6.3.3 | Automatic driver binary management |
-| `cucumber-java` / `cucumber-testng` | 7.31.0 | BDD test execution |
+| `cucumber-java` / `cucumber-testng` | 7.31.0 | BDD test execution (optional) |
 | `testng` | 7.11.0 | Test runner |
-| `extentreports-cucumber7-adapter` | 1.14.0 | HTML reporting |
 | `jackson-databind` | 2.19.0 (managed via BOM) | JSON parsing |
-| `log4j-api` / `log4j-core` / `log4j-1.2-api` | 2.25.4 | Logging (Log4j 2 with 1.x bridge) |
-| `javafaker` | 1.0.2 | Test data generation |
+| `log4j-api` / `log4j-core` | 2.25.4 | Logging (Log4j 2) |
+| `datafaker` | 2.4.2 | Test data generation |
 | `jsr305` | 3.0.2 | `@Nullable` / `@Nonnull` annotations |
-| `jetbrains-annotations` | 26.0.2 | `@NotNull` / `@Nullable` annotations |
 
 > **Java 17**, **Maven 3.x** required.
 

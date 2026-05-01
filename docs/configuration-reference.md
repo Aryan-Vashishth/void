@@ -9,10 +9,9 @@ Complete reference for all VOID configuration files and the `ConfigLoader` layer
 1. [Configuration Layering](#configuration-layering)
 2. [`driver.properties`](#driverproperties)
 3. [`test.properties`](#testproperties)
-4. [`extent.properties`](#extentproperties)
-5. [Locator Path Configuration](#locator-path-configuration)
-6. [Overriding at Runtime](#overriding-at-runtime)
-7. [`log4j2.xml`](#log4j2xml)
+4. [Locator Path Configuration](#locator-path-configuration)
+5. [Overriding at Runtime](#overriding-at-runtime)
+6. [`log4j2.xml`](#log4j2xml)
 
 ---
 
@@ -184,22 +183,6 @@ locators.template.output.dir=locators/
 
 ---
 
-## `extent.properties`
-
-**Location**: `src/main/resources/extent.properties`  
-**Purpose**: Configures the Extent Reports HTML reporter (via `extentreports-cucumber7-adapter`).
-
-### Common Keys
-
-| Key                                      | Description                                    |
-|------------------------------------------|------------------------------------------------|
-| `extent.reporter.spark.start`            | Enable/disable Spark HTML reporter             |
-| `extent.reporter.spark.out`              | Output path for the Spark report               |
-| `extent.reporter.spark.config`           | Path to an XML config file for Spark theme     |
-
-Reports are generated at `target/ExtentReports/SparkReports/` by default.
-
----
 
 ## Locator Path Configuration
 

@@ -76,7 +76,7 @@ This isn't bolted on. It's structural — the interaction layer, resolver, and h
 | **Maven**   | 3.x     | Used for building and running tests                          |
 | **Browser** | Latest  | Chrome (default), Firefox, or Edge                           |
 
-> WebDriver binaries are managed automatically by [WebDriverManager](https://github.com/bonigarcia/webdrivermanager) — no manual driver downloads needed.
+> WebDriver binaries are managed automatically by Selenium Manager (built into Selenium 4.6+) — no manual driver downloads needed.
 
 ---
 
@@ -220,12 +220,12 @@ void-framework/
 │   │   ├── logging/             ← CustomLogger, ANSI themes, LogConfig
 │   │   ├── resolvers/locator/   ← LocatorResolvers, LocatorRequest, JSON/properties readers
 │   │   └── utils/               ← ConfigLoader, DOMUtils, WaitUtils, Upload, TableHandler, …
-│   └── StepDefinition/          ← Cucumber step definitions
+│   └── StepDefinition/          ← Cucumber step definitions (optional adapter layer)
 ├── src/main/resources/
 │   ├── config/                  ← driver.properties, test.properties
 │   ├── locators/                ← .properties and .json locator files
-│   ├── feature/                 ← Cucumber .feature files
-│   └── extent.properties        ← Extent Reports config
+│   ├── feature/                 ← Cucumber .feature files (optional)
+│   └── log4j2.xml              ← Log4j 2 configuration
 ├── src/test/java/               ← Unit and integration tests
 ├── src/testNgXml/testng.xml     ← TestNG suite definition
 └── docs/                        ← Architecture, quick-start, and configuration guides
@@ -277,10 +277,11 @@ Which... technically works. In the same way that `goto` technically works.
 
 - Java 17  
 - Selenium 4  
-- TestNG + Cucumber  
-- Extent Reports  
+- TestNG  
+- Cucumber (optional BDD adapter)  
 - Jackson (JSON)
 - Log4j 2
+- Datafaker (test data generation)
 
 ---
 

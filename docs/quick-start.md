@@ -12,7 +12,7 @@ Get up and running with VOID in under 10 minutes.
 | **Maven**  | 3.x      |
 | **Browser**| Chrome (default), Firefox, or Edge |
 
-> WebDriver binaries are managed automatically by [WebDriverManager](https://github.com/bonigarcia/webdrivermanager) — no manual driver downloads needed.
+> WebDriver binaries are managed automatically by Selenium Manager (built into Selenium 4.6+) — no manual driver downloads needed.
 
 ---
 
@@ -311,7 +311,6 @@ mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/my-suite.xml
 
 | Output | Location |
 |--------|----------|
-| **Extent HTML Report** | `target/ExtentReports/SparkReports/` |
 | **TestNG Reports**     | `target/surefire-reports/`           |
 | **Console Logs**       | ANSI-colored, timestamped, with call-site tracing |
 
