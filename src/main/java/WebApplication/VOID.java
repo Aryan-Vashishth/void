@@ -1,14 +1,12 @@
 package WebApplication;
 
-import core.driver.DriverContext;
+import core.bootstrap.FrameworkBootstrap;
+import core.context.ExecutionContext;
 import core.driver.DriverFactory;
+import core.driver.DriverManager;
 import core.logging.CustomLogger;
-import core.utils.ConfigLoader;
-import core.utils.ConfigPaths;
 import interactions.Interactions;
 import org.openqa.selenium.WebDriver;
-
-import java.util.Properties;
 
 /**
  * Façade / entry point for the core VOID framework.
@@ -20,15 +18,26 @@ import java.util.Properties;
  *
  * <h3>Framework layer usage</h3>
  * <pre>
- *   VOID app = new VOID();
+ *   VOID app = VOID.start();
  *   app.interaction().clickOn(MyElements.SUBMIT_BUTTON);
+ *   app.shutdown();
  * </pre>
  *
  * <h3>Automation layer usage</h3>
  * <pre>
- *   AutomationVOID app = new AutomationVOID();
+ *   AutomationVOID app = AutomationVOID.start();
  *   app.interaction().clickOn(MyElements.SUBMIT_BUTTON);
  *   app.stepDefInteraction().clickOnFrom("tiles", "admin_home", "Dashboard", After.DO_NOTHING);
+ *   app.shutdown();
+ * </pre>
+ *
+ * <h3>Architecture</h3>
+ * <pre>
+ *   VOID.start()
+ *     → FrameworkBootstrap.init()     (one-time: validate configs, seed utils)
+ *     → DriverManager.createDriver() (create + register WebDriver)
+ *     → ExecutionContext              (holds config + driver for this session)
+ *     → return VOID façade            (thin wrapper, delegates to context)
  * </pre>
  *
  * <h3>Layer model</h3>
@@ -44,64 +53,74 @@ import java.util.Properties;
  */
 public class VOID {
 
-    private final WebDriver driver;
+    /** Per-session execution context (config + driver). */
+    private final ExecutionContext context;
 
     /** Lazily-initialised, cached interaction helper. */
     private Interactions interactions;
 
-    /** Tracks whether the framework has been bootstrapped (once per JVM). */
-    private static volatile boolean bootstrapped = false;
-
-
-    public VOID() {
-        bootstrap();
-        DriverContext.setPrimaryDriver(
-                DriverFactory.fromProfile(DriverFactory.Profile.DEFAULT).build()
-        );
-        driver = DriverContext.getActiveDriver();
-        CustomLogger.info.log("VOID initialised — driver ready.");
-    }
-
     // ===========================
-    //      Framework Bootstrap
+    //        Construction
     // ===========================
 
     /**
-     * One-time framework initialisation. Ensures:
-     * <ol>
-     *   <li>CustomLogger is wired to Log4j (via this class)</li>
-     *   <li>driver.properties exists on classpath</li>
-     *   <li>test.properties (utils config) is loaded into ConfigLoader's active store</li>
-     * </ol>
-     * Safe to call multiple times — only the first invocation performs work.
+     * Protected constructor — use {@link #start()} or {@link #start(DriverFactory.Profile)}.
+     *
+     * @param context the execution context for this session
      */
-    private static synchronized void bootstrap() {
-        if (bootstrapped) return;
+    protected VOID(ExecutionContext context) {
+        this.context = context;
+    }
 
-        // 1. CustomLogger is self-initialising (static Log4j context defaults to
-        //    CustomLogger.class). Call-site tracing uses stack introspection — no
-        //    class-specific binding needed. Just verify it's accessible.
-        CustomLogger.debug.log("VOID bootstrap: starting...");
+    // ===========================
+    //      Static Factories
+    // ===========================
 
-        // 2. Verify driver.properties is on the classpath
-        Properties driverProps = ConfigLoader.loadFromClasspath(ConfigPaths.DRIVER_DEFAULT);
-        if (driverProps.isEmpty()) {
-            throw new IllegalStateException(
-                    "VOID bootstrap failed: driver.properties not found on classpath at '"
-                            + ConfigPaths.DRIVER_DEFAULT + "'. "
-                            + "Ensure the file exists at src/main/resources/core/driver/config/driver.properties");
-        }
-        CustomLogger.debug.log("VOID bootstrap: driver.properties loaded (" + driverProps.size() + " keys)");
+    /**
+     * Starts a new VOID session with the {@link DriverFactory.Profile#DEFAULT DEFAULT} profile.
+     *
+     * <p>Orchestrates the full startup pipeline:</p>
+     * <ol>
+     *   <li>{@link FrameworkBootstrap#init()} — one-time config validation</li>
+     *   <li>{@link DriverManager#createDriver(DriverFactory.Profile)} — WebDriver creation + registration</li>
+     *   <li>Builds an {@link ExecutionContext} binding config and driver</li>
+     * </ol>
+     *
+     * @return a ready-to-use VOID instance
+     */
+    public static VOID start() {
+        return start(DriverFactory.Profile.DEFAULT);
+    }
 
-        // 3. Load utils/test config into the active ConfigLoader store
-        Properties utilsProps = ConfigLoader.loadFromClasspath(ConfigPaths.UTILS_TEST);
-        if (!utilsProps.isEmpty()) {
-            ConfigLoader.setActive(utilsProps);
-            CustomLogger.debug.log("VOID bootstrap: utils config activated (" + utilsProps.size() + " keys)");
-        }
+    /**
+     * Starts a new VOID session with the specified driver profile.
+     *
+     * @param profile the driver configuration profile
+     * @return a ready-to-use VOID instance
+     */
+    public static VOID start(DriverFactory.Profile profile) {
+        FrameworkBootstrap.init();
 
-        bootstrapped = true;
-        CustomLogger.info.log("VOID framework bootstrapped successfully.");
+        WebDriver driver = DriverManager.createDriver(profile);
+        ExecutionContext ctx = new ExecutionContext(
+                FrameworkBootstrap.getUtilsConfig(),
+                driver
+        );
+
+        CustomLogger.info.log("VOID initialised — driver ready.");
+        return new VOID(ctx);
+    }
+
+    // ===========================
+    //        Lifecycle
+    // ===========================
+
+    /**
+     * Shuts down this VOID session — quits all drivers for the current thread.
+     */
+    public void shutdown() {
+        CustomLogger.info.log("VOID shutting down.");
+        DriverManager.quitAll();
     }
 
     // ===========================
@@ -109,11 +128,19 @@ public class VOID {
     // ===========================
 
     /**
+     * Returns the {@link ExecutionContext} so subclasses (e.g. {@code AutomationVOID})
+     * can access configuration and the driver without re-fetching from globals.
+     */
+    protected ExecutionContext getContext() {
+        return context;
+    }
+
+    /**
      * Returns the underlying {@link WebDriver} so subclasses (e.g. {@code AutomationVOID})
      * can pass it to their own interaction helpers without re-fetching it from the context.
      */
     protected WebDriver getDriver() {
-        return driver;
+        return context.getDriver();
     }
 
     // ===========================
@@ -123,7 +150,7 @@ public class VOID {
     /** Returns the (cached) general-purpose interaction helper. */
     public Interactions interaction() {
         if (interactions == null) {
-            interactions = new Interactions(driver);
+            interactions = new Interactions(context.getDriver());
         }
         return interactions;
     }
