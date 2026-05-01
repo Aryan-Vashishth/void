@@ -19,23 +19,20 @@
 
         <!-- Core -->
         <selenium.version>4.38.0</selenium.version>
-        <webdrivermanager.version>6.3.3</webdrivermanager.version>
         <testng.version>7.11.0</testng.version>
 
-        <!-- Cucumber + Reporting -->
+        <!-- Cucumber (optional BDD adapter — not part of core) -->
         <cucumber.version>7.31.0</cucumber.version>
-        <extentreports-cucumber7-adapter.version>1.14.0</extentreports-cucumber7-adapter.version>
 
         <!-- Jackson (managed via BOM — see dependencyManagement) -->
         <jackson.version>2.19.0</jackson.version>
 
         <!-- Annotations -->
         <jsr305.version>3.0.2</jsr305.version>
-        <jetbrains-annotations.version>26.0.2</jetbrains-annotations.version>
 
         <!-- Utilities -->
-        <log4j2.version>2.25.4</log4j2.version>  <!-- ✏️ update: log4j2.version in <properties> —— replaces EOL log4j 1.x (6 CVEs) -->
-        <javafaker.version>1.0.2</javafaker.version>
+        <log4j2.version>2.25.4</log4j2.version>
+        <datafaker.version>2.4.2</datafaker.version>
 
         <!-- Plugins -->
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
@@ -93,63 +90,46 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>${selenium.version}</version>                        <!-- ✏️ update: selenium.version in <properties> -->
-        </dependency>
-        <dependency>
-            <groupId>io.github.bonigarcia</groupId>
-            <artifactId>webdrivermanager</artifactId>
-            <version>${webdrivermanager.version}</version>                <!-- ✏️ update: webdrivermanager.version in <properties> -->
+            <version>${selenium.version}</version>
         </dependency>
 
-        <!-- ── Cucumber ──────────────────────────────────────── -->
+        <!-- ── Cucumber (optional BDD adapter — not required by core) ── -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-java</artifactId>
-            <version>${cucumber.version}</version>                        <!-- ✏️ update: cucumber.version in <properties> -->
+            <version>${cucumber.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-testng</artifactId>
-            <version>${cucumber.version}</version>                        <!-- ✏️ update: cucumber.version in <properties> -->
-        </dependency>
-
-        <!-- ── Reporting ─────────────────────────────────────── -->
-        <dependency>
-            <groupId>tech.grasshopper</groupId>
-            <artifactId>extentreports-cucumber7-adapter</artifactId>
-            <version>${extentreports-cucumber7-adapter.version}</version> <!-- ✏️ update: extentreports-cucumber7-adapter.version in <properties> -->
+            <version>${cucumber.version}</version>
+            <optional>true</optional>
         </dependency>
 
         <!-- ── TestNG ────────────────────────────────────────── -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>${testng.version}</version>                          <!-- ✏️ update: testng.version in <properties> -->
+            <version>${testng.version}</version>
         </dependency>
 
         <!-- ── Jackson (versions managed by BOM above) ───────── -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-                                                                          <!-- ✏️ update: jackson.version in <properties> → managed by jackson-bom -->
         </dependency>
 
-        <!-- ── Logging (Log4j 2 — replaces EOL log4j 1.x) ──────── -->
+        <!-- ── Logging (Log4j 2) ───────────────────────────────── -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>${log4j2.version}</version>                          <!-- ✏️ update: log4j2.version in <properties> -->
+            <version>${log4j2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>${log4j2.version}</version>                          <!-- ✏️ update: log4j2.version in <properties> -->
-        </dependency>
-        <!-- Bridge: keeps "import org.apache.log4j.Logger" working without code changes -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-1.2-api</artifactId>
-            <version>${log4j2.version}</version>                          <!-- ✏️ update: log4j2.version in <properties> -->
+            <version>${log4j2.version}</version>
         </dependency>
 
         <!-- ── Annotations ───────────────────────────────────── -->
@@ -157,20 +137,14 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
-            <version>${jsr305.version}</version>                          <!-- ✏️ update: jsr305.version in <properties> -->
-        </dependency>
-        <!-- JetBrains: provides org.jetbrains.annotations.NotNull / Nullable -->
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>${jetbrains-annotations.version}</version>           <!-- ✏️ update: jetbrains-annotations.version in <properties> -->
+            <version>${jsr305.version}</version>
         </dependency>
 
         <!-- ── Utilities ─────────────────────────────────────── -->
         <dependency>
-            <groupId>com.github.javafaker</groupId>
-            <artifactId>javafaker</artifactId>
-            <version>${javafaker.version}</version>                       <!-- ✏️ update: javafaker.version in <properties> -->
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>${datafaker.version}</version>
         </dependency>
 
     </dependencies>
