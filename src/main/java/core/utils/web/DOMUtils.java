@@ -1,6 +1,5 @@
 package core.utils.web;
 
-import WebApplication.VOID;
 import core.utils.UIContext;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -88,12 +87,8 @@ public class DOMUtils {
                     debug.error("Last element in action was: " + lastElement.getText() + " Locator: " + lastElement);
                     warn.fallback("Trying Clicking Using JSExecutor as WebDriver click failed");
 
-                    new VOID().interaction().clickOn(
-                            null,
-                            lastElement,
-                            true,
-                            null
-                    );
+                    // Direct JS click — no need to instantiate VOID in a utility class
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", lastElement);
 
                     iframe = WaitUtils.waitForCondition(
                             driver,
