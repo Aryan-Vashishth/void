@@ -232,7 +232,7 @@ String json = JsonLocatorMigrator.buildResolvedJson(LoginPageElements.class);
 Path file = JsonLocatorMigrator.writeResolvedJson(LoginPageElements.class);
 ```
 
-> See [`core/resolvers/locator/json/README.md`](../src/main/java/core/resolvers/locator/json/README.md) for full details on the migration pipeline.
+> See [`core/resolvers/locator/json/README.md`](../../src/main/java/core/resolvers/locator/json/README.md) for full details on the migration pipeline.
 
 ---
 
@@ -418,12 +418,12 @@ if (Via.isDropdown(element)) { ... }
 
 ## Next Steps
 
-- 📖 [Architecture deep-dive](architecture.md)
+- 📖 [System Overview](system-overview.md)
 - 🧩 Browse `src/main/java/elements/api/` for all element interfaces
-- 🪝 Explore `interactions/hooks/Before.java` & `After.java` for built-in hooks
+- 🪝 Explore `core/interactions/hooks/Before.java` & `After.java` for built-in hooks
 - 🧰 Check `core/utils/` for `ConfigLoader`, `DOMUtils`, `WaitUtils`, `UIContext`, and more
 - 🔧 See `core/resolvers/locator/` for the full locator resolution pipeline
-- 📦 See [`core/resolvers/locator/json/README.md`](../src/main/java/core/resolvers/locator/json/README.md) for the JSON migration tool
+- 📦 See [`core/resolvers/locator/json/README.md`](../../src/main/java/core/resolvers/locator/json/README.md) for the JSON migration tool
 
 ---
 

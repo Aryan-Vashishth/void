@@ -385,12 +385,13 @@ The file name is returned by each element's `getExternalFileName()` method.
 
 ## Related Documentation
 
-- [Architecture Deep-Dive](architecture.md) — full execution flow
+- [System Overview](system-overview.md) — full execution flow
 - [Quick Start Guide](quick-start.md) — defining elements and locators
 - [Configuration Reference](configuration-reference.md) — all config keys
-- [`core/resolvers/locator/json/README.md`](../src/main/java/core/resolvers/locator/json/README.md) — JSON migration internals
+- [`core/resolvers/locator/json/README.md`](../../src/main/java/core/resolvers/locator/json/README.md) — JSON migration internals
 
 ---
 
 *MIT License © 2025–2026 VOID Project*
+
 
