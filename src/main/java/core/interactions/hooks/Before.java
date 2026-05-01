@@ -2,15 +2,8 @@ package core.interactions.hooks;
 
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
-import core.engine.selenium.SeleniumEngine;
-import core.utils.web.DOMUtils;
 import core.utils.UIContext;
 import core.utils.web.WaitUtils;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
@@ -23,6 +16,10 @@ import static core.logging.CustomLogger.debug;
  * <pre>
  *   interactions.clickOn(List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.HIGHLIGHT_ELEMENT), element);
  * </pre>
+ *
+ * <p>All hooks are <b>engine-agnostic</b> — they delegate to {@link UIEngine} methods
+ * rather than calling Selenium APIs directly. This ensures portability across engines.</p>
+ *
  * This class is a pure constants holder — never instantiate it.
  */
 public final class Before {
@@ -36,56 +33,58 @@ public final class Before {
     public static final ActionHandler LOG_INTENT  = engine -> debug.log("[DEBUG] Performing UI action...");
 
     // ── Loader waits ──────────────────────────────────────────────────────
-    public static final ActionHandler WAIT_FOR_ANGULAR_LOADER       = engine -> WaitUtils.resolveAngularLoader();
-    public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER  = engine -> WaitUtils.resolveLoader(WaitUtils.SPIN_SPINNER_LOADER);
+    public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = engine -> {
+        LocatorDescriptor loader = LocatorDescriptor.of("app-loader", core.engine.LocatorStrategy.CSS);
+        try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
+        catch (Exception ignored) { /* loader not present — continue */ }
+    };
 
-    // ── Element-state waits (require UIContext.getLastElement() to be set) ─
+    public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = engine -> {
+        LocatorDescriptor loader = LocatorDescriptor.of(
+                "//span[contains(@class, 'spin spinner')]", core.engine.LocatorStrategy.XPATH);
+        try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
+        catch (Exception ignored) { /* loader not present — continue */ }
+    };
+
+    // ── Element-state waits (use UIContext.getLastLocatorDescriptor()) ─────
     /** Waits for the last resolved element to become clickable. */
     public static final ActionHandler WAIT_FOR_ELEMENT_CLICKABLE = engine -> {
-        WebElement element = UIContext.getLastElement();
-        if (element != null) {
-            WebDriver driver = (WebDriver) engine.getNativeDriver();
-            new WebDriverWait(driver, DEFAULT_TIMEOUT)
-                    .until(ExpectedConditions.elementToBeClickable(element));
+        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
+        if (locator != null) {
+            engine.waitForClickable(locator, DEFAULT_TIMEOUT);
         }
     };
 
     /** Waits for the last resolved element to be visible. */
     public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = engine -> {
-        WebElement element = UIContext.getLastElement();
-        if (element != null) {
-            WebDriver driver = (WebDriver) engine.getNativeDriver();
-            new WebDriverWait(driver, DEFAULT_TIMEOUT)
-                    .until(ExpectedConditions.visibilityOf(element));
+        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
+        if (locator != null) {
+            engine.waitForVisible(locator, DEFAULT_TIMEOUT);
         }
     };
 
     // ── Element manipulation ───────────────────────────────────────────────
-    /** Clears the last resolved input element. Throws if UIContext has no element. */
+    /** Clears the last resolved input element. Throws if no locator tracked. */
     public static final ActionHandler CLEAR_FIELD = engine -> {
-        WebElement element = UIContext.getLastElement();
-        if (element != null) {
-            element.clear();
+        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
+        if (locator != null) {
+            engine.clear(locator);
         } else {
             throw new IllegalStateException(
-                    "[Before.CLEAR_FIELD] UIContext.getLastElement() is null – resolve the element first.");
+                    "[Before.CLEAR_FIELD] UIContext.getLastLocatorDescriptor() is null – resolve the element first.");
         }
     };
 
     /** Scrolls the last resolved element into view. */
     public static final ActionHandler SCROLL_TO_ELEMENT = engine -> {
-        WebElement element = UIContext.getLastElement();
-        if (element != null) DOMUtils.scrollToElement(element);
+        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
+        if (locator != null) engine.scrollTo(locator);
     };
 
     /** Highlights the last resolved element with a red border (debug aid). */
     public static final ActionHandler HIGHLIGHT_ELEMENT = engine -> {
-        WebElement element = UIContext.getLastElement();
-        if (element != null) {
-            WebDriver driver = (WebDriver) engine.getNativeDriver();
-            ((JavascriptExecutor) driver)
-                    .executeScript("arguments[0].style.border='6px solid red';", element);
-        }
+        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
+        if (locator != null) engine.highlight(locator, "red");
     };
 }
 
