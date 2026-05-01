@@ -1,0 +1,383 @@
+package core.engine.selenium;
+
+import core.engine.EngineConfig;
+import core.engine.LocatorDescriptor;
+import core.engine.LocatorStrategy;
+import core.engine.UIEngine;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static core.logging.CustomLogger.*;
+
+/**
+ * Selenium-based {@link UIEngine} implementation.
+ *
+ * <p>Wraps a {@link WebDriver} instance and translates {@link LocatorDescriptor}
+ * into Selenium-native {@link By} locators. This is the default engine for VOID
+ * and preserves all existing Selenium behavior.</p>
+ *
+ * <h3>Thread safety</h3>
+ * <p>One {@code SeleniumEngine} instance per VOID session (per thread).
+ * Not shared across threads.</p>
+ */
+public final class SeleniumEngine implements UIEngine {
+
+    private WebDriver driver;
+    private EngineConfig config;
+    private Duration defaultTimeout;
+
+    /**
+     * Creates a SeleniumEngine wrapping an existing WebDriver.
+     *
+     * @param driver active WebDriver instance (already created by DriverFactory)
+     */
+    public SeleniumEngine(WebDriver driver) {
+        this.driver = driver;
+        this.defaultTimeout = Duration.ofSeconds(10);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LIFECYCLE
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void initialize(EngineConfig config) {
+        this.config = config;
+        this.defaultTimeout = config.getDefaultTimeout();
+        debug.log("[SeleniumEngine] Initialized with timeout=" + defaultTimeout.toSeconds() + "s");
+    }
+
+    @Override
+    public void shutdown() {
+        if (driver != null) {
+            try {
+                driver.quit();
+                debug.log("[SeleniumEngine] Driver shut down.");
+            } catch (Exception e) {
+                warn.log("[SeleniumEngine] Error during shutdown: " + e.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void navigateTo(String url) {
+        driver.get(url);
+        debug.log("[SeleniumEngine] Navigated to: " + url);
+    }
+
+    @Override
+    public String getCurrentUrl() {
+        return driver.getCurrentUrl();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CORE ACTIONS
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void click(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        element.click();
+    }
+
+    @Override
+    public void jsClick(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+    }
+
+    @Override
+    public void type(LocatorDescriptor locator, String text) {
+        By by = toBy(locator);
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        scrollToElement(element);
+        element.clear();
+        element.sendKeys(text);
+    }
+
+    @Override
+    public void appendType(LocatorDescriptor locator, String text) {
+        By by = toBy(locator);
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        scrollToElement(element);
+        element.sendKeys(text);
+    }
+
+    @Override
+    public void clear(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        element.clear();
+    }
+
+    @Override
+    public void sendKey(LocatorDescriptor locator, String key) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        Keys seleniumKey = mapKey(key);
+        element.sendKeys(seleniumKey);
+    }
+
+    @Override
+    public void selectByVisibleText(LocatorDescriptor locator, String text) {
+        By by = toBy(locator);
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        new org.openqa.selenium.support.ui.Select(element).selectByVisibleText(text);
+    }
+
+    @Override
+    public void selectByValue(LocatorDescriptor locator, String value) {
+        By by = toBy(locator);
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        new org.openqa.selenium.support.ui.Select(element).selectByValue(value);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // RETRIEVAL
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Override
+    public String getText(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement element = waitFor(by).until(ExpectedConditions.presenceOfElementLocated(by));
+        return element.getText().trim();
+    }
+
+    @Override
+    public String getAttribute(LocatorDescriptor locator, String attribute) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        return element.getAttribute(attribute);
+    }
+
+    @Override
+    public boolean isVisible(LocatorDescriptor locator) {
+        try {
+            By by = toBy(locator);
+            List<WebElement> elements = driver.findElements(by);
+            return !elements.isEmpty() && elements.get(0).isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isEnabled(LocatorDescriptor locator) {
+        try {
+            By by = toBy(locator);
+            WebElement element = driver.findElement(by);
+            return element.isEnabled();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isSelected(LocatorDescriptor locator) {
+        try {
+            By by = toBy(locator);
+            WebElement element = driver.findElement(by);
+            return element.isSelected();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public int getElementCount(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        return driver.findElements(by).size();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // WAITS
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void waitForVisible(LocatorDescriptor locator, Duration timeout) {
+        By by = toBy(locator);
+        new WebDriverWait(driver, timeout)
+                .until(ExpectedConditions.visibilityOfElementLocated(by));
+    }
+
+    @Override
+    public void waitForClickable(LocatorDescriptor locator, Duration timeout) {
+        By by = toBy(locator);
+        new WebDriverWait(driver, timeout)
+                .until(ExpectedConditions.elementToBeClickable(by));
+    }
+
+    @Override
+    public void waitForAbsence(LocatorDescriptor locator, Duration timeout) {
+        By by = toBy(locator);
+        new WebDriverWait(driver, timeout)
+                .until(ExpectedConditions.invisibilityOfElementLocated(by));
+    }
+
+    @Override
+    public void waitForPresence(LocatorDescriptor locator, Duration timeout) {
+        By by = toBy(locator);
+        new WebDriverWait(driver, timeout)
+                .until(ExpectedConditions.presenceOfElementLocated(by));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ADVANCED
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Override
+    public Object executeScript(String script, Object... args) {
+        return ((JavascriptExecutor) driver).executeScript(script, args);
+    }
+
+    @Override
+    public void scrollTo(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        scrollToElement(element);
+    }
+
+    @Override
+    public void uploadFile(LocatorDescriptor locator, String filePath) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        element.sendKeys(filePath);
+    }
+
+    @Override
+    public byte[] takeScreenshot() {
+        return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+    }
+
+    @Override
+    public void highlight(LocatorDescriptor locator, String color) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].style.border='6px solid " + color + "';", element);
+    }
+
+    @Override
+    public void hover(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement element = driver.findElement(by);
+        new Actions(driver).moveToElement(element).perform();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CONTEXT / ESCAPE HATCH
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Override
+    public Object getNativeDriver() {
+        warn.log("[SeleniumEngine] getNativeDriver() called — breaks engine portability.");
+        return driver;
+    }
+
+    @Override
+    public String getEngineName() {
+        return "selenium";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PUBLIC HELPERS (Selenium-specific, used by legacy compatibility)
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns the underlying WebDriver.
+     * <p><b>For internal/legacy use only</b> — prefer UIEngine methods.</p>
+     */
+    public WebDriver getWebDriver() {
+        return driver;
+    }
+
+    /**
+     * Translates a {@link LocatorDescriptor} to a Selenium {@link By}.
+     * Exposed for backward compatibility with hooks and utilities that
+     * still operate on {@code By} during the transition period.
+     *
+     * @param descriptor locator descriptor
+     * @return Selenium By
+     */
+    public static By toBy(LocatorDescriptor descriptor) {
+        if (descriptor == null || descriptor.value() == null) {
+            throw new IllegalArgumentException("LocatorDescriptor or value cannot be null");
+        }
+        return switch (descriptor.strategy()) {
+            case XPATH -> By.xpath(descriptor.value());
+            case CSS -> By.cssSelector(descriptor.value());
+            case ID -> By.id(descriptor.value());
+            case NAME -> By.name(descriptor.value());
+        };
+    }
+
+    /**
+     * Creates a {@link LocatorDescriptor} from a Selenium {@link By}.
+     * Used during the transition period for backward compatibility.
+     *
+     * @param by Selenium By locator
+     * @return equivalent LocatorDescriptor
+     */
+    public static LocatorDescriptor fromBy(By by) {
+        String byString = by.toString();
+        if (byString.startsWith("By.xpath:")) {
+            return LocatorDescriptor.of(byString.substring("By.xpath: ".length()), LocatorStrategy.XPATH);
+        } else if (byString.startsWith("By.cssSelector:")) {
+            return LocatorDescriptor.of(byString.substring("By.cssSelector: ".length()), LocatorStrategy.CSS);
+        } else if (byString.startsWith("By.id:")) {
+            return LocatorDescriptor.of(byString.substring("By.id: ".length()), LocatorStrategy.ID);
+        } else if (byString.startsWith("By.name:")) {
+            return LocatorDescriptor.of(byString.substring("By.name: ".length()), LocatorStrategy.NAME);
+        }
+        // Fallback: treat the entire toString as CSS
+        return LocatorDescriptor.of(byString, LocatorStrategy.CSS);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // INTERNAL HELPERS
+    // ─────────────────────────────────────────────────────────────────────
+
+    private WebDriverWait waitFor(By by) {
+        return new WebDriverWait(driver, defaultTimeout);
+    }
+
+    private void scrollToElement(WebElement element) {
+        try {
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].scrollIntoView({behavior:'instant',block:'center'});", element);
+        } catch (Exception ignored) {
+            // scroll is best-effort
+        }
+    }
+
+    private static Keys mapKey(String key) {
+        if (key == null) return Keys.ENTER;
+        return switch (key.toUpperCase()) {
+            case "ENTER", "RETURN" -> Keys.ENTER;
+            case "TAB" -> Keys.TAB;
+            case "ESCAPE", "ESC" -> Keys.ESCAPE;
+            case "BACKSPACE", "BACK_SPACE" -> Keys.BACK_SPACE;
+            case "DELETE" -> Keys.DELETE;
+            case "SPACE" -> Keys.SPACE;
+            case "ARROW_DOWN", "DOWN" -> Keys.ARROW_DOWN;
+            case "ARROW_UP", "UP" -> Keys.ARROW_UP;
+            case "ARROW_LEFT", "LEFT" -> Keys.ARROW_LEFT;
+            case "ARROW_RIGHT", "RIGHT" -> Keys.ARROW_RIGHT;
+            case "HOME" -> Keys.HOME;
+            case "END" -> Keys.END;
+            case "PAGE_UP" -> Keys.PAGE_UP;
+            case "PAGE_DOWN" -> Keys.PAGE_DOWN;
+            default -> Keys.valueOf(key.toUpperCase());
+        };
+    }
+}
+
