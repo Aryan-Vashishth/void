@@ -1,6 +1,6 @@
 package core.interactions.hooks;
 
-import org.openqa.selenium.WebDriver;
+import core.engine.UIEngine;
 
 /**
  * Functional interface for before/after action hooks applied around UI interactions.
@@ -10,12 +10,12 @@ import org.openqa.selenium.WebDriver;
  * in {@code core.interactions.hooks.Before} and {@code core.interactions.hooks.After};
  * custom lambdas are always valid:
  * <pre>
- *   interactions.clickOn(List.of(Before.WAIT_FOR_ANGULAR_LOADER, d -> myCustomSetup(d)), element);
+ *   interactions.clickOn(List.of(Before.WAIT_FOR_ANGULAR_LOADER, e -> myCustomSetup(e)), element);
  * </pre>
  */
 @FunctionalInterface
 public interface ActionHandler {
-    /** Execute this hook given the active {@link WebDriver}. */
-    void execute(WebDriver driver);
+    /** Execute this hook given the active {@link UIEngine}. */
+    void execute(UIEngine engine);
 }
 
