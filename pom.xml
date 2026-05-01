@@ -35,7 +35,6 @@
 
         <!-- Utilities -->
         <log4j2.version>2.25.4</log4j2.version>  <!-- ✏️ update: log4j2.version in <properties> —— replaces EOL log4j 1.x (6 CVEs) -->
-        <lombok.version>1.18.42</lombok.version>
         <javafaker.version>1.0.2</javafaker.version>
 
         <!-- Plugins -->
@@ -172,12 +171,6 @@
             <groupId>com.github.javafaker</groupId>
             <artifactId>javafaker</artifactId>
             <version>${javafaker.version}</version>                       <!-- ✏️ update: javafaker.version in <properties> -->
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>                          <!-- ✏️ update: lombok.version in <properties> -->
-            <scope>provided</scope>
         </dependency>
 
     </dependencies>
