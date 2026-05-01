@@ -119,6 +119,35 @@ public class Interactions {
 
     // ====== COMMON BEFORE/ACTION HOOKS — see core.interactions.hooks.Before / After ======
 
+    /**
+     * Resolves a By locator for an Element and tracks the corresponding
+     * LocatorDescriptor in UIContext for engine-agnostic hook usage.
+     */
+    private By resolveAndTrack(elements.api.Element element) {
+        By by = LOCATORS.resolve(element);
+        UIContext.setLastLocatorDescriptor(LOCATORS.resolveDescriptor(element));
+        return by;
+    }
+
+    /** Overload: resolve by role with args and track descriptor. */
+    private By resolveAndTrack(elements.api.Element element, ElementRole role, Object... args) {
+        By by = LOCATORS.resolve(element, role, args);
+        UIContext.setLastLocatorDescriptor(LOCATORS.resolveDescriptor(element, role, args));
+        return by;
+    }
+
+    /** Overload: resolve from file/key/args and track descriptor. */
+    private By resolveAndTrack(String fileName, String key, Object... args) {
+        By by = LOCATORS.resolve(fileName, key, args);
+        UIContext.setLastLocatorDescriptor(LOCATORS.resolveDescriptor(fileName, key, args));
+        return by;
+    }
+
+    /** Track a LocatorDescriptor from an existing By (for legacy paths). */
+    private void trackDescriptor(By by) {
+        UIContext.setLastLocatorDescriptor(SeleniumEngine.fromBy(by));
+    }
+
     // ======================= GENERIC TEXT RETRIEVAL =======================
 
     /**
@@ -130,6 +159,7 @@ public class Interactions {
      */
     public String getTextByWebElement(By locator) {
         try {
+            trackDescriptor(locator);
             WebElement targetText = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
             try { DOMUtils.scrollToElement(targetText); } catch (Exception ignored) {}
             UIContext.setLastElement(targetText);
@@ -154,7 +184,7 @@ public class Interactions {
                           ReadOnlyElement element,
                           @Nullable List<ActionHandler> afterActions) {
         if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(engine);
-        By locator = LOCATORS.resolve(element); // role-based best available
+        By locator = resolveAndTrack(element); // role-based best available
         if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(engine);
         return getTextByWebElement(locator);
     }
@@ -220,7 +250,7 @@ public class Interactions {
                         @Nullable List<ActionHandler> afterActions) {
         try {
             if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(engine);
-            By locator = LOCATORS.resolve(element); // role-based best available
+            By locator = resolveAndTrack(element); // role-based best available
             WebElement clickable = driver.findElement(locator);
             UIContext.setLastElement(clickable);
             clickOn(clickable);
@@ -806,7 +836,7 @@ public class Interactions {
                          @Nullable List<ActionHandler> afterActions) {
         try {
             if (beforeActions != null) for (ActionHandler a : beforeActions) if (a != null) a.execute(engine);
-            By locator = LOCATORS.resolve(field);
+            By locator = resolveAndTrack(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             UIContext.setLastElement(element);
@@ -843,7 +873,7 @@ public class Interactions {
      */
     public void appendTo(TextInputField field, String text) {
         try {
-            By locator = LOCATORS.resolve(field);
+            By locator = resolveAndTrack(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             UIContext.setLastElement(element);
@@ -876,7 +906,7 @@ public class Interactions {
      */
     public void clearField(TextInputField field) {
         try {
-            By locator = LOCATORS.resolve(field);
+            By locator = resolveAndTrack(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             element.clear();
@@ -909,7 +939,7 @@ public class Interactions {
      */
     public void typeIntoAndPress(TextInputField field, String text, Keys key) {
         try {
-            By locator = LOCATORS.resolve(field);
+            By locator = resolveAndTrack(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
             UIContext.setLastElement(element);
@@ -950,7 +980,7 @@ public class Interactions {
      */
     public void setCheckbox(Checkbox checkbox, boolean desiredState) {
         try {
-            By locator = LOCATORS.resolve(checkbox);
+            By locator = resolveAndTrack(checkbox);
             WebElement cb = driver.findElement(locator);
             boolean current;
             try {
