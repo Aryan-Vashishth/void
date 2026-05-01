@@ -4,6 +4,9 @@ import core.bootstrap.FrameworkBootstrap;
 import core.context.ExecutionContext;
 import core.driver.DriverFactory;
 import core.driver.DriverManager;
+import core.engine.EngineConfig;
+import core.engine.UIEngine;
+import core.engine.selenium.SeleniumEngine;
 import core.logging.CustomLogger;
 import core.interactions.Interactions;
 import org.openqa.selenium.WebDriver;
@@ -47,6 +50,9 @@ public class VOID {
     /** Per-session execution context (config + driver). */
     private final ExecutionContext context;
 
+    /** The active execution engine for this session. */
+    private final UIEngine engine;
+
     /** Lazily-initialised, cached interaction helper. */
     private Interactions interactions;
 
@@ -58,9 +64,11 @@ public class VOID {
      * Protected constructor — use {@link #start()} or {@link #start(DriverFactory.Profile)}.
      *
      * @param context the execution context for this session
+     * @param engine  the active UI engine
      */
-    protected VOID(ExecutionContext context) {
+    protected VOID(ExecutionContext context, UIEngine engine) {
         this.context = context;
+        this.engine = engine;
     }
 
     // ===========================
@@ -98,8 +106,12 @@ public class VOID {
                 driver
         );
 
-        CustomLogger.info.log("VOID initialised — driver ready.");
-        return new VOID(ctx);
+        // Create the engine (default: Selenium)
+        SeleniumEngine seleniumEngine = new SeleniumEngine(driver);
+        seleniumEngine.initialize(new EngineConfig(FrameworkBootstrap.getUtilsConfig()));
+
+        CustomLogger.info.log("VOID initialised — engine=" + seleniumEngine.getEngineName() + ", driver ready.");
+        return new VOID(ctx, seleniumEngine);
     }
 
     // ===========================
@@ -141,9 +153,14 @@ public class VOID {
     /** Returns the (cached) general-purpose interaction helper. */
     public Interactions interaction() {
         if (interactions == null) {
-            interactions = new Interactions(context.getDriver());
+            interactions = new Interactions(engine);
         }
         return interactions;
+    }
+
+    /** Returns the active {@link UIEngine} for this session. */
+    public UIEngine getEngine() {
+        return engine;
     }
 }
 
