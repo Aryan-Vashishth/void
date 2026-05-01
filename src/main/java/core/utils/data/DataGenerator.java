@@ -2,10 +2,11 @@ package core.utils.data;
 
 import core.utils.io.FileUtils;
 import core.utils.ResolvableEnum;
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 
 import javax.annotation.Nullable;
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.nio.file.Path;
@@ -60,7 +61,7 @@ public class DataGenerator {
         fieldTypeGenerators.put(FieldType.INCENTIVE_TYPE, () -> faker.country().currency());
         fieldTypeGenerators.put(FieldType.INCENTIVE_AMOUNT_IN_USD, () -> String.valueOf(faker.number().numberBetween(100, 100000)));
         fieldTypeGenerators.put(FieldType.INCENTIVE_AMOUNT, () -> String.valueOf(faker.number().numberBetween(100, 100000)));
-        fieldTypeGenerators.put(FieldType.EXPIRATION_DATE, () -> new SimpleDateFormat("MM/dd/yyyy").format(faker.date().future(120, TimeUnit.DAYS)));
+        fieldTypeGenerators.put(FieldType.EXPIRATION_DATE, () -> faker.timeAndDate().future(120, TimeUnit.DAYS).atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")));
         fieldTypeGenerators.put(FieldType.DUNS_TAX_ID_NUMBER, () -> faker.idNumber().valid());
         fieldTypeGenerators.put(FieldType.NOTES, () -> faker.chuckNorris().fact());
 
@@ -70,7 +71,7 @@ public class DataGenerator {
         fieldTypeGenerators.put(FieldType.EMAIL, () -> faker.internet().emailAddress());
         fieldTypeGenerators.put(FieldType.NUMBER, () -> String.valueOf(faker.number().numberBetween(1, 10000)));
         fieldTypeGenerators.put(FieldType.CURRENCY, () -> String.format("%.2f", faker.number().randomDouble(2, 10, 100000)));
-        fieldTypeGenerators.put(FieldType.DATE, () -> new SimpleDateFormat("MM/dd/yyyy").format(faker.date().future(90, TimeUnit.DAYS)));
+        fieldTypeGenerators.put(FieldType.DATE, () -> faker.timeAndDate().future(90, TimeUnit.DAYS).atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")));
         fieldTypeGenerators.put(FieldType.STATE, () -> faker.address().state());
         fieldTypeGenerators.put(FieldType.ID, () -> faker.idNumber().valid());
     }
