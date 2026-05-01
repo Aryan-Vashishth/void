@@ -6,6 +6,7 @@ import core.driver.DriverFactory;
 import core.driver.DriverManager;
 import core.engine.EngineConfig;
 import core.engine.UIEngine;
+import core.engine.UIEngineFactory;
 import core.engine.selenium.SeleniumEngine;
 import core.logging.CustomLogger;
 import core.interactions.Interactions;
@@ -106,12 +107,11 @@ public class VOID {
                 driver
         );
 
-        // Create the engine (default: Selenium)
-        SeleniumEngine seleniumEngine = new SeleniumEngine(driver);
-        seleniumEngine.initialize(new EngineConfig(FrameworkBootstrap.getUtilsConfig()));
+        // Create the engine via factory (reads 'engine' property from config)
+        UIEngine engine = UIEngineFactory.create(FrameworkBootstrap.getUtilsConfig(), driver);
 
-        CustomLogger.info.log("VOID initialised — engine=" + seleniumEngine.getEngineName() + ", driver ready.");
-        return new VOID(ctx, seleniumEngine);
+        CustomLogger.info.log("VOID initialised — engine=" + engine.getEngineName() + ", driver ready.");
+        return new VOID(ctx, engine);
     }
 
     // ===========================
