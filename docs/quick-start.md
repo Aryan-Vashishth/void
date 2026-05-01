@@ -19,7 +19,7 @@ Get up and running with VOID in under 10 minutes.
 ## 1 — Clone & Build
 
 ```bash
-git clone <your-repo-url> void-framework
+git clone <https://github.com/Aryan-Vashishth/void-framework.git> void-framework
 cd void-framework
 mvn clean install -DskipTests
 ```
