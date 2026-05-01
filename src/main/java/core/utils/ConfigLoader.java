@@ -32,7 +32,7 @@ import java.util.function.BiFunction;
  *   String browser = ConfigLoader.get("browser", "chrome");
  *
  *   // Load a full .properties file from classpath
- *   Properties props = ConfigLoader.loadFromClasspath("config/driver.properties");
+ *   Properties props = ConfigLoader.loadFromClasspath("core/driver/config/driver.properties");
  * </pre>
  *
  * @see core.driver.DriverFactory

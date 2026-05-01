@@ -11,6 +11,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import core.utils.ConfigLoader;
+import core.utils.ConfigPaths;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,13 +46,13 @@ public final class DriverFactory {
     // ---------------------------------------------------------------------
     // Classpath config locations (internal)
     // ---------------------------------------------------------------------
-    public static final String DEFAULT_PROPERTIES_CLASSPATH      = "config/driver.properties";
-    public static final String DEFAULT_LOCAL_PROPERTIES_CLASSPATH = "config/driver-local.properties";
-    public static final String DEFAULT_CI_PROPERTIES_CLASSPATH    = "config/driver-ci.properties";
-    public static final String DEFAULT_GRID_PROPERTIES_CLASSPATH  = "config/driver-grid.properties";
+    public static final String DEFAULT_PROPERTIES_CLASSPATH      = ConfigPaths.DRIVER_DEFAULT;
+    public static final String DEFAULT_LOCAL_PROPERTIES_CLASSPATH = ConfigPaths.DRIVER_LOCAL;
+    public static final String DEFAULT_CI_PROPERTIES_CLASSPATH    = ConfigPaths.DRIVER_CI;
+    public static final String DEFAULT_GRID_PROPERTIES_CLASSPATH  = ConfigPaths.DRIVER_GRID;
 
     // Where we WRITE templates so they end up on the classpath at runtime.
-    // Adjust if you prefer src/main/resources.
+    // Adjust if you prefer src/test/resources.
     public static final Path RESOURCES_BASE = Paths.get("src", "main", "resources");
 
     // ---------------------------------------------------------------------
