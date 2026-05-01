@@ -78,8 +78,10 @@ public class VOID {
     private static synchronized void bootstrap() {
         if (bootstrapped) return;
 
-        // 1. Initialise CustomLogger with this class's Log4j context
-        CustomLogger.initialize(VOID.class);
+        // 1. CustomLogger is self-initialising (static Log4j context defaults to
+        //    CustomLogger.class). Call-site tracing uses stack introspection — no
+        //    class-specific binding needed. Just verify it's accessible.
+        CustomLogger.debug.log("VOID bootstrap: starting...");
 
         // 2. Verify driver.properties is on the classpath
         Properties driverProps = ConfigLoader.loadFromClasspath(ConfigPaths.DRIVER_DEFAULT);
