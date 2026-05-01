@@ -2,8 +2,13 @@ package WebApplication;
 
 import core.driver.DriverContext;
 import core.driver.DriverFactory;
+import core.logging.CustomLogger;
+import core.utils.ConfigLoader;
+import core.utils.ConfigPaths;
 import interactions.Interactions;
 import org.openqa.selenium.WebDriver;
+
+import java.util.Properties;
 
 /**
  * Façade / entry point for the core VOID framework.
@@ -44,12 +49,57 @@ public class VOID {
     /** Lazily-initialised, cached interaction helper. */
     private Interactions interactions;
 
+    /** Tracks whether the framework has been bootstrapped (once per JVM). */
+    private static volatile boolean bootstrapped = false;
+
 
     public VOID() {
+        bootstrap();
         DriverContext.setPrimaryDriver(
                 DriverFactory.fromProfile(DriverFactory.Profile.DEFAULT).build()
         );
         driver = DriverContext.getActiveDriver();
+        CustomLogger.info.log("VOID initialised — driver ready.");
+    }
+
+    // ===========================
+    //      Framework Bootstrap
+    // ===========================
+
+    /**
+     * One-time framework initialisation. Ensures:
+     * <ol>
+     *   <li>CustomLogger is wired to Log4j (via this class)</li>
+     *   <li>driver.properties exists on classpath</li>
+     *   <li>test.properties (utils config) is loaded into ConfigLoader's active store</li>
+     * </ol>
+     * Safe to call multiple times — only the first invocation performs work.
+     */
+    private static synchronized void bootstrap() {
+        if (bootstrapped) return;
+
+        // 1. Initialise CustomLogger with this class's Log4j context
+        CustomLogger.initialize(VOID.class);
+
+        // 2. Verify driver.properties is on the classpath
+        Properties driverProps = ConfigLoader.loadFromClasspath(ConfigPaths.DRIVER_DEFAULT);
+        if (driverProps.isEmpty()) {
+            throw new IllegalStateException(
+                    "VOID bootstrap failed: driver.properties not found on classpath at '"
+                            + ConfigPaths.DRIVER_DEFAULT + "'. "
+                            + "Ensure the file exists at src/main/resources/core/driver/config/driver.properties");
+        }
+        CustomLogger.debug.log("VOID bootstrap: driver.properties loaded (" + driverProps.size() + " keys)");
+
+        // 3. Load utils/test config into the active ConfigLoader store
+        Properties utilsProps = ConfigLoader.loadFromClasspath(ConfigPaths.UTILS_TEST);
+        if (!utilsProps.isEmpty()) {
+            ConfigLoader.setActive(utilsProps);
+            CustomLogger.debug.log("VOID bootstrap: utils config activated (" + utilsProps.size() + " keys)");
+        }
+
+        bootstrapped = true;
+        CustomLogger.info.log("VOID framework bootstrapped successfully.");
     }
 
     // ===========================
