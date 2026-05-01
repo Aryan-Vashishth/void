@@ -290,13 +290,15 @@ Which... technically works. In the same way that `goto` technically works.
 
 | Document | Description |
 |----------|-------------|
-| [Quick Start Guide](docs/quick-start.md) | Get up and running in under 10 minutes |
-| [Architecture Deep-Dive](docs/architecture.md) | Full architecture and execution flow |
-| [Configuration Reference](docs/configuration-reference.md) | All configuration keys, layering, and defaults |
-| [Locator Resolution Guide](docs/locator-resolution.md) | Locator pipeline, formats, roles, and migration |
-| [Hooks Guide](docs/hooks-guide.md) | Composable Before/After hook pipeline |
+| [Quick Start Guide](docs/architecture/quick-start.md) | Get up and running in under 10 minutes |
+| [System Overview](docs/architecture/system-overview.md) | Full architecture and execution flow |
+| [Configuration Reference](docs/architecture/configuration-reference.md) | All configuration keys, layering, and defaults |
+| [Locator Resolution Guide](docs/architecture/locator-resolution.md) | Locator pipeline, formats, roles, and migration |
+| [Hooks Pipeline](docs/architecture/hooks-pipeline.md) | Composable Before/After hook pipeline |
 | [Logging README](src/main/java/core/logging/README.md) | CustomLogger themes, actions, and configuration |
 | [JSON Locator Package](src/main/java/core/resolvers/locator/json/README.md) | JSON migration tool internals |
+| [Dependency Audit](docs/audits/dependency-audit-2026-05.md) | Point-in-time dependency analysis |
+| [Multi-Engine Prospect](docs/experiments/prospect-multi-engine.md) | Selenium ↔ Playwright portability design |
 | [Changelog](CHANGELOG.md) | Version history and migration notes |
 | [Contributing](CONTRIBUTING.md) | How to contribute to the project |
 
