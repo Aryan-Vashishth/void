@@ -1,6 +1,7 @@
 package WebApplication;
 
 import core.driver.DriverContext;
+import core.driver.DriverFactory;
 import interactions.Interactions;
 import org.openqa.selenium.WebDriver;
 
@@ -45,6 +46,9 @@ public class VOID {
 
 
     public VOID() {
+        DriverContext.setPrimaryDriver(
+                DriverFactory.fromProfile(DriverFactory.Profile.DEFAULT).build()
+        );
         driver = DriverContext.getActiveDriver();
     }
 
