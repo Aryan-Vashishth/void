@@ -3,7 +3,8 @@ package core.logging.config;
 import core.logging.ConsoleOnly;
 import core.logging.CustomLogger;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
@@ -39,12 +40,12 @@ public final class LoggerContext {
 
     // â”€â”€ Log4j logger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    private static volatile Logger log = Logger.getLogger(CustomLogger.class);
+    private static volatile Logger log = LogManager.getLogger(CustomLogger.class);
 
     public static void   initLogger(Class<?> clazz) {
-        log = (clazz != null) ? Logger.getLogger(clazz) : Logger.getLogger(CustomLogger.class);
+        log = (clazz != null) ? LogManager.getLogger(clazz) : LogManager.getLogger(CustomLogger.class);
     }
-    public static Logger getLogger() { return (log != null) ? log : Logger.getLogger(CustomLogger.class); }
+    public static Logger getLogger() { return (log != null) ? log : LogManager.getLogger(CustomLogger.class); }
     public static boolean isDebugEnabled() { return getLogger().isDebugEnabled(); }
 
     // â”€â”€ ANSI / caller-color delegates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

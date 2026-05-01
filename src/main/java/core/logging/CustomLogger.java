@@ -9,7 +9,8 @@ import core.logging.theme.BuiltInThemes;
 import core.logging.theme.LogTheme;
 import core.logging.theme.ThemeColors;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
