@@ -298,7 +298,7 @@ Which... technically works. In the same way that `goto` technically works.
 | [Logging README](src/main/java/core/logging/README.md) | CustomLogger themes, actions, and configuration |
 | [JSON Locator Package](src/main/java/core/resolvers/locator/json/README.md) | JSON migration tool internals |
 | [Dependency Audit](docs/audits/dependency-audit-2026-05.md) | Point-in-time dependency analysis |
-| [Multi-Engine Prospect](docs/experiments/prospect-multi-engine.md) | Selenium ↔ Playwright portability design |
+| [Multi-Engine Prospect](docs/experiments/active/2026-05-01-multi-engine-execution.md) | Selenium ↔ Playwright portability design |
 | [Changelog](CHANGELOG.md) | Version history and migration notes |
 | [Contributing](CONTRIBUTING.md) | How to contribute to the project |
 
