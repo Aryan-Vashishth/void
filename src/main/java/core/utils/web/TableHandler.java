@@ -18,6 +18,20 @@ import static core.logging.CustomLogger.info;
 import static core.logging.CustomLogger.warn;
 import static core.logging.CustomLogger.error;
 
+/**
+ * Static utility for reading and manipulating HTML tables via Selenium.
+ *
+ * <p>Provides helpers for mapping table headers to column indices, reading row/cell
+ * values, and inserting data into editable table footers. Works with both
+ * {@link elements.api.TableElement} and the simplified {@link TableElementV1}
+ * contract defined below.</p>
+ *
+ * <p>Locator resolution uses {@link core.resolvers.locator.api.LocatorResolvers}
+ * to look up header, row, and cell locators from external files.</p>
+ *
+ * @see elements.api.TableElement
+ * @see elements.api.WritableTableElement
+ */
 public class TableHandler {
 
     private TableHandler() { /* static utility */ }

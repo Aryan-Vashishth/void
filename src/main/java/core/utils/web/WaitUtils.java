@@ -18,6 +18,24 @@ import java.util.NoSuchElementException;
 import static core.logging.CustomLogger.debug;
 import static core.logging.CustomLogger.warn;
 
+/**
+ * Explicit-wait utilities for Selenium interactions.
+ *
+ * <p>Wraps {@link org.openqa.selenium.support.ui.FluentWait} with convenience methods
+ * for common wait scenarios: element visibility/clickability, Angular CDK overlay
+ * stabilisation, custom loader spinners, and DOM flicker detection.</p>
+ *
+ * <p>All methods obtain the active driver from {@link core.driver.DriverContext}.
+ * Default timeout is {@value #DEFAULT_TIMEOUT_SEC} seconds with {@value #DEFAULT_POLLING_MS}ms
+ * polling.</p>
+ *
+ * <p>Used internally by {@link interactions.hooks.Before} and {@link interactions.hooks.After}
+ * hook constants, and can be called directly from page objects or step definitions.</p>
+ *
+ * @see core.utils.web.DOMUtils
+ * @see interactions.hooks.Before
+ * @see interactions.hooks.After
+ */
 public class WaitUtils {
 
     private WaitUtils() { /* static utility */ }

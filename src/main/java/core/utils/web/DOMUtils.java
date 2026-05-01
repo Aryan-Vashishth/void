@@ -12,6 +12,22 @@ import static core.logging.CustomLogger.info;
 import static core.logging.CustomLogger.warn;
 import static core.logging.CustomLogger.error;
 
+/**
+ * Static DOM manipulation utilities for Selenium {@link org.openqa.selenium.WebDriver}.
+ *
+ * <p>Provides JavaScript-powered helpers for scrolling, hovering, highlighting,
+ * and low-level DOM inspection. All methods obtain the active driver from
+ * {@link core.driver.DriverContext} — no instance needed.</p>
+ *
+ * <p>Typical usage from hooks or interaction helpers:
+ * <pre>
+ *   DOMUtils.scrollToElement(element);
+ *   DOMUtils.hoverOnElement(element);
+ * </pre>
+ *
+ * @see core.utils.web.WaitUtils
+ * @see core.driver.DriverContext
+ */
 public class DOMUtils {
 
     private DOMUtils() { /* static utility */ }

@@ -14,6 +14,24 @@ import java.io.File;
 import static core.logging.CustomLogger.info;
 import static core.logging.CustomLogger.error;
 
+/**
+ * Static utility for automating file uploads through {@code <input type="file">} elements.
+ *
+ * <p>Resolves the target element's locator via {@link core.resolvers.locator.api.LocatorResolvers},
+ * waits for it to be present, then calls {@link org.openqa.selenium.WebElement#sendKeys(CharSequence...)}
+ * with the absolute file path.</p>
+ *
+ * <p>File paths can be absolute or relative to the configurable
+ * {@code upload.base.path} (default: {@code uploads/}).</p>
+ *
+ * <p>Example:
+ * <pre>
+ *   Upload.uploadFile(MyElements.RESUME_INPUT, "test-resume.pdf");
+ * </pre>
+ *
+ * @see elements.api.FileInputElement
+ * @see core.utils.ConfigLoader
+ */
 public class Upload {
 
     private Upload() { /* static utility */ }

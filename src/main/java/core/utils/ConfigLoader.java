@@ -10,7 +10,33 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 /**
- * Minimal ConfigLoader: layered .properties handling with concise debug/warn/error logging.
+ * Hierarchical configuration loader with layered {@code .properties} file support.
+ *
+ * <p>Resolves configuration values using a four-layer priority chain:</p>
+ * <ol>
+ *   <li><b>System properties</b> — {@code -Dkey=value} on the JVM command line</li>
+ *   <li><b>Environment variables</b> — OS-level variables ({@code KEY=value})</li>
+ *   <li><b>Classpath resources</b> — {@code .properties} files loaded via
+ *       {@link #loadFromClasspath(String, ClasspathScope)}; TEST scope wins over MAIN
+ *       when both provide the same key</li>
+ *   <li><b>Hardcoded defaults</b> — fallback value supplied at the call site via
+ *       {@link #get(String, String)}</li>
+ * </ol>
+ *
+ * <p>Primary entry points:</p>
+ * <pre>
+ *   // Read a single key (returns null if absent from all layers)
+ *   String browser = ConfigLoader.get("browser");
+ *
+ *   // Read with a fallback default
+ *   String browser = ConfigLoader.get("browser", "chrome");
+ *
+ *   // Load a full .properties file from classpath
+ *   Properties props = ConfigLoader.loadFromClasspath("config/driver.properties");
+ * </pre>
+ *
+ * @see core.driver.DriverFactory
+ * @see core.resolvers.locator.api.LocatorPaths
  */
 public final class ConfigLoader {
 
