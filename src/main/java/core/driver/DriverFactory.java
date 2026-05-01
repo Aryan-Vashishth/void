@@ -38,7 +38,7 @@ import static core.logging.CustomLogger.*; // debug.log(...), info.log(...), war
  * </ul>
  *
  * <p>Lifecycle is not managed here. Pair with your thread-safe context (e.g., {@code DriverContext}).</p>
- * <p>If using WebDriverManager, call its setup before building drivers.</p>
+ * <p>Selenium Manager (built into Selenium 4.6+) handles driver binaries automatically.</p>
  */
 public final class DriverFactory {
 
