@@ -1,6 +1,6 @@
 package core.misc;
 
-import WebApplication.VOID;
+import core.runtime.VOID;
 
 public class VoidDemo {
     public static void main(String[] args) {

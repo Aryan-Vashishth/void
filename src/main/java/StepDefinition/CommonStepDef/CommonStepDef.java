@@ -40,7 +40,7 @@
 //import java.util.*;
 //
 //import static HelperClasses.HelperMethods.scrollAndClick;
-//import static interactions.StepDefInteractions.resolveByContext;
+//import static automation.interactions.InteractionsDSL.resolveByContext;
 //
 //public class CommonStepDef extends InitialiseBaseTest {
 //
@@ -219,8 +219,8 @@
 //
 //    @Given("the following dropdown options from {string} in {string} are visible on the page:")
 //    public void theFollowingDropdownOptionsAreVisibleOnThePage(String keyPrefix, String keySuffix, List<String> options) {
-//        vartopia.stepDefInteraction().triggerDropdownByContext(keyPrefix, keySuffix);
-//        boolean isVisible = vartopia.stepDefInteraction().verifyElementsAreVisible(keyPrefix, keySuffix, options);
+//        vartopia.dsl().triggerDropdownByContext(keyPrefix, keySuffix);
+//        boolean isVisible = vartopia.dsl().verifyElementsAreVisible(keyPrefix, keySuffix, options);
 //        DOMUtils.sendEscapeKey();
 //        softAssert.assertTrue(
 //                isVisible,
@@ -306,7 +306,7 @@
 //    @And("Click on {string} from navigation bar")
 //    public void clickOnFromNavigationBar(String buttonName) {
 //       info.click("Clicking on navigation bar button: " + buttonName);
-//        vartopia.stepDefInteraction().clickOnNavigationBar(buttonName);
+//        vartopia.dsl().clickOnNavigationBar(buttonName);
 //    }
 //
 //    @Given("All elements are visible")
@@ -343,50 +343,50 @@
 //    @And("User clicks on {string} from {string} in {string} and wait for angular loader")
 //    public void clickOnFromAndWaitForAngularLoader(String label, String keyPrefix, String keySuffix) {
 //       info.click("Clicking on '" + label + "' from '" + keyPrefix + "' in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().clickOnFrom(keyPrefix, keySuffix, label, Interactions.After.WAIT_FOR_ANGULAR_LOADER);
+//        vartopia.dsl().clickOnFrom(keyPrefix, keySuffix, label, Interactions.After.WAIT_FOR_ANGULAR_LOADER);
 //    }
 //
 //    @And("User clicks on {string} from {string} in {string}")
 //    public void clickOnFrom(String label, String keyPrefix, String keySuffix) {
 //       info.click("Clicking on '" + label + "' from '" + keyPrefix + "' in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().clickOnFrom(keyPrefix, keySuffix, label, Interactions.After.DO_NOTHING);
+//        vartopia.dsl().clickOnFrom(keyPrefix, keySuffix, label, Interactions.After.DO_NOTHING);
 //    }
 //
 //    @When("User searches for {string} using {string} from {string} in {string}")
 //    public void user_searches_using_field_in_context(String searchTerm, String unresolvedEnumName, String keyPrefix, String keySuffix) {
 //       info.click("Searching for '" + searchTerm + "' using '" + unresolvedEnumName + "' from '" + keyPrefix + "' in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().getSearchedElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
+//        vartopia.dsl().getSearchedElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
 //    }
 //
 //    @And("User searches and click on {string} using {string} from {string} in {string}")
 //    public void userSearchesAndClickOnUsingFromIn(String searchTerm, String unresolvedEnumName, String keyPrefix, String keySuffix) {
 //       info.click("Searching and clicking '" + searchTerm + "' using '" + unresolvedEnumName + "' from '" + keyPrefix + "' in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().clickSearchableElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
+//        vartopia.dsl().clickSearchableElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
 //    }
 //
 //    @And("User searches and click on {string} using {string} from {string} in {string} and wait for angular loader")
 //    public void userSearchesAndClickOnUsingFromInAndWaitForAngularLoader(String searchTerm, String unresolvedEnumName, String keyPrefix, String keySuffix) {
 //       info.click("Searching and clicking '" + searchTerm + "' using '" + unresolvedEnumName + "' from '" + keyPrefix + "' in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().clickSearchableElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
+//        vartopia.dsl().clickSearchableElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
 //        WaitUtils.resolveAngularLoader();
 //    }
 //
 //    @And("User selects {string} from {string} dropdown in {string}")
 //    public void userSelectsFromDropdown(String label, String keyPrefix, String keySuffix) {
 //       info.dropdown("Selecting '" + label + "' from '" + keyPrefix + "' dropdown in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().selectFromDropdownByContext(keyPrefix, keySuffix, label);
+//        vartopia.dsl().selectFromDropdownByContext(keyPrefix, keySuffix, label);
 //    }
 //
 //    @And("User selects {string} option from {string} dropdown #{int} in {string}")
 //    public void userSelectsFromIndexedDropdown(String label, String keyPrefix, int index, String keySuffix) {
 //       info.dropdown("Selecting '" + label + "' from '" + keyPrefix + "' dropdown #" + index + " in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().selectFromDropdownByContext(keyPrefix, keySuffix, index, label);
+//        vartopia.dsl().selectFromDropdownByContext(keyPrefix, keySuffix, index, label);
 //    }
 //
 //    @And("User selects {string} from {string} option dropdown #{int} in {string} an wait for angular loader")
 //    public void userSelectsFromIndexedDropdownAndWaitForAngularLoader(String label, String keyPrefix, int index, String keySuffix) {
 //       info.dropdown("Selecting '" + label + "' from '" + keyPrefix + "' dropdown #" + index + " in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().selectFromDropdownByContext(keyPrefix, keySuffix, index, label);
+//        vartopia.dsl().selectFromDropdownByContext(keyPrefix, keySuffix, index, label);
 //        WaitUtils.resolveAngularLoader();
 //    }
 //
@@ -394,7 +394,7 @@
 //    @And("User selects {string} from {string} dropdown in {string} at index {int}")
 //    public void userSelectsFromIndexedDropdownAlt(String label, String keyPrefix, String keySuffix, int index) {
 //       info.dropdown("Selecting '" + label + "' from '" + keyPrefix + "' dropdown #" + index + " in '" + keySuffix + "'");
-//        vartopia.stepDefInteraction().selectFromDropdownByContext(keyPrefix, keySuffix, index, label);
+//        vartopia.dsl().selectFromDropdownByContext(keyPrefix, keySuffix, index, label);
 //    }
 //
 //    @Then("User Click on three-Dots of record number {int} in Records Page")
@@ -409,8 +409,8 @@
 //            String keySuffix,
 //            List<String> expectedOptions
 //    ) {
-//        vartopia.stepDefInteraction().triggerDropdownByContext(keyPrefix, keySuffix, recordIndex);
-//        boolean allVisible = vartopia.stepDefInteraction()
+//        vartopia.dsl().triggerDropdownByContext(keyPrefix, keySuffix, recordIndex);
+//        boolean allVisible = vartopia.dsl()
 //                .verifyElementsAreVisible(keyPrefix, keySuffix, expectedOptions);
 //        DOMUtils.sendEscapeKey();
 //        softAssert.assertTrue(
@@ -424,7 +424,7 @@
 //
 //    @Given("the following elements from {string} in {string} are visible on the page:")
 //    public void theFollowingElementsAreVisibleOnThePage(String keyPrefix, String keySuffix, List<String> elements) {
-//        boolean isVisible = vartopia.stepDefInteraction().verifyElementsAreVisible(keyPrefix, keySuffix, elements);
+//        boolean isVisible = vartopia.dsl().verifyElementsAreVisible(keyPrefix, keySuffix, elements);
 //        softAssert.assertTrue(
 //                isVisible,
 //                String.format(

@@ -29,12 +29,12 @@ import static core.logging.CustomLogger.warn;
  * Default timeout is {@value #DEFAULT_TIMEOUT_SEC} seconds with {@value #DEFAULT_POLLING_MS}ms
  * polling.</p>
  *
- * <p>Used internally by {@link interactions.hooks.Before} and {@link interactions.hooks.After}
+ * <p>Used internally by {@link core.interactions.hooks.Before} and {@link core.interactions.hooks.After}
  * hook constants, and can be called directly from page objects or step definitions.</p>
  *
  * @see core.utils.web.DOMUtils
- * @see interactions.hooks.Before
- * @see interactions.hooks.After
+ * @see core.interactions.hooks.Before
+ * @see core.interactions.hooks.After
  */
 public class WaitUtils {
 

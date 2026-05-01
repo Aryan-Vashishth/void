@@ -1,8 +1,8 @@
 package core.interactions;
 import core.driver.DriverContext;
 import core.logging.CustomLogger;
-import interactions.Interactions;
-import interactions.hooks.ActionHandler;
+import core.interactions.Interactions;
+import core.interactions.hooks.ActionHandler;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
