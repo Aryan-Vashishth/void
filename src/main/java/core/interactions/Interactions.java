@@ -1,5 +1,8 @@
 package core.interactions;
 
+import core.engine.UIEngine;
+import core.engine.LocatorDescriptor;
+import core.engine.selenium.SeleniumEngine;
 import core.utils.web.DOMUtils;
 import core.utils.web.WaitUtils;
 import elements.meta.ElementRole;
@@ -74,23 +77,34 @@ public class Interactions {
     /** Strict locator resolver. */
     private static final LocatorResolver LOCATORS = LocatorResolvers.strict();
 
+    /** The active execution engine. */
+    protected final UIEngine engine;
+
+    /** WebDriver reference (derived from engine for backward compatibility). */
     protected WebDriver driver;
     protected WebDriverWait wait;
 
 
     /**
-     * Standard constructor, initializes driver context and logging.
+     * Standard constructor using the engine abstraction.
+     *
+     * @param engine The UIEngine instance to use for all actions.
+     */
+    public Interactions(UIEngine engine) {
+        this.engine = engine;
+        // Backward compat: extract WebDriver from SeleniumEngine for legacy paths
+        this.driver = (WebDriver) engine.getNativeDriver();
+        this.wait = new WebDriverWait(this.driver, Duration.ofSeconds(10));
+        DriverContext.setPrimaryDriver(this.driver);
+    }
+
+    /**
+     * Legacy constructor, wraps WebDriver in a SeleniumEngine.
      *
      * @param driver The WebDriver instance to use for all actions.
      */
     public Interactions(WebDriver driver) {
-        this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        // Defensive registration: internal methods (tryClickWithHooks,
-        // waitForOverlayToAppear) resolve the driver via DriverContext.
-        // DriverManager also registers during VOID.start(), but standalone
-        // usage of Interactions must still work.
-        DriverContext.setPrimaryDriver(driver);
+        this(new SeleniumEngine(driver));
     }
 
 
@@ -139,9 +153,9 @@ public class Interactions {
     public String getText(@Nullable List<ActionHandler> beforeActions,
                           ReadOnlyElement element,
                           @Nullable List<ActionHandler> afterActions) {
-        if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
+        if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(engine);
         By locator = LOCATORS.resolve(element); // role-based best available
-        if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
+        if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(engine);
         return getTextByWebElement(locator);
     }
 
@@ -163,12 +177,12 @@ public class Interactions {
                                     @Nullable List<ActionHandler> afterActions,
                                     boolean enableResolveTooltip) {
         try {
-            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
+            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(engine);
             By locator = LOCATORS.resolve(element); // role-based best available
             WebElement targetElement = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
             String unresolvedText = getTextByWebElement(locator);
             info.text("Retrieved from → " + element.getDisplayText() + " Unresolved Text: " + unresolvedText);
-            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
+            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(engine);
 
             // If truncated, try hover-based resolver or title/aria-label fallbacks
             if (enableResolveTooltip && !unresolvedText.isEmpty() && unresolvedText.endsWith(element.getEndsWith())) {
@@ -205,12 +219,12 @@ public class Interactions {
                         Clickable element,
                         @Nullable List<ActionHandler> afterActions) {
         try {
-            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
+            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(engine);
             By locator = LOCATORS.resolve(element); // role-based best available
             WebElement clickable = driver.findElement(locator);
             UIContext.setLastElement(clickable);
             clickOn(clickable);
-            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
+            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(engine);
         } catch (Exception e) {
             error.failed("Failed to click element: " + element.getDisplayText() + " " + e);
             throw new RuntimeException("Click action failed for: " + element.getDisplayText(), e);
@@ -228,7 +242,7 @@ public class Interactions {
      */
     public void clickOn(@Nullable List<ActionHandler> beforeActions, WebElement element, @Nullable Boolean useJSExecutor, @Nullable List<ActionHandler> afterActions) {
         try {
-            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
+            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(engine);
             if (useJSExecutor != null && useJSExecutor) {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
                 debug.click("Clicked using JavaScriptExecutor.");
@@ -236,7 +250,7 @@ public class Interactions {
                 element.click();
                 debug.click("Clicked using standard Selenium click().");
             }
-            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
+            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(engine);
         } catch (Exception e) {
             throw new RuntimeException("Failed to click on the element. Details: " + e.getMessage(), e);
         }
@@ -300,16 +314,16 @@ public class Interactions {
             if (beforeActions != null) {
                 beforeActions.forEach(action -> {
                     if (action != Before.LOG_INTENT) {
-                        action.execute(activeDriver);
+                        action.execute(engine);
                     }
                 });
                 // Execute LOG_INTENT only once
                 if (beforeActions.contains(Before.LOG_INTENT)) {
-                    Before.LOG_INTENT.execute(activeDriver);
+                    Before.LOG_INTENT.execute(engine);
                 }
             }
             performClick(element, useJSExecutor, activeDriver);
-            if (afterActions != null) afterActions.forEach(action -> action.execute(activeDriver));
+            if (afterActions != null) afterActions.forEach(action -> action.execute(engine));
             return true;
         } catch (StaleElementReferenceException staleEx) {
             debug.error("Stale element, retrying...");
@@ -328,7 +342,7 @@ public class Interactions {
                 UIContext.setLastElement(freshElement);
                 // On retry, skip beforeActions to avoid duplicate logs
                 performClick(freshElement, useJSExecutor, activeDriver);
-                if (afterActions != null) afterActions.forEach(action -> action.execute(activeDriver));
+                if (afterActions != null) afterActions.forEach(action -> action.execute(engine));
                 return true;
             } catch (Exception retryEx) {
                 error.failed("Retry after stale element failed: " + retryEx.getMessage());
@@ -515,18 +529,18 @@ public class Interactions {
             WebElement triggerElement = driver.findElement(trigger);
 
             // Open
-            if (beforeDropdownActions != null) for (ActionHandler a : beforeDropdownActions) if (a != null) a.execute(driver);
+            if (beforeDropdownActions != null) for (ActionHandler a : beforeDropdownActions) if (a != null) a.execute(engine);
             clickOn(null, triggerElement, useJSExecutor, null);
-            if (afterDropdownActions != null) for (ActionHandler a : afterDropdownActions) if (a != null) a.execute(driver);
+            if (afterDropdownActions != null) for (ActionHandler a : afterDropdownActions) if (a != null) a.execute(engine);
 
             // Wait overlay (if Angular)
             waitForOverlayToAppear();
 
             // Select
-            if (beforeOptionActions != null) for (ActionHandler a : beforeOptionActions) if (a != null) a.execute(driver);
+            if (beforeOptionActions != null) for (ActionHandler a : beforeOptionActions) if (a != null) a.execute(engine);
             WebElement optionElement = wait.until(ExpectedConditions.visibilityOfElementLocated(listOption));
             clickOn(null, optionElement, useJSExecutor, null);
-            if (afterOptionActions != null) for (ActionHandler a : afterOptionActions) if (a != null) a.execute(driver);
+            if (afterOptionActions != null) for (ActionHandler a : afterOptionActions) if (a != null) a.execute(engine);
 
             debug.dropdown("Selected → " + option.getDisplayText());
         } catch (Exception e) {
@@ -635,14 +649,14 @@ public class Interactions {
             @Nullable List<ActionHandler> afterActions
     ) {
         try {
-            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(driver);
+            if (beforeActions != null) for (ActionHandler action : beforeActions) if (action != null) action.execute(engine);
             if (searchField == null) throw new IllegalArgumentException("searchField cannot be null.");
             DOMUtils.scrollToElement(searchField);
             UIContext.setLastElement(searchField);
             searchField.clear();
             searchField.sendKeys(searchTerm);
             if (searchButton != null) clickOn(searchButton); else searchField.sendKeys(Keys.ENTER);
-            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(driver);
+            if (afterActions != null) for (ActionHandler action : afterActions) if (action != null) action.execute(engine);
         } catch (Exception e) {
             error.failed("[SEARCH] Failed to perform search for: '" + searchTerm + "' " + e);
             throw new RuntimeException("Search failed for term: " + searchTerm, e);
@@ -707,13 +721,13 @@ public class Interactions {
         try {
             String searchTerm = (resultArgs != null && resultArgs.length > 0 && resultArgs[0] != null)
                     ? resultArgs[0].toString() : "";
-            if (beforeSearch != null) for (ActionHandler action : beforeSearch) if (action != null) action.execute(driver);
+            if (beforeSearch != null) for (ActionHandler action : beforeSearch) if (action != null) action.execute(engine);
             WebElement resultElement = getSearchedElement(field, searchTerm);
-            if (afterSearch != null) for (ActionHandler action : afterSearch) if (action != null) action.execute(driver);
+            if (afterSearch != null) for (ActionHandler action : afterSearch) if (action != null) action.execute(engine);
             if (clickResult && resultElement != null) {
-                if (beforeClick != null) for (ActionHandler action : beforeClick) if (action != null) action.execute(driver);
+                if (beforeClick != null) for (ActionHandler action : beforeClick) if (action != null) action.execute(engine);
                 clickOn(resultElement);
-                if (afterClick != null) for (ActionHandler action : afterClick) if (action != null) action.execute(driver);
+                if (afterClick != null) for (ActionHandler action : afterClick) if (action != null) action.execute(engine);
             }
             return resultElement;
         } catch (TimeoutException e) {
@@ -791,7 +805,7 @@ public class Interactions {
                          String text,
                          @Nullable List<ActionHandler> afterActions) {
         try {
-            if (beforeActions != null) for (ActionHandler a : beforeActions) if (a != null) a.execute(driver);
+            if (beforeActions != null) for (ActionHandler a : beforeActions) if (a != null) a.execute(engine);
             By locator = LOCATORS.resolve(field);
             WebElement element = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             DOMUtils.scrollToElement(element);
@@ -799,7 +813,7 @@ public class Interactions {
             element.clear();
             element.sendKeys(text);
             info.text("Typed into '" + field.getDisplayText() + "': " + text);
-            if (afterActions != null) for (ActionHandler a : afterActions) if (a != null) a.execute(driver);
+            if (afterActions != null) for (ActionHandler a : afterActions) if (a != null) a.execute(engine);
         } catch (Exception e) {
             error.failed("Failed to type into field '" + field.getDisplayText() + "': " + e.getMessage());
             throw new RuntimeException("typeInto(TextInputField) failed for: " + field.getDisplayText(), e);
