@@ -1,6 +1,6 @@
 package elements.api;
 import elements.meta.ElementRole;
-import io.reactivex.rxjava3.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Core abstraction for every UI element descriptor in the framework.

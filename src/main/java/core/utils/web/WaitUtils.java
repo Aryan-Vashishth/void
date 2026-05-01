@@ -4,7 +4,7 @@ import core.resolvers.locator.api.LocatorResolvers;
 
 import elements.api.*;
 import javax.annotation.Nullable;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 import core.driver.DriverContext;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -165,17 +165,17 @@ public class WaitUtils {
         resolveLoader(ANGULAR_LOADER, waitToAppearMs, waitToDisappearMs, pollingMs, handleMultiple);
     }
 
-    public static void resolveLoader(@NotNull By locator) {
+    public static void resolveLoader(@Nonnull By locator) {
         // Use the same default timings as Angular loader
         resolveLoader(locator, 3000, 20000, 200, false);
     }
 
-    public static void resolveLoader(@NotNull By locator, @Nullable boolean handleMultiple) {
+    public static void resolveLoader(@Nonnull By locator, @Nullable boolean handleMultiple) {
         // Use the same default timings as Angular loader
         resolveLoader(locator, 3000, 20000, 200, handleMultiple);
     }
 
-    public static void resolveLoader(@NotNull By locator, int waitToAppearMs, int waitToDisappearMs) {
+    public static void resolveLoader(@Nonnull By locator, int waitToAppearMs, int waitToDisappearMs) {
         resolveLoader(locator, waitToAppearMs, waitToDisappearMs, 200, true);
     }
 
@@ -189,7 +189,7 @@ public class WaitUtils {
      * @param handleMultiple     If true, waits for any matching element; if false, only the first.
      */
     public static void resolveLoader(
-            @NotNull By locator,
+            @Nonnull By locator,
             @Nullable Integer waitToAppearMs,
             @Nullable Integer waitToDisappearMs,
             @Nullable Integer pollingMs,
@@ -343,7 +343,7 @@ public class WaitUtils {
     private static final int QUICK_OBSERVE_MS = 500; // short, low-risk window
 
     public static void resolveLoaderTemp(
-            @NotNull By locator,
+            @Nonnull By locator,
             @Nullable Integer waitToAppearMs,
             @Nullable Integer waitToDisappearMs,
             @Nullable Integer pollingMs,
