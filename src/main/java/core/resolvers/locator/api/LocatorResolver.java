@@ -1,5 +1,7 @@
 package core.resolvers.locator.api;
 
+import core.engine.LocatorDescriptor;
+import core.engine.LocatorStrategy;
 import core.resolvers.locator.parser.ByParser;
 import core.resolvers.locator.source.LocatorSource;
 import core.resolvers.locator.source.LocatorSourceRegistry;
@@ -10,6 +12,7 @@ import org.openqa.selenium.By;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static core.logging.CustomLogger.debug;
@@ -101,6 +104,92 @@ public final class LocatorResolver {
     /** Convenience: build a request and resolve. */
     public By resolve(String fileName, String key, Object... args) {
         return resolve(LocatorRequest.of(fileName, key, args));
+    }
+
+    // ---------------------------------------------------------------------
+    // Engine-agnostic descriptor resolution
+    // ---------------------------------------------------------------------
+
+    /**
+     * Resolves a {@link LocatorRequest} into a {@link LocatorDescriptor} (engine-agnostic).
+     * Performs the same pipeline as {@link #resolve(LocatorRequest)} but returns the
+     * resolved string + inferred strategy rather than a Selenium {@link By}.
+     */
+    public LocatorDescriptor resolveDescriptor(LocatorRequest request) {
+        String template = rawTemplate(request);
+        String resolved = new LocatorTemplate(template, templatePolicy).format(request.args());
+        if (resolved == null) {
+            throw new IllegalStateException(
+                    "Could not resolve locator template [file=" + request.fileName() +
+                    ", key=" + request.key() + ", template=" + template +
+                    ", args=" + Arrays.toString(request.args()) + "]");
+        }
+        LocatorStrategy strategy = inferStrategy(resolved);
+        String value = stripPrefix(resolved);
+        return LocatorDescriptor.of(value, strategy, request.args());
+    }
+
+    /** Convenience: resolve a descriptor from file/key/args. */
+    public LocatorDescriptor resolveDescriptor(String fileName, String key, Object... args) {
+        return resolveDescriptor(LocatorRequest.of(fileName, key, args));
+    }
+
+    /** Resolve descriptor for the primary locator of an {@link Element}. */
+    public LocatorDescriptor resolveDescriptor(Element e) {
+        return resolveDescriptorBest(e);
+    }
+
+    /** Resolve descriptor for a specific role on an {@link Element}. */
+    public LocatorDescriptor resolveDescriptor(Element e, ElementRole role, Object... overrideArgs) {
+        Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
+        String key = roles.get(role);
+        if (isBlank(key)) {
+            throw new IllegalStateException("Missing locator for role: " + role +
+                    (e.getDisplayText() == null ? "" : (" (element=\"" + e.getDisplayText() + "\")")));
+        }
+        return resolveDescriptor(e.getExternalFileName(), key, e.effectiveArgs(overrideArgs));
+    }
+
+    /** Resolve the best-available descriptor: PRIMARY → SECONDARY → first non-blank role. */
+    public LocatorDescriptor resolveDescriptorBest(Element e, Object... overrideArgs) {
+        String file = e.getExternalFileName();
+        Object[] args = e.effectiveArgs(overrideArgs);
+
+        String key = e.getPrimaryLocator();
+        if (!isBlank(key)) return resolveDescriptor(file, key, args);
+
+        key = e.getSecondaryLocator();
+        if (!isBlank(key)) return resolveDescriptor(file, key, args);
+
+        Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
+        key = roles.values().stream()
+                .filter(v -> v != null && !v.isBlank())
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "No locators defined for element: " + e.getDisplayText()));
+        return resolveDescriptor(file, key, args);
+    }
+
+    // ─── Strategy inference helpers ─────────────────────────────────────────
+
+    private static LocatorStrategy inferStrategy(String resolved) {
+        String lower = resolved.trim().toLowerCase(Locale.ROOT);
+        if (lower.startsWith("xpath=")) return LocatorStrategy.XPATH;
+        if (lower.startsWith("css="))   return LocatorStrategy.CSS;
+        if (lower.startsWith("id="))    return LocatorStrategy.ID;
+        if (lower.startsWith("name="))  return LocatorStrategy.NAME;
+        // Heuristic fallback
+        return LocatorStrategy.infer(resolved);
+    }
+
+    private static String stripPrefix(String resolved) {
+        String lower = resolved.trim().toLowerCase(Locale.ROOT);
+        for (String prefix : new String[]{"xpath=", "css=", "id=", "name=", "class=", "tag=", "linktext=", "partiallinktext="}) {
+            if (lower.startsWith(prefix)) {
+                return resolved.trim().substring(prefix.length());
+            }
+        }
+        return resolved.trim();
     }
 
     // ---------------------------------------------------------------------
