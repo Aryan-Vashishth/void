@@ -1,7 +1,6 @@
 package core.misc;
 
 import WebApplication.VOID;
-import core.driver.DriverFactory;
 
 public class VoidDemo {
     public static void main(String[] args) {
