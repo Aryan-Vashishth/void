@@ -28,7 +28,7 @@ mvn clean install -DskipTests
 
 ## 2 — Configure the Driver
 
-Edit `src/main/resources/config/driver.properties` to match your environment:
+Edit `src/main/resources/core/driver/config/driver.properties` to match your environment:
 
 ```properties
 # Core

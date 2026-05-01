@@ -22,7 +22,7 @@ Complete reference for all VOID configuration files and the `ConfigLoader` layer
 ```
 1. System Property       →  -Dbrowser=firefox
 2. Environment Variable  →  BROWSER=firefox
-3. Classpath Resource    →  config/driver.properties (TEST classpath wins over MAIN)
+3. Classpath Resource    →  core/driver/config/driver.properties (TEST classpath wins over MAIN)
 4. Hardcoded Default     →  built into VOID's code
 ```
 
@@ -46,13 +46,14 @@ When loading `.properties` files from the classpath, `ConfigLoader` supports thr
 | `TEST`         | Only loads from `src/test/resources/`                     |
 | `ANY` (default)| Loads from the thread context classloader (TEST wins)     |
 
-This means you can define production defaults in `src/main/resources/config/driver.properties` and override specific values in `src/test/resources/config/driver.properties` for test runs.
+This means you can define production defaults in `src/main/resources/core/driver/config/driver.properties` and override specific values in `src/test/resources/core/driver/config/driver.properties` for test runs.
 
 ---
 
 ## `driver.properties`
 
-**Location**: `src/main/resources/config/driver.properties`  
+**Location**: `src/main/resources/core/driver/config/driver.properties`  
+**Classpath**: `core/driver/config/driver.properties` (via `ConfigPaths.DRIVER_DEFAULT`)  
 **Purpose**: Configures the Selenium WebDriver instance created by `DriverFactory`.
 
 ### Full Key Reference
@@ -158,7 +159,8 @@ args=--no-sandbox,--disable-dev-shm-usage
 
 ## `test.properties`
 
-**Location**: `src/main/resources/config/test.properties`  
+**Location**: `src/main/resources/core/utils/config/test.properties`  
+**Classpath**: `core/utils/config/test.properties` (via `ConfigPaths.UTILS_TEST`)  
 **Purpose**: Controls file paths and data-layer settings for test execution.
 
 ### Full Key Reference
@@ -229,12 +231,12 @@ mvn clean test
 // Read a config value with default
 String browser = ConfigLoader.get("browser", "chrome");
 
-// Load a full properties file from classpath
-Properties props = ConfigLoader.loadFromClasspath("config/driver.properties");
+// Load a full properties file from classpath (using ConfigPaths)
+Properties props = ConfigLoader.loadFromClasspath(ConfigPaths.DRIVER_DEFAULT);
 
 // Load with explicit scope (TEST classpath only)
 Properties testProps = ConfigLoader.loadFromClasspath(
-    "config/test.properties",
+    ConfigPaths.UTILS_TEST,
     ConfigLoader.ClasspathScope.TEST
 );
 ```
@@ -264,7 +266,14 @@ ConfigLoader.get("key", "def")   →  System prop → ENV → classpath → "def
 Override priority:
   1. -Dkey=value          (highest)
   2. KEY=value (env var)
-  3. config/*.properties  (TEST classpath wins over MAIN)
+  3. core/<module>/config/*.properties  (TEST classpath wins over MAIN)
   4. hardcoded default    (lowest)
+
+Config file locations (single source of truth: ConfigPaths.java):
+  DRIVER_DEFAULT  = core/driver/config/driver.properties
+  DRIVER_LOCAL    = core/driver/config/driver-local.properties
+  DRIVER_CI       = core/driver/config/driver-ci.properties
+  DRIVER_GRID     = core/driver/config/driver-grid.properties
+  UTILS_TEST      = core/utils/config/test.properties
 ```
 
