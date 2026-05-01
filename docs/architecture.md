@@ -367,7 +367,6 @@ locators.template.output.dir=locators/
 | `extentreports-cucumber7-adapter` | 1.14.0 | HTML reporting |
 | `jackson-databind` | 2.19.0 (managed via BOM) | JSON parsing |
 | `log4j-api` / `log4j-core` / `log4j-1.2-api` | 2.25.4 | Logging (Log4j 2 with 1.x bridge) |
-| `lombok` | 1.18.42 | Boilerplate reduction |
 | `javafaker` | 1.0.2 | Test data generation |
 | `jsr305` | 3.0.2 | `@Nullable` / `@Nonnull` annotations |
 | `jetbrains-annotations` | 26.0.2 | `@NotNull` / `@Nullable` annotations |
@@ -423,6 +422,14 @@ Prefix tokens supported by `PropertiesFileLocatorReader`: `xpath=`, `css=`, `id=
 > *VOID is not a Selenium wrapper. It's not a framework. And it's not an optional toolkit.*
 > It's a structured automation system — consumed as a dependency, but opinionated about how elements are modeled, how locators are resolved, and how actions execute.
 > Every line of code is designed for introspection — enabling you to see not only what failed, but **why** and **how**.
+
+### No Compile-Time Code Generation
+
+VOID deliberately avoids compile-time code-generation tools (e.g., Lombok, AutoValue).
+All constructors, getters, builders, and utility methods are written explicitly in the source.
+This guarantees that every behavior is visible, traceable through a debugger, and fully
+controlled within the codebase — with no hidden transformations between the code you read
+and the code that runs.
 
 ---
 
