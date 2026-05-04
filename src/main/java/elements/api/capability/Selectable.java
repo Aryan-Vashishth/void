@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ElementActions;
 import elements.meta.ElementRole;
 
 import java.time.Duration;
@@ -59,10 +60,8 @@ public interface Selectable extends Clickable, Listable {
 
     /** Opens the dropdown trigger. */
     default Action open() {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.TRIGGER);
-            engine.click(d);
-        };
+        return ElementActions.of(this, ElementRole.TRIGGER,
+                (engine, d) -> engine.click(d));
     }
 
     /** Composite: opens trigger → waits for overlay → clicks option. */
@@ -75,17 +74,13 @@ public interface Selectable extends Clickable, Listable {
     }
 
     default Action selectByText(String text) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.LIST);
-            engine.selectByVisibleText(d, text);
-        };
+        return ElementActions.of(this, ElementRole.LIST,
+                (engine, d) -> engine.selectByVisibleText(d, text));
     }
 
     default Action selectByValue(String value) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.LIST);
-            engine.selectByValue(d, value);
-        };
+        return ElementActions.of(this, ElementRole.LIST,
+                (engine, d) -> engine.selectByValue(d, value));
     }
 }
 

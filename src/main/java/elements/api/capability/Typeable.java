@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ElementActions;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -43,35 +44,25 @@ public interface Typeable extends Element {
 
     /** Deferred type action — clears then types. */
     default Action type(String text) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.INPUT);
-            engine.type(d, text);
-        };
+        return ElementActions.of(this, ElementRole.INPUT,
+                (engine, d) -> engine.type(d, text));
     }
 
     /** Deferred clear action. */
     default Action clear() {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.INPUT);
-            engine.clear(d);
-        };
+        return ElementActions.of(this, ElementRole.INPUT,
+                (engine, d) -> engine.clear(d));
     }
 
     /** Deferred append action — types without clearing. */
     default Action append(String text) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.INPUT);
-            engine.appendType(d, text);
-        };
+        return ElementActions.of(this, ElementRole.INPUT,
+                (engine, d) -> engine.appendType(d, text));
     }
 
     /** Deferred type-and-press action — types then sends a key (e.g., "ENTER"). */
     default Action typeAndPress(String text, String key) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.INPUT);
-            engine.type(d, text);
-            engine.sendKey(d, key);
-        };
+        return ElementActions.of(this, ElementRole.INPUT,
+                (engine, d) -> { engine.type(d, text); engine.sendKey(d, key); });
     }
 }
-
