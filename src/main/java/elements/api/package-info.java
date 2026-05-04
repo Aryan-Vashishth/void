@@ -11,7 +11,7 @@
  *
  * <h3>Execution path</h3>
  * <pre>
- *   Element → Action (intent) → Flow → Runner → UIEngine (execution)
+ *   Element → Action (intent) → Flow → FlowExecutor → UIEngine (execution)
  * </pre>
  */
 package elements.api;

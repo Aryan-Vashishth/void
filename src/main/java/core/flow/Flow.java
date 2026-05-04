@@ -17,10 +17,10 @@ import java.util.List;
  *       LoginPage.PASSWORD.type("pass"),
  *       LoginPage.LOGIN_BUTTON.click()
  *   );
- *   runner.run(loginFlow);
+ *   executor.run(loginFlow);
  * </pre>
  */
-@Beta(since = "2.0", note = "Action/Flow/Runner pipeline is evolving — API may change")
+@Beta(since = "2.0", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
 public class Flow {
 
     private final List<Action> actions;

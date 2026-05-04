@@ -2,7 +2,7 @@
  * VOID Framework — Runnable Demos and Examples.
  *
  * <p>This package contains self-contained demo applications that exercise
- * the full VOID pipeline (Action / Flow / Runner) against public demo sites.</p>
+ * the full VOID pipeline (Action / Flow / FlowExecutor) against public demo sites.</p>
  *
  * <h3>Structure</h3>
  * <pre>

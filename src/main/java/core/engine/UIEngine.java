@@ -33,7 +33,7 @@ import java.time.Duration;
  *
  * <h3>Single execution path</h3>
  * <pre>
- *   Element → Action → Flow → Runner → UIEngine
+ *   Element → Action → Flow → FlowExecutor → UIEngine
  * </pre>
  *
  * @see LocatorDescriptor
