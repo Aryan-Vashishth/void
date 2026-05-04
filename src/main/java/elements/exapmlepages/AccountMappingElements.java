@@ -1,6 +1,7 @@
 package elements.exapmlepages;
 
-import elements.api.*;
+import elements.api.Element;
+import elements.api.capability.*;
 
 /**
  * Complex page-element catalogue for the Account Mapping page.
@@ -11,24 +12,24 @@ import elements.api.*;
  *
  * <pre>
  * AccountMappingElements
- * ├── Header            (ReadOnlyElement)  — static page labels
- * ├── SearchBar         (SearchField)      — 2 roles: SEARCH_INPUT, SEARCH_BUTTON
- * ├── FilterPanel
- * │   ├── StatusDropdown    (SearchableDropdown)  — 4 roles: TRIGGER, SEARCH_INPUT, SEARCH_BUTTON, SEARCH_RESULT
- * │   ├── DateRange         (TextInputField)      — 1 role:  INPUT
- * │   ├── ActiveOnly        (Checkbox)            — 1 role:  TRIGGER
- * │   └── ApplyButton       (Clickable)           — 1 role:  TRIGGER
- * ├── AccountTable      (WritableTableElement)    — up to 8 roles
- * │   └── InlineEditor  (TextInputField)          — nested inside table context
- * ├── ActionBar
- * │   ├── BulkActions   (Dropdown)                — 2 roles: TRIGGER, LIST
- * │   └── ExportButton  (Clickable)               — 1 role:  TRIGGER
- * ├── DetailPanel
- * │   ├── TooltipField     (ToolTipElement)       — 2 roles: TEXT, TOOLTIP_CONTENT
- * │   ├── RoleSelector     (MultipleIdenticalDropdowns) — 2 roles: MULTI_TRIGGER, MULTI_LIST
- * │   └── FileUpload       (FileInputElement)     — 1 role:  INPUT
- * └── Pagination        (Clickable)               — nested with its own PageSizeDropdown
- *     └── PageSizeDropdown (Dropdown)             — 2 roles: TRIGGER, LIST
+ * Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ Header            (ReadOnly)  Ã¢â‚¬â€ static page labels
+ * Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ SearchBar         (SearchField)      Ã¢â‚¬â€ 2 roles: SEARCH_INPUT, SEARCH_BUTTON
+ * Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ FilterPanel
+ * Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ StatusDropdown    (SearchableDropdown)  Ã¢â‚¬â€ 4 roles: TRIGGER, SEARCH_INPUT, SEARCH_BUTTON, SEARCH_RESULT
+ * Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ DateRange         (Typeable)      Ã¢â‚¬â€ 1 role:  INPUT
+ * Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ ActiveOnly        (Checkable)            Ã¢â‚¬â€ 1 role:  TRIGGER
+ * Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ ApplyButton       (Clickable)           Ã¢â‚¬â€ 1 role:  TRIGGER
+ * Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ AccountTable      (EditableTable)    Ã¢â‚¬â€ up to 8 roles
+ * Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ InlineEditor  (Typeable)          Ã¢â‚¬â€ nested inside table context
+ * Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ ActionBar
+ * Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ BulkActions   (Selectable)                Ã¢â‚¬â€ 2 roles: TRIGGER, LIST
+ * Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ ExportButton  (Clickable)               Ã¢â‚¬â€ 1 role:  TRIGGER
+ * Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ DetailPanel
+ * Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ TooltipField     (Hoverable)       Ã¢â‚¬â€ 2 roles: TEXT, TOOLTIP_CONTENT
+ * Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ RoleSelector     (MultiSelectable) Ã¢â‚¬â€ 2 roles: MULTI_TRIGGER, MULTI_LIST
+ * Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ FileUpload       (Uploadable)     Ã¢â‚¬â€ 1 role:  INPUT
+ * Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ Pagination        (Clickable)               Ã¢â‚¬â€ nested with its own PageSizeDropdown
+ *     Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ PageSizeDropdown (Selectable)             Ã¢â‚¬â€ 2 roles: TRIGGER, LIST
  * </pre>
  */
 public interface AccountMappingElements {
@@ -37,10 +38,10 @@ public interface AccountMappingElements {
     String PROPS = "account-mapping-elements.properties";
 
     // ========================================================================
-    // 1. Header — ReadOnlyElement (single role: TEXT)
+    // 1. Header Ã¢â‚¬â€ ReadOnly (single role: TEXT)
     // ========================================================================
 
-    enum Header implements ReadOnlyElement {
+    enum Header implements ReadOnly {
         PAGE_TITLE("PAGE_TITLE"),
         BREADCRUMB("BREADCRUMB"),
         LAST_SYNCED_LABEL("LAST_SYNCED_LABEL");
@@ -54,7 +55,7 @@ public interface AccountMappingElements {
     }
 
     // ========================================================================
-    // 2. SearchBar — SearchField (2 roles: SEARCH_INPUT, SEARCH_BUTTON)
+    // 2. SearchBar Ã¢â‚¬â€ SearchField (2 roles: SEARCH_INPUT, SEARCH_BUTTON)
     // ========================================================================
 
     enum SearchBar implements SearchField {
@@ -71,12 +72,12 @@ public interface AccountMappingElements {
     }
 
     // ========================================================================
-    // 3. FilterPanel — container interface for filter-related enums
+    // 3. FilterPanel Ã¢â‚¬â€ container interface for filter-related enums
     // ========================================================================
 
     interface FilterPanel {
 
-        // 3a. StatusDropdown — SearchableDropdown (4 roles)
+        // 3a. StatusDropdown Ã¢â‚¬â€ SearchableDropdown (4 roles)
         enum StatusDropdown implements SearchableDropdown {
             USER_STATUS("STATUS_TRIGGER", "STATUS_SEARCH_INPUT", "STATUS_SEARCH_BTN", "STATUS_RESULTS");
 
@@ -93,8 +94,8 @@ public interface AccountMappingElements {
             @Override public Object[] getArgs()               { return new Object[]{"Active"}; }
         }
 
-        // 3b. DateRange — TextInputField with dynamic templates
-        enum DateRange implements TextInputField {
+        // 3b. DateRange Ã¢â‚¬â€ Typeable with dynamic templates
+        enum DateRange implements Typeable {
             DATE_FROM("DATE_FROM_INPUT", "From"),
             DATE_TO("DATE_TO_INPUT", "To");
 
@@ -107,8 +108,8 @@ public interface AccountMappingElements {
             @Override public Object[] getArgs()           { return new Object[]{label}; }
         }
 
-        // 3c. ActiveOnly — Checkbox (extends Clickable, single role: TRIGGER)
-        enum ActiveOnly implements Checkbox {
+        // 3c. ActiveOnly Ã¢â‚¬â€ Checkable (extends Clickable, single role: TRIGGER)
+        enum ActiveOnly implements Checkable {
             ACTIVE_ONLY_TOGGLE("ACTIVE_ONLY_TRIGGER");
 
             private final String key;
@@ -119,7 +120,7 @@ public interface AccountMappingElements {
             @Override public Object[] getArgs()           { return new Object[0]; }
         }
 
-        // 3d. ApplyButton — Clickable (single role: TRIGGER)
+        // 3d. ApplyButton Ã¢â‚¬â€ Clickable (single role: TRIGGER)
         enum ApplyButton implements Clickable {
             APPLY("APPLY_FILTER_TRIGGER", "Apply"),
             RESET("RESET_FILTER_TRIGGER", "Reset");
@@ -135,11 +136,11 @@ public interface AccountMappingElements {
     }
 
     // ========================================================================
-    // 4. AccountTable — WritableTableElement (up to 8 roles)
+    // 4. AccountTable Ã¢â‚¬â€ EditableTable (up to 8 roles)
     //    with nested InlineEditor
     // ========================================================================
 
-    enum AccountTable implements WritableTableElement {
+    enum AccountTable implements EditableTable {
         MAPPING_GRID(
                 "ACCT_TABLE", "ACCT_ROW", "ACCT_COLUMN", "ACCT_CELL", "ACCT_HEADER",
                 "ACCT_ADD_ROW", "ACCT_REMOVE_ROW", "ACCT_FOOTER_INPUT"
@@ -162,8 +163,8 @@ public interface AccountMappingElements {
         @Override public String getExternalFileName()      { return PROPS; }
         @Override public Object[] getArgs()                { return new Object[0]; }
 
-        // 4a. InlineEditor — TextInputField nested inside AccountTable
-        enum InlineEditor implements TextInputField {
+        // 4a. InlineEditor Ã¢â‚¬â€ Typeable nested inside AccountTable
+        enum InlineEditor implements Typeable {
             CELL_EDITOR("INLINE_EDIT_INPUT");
 
             private final String key;
@@ -176,13 +177,13 @@ public interface AccountMappingElements {
     }
 
     // ========================================================================
-    // 5. ActionBar — container for bulk actions and export
+    // 5. ActionBar Ã¢â‚¬â€ container for bulk actions and export
     // ========================================================================
 
     interface ActionBar {
 
-        // 5a. BulkActions — Dropdown (2 roles: TRIGGER, LIST)
-        enum BulkActions implements Dropdown {
+        // 5a. BulkActions Ã¢â‚¬â€ Selectable (2 roles: TRIGGER, LIST)
+        enum BulkActions implements Selectable {
             BULK_MENU("BULK_ACTION_TRIGGER", "BULK_ACTION_LIST");
 
             private final String trigger;
@@ -195,7 +196,7 @@ public interface AccountMappingElements {
             @Override public Object[] getArgs()           { return new Object[]{"Delete Selected"}; }
         }
 
-        // 5b. ExportButton — Clickable (single role: TRIGGER)
+        // 5b. ExportButton Ã¢â‚¬â€ Clickable (single role: TRIGGER)
         enum ExportButton implements Clickable {
             EXPORT("EXPORT_TRIGGER");
 
@@ -209,13 +210,13 @@ public interface AccountMappingElements {
     }
 
     // ========================================================================
-    // 6. DetailPanel — tooltip, multi-dropdown, file upload
+    // 6. DetailPanel Ã¢â‚¬â€ tooltip, multi-Selectable, file upload
     // ========================================================================
 
     interface DetailPanel {
 
-        // 6a. TooltipField — ToolTipElement (2 roles: TEXT, TOOLTIP_CONTENT)
-        enum TooltipField implements ToolTipElement {
+        // 6a. TooltipField Ã¢â‚¬â€ Hoverable (2 roles: TEXT, TOOLTIP_CONTENT)
+        enum TooltipField implements Hoverable {
             ACCOUNT_NAME("ACCOUNT_NAME_TEXT", "ACCOUNT_NAME_TOOLTIP", "...");
 
             private final String textKey;
@@ -230,8 +231,8 @@ public interface AccountMappingElements {
             @Override public Object[] getArgs()                { return new Object[0]; }
         }
 
-        // 6b. RoleSelector — MultipleIdenticalDropdowns (2 roles: MULTI_TRIGGER, MULTI_LIST)
-        enum RoleSelector implements MultipleIdenticalDropdowns {
+        // 6b. RoleSelector Ã¢â‚¬â€ MultiSelectable (2 roles: MULTI_TRIGGER, MULTI_LIST)
+        enum RoleSelector implements MultiSelectable {
             ROLE_DROPDOWN("ROLE_MULTI_TRIGGER", "ROLE_MULTI_LIST");
 
             private final String trigger;
@@ -244,8 +245,8 @@ public interface AccountMappingElements {
             @Override public Object[] getArgs()           { return new Object[]{1, "Admin"}; }
         }
 
-        // 6c. FileUpload — FileInputElement (single role: INPUT)
-        enum FileUpload implements FileInputElement {
+        // 6c. FileUpload Ã¢â‚¬â€ Uploadable (single role: INPUT)
+        enum FileUpload implements Uploadable {
             MAPPING_CSV("UPLOAD_INPUT");
 
             private final String key;
@@ -258,7 +259,7 @@ public interface AccountMappingElements {
     }
 
     // ========================================================================
-    // 7. Pagination — Clickable with nested PageSizeDropdown
+    // 7. Pagination Ã¢â‚¬â€ Clickable with nested PageSizeDropdown
     // ========================================================================
 
     enum Pagination implements Clickable {
@@ -273,8 +274,8 @@ public interface AccountMappingElements {
         @Override public String getExternalFileName() { return PROPS; }
         @Override public Object[] getArgs()           { return new Object[]{label}; }
 
-        // 7a. PageSizeDropdown — Dropdown (2 roles: TRIGGER, LIST)
-        enum PageSizeDropdown implements Dropdown {
+        // 7a. PageSizeDropdown Ã¢â‚¬â€ Selectable (2 roles: TRIGGER, LIST)
+        enum PageSizeDropdown implements Selectable {
             PAGE_SIZE("PAGE_SIZE_TRIGGER", "PAGE_SIZE_LIST");
 
             private final String trigger;

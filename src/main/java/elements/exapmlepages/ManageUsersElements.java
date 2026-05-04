@@ -1,11 +1,12 @@
 package elements.exapmlepages;
 
-import elements.api.*;
+import elements.api.Element;
+import elements.api.capability.*;
 import core.utils.ResolvableEnum;
 
 public interface ManageUsersElements {
 
-    enum UserCards implements ReadOnlyElement, ResolvableEnum {
+    enum UserCards implements ReadOnly, ResolvableEnum {
         CONTAINER("CONTAINER"),
         FULL_NAME("FULL_NAME"),
         USERNAME("USERNAME"),

@@ -1,6 +1,5 @@
 package elements.api.capability;
 
-import core.actions.Action;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -37,14 +36,5 @@ public interface Listable extends Element {
         return roles;
     }
 
-    // ── Action emission ─────────────────────────────────────────────────
-
-    /** Scrolls the list container into view. */
-    default Action scrollToList() {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.LIST);
-            engine.scrollTo(d);
-        };
-    }
 }
 

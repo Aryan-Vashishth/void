@@ -1,6 +1,5 @@
 package elements.api.capability;
 
-import core.actions.Action;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -54,14 +53,5 @@ public interface Table extends Element {
         return roles;
     }
 
-    // ── Action emission ─────────────────────────────────────────────────
-
-    /** Scrolls the table into view. */
-    default Action scrollToTable() {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.TABLE);
-            engine.scrollTo(d);
-        };
-    }
 }
 

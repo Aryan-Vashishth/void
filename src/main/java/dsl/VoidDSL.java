@@ -4,7 +4,8 @@ import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
 
 import elements.meta.EnumClassRegistry;
-import elements.api.*;
+import elements.api.Element;
+import elements.api.capability.*;
 import core.utils.ResolvableEnum;
 import core.interactions.hooks.ActionHandler;
 import core.interactions.Interactions;
@@ -19,7 +20,7 @@ import static core.utils.EnumResolver.stringToEnum;
 import static core.logging.CustomLogger.*;
 
 /**
- * InteractionsDSL — DSL Layer
+ * InteractionsDSL Ã¢â‚¬â€ DSL Layer
  * ----------------------------------------
  * Provides a high-level, context-driven <b>Domain-Specific Language</b> for
  * Cucumber / BDD step definitions. Translates plain-text BDD parameters
@@ -32,27 +33,27 @@ import static core.logging.CustomLogger.*;
  * {@code Interactions}, this class <em>holds</em> an {@code Interactions}
  * reference. This enforces a clean separation:</p>
  * <pre>
- *   DSL  →  Engine  →  WebDriver
+ *   DSL  Ã¢â€ â€™  Engine  Ã¢â€ â€™  WebDriver
  * </pre>
  * <p>The DSL never touches {@code WebDriver} directly. If the execution
  * engine is later swapped (Playwright, mock, replay), only the engine
- * needs to change — the DSL stays untouched.</p>
+ * needs to change Ã¢â‚¬â€ the DSL stays untouched.</p>
  *
  * <h3>Layer responsibilities</h3>
  * <pre>
- *  ┌──────────────────────────────────────────────────────────┐
- *  │  dsl layer  (this package)                               │
- *  │  - VoidDSL             → context-driven DSL              │
- *  ├──────────────────────────────────────────────────────────┤
- *  │  framework layer   (core / elements)                     │
- *  │  - Interactions         → raw UI actions (engine)        │
- *  │  - VOID                 → framework façade               │
- *  │  - elements.api.*       → element contracts              │
- *  │  - core.*               → driver / logging / resolvers   │
- *  └──────────────────────────────────────────────────────────┘
+ *  Ã¢â€Å’Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â
+ *  Ã¢â€â€š  dsl layer  (this package)                               Ã¢â€â€š
+ *  Ã¢â€â€š  - VoidDSL             Ã¢â€ â€™ context-driven DSL              Ã¢â€â€š
+ *  Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â¤
+ *  Ã¢â€â€š  framework layer   (core / elements)                     Ã¢â€â€š
+ *  Ã¢â€â€š  - Interactions         Ã¢â€ â€™ raw UI actions (engine)        Ã¢â€â€š
+ *  Ã¢â€â€š  - VOID                 Ã¢â€ â€™ framework faÃƒÂ§ade               Ã¢â€â€š
+ *  Ã¢â€â€š  - elements.api.*       Ã¢â€ â€™ element contracts              Ã¢â€â€š
+ *  Ã¢â€â€š  - core.*               Ã¢â€ â€™ driver / logging / resolvers   Ã¢â€â€š
+ *  Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ
  * </pre>
  *
- * @param engine The execution engine — all UI work is delegated here.
+ * @param engine The execution engine Ã¢â‚¬â€ all UI work is delegated here.
  */
 public record VoidDSL(Interactions engine) {
 
@@ -166,7 +167,7 @@ public record VoidDSL(Interactions engine) {
         }
     }
 
-    // ========================= Dropdown (Context) =========================
+    // ========================= Selectable (Context) =========================
 
     @SuppressWarnings("unused")
     public void selectFromDropdownByContext(String keySuffix, String unresolvedEnumName) {
@@ -178,10 +179,10 @@ public record VoidDSL(Interactions engine) {
         String resolvedContextLabel = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
-        if (!(resolved instanceof Dropdown dropdown)) {
-            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a Dropdown.");
+        if (!(resolved instanceof Selectable Selectable)) {
+            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a Selectable.");
         }
-        engine.selectFromDropdown(dropdown);
+        engine.selectFromDropdown(Selectable);
     }
 
     @SuppressWarnings("unused")
@@ -189,24 +190,24 @@ public record VoidDSL(Interactions engine) {
         String resolvedContextLabel = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
-        if (resolved instanceof MultipleIdenticalDropdowns multiDropdownOption) {
+        if (resolved instanceof MultiSelectable multiDropdownOption) {
             engine.selectFromDropdown(dropdownIndex, multiDropdownOption);
             return;
         }
-        if (resolved instanceof Dropdown singleDropdownOption) {
-            warn.log("Context '" + resolvedContextLabel + "' resolved to a singleton Dropdown; index "
+        if (resolved instanceof Selectable singleDropdownOption) {
+            warn.log("Context '" + resolvedContextLabel + "' resolved to a singleton Selectable; index "
                     + dropdownIndex + " will be ignored.");
             engine.selectFromDropdown(singleDropdownOption);
             return;
         }
 
         throw new IllegalArgumentException(
-                "Enum for context '" + resolvedContextLabel + "' must implement MultipleDropdown or Dropdown. " +
+                "Enum for context '" + resolvedContextLabel + "' must implement MultipleDropdown or Selectable. " +
                         "Got: " + resolved.getClass().getSimpleName()
         );
     }
 
-    // ========================= Trigger dropdown by context =========================
+    // ========================= Trigger Selectable by context =========================
 
     public void triggerDropdownByContext(String keyPrefix, String keySuffix, Integer dropdownIndex) {
         String resolvedContextLabel = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
@@ -214,13 +215,13 @@ public record VoidDSL(Interactions engine) {
         Class<?> enumClass = CONTEXT_MAP.get(resolvedContextLabel);
         Enum<?> first = getFirstEnumConstant(enumClass, resolvedContextLabel);
 
-        if (first instanceof MultipleIdenticalDropdowns multiDropdown) {
+        if (first instanceof MultiSelectable multiDropdown) {
             engine.triggerDropdown(multiDropdown, dropdownIndex);
-        } else if (first instanceof Dropdown singleDropdown) {
+        } else if (first instanceof Selectable singleDropdown) {
             engine.triggerDropdown(singleDropdown);
         } else {
             throw new IllegalArgumentException(
-                    "Enum does not implement Dropdown or MultipleDropdown: " + enumClass.getSimpleName());
+                    "Enum does not implement Selectable or MultipleDropdown: " + enumClass.getSimpleName());
         }
     }
 
@@ -231,7 +232,14 @@ public record VoidDSL(Interactions engine) {
 
     // ========================= Searchable (Context) =========================
 
-    public WebElement getSearchedElementByContext(String keyPrefix, String keySuffix, String unresolvedEnumName, String searchTerm) {
+    /**
+     * Searches for an element by context and returns the result text.
+     *
+     * @deprecated This method previously returned a WebElement. Now returns the search result text.
+     *             Use {@link #clickSearchableElementByContext} for search+click workflows.
+     */
+    @Deprecated(forRemoval = true)
+    public String getSearchedElementByContext(String keyPrefix, String keySuffix, String unresolvedEnumName, String searchTerm) {
         String resolvedContextKey = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
 
         try {
@@ -249,11 +257,11 @@ public record VoidDSL(Interactions engine) {
             }
 
             ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextKey);
-            if (!(resolved instanceof Searchable searchable)) {
+            if (!(resolved instanceof Searchable Searchable)) {
                 throw new IllegalArgumentException("Resolved enum does not implement SearchableElement: " + unresolvedEnumName);
             }
 
-            return engine.getSearchedElement(searchable, searchTerm);
+            return engine.getSearchResultText(Searchable, searchTerm);
 
         } catch (Exception e) {
             error.failed("Failed to search using '" + unresolvedEnumName + "' in context: " + resolvedContextKey);
@@ -263,8 +271,18 @@ public record VoidDSL(Interactions engine) {
 
     @SuppressWarnings("unused")
     public void clickSearchableElementByContext(String keyPrefix, String keySuffix, String unresolvedEnumName, String searchTerm) {
-        WebElement element = getSearchedElementByContext(keyPrefix, keySuffix, unresolvedEnumName, searchTerm);
-        engine.clickOn(element);
+        String resolvedContextKey = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
+
+        try {
+            ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextKey);
+            if (!(resolved instanceof Searchable Searchable)) {
+                throw new IllegalArgumentException("Resolved enum does not implement SearchableElement: " + unresolvedEnumName);
+            }
+            engine.searchAndSelect(Searchable, searchTerm);
+        } catch (Exception e) {
+            error.failed("Failed to search and click using '" + unresolvedEnumName + "' in context: " + resolvedContextKey);
+            throw new RuntimeException("Search+click failed for '" + unresolvedEnumName + "' in context: " + resolvedContextKey, e);
+        }
     }
 
     // ========================= Visibility verification (Context) =========================
@@ -310,16 +328,16 @@ public record VoidDSL(Interactions engine) {
         return allVisible;
     }
 
-    // ========================= Checkbox (Context) =========================
+    // ========================= Checkable (Context) =========================
 
     public void setCheckboxByContext(String keyPrefix, String keySuffix, String unresolvedEnumName, boolean check) {
         String resolvedContextLabel = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
-        if (!(resolved instanceof Checkbox checkbox)) {
-            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a Checkbox.");
+        if (!(resolved instanceof Checkable Checkable)) {
+            throw new IllegalArgumentException("Enum for context '" + resolvedContextLabel + "' is not a Checkable.");
         } else {
-            engine.setCheckbox(checkbox, check);
+            engine.setCheckbox(Checkable, check);
         }
     }
 
