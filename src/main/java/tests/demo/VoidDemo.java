@@ -1,6 +1,7 @@
 package tests.demo;
 
 import core.actions.HookedAction;
+import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import core.flow.Flow;
 import core.interactions.hooks.After;
@@ -17,6 +18,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.time.Duration;
 import java.util.List;
 
 import static core.logging.CustomLogger.*;
@@ -83,8 +85,11 @@ public class VoidDemo {
 
         info.success("Flow executed successfully.");
 
-        // Verify we landed on the secure page
+        // Wait for navigation, then verify we landed on the secure page
         info.log("[3/3] Verifying result...");
+        LocatorDescriptor successMsg = engine.resolve(
+                DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
+        engine.waitForVisible(successMsg, Duration.ofSeconds(5));
         String currentUrl = engine.getCurrentUrl();
         debug.log("Current URL: " + currentUrl);
 
@@ -117,7 +122,7 @@ public class VoidDemo {
         //   - Before type: clear field + highlight (red)
         //   - After type:  highlight (green = success)
         //   - Before click: wait for clickable + highlight
-        //   - After click:  wait for element visible (success message)
+        //   - After click:  custom hook waits for success message (demonstrates inline lambdas)
         info.log("[HOOKED 2/3] Executing hooked login flow...");
 
         runner.run(Flow.of(
@@ -137,12 +142,22 @@ public class VoidDemo {
                         List.of(After.HIGHLIGHT_ELEMENT)
                 ),
 
-                // Click login — wait for clickable, highlight, then wait for result
+                // Click login — wait for clickable, then wait for success message after
                 HookedAction.wrap(
                         DemoLoginPage.Button.LOGIN_BUTTON.click(),
                         DemoLoginPage.Button.LOGIN_BUTTON, ElementRole.TRIGGER,
                         List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
-                        null
+                        List.of(
+                                // Custom inline hook: wait for the success message after login click.
+                                // Demonstrates: hooks can resolve other elements via the engine,
+                                // not just the descriptor they receive.
+                                (eng, desc) -> {
+                                    LocatorDescriptor successMsg = eng.resolve(
+                                            DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
+                                    eng.waitForVisible(successMsg, Duration.ofSeconds(5));
+                                    debug.log("[HOOK] Success message visible after login click.");
+                                }
+                        )
                 )
         ));
 

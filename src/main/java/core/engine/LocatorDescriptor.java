@@ -1,5 +1,6 @@
 package core.engine;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 /**
@@ -92,7 +93,7 @@ public record LocatorDescriptor(
         return new LocatorDescriptor(value, strategy, args);
     }
 
-    @Override
+    @Override @Nonnull
     public String toString() {
         String base = strategy + "=" + value +
                 (args != null && args.length > 0 ? " args=" + Arrays.toString(args) : "");
