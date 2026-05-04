@@ -20,7 +20,10 @@ import java.time.Duration;
  * <p>All hooks are <b>engine-agnostic</b> — they delegate to {@link UIEngine} methods
  * rather than calling Selenium APIs directly.</p>
  *
- * This class is a pure constants holder — never instantiate it.
+ * <p>This class is a pure constants holder — never instantiate it.</p>
+ *
+ * @apiNote <b>Stable.</b> Can be used with both legacy and new pipelines.
+ * This contract will not change.
  */
 public final class After {
 

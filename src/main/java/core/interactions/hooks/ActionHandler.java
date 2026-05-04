@@ -12,6 +12,9 @@ import core.engine.UIEngine;
  * <pre>
  *   interactions.clickOn(List.of(Before.WAIT_FOR_ANGULAR_LOADER, e -> myCustomSetup(e)), element);
  * </pre>
+ *
+ * @apiNote <b>Stable.</b> Can be used with both legacy and new pipelines.
+ * This contract will not change.
  */
 @FunctionalInterface
 public interface ActionHandler {
