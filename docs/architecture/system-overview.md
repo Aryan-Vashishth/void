@@ -2,81 +2,94 @@
 
 ## Overview
 
-VOID (Versatile Object-Oriented Interactions for DOM) is a **structured Selenium automation system**. It ships as a Maven dependency, but internally enforces an opinionated model for element definition, locator resolution, action execution, and failure reporting. Built on Java 17, it combines an enum-driven element model, role-based locator resolution, composable hook pipelines, and deep observability tooling into a cohesive, enterprise-ready platform.
+VOID is a **structured, engine-agnostic execution model** for UI automation. It ships as a Maven dependency and enforces an opinionated architecture for element definition, locator resolution, action composition, and browser execution. Built on Java 17, it combines an enum-driven element model, capability-based interfaces, role-based locator resolution, composable hook pipelines, a deferred Action/Flow execution system, and deep observability tooling into a cohesive, enterprise-ready platform.
+
+### What VOID Is
+
+VOID separates:
+- **Intent** (Action) — what the user wants to do
+- **Structure** (Element + Capability) — what UI elements exist and what roles they play
+- **Execution** (UIEngine) — how the browser interaction physically happens
+
+This enables interchangeable engines (Selenium, Playwright), composable flows, deterministic execution behavior, and clean separation of concerns.
 
 ---
 
 ## 🚀 Key Features
 
 ### 🧠 Not Just Another Selenium Wrapper
-- Every UI element is modeled as a **typed enum constant** implementing fine-grained behavioral interfaces.
-- The `VOID` façade (entry point) lazily initialises interaction helpers and keeps them cached per instance.
+- Every UI element is modeled as a **typed enum constant** implementing fine-grained capability interfaces.
+- Elements emit **deferred Action objects** (intent) — they never execute directly.
+- **UIEngine** is the single execution authority — handles scroll, waits, retries, and fallback internally.
 - Deep, color-coded logging with precise call-site tracing makes every failure reproducible.
 
 ### 🔧 Enum-Driven Object Model
-- Elements are declared as enums implementing interfaces such as `Clickable`, `Dropdown`, or `ToolTipElement`.
-- Nested enums (e.g., `ManageUsersElements.UserCards`) organise elements by page and functional context.
+- Elements are declared as enums implementing capability interfaces such as `Clickable`, `Selectable`, `Typeable`, or `Hoverable`.
+- Nested enums (e.g., `AccountMappingElements.FilterPanel.StatusDropdown`) organize elements by page and functional context.
 - Each enum constant carries its own locator key, external file reference, dynamic args, and display text.
 
 ### 📍 Role-Based Locator Resolution (`LocatorResolvers`)
 - All locator lookups go through `LocatorResolvers` (`strict()` for clean role-keyed JSON, `legacyPadded()` for legacy properties files), which dispatch to **JSON** or **`.properties`** readers via a `LocatorRequest`.
 - Locator roles are typed via `ElementRole` enum — `PRIMARY`, `SECONDARY`, `TRIGGER`, `LIST`, `SEARCH_INPUT`, `SEARCH_RESULT`, `TOOLTIP_CONTENT`, `TABLE`, `ROW`, `CELL`, `MULTI_TRIGGER`, etc.
 - Dynamic `%s` substitutions in locator templates are applied at resolve time.
-- `UIContext` records the last resolved element/meta for stale-element retry and diagnostics.
+- Resolution produces `LocatorDescriptor` objects — engine-agnostic, not tied to Selenium `By`.
 
 ### 🪝 Composable Before / After Action Hooks
-- `Before` and `After` constant libraries provide pre-built `ActionHandler` instances:  
+- `Before` and `After` constant libraries provide pre-built `ActionHandler` instances:
   `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE`, `HIGHLIGHT_ELEMENT`, `WAIT_FOR_ANGULAR_LOADER`, `LOG_INTENT`, `DO_NOTHING`, etc.
 - Hook lists are passed directly to every interaction method overload for fully composable behaviour.
 
-### 🧩 Interface-Driven Element Model
+### ⚡ Action / Flow / Runner Pipeline
+- Capability interfaces emit **deferred `Action` objects** — lambdas over `UIEngine`.
+- `Flow` composes multiple Actions into ordered sequences.
+- `Runner` iterates Flows and calls `action.perform(engine)` for each.
+- Locator resolution happens **inside** the Action lambda at execution time — never eagerly.
 
-| Interface                        | Description                                                       |
-|----------------------------------|-------------------------------------------------------------------|
-| `Element`                        | Root contract — locator keys, args, display text, role map.       |
-| `Clickable`                      | Clickable UI components.                                          |
-| `Dropdown`                       | Trigger + list locators for single-value dropdowns.               |
-| `MultipleIdenticalDropdowns`     | Repeated three-dots / context-menu dropdown patterns.             |
-| `Searchable`                     | Search input + result list locators.                              |
-| `SearchableDropdown`             | Searchable dropdown (input + option list).                        |
-| `SearchField`                    | Standalone search-field abstraction.                              |
-| `ToolTipElement`                 | Hover tooltip with `title`/`aria-label` attribute fallback.       |
-| `TableElement`                   | Read-only structured table (rows, columns, cells, header).        |
-| `WritableTableElement`           | Editable table — adds `ADD_ROW_BUTTON`, `REMOVE_ROW_BUTTON`, etc. |
-| `ListElement`                    | Static or dynamic list-based UI patterns.                         |
-| `Checkbox`                       | State validation and toggle logic.                                |
-| `FileInputElement`               | File upload automation.                                           |
-| `TextInputField`                 | Text input fields.                                                |
-| `KeyValuePair`                   | Key-value display or edit pairs.                                  |
-| `ReadOnlyElement`                | Non-editable / display-only elements.                             |
-| `ResolvableEnum`                 | Mixin for name↔label enum resolution (lives in `core.utils`, not `elements.api`). |
+### 🧩 Capability-Based Element Model
+
+| Interface | Package | Description |
+|-----------|---------|-------------|
+| `Element` | `elements.api` | Root contract — locator keys, args, display text, role map. |
+| `Clickable` | `elements.api.capability` | Clickable UI components (buttons, links). Emits `click()`. |
+| `Typeable` | `elements.api.capability` | Text input fields. Emits `type()`, `clear()`, `append()`. |
+| `Selectable` | `elements.api.capability` | Trigger + list locators for single-value dropdowns. Emits `open()`, `select()`. |
+| `MultiSelectable` | `elements.api.capability` | Repeated dropdown patterns (indexed). Emits `open()`, `selectAtIndex()`. |
+| `Searchable` | `elements.api.capability` | Search input + result list locators. |
+| `SearchableDropdown` | `elements.api.capability` | Searchable dropdown (trigger + input + results). Emits `searchAndSelect()`. |
+| `SearchField` | `elements.api.capability` | Standalone search-field (input + button). Emits `typeSearch()`, `submitSearch()`. |
+| `Hoverable` | `elements.api.capability` | Hover tooltip with attribute fallback. Emits `hover()`. |
+| `Table` | `elements.api.capability` | Read-only structured table (rows, columns, cells, header). |
+| `EditableTable` | `elements.api.capability` | Editable table — adds add/remove row buttons. Emits `clickAddRow()`. |
+| `Listable` | `elements.api.capability` | Static or dynamic list-based UI patterns. |
+| `Checkable` | `elements.api.capability` | Checkbox toggle logic. Emits `toggle()`, `set(boolean)`. |
+| `Uploadable` | `elements.api.capability` | File upload automation. Emits `upload(path)`. |
+| `ReadOnly` | `elements.api.capability` | Non-editable / display-only elements. Emits `getText()`. |
+| `KeyValuePair` | `elements.api` | Key-value display or edit pairs. |
+| `ResolvableEnum` | `core.utils` | Mixin for name↔label enum resolution. Not a locator interface. |
 
 ---
 
-### 🧭 Centralized Interactions API
+### 🧭 Execution Architecture
 
-**`Interactions`** — core interaction class:
+**Primary path (new code):**
 
-| Method | Purpose |
-|---|---|
-| `clickOn(Clickable)` | Standard click with JS fallback + stale retry. |
-| `clickOn(List<ActionHandler>, Clickable, List<ActionHandler>)` | Click with full before/after hooks. |
-| `clickOn(WebElement)` | Click an already-resolved element (highlight → Selenium → JS). |
-| `clickOn(By)` | Click by raw locator. |
-| `clickOnWithin(WebElement scope, Clickable)` | Scoped click inside a parent element. |
-| `selectFromDropdown(Dropdown)` | Single-value dropdown: trigger → overlay → option. |
-| `selectFromDropdown(Integer index, MultipleIdenticalDropdowns)` | Indexed three-dots menu. |
-| `triggerDropdown(Dropdown)` / `triggerDropdown(MultipleIdenticalDropdowns, Integer)` | Open only. |
-| `getText(ReadOnlyElement)` | Read text from a display element. |
-| `getTextViaToolTip(…, ToolTipElement, …, boolean)` | Text with hover/attribute tooltip fallback. |
-| `getTextByWebElement(By)` | Raw locator text read. |
-| `searchFor(Searchable, String)` | Search field → first result → click. |
-| `searchAndGetResults(Searchable, String)` | Search → return all result elements. |
-| `performSearch(…, WebElement, String, WebElement, …)` | Low-level search flow with hooks. |
+```
+Element → Action (intent) → Flow (composition) → Runner (iteration) → UIEngine (execution)
+```
 
-**`StepDefInteractions`** (extends `Interactions`) — BDD/step-definition layer:
-- `clickOnFrom(String keySuffix, String enumName, ActionHandler after)` — resolves enum by context key then clicks.
-- `resolveByContext(String enumName, String resolvedKey)` — generic enum resolution via `EnumClassRegistry`.
+**Legacy path (backward compat):**
+
+```
+Element → Interactions (frozen orchestrator) → UIEngine (execution)
+```
+
+**`Interactions`** is a **frozen legacy orchestrator** — preserved for backward compatibility with existing step definitions and page objects. No new features should be added there. New development should use the Action/Flow/Runner pipeline.
+
+**`UIEngine`** is the single execution authority:
+- Resolves `LocatorDescriptor` to native locators
+- Handles scroll, waits, retries, and fallback internally
+- Each engine (Selenium, Playwright) provides its own implementation
+- Callers must NOT perform scroll, waits, or direct execution
 
 ---
 
@@ -100,9 +113,9 @@ VOID (Versatile Object-Oriented Interactions for DOM) is a **structured Selenium
 - Page load strategies: `NORMAL`, `EAGER`, `NONE`.
 - Configured entirely via `driver.properties` — no code changes required.
 
-**`DriverContext`** — manages active driver per thread; accessed by `Interactions` and `LocatorResolvers`.
+**`DriverContext`** — manages active driver per thread; accessed by engine and resolvers.
 
-**`UIContext`** — thread-local state holding the last resolved `WebElement` and its meta (`propertyFile`, `key`, `args`) for stale-element re-resolution.
+**`UIContext`** — thread-local state holding the last resolved `LocatorDescriptor` and meta for stale-element re-resolution and diagnostics.
 
 ---
 
@@ -131,137 +144,96 @@ Locators live under `src/main/resources/locators/` in two formats:
 | Format | Example | Reader |
 |---|---|---|
 | `.properties` | `manage-users-elements.properties` | `PropertiesFileLocatorReader` |
-| `.json` | `manage-users-elements.json`, `admin-home-page-elements.json` | `JsonLocatorReader` |
+| `.json` | `manage-users-elements.json` | `JsonLocatorReader` |
 
 `LocatorResolvers` auto-selects the format at runtime. `JsonMigratorCli` converts `.properties` files to JSON.
 
 ---
 
 
-## 📂 Actual Project Structure
+## 📂 Project Structure
 
 ```
 void-framework/
 ├── src/main/java/
-│   ├── WebApplication/
-│   │   └── VOID.java                        ← Framework entry point / façade
-│   ├── automation/
-│   │   ├── interactions/
-│   │   │   └── StepDefInteractions.java      ← BDD-layer interactions
-│   │   └── WebApplication/
-│   │       └── AutomationVOID.java           ← Extends VOID with stepDefInteraction()
-│   ├── elements/
-│   │   ├── api/                             ← Element interfaces
-│   │   │   ├── Element.java
-│   │   │   ├── Clickable.java
-│   │   │   ├── Dropdown.java
-│   │   │   ├── MultipleIdenticalDropdowns.java
-│   │   │   ├── Searchable.java
-│   │   │   ├── SearchableDropdown.java
-│   │   │   ├── SearchField.java
-│   │   │   ├── ToolTipElement.java
-│   │   │   ├── TableElement.java
-│   │   │   ├── WritableTableElement.java
-│   │   │   ├── ListElement.java
-│   │   │   ├── Checkbox.java
-│   │   │   ├── FileInputElement.java
-│   │   │   ├── TextInputField.java
-│   │   │   ├── KeyValuePair.java
-│   │   │   └── ReadOnlyElement.java
-│   │   ├── meta/
-│   │   │   ├── ElementRole.java             ← Role enum (PRIMARY, TRIGGER, LIST, …)
-│   │   │   └── EnumClassRegistry.java       ← Context key → enum class registry
-│   │   └── exapmlepages/                    ← Example page element enums
-│   ├── interactions/
-│   │   ├── Interactions.java                ← Core UI interaction methods
-│   │   ├── Via.java                         ← Static casting / locator / WebElement helpers
-│   │   └── hooks/
-│   │       ├── ActionHandler.java
-│   │       ├── Before.java                  ← Pre-action hooks
-│   │       └── After.java                   ← Post-action hooks
 │   ├── core/
+│   │   ├── actions/
+│   │   │   └── Action.java                   ← Deferred execution intent (functional interface)
+│   │   ├── flow/
+│   │   │   └── Flow.java                     ← Composes Actions into sequences
+│   │   ├── runner/
+│   │   │   └── Runner.java                   ← Iterates Flow, calls action.perform(engine)
+│   │   ├── engine/
+│   │   │   ├── UIEngine.java                 ← Execution contract (interface)
+│   │   │   ├── EngineConfig.java             ← Engine configuration
+│   │   │   ├── LocatorDescriptor.java        ← Engine-agnostic locator descriptor
+│   │   │   └── selenium/
+│   │   │       └── SeleniumEngine.java       ← Selenium implementation of UIEngine
+│   │   ├── bootstrap/
+│   │   │   └── VOID.java                     ← Framework entry point / façade
+│   │   ├── interactions/
+│   │   │   ├── Interactions.java             ← Legacy orchestrator (frozen, deprecated)
+│   │   │   ├── Via.java                      ← Static casting / locator helpers
+│   │   │   ├── UIContext.java                ← Thread-local descriptor state
+│   │   │   └── hooks/
+│   │   │       ├── ActionHandler.java
+│   │   │       ├── Before.java               ← Pre-action hooks
+│   │   │       └── After.java                ← Post-action hooks
 │   │   ├── driver/
 │   │   │   ├── DriverFactory.java
 │   │   │   ├── DriverContext.java
 │   │   │   └── Waiter.java
 │   │   ├── logging/
-│   │   │   ├── CustomLogger.java            ← Public facade
-│   │   │   ├── ConsoleOnly.java             ← @ConsoleOnly annotation
-│   │   │   ├── ansi/
-│   │   │   │   ├── AnsiEscape.java
-│   │   │   │   ├── AnsiColors.java
-│   │   │   │   └── AnsiColorMatrix.java
-│   │   │   ├── config/
-│   │   │   │   ├── LogConfig.java
-│   │   │   │   └── LoggerContext.java
-│   │   │   ├── intent/
-│   │   │   │   └── LogIntent.java
-│   │   │   ├── render/
-│   │   │   │   └── LogActions.java
-│   │   │   └── theme/
-│   │   │       ├── LogTheme.java
-│   │   │       ├── ThemeColors.java
-│   │   │       └── BuiltInThemes.java
+│   │   │   ├── CustomLogger.java             ← Public facade
+│   │   │   ├── ansi/                         ← ANSI color support
+│   │   │   ├── config/                       ← Log configuration
+│   │   │   ├── intent/                       ← Log intent types
+│   │   │   ├── render/                       ← Log rendering
+│   │   │   └── theme/                        ← Color themes
 │   │   ├── resolvers/locator/
-│   │   │   ├── api/
-│   │   │   │   ├── LocatorResolvers.java    ← strict() + legacyPadded() factories
-│   │   │   │   ├── LocatorResolver.java     ← resolver interface
-│   │   │   │   ├── LocatorRequest.java      ← (file, key, args) value object
-│   │   │   │   └── LocatorPaths.java        ← base path constants
-│   │   │   ├── source/
-│   │   │   │   ├── LocatorSource.java       ← reader contract
-│   │   │   │   ├── LocatorSourceRegistry.java
-│   │   │   │   ├── JsonLocatorSource.java
-│   │   │   │   ├── PropertiesLocatorSource.java
-│   │   │   │   ├── LayeredPropertiesLocatorSource.java
-│   │   │   │   └── HardcodedLocatorSource.java
-│   │   │   ├── parser/
-│   │   │   │   ├── ByParser.java
-│   │   │   │   └── ByPrefixStrategy.java
-│   │   │   ├── template/
-│   │   │   │   └── LocatorTemplate.java
-│   │   │   ├── json/
-│   │   │   │   ├── JsonLocatorReader.java
-│   │   │   │   ├── JsonNodeLookup.java
-│   │   │   │   ├── JsonLocatorMigrator.java
-│   │   │   │   ├── JsonTreeBuilder.java
-│   │   │   │   ├── EnumLocatorScanner.java
-│   │   │   │   ├── PropertiesIndex.java
-│   │   │   │   └── JsonMigratorCli.java     ← .properties → .json migrator CLI
-│   │   │   └── properties/
-│   │   │       └── PropertiesFileLocatorReader.java
+│   │   │   ├── api/                          ← LocatorResolvers, LocatorResolver, LocatorRequest
+│   │   │   ├── source/                       ← JSON, Properties, Hardcoded sources
+│   │   │   ├── parser/                       ← ByParser, prefix strategies
+│   │   │   ├── template/                     ← LocatorTemplate substitution
+│   │   │   └── json/                         ← JSON migration tools
+│   │   ├── runtime/                          ← Runtime lifecycle
 │   │   └── utils/
 │   │       ├── ConfigLoader.java
 │   │       ├── EnumResolver.java
-│   │       ├── ResolvableEnum.java          ← Mixin for name↔label enum resolution
-│   │       ├── UIContext.java
-│   │       ├── web/
-│   │       │   ├── DOMUtils.java
-│   │       │   ├── WaitUtils.java
-│   │       │   ├── TableHandler.java
-│   │       │   ├── KeyValuePairHandler.java
-│   │       │   └── Upload.java
-│   │       ├── data/
-│   │       │   ├── DataVerifier.java
-│   │       │   └── DataGenerator.java
-│   │       └── io/
-│   │           ├── FileUtils.java
-│   │           ├── properties/
-│   │           │   └── PropertiesReader.java
-│   │           └── json/
-│   │               ├── JsonReader.java
-│   │               └── JsonLogger.java
+│   │       ├── ResolvableEnum.java
+│   │       ├── web/                          ← DOMUtils, WaitUtils, TableHandler, Upload
+│   │       ├── data/                         ← DataVerifier, DataGenerator
+│   │       └── io/                           ← FileUtils, JSON/Properties readers
+│   ├── dsl/
+│   │   └── VoidDSL.java                      ← BDD/context-driven DSL layer
+│   ├── elements/
+│   │   ├── api/
+│   │   │   ├── Element.java                  ← Root element contract
+│   │   │   ├── KeyValuePair.java
+│   │   │   └── capability/                   ← All capability interfaces
+│   │   │       ├── Clickable.java
+│   │   │       ├── Typeable.java
+│   │   │       ├── Selectable.java
+│   │   │       ├── Checkable.java
+│   │   │       ├── Hoverable.java
+│   │   │       ├── Searchable.java
+│   │   │       ├── SearchField.java
+│   │   │       ├── SearchableDropdown.java
+│   │   │       ├── ReadOnly.java
+│   │   │       ├── Uploadable.java
+│   │   │       ├── Listable.java
+│   │   │       ├── MultiSelectable.java
+│   │   │       ├── Table.java
+│   │   │       └── EditableTable.java
+│   │   ├── meta/
+│   │   │   ├── ElementRole.java
+│   │   │   └── EnumClassRegistry.java
+│   │   └── exapmlepages/                     ← Example page element enums
 │   └── StepDefinition/
-│       └── package-info.java                 ← Optional Cucumber adapter layer
 ├── src/main/resources/
-│   ├── config/
-│   │   ├── driver.properties
-│   │   └── test.properties
 │   ├── locators/
-│   │   ├── properties/                      ← *.properties locator files
-│   │   └── json/                            ← *.json locator files
-│   ├── feature/
-│   ├── fallbacks/
+│   │   ├── properties/                       ← *.properties locator files
+│   │   └── json/                             ← *.json locator files
 │   └── log4j2.xml
 └── src/testNgXml/
     └── testng.xml
@@ -271,50 +243,73 @@ void-framework/
 
 ## ⚙️ Execution Flow
 
-1. **VOID instantiation** → `DriverContext.getActiveDriver()` provides the WebDriver.
-2. **Element resolution** → enum constant's `getExternalFileName()` + `getPrimaryLocator()` + `getArgs()` feed `LocatorResolvers.strict()` (or `legacyPadded()`) via a `LocatorRequest`.
-3. **Locator lookup** → `LocatorSourceRegistry` dispatches to JSON or `.properties` readers; template args substituted.
-4. **Hook pipeline** → `Before.*` hooks execute (wait visible, wait clickable, highlight, Angular wait).
-5. **Action execution** → Selenium action; JS fallback on failure; stale-element retry via `UIContext` meta.
-6. **Hook pipeline** → `After.*` hooks execute.
-7. **Logging** → `CustomLogger` emits color-coded, timestamped, call-site-traced output.
+### Primary Path: Action / Flow / Runner
+
+```
+1. Page enum        → element.click() / element.type("text")     ← returns Action (deferred)
+2. Flow             → Flow.of(action1, action2, action3)         ← groups Actions
+3. Runner           → runner.run(flow)                            ← iterates
+4. Action lambda    → engine.resolve(this, ROLE)                 ← resolves LocatorDescriptor
+5. UIEngine         → engine.click(descriptor)                   ← executes (scroll, wait, retry internal)
+6. Logging          → CustomLogger emits color-coded output
+```
+
+### Legacy Path: Interactions (Frozen)
+
+```
+1. VOID instantiation → UIEngine created, wrapped in Interactions
+2. Element resolution → LocatorResolvers resolve LocatorDescriptor
+3. Hook pipeline      → Before.* hooks execute
+4. Action execution   → Interactions delegates to engine.click(descriptor) / engine.type(descriptor, text)
+5. Hook pipeline      → After.* hooks execute
+6. Logging            → CustomLogger emits the action record
+```
 
 ---
 
 ## 🧠 Example Usage
 
+### Modern: Action / Flow / Runner
+
 ```java
-// Instantiate framework entry point
+import elements.api.capability.Clickable;
+import elements.api.capability.Typeable;
+import core.flow.Flow;
+import core.runner.Runner;
+
+// Define elements
+enum LoginField implements Typeable {
+    USERNAME("USERNAME_INPUT"), PASSWORD("PASSWORD_INPUT");
+    private final String key; LoginField(String k) { this.key = k; }
+    @Override public String getExternalFileName() { return "login.properties"; }
+    @Override public String getInputLocator()     { return key; }
+    @Override public Object[] getArgs()           { return new Object[0]; }
+}
+
+enum LoginButton implements Clickable {
+    SUBMIT("SIGN_IN_BTN");
+    private final String key; LoginButton(String k) { this.key = k; }
+    @Override public String getExternalFileName() { return "login.properties"; }
+    @Override public String getTriggerLocator()   { return key; }
+    @Override public Object[] getArgs()           { return new Object[0]; }
+}
+
+// Execute
+Runner runner = new Runner(engine);
+runner.run(Flow.of(
+    LoginField.USERNAME.type("admin@example.com"),
+    LoginField.PASSWORD.type("secret"),
+    LoginButton.SUBMIT.click()
+));
+```
+
+### Legacy: Interactions (Backward Compat)
+
+```java
 VOID app = new VOID();
-
-// Click using a Clickable enum
-app.interaction().clickOn(ManageUsersElements.UserCards.LOGIN_AS_BUTTON);
-
-// Click with before/after hooks
-app.interaction().clickOn(
-    List.of(Before.WAIT_FOR_ANGULAR_LOADER),
-    MyElements.SUBMIT_BUTTON,
-    List.of(After.DO_NOTHING)
-);
-
-// Select from a dropdown
-app.interaction().selectFromDropdown(CommonElements.AppSwitcher.ADMIN);
-
-// Select from indexed three-dots menu (row 2)
-app.interaction().selectFromDropdown(2, ManageUsersElements.ActionsMenu.VIEW_REGISTRATION);
-
-// Read text from a read-only element
-String name = app.interaction().getText(ManageUsersElements.UserCards.FULL_NAME);
-
-// Read tooltip-resolved text
-String email = app.interaction().getTextViaToolTip(null, ManageUsersElements.UserCards.EMAIL, null, true);
-
-// Search and click first result
-app.interaction().searchFor(CommonElements.GlobalSearch.SEARCH, "Deal Registration");
-
-// Step-definition layer (BDD)
-AutomationVOID bddApp = new AutomationVOID();
-bddApp.stepDefInteraction().clickOnFrom("tiles", "admin_home", "Account Mapping");
+app.interaction().typeInto(LoginPageElements.Credentials.USERNAME_INPUT, "admin@example.com");
+app.interaction().typeInto(LoginPageElements.Credentials.PASSWORD_INPUT, "secret");
+app.interaction().clickOn(LoginPageElements.Actions.SIGN_IN_BUTTON);
 ```
 
 ---
@@ -351,7 +346,7 @@ locators.template.output.dir=locators/
 
 | Dependency | Version | Purpose |
 |---|---|---|
-| `selenium-java` | 4.38.0 | WebDriver API |
+| `selenium-java` | 4.38.0 | WebDriver API (SeleniumEngine) |
 | `cucumber-java` / `cucumber-testng` | 7.31.0 | BDD test execution (optional) |
 | `testng` | 7.11.0 | Test runner |
 | `jackson-databind` | 2.19.0 (managed via BOM) | JSON parsing |
@@ -367,27 +362,20 @@ locators.template.output.dir=locators/
 
 ```
 2026-04-24 13:15:37.584 │ INFO │ === InteractionsEndToEndTest starting === │ InteractionsEndToEndTest.setupClass ← TestMethodWorker.run
-2026-04-24 13:15:37.663 │ DEBUG │ Setting driver for key: primary │ DriverContext.setPrimaryDriver ← Interactions.(constructor)
-2026-04-24 13:15:37.668 │ DEBUG │ [get] key=locator.properties.base.path src=DEFAULT val=locators/properties/ │ ConfigLoader.get ← LocatorPaths.(static init)
-2026-04-24 13:15:37.668 │ DEBUG │ [get] key=locator.json.base.path src=DEFAULT val=locators/json/ │ ConfigLoader.get ← LocatorPaths.(static init)
-2026-04-24 13:15:37.672 │ DEBUG │ [LOCATOR] Resolving: │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.673 │ DEBUG │           ├─ File        : test-locators.properties │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.673 │ DEBUG │           ├─ Key         : TEMPLATE_WITH_ARG │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.674 │ DEBUG │           ├─ Args        : [username] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.674 │ DEBUG │           └─ Hardcoded   : false │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.678 │ DEBUG │ [LOCATOR] Final: │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.679 │ DEBUG │           ├─ Key         : TEMPLATE_WITH_ARG │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.679 │ DEBUG │           ├─ Resolved    : //input[@placeholder='username'] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.679 │ DEBUG │           └─ By          : By.xpath: //input[@placeholder='username'] │ LocatorResolver.resolve ← LocatorResolver.resolveBest
-2026-04-24 13:15:37.685 │ DEBUG │ Getting driver for key: primary │ DriverContext.getDriver ← DOMUtils.scrollToElement
-2026-04-24 13:15:37.688 │ TEXT [T] │ Appended to 'username': -extra │ Interactions.appendTo ← InteractionsEndToEndTest.interactions_appendTo_doesNotClearButTypes
+2026-04-24 13:15:37.672 │ DEBUG │ [LOCATOR] Resolving:          │ LocatorResolver.resolve ← LocatorResolver.resolveBest
+2026-04-24 13:15:37.673 │ DEBUG │           ├─ File        : test-locators.properties
+2026-04-24 13:15:37.674 │ DEBUG │           ├─ Key         : TEMPLATE_WITH_ARG
+2026-04-24 13:15:37.674 │ DEBUG │           └─ Args        : [username]
+2026-04-24 13:15:37.679 │ DEBUG │ [LOCATOR] Final:
+2026-04-24 13:15:37.679 │ DEBUG │           ├─ Resolved    : //input[@placeholder='username']
+2026-04-24 13:15:37.679 │ DEBUG │           └─ By          : By.xpath: //input[@placeholder='username']
 ```
 
 ---
 
 ## 🧩 Locator File Formats
 
-**JSON** (`manage-users-elements.json`):
+**JSON** (recommended):
 ```json
 {
   "FULL_NAME": "xpath=//div[@class='user-card']//span[@class='name']",
@@ -395,36 +383,63 @@ locators.template.output.dir=locators/
 }
 ```
 
-**Properties** (`manage-users-elements.properties`):
+**Properties**:
 ```properties
 FULL_NAME=xpath=//div[@class='user-card']//span[@class='name']
 EMAIL=css=.user-card .email
 ```
 
-Prefix tokens supported by `PropertiesFileLocatorReader`: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLinkText=`.
+Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLinkText=`.
 
 ---
 
 ## 🧠 Design Philosophy
 
-> *VOID is not a Selenium wrapper. It's not a framework. And it's not an optional toolkit.*
-> It's a structured automation system — consumed as a dependency, but opinionated about how elements are modeled, how locators are resolved, and how actions execute.
+> *VOID is a structured, engine-agnostic execution model for UI automation.*
+> It separates intent (Action), structure (Element), and execution (UIEngine).
 > Every line of code is designed for introspection — enabling you to see not only what failed, but **why** and **how**.
 
-### No Compile-Time Code Generation
+### Architecture Invariants
 
-VOID deliberately avoids compile-time code-generation tools (e.g., Lombok, AutoValue).
-All constructors, getters, builders, and utility methods are written explicitly in the source.
-This guarantees that every behavior is visible, traceable through a debugger, and fully
-controlled within the codebase — with no hidden transformations between the code you read
-and the code that runs.
+- **Elements NEVER execute** — they emit Action (intent) only
+- **Actions NEVER perform work** until executed by UIEngine via Runner
+- **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
+- **One execution path**: Element → Action → Flow → Runner → UIEngine
+- **No compile-time code generation** — all behavior is visible and debuggable
+
+---
+
+## 🏷️ Stability Tiers
+
+VOID uses explicit stability tiers to control how the architecture evolves. Each API surface has a defined tier that determines what guarantees consumers get.
+
+| Tier | Scope | Guarantees | Rules |
+|------|-------|------------|-------|
+| **Stable (frozen)** | `Interactions`, hook system (`Before`, `After`, `ActionHandler`) | No breaking changes. No new features. Behavior will remain unchanged. | Will not evolve further. |
+| **Stable (user-facing)** | Capability interfaces (`Clickable`, `Typeable`, etc.), `Element`, `UIEngine` | No breaking changes. May gain new methods. | Backward-compatible evolution only. |
+| **Beta** | `Action`, `Flow`, `Runner`, Action-emitting default methods on capability interfaces | May change without notice between releases. | Must not be used inside stable modules. |
+
+### Usage Rules
+
+1. **Beta APIs must not be used inside stable modules.**
+2. **Stable APIs may depend on stable APIs only.**
+3. **Beta APIs may change, be renamed, or be removed in any release.**
+4. **Capability interfaces are stable contracts** — they define structure. The `@Beta` Action-emitting methods they carry are intentionally beta: callers consume Actions opaquely, so beta internals don't leak into test-level code.
+
+### Annotations
+
+| Annotation | Meaning |
+|---|---|
+| `@Beta(since = "2.0")` | API is evolving — do not depend on from stable modules |
+| `@Deprecated(since = "2.0", forRemoval = false)` | Stable but frozen — no new features, no removal planned |
+| *(no annotation)* | Stable — normal backward-compatibility guarantees apply |
 
 ---
 
 ## 🧪 Author
 
-**VOID**  
-A personal project.  
+**VOID**
+A personal project.
 Inspired by: Clean Architecture × Enum-Driven Design × Precision Debugging
 
 ---
