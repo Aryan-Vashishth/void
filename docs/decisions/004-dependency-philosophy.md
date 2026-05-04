@@ -55,11 +55,15 @@ VOID's core value proposition is **structured, observable automation**. Dependen
 
 | Dependency | Purpose | Why It's Aligned |
 |---|---|---|
-| `selenium-java` | Browser automation | Explicit API — locators, waits, actions all visible |
+| `selenium-java` | Browser automation (SeleniumEngine) | Explicit API — isolated behind `UIEngine` interface. Engine-portable. |
 | `testng` | Test runner | Declarative annotations, predictable lifecycle |
 | `jackson-databind` | JSON parsing | Tree-model usage, no annotation-driven binding |
 | `log4j-api` + `log4j-core` | Logging | Configured via `log4j2.xml`, no magic |
 | `jsr305` | Nullability annotations | Pure compile-time markers, zero runtime behavior |
 | `datafaker` | Test data generation | Explicit calls, no reflection |
 | `cucumber-java/testng` | BDD adapter (optional) | Declared optional — consumer's choice |
+
+> **Note:** With the `UIEngine` abstraction (see [ADR-007](007-uiengine-execution-authority.md)),
+> `selenium-java` is now contained entirely within `SeleniumEngine`. A future `PlaywrightEngine`
+> would add `playwright` as an engine-specific dependency without affecting the core framework.
 

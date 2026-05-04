@@ -1,6 +1,6 @@
 # Locator Resolution Guide
 
-How VOID resolves element locators at runtime — from enum constant to Selenium `By` object.
+How VOID resolves element locators at runtime — from enum constant to engine-agnostic `LocatorDescriptor`.
 
 ---
 
@@ -8,16 +8,20 @@ How VOID resolves element locators at runtime — from enum constant to Selenium
 
 1. [Overview](#overview)
 2. [The Resolution Pipeline](#the-resolution-pipeline)
-3. [LocatorResolvers — strict() vs legacyPadded()](#locatorresolvers--strict-vs-legacypadded)
-4. [LocatorRequest](#locatorrequest)
-5. [ElementRole](#elementrole)
-6. [Locator File Formats](#locator-file-formats)
-7. [LocatorSource Implementations](#locatorsource-implementations)
-8. [Template Substitution](#template-substitution)
-9. [ByParser and Prefix Strategies](#byparser-and-prefix-strategies)
-10. [Migration: Properties → JSON](#migration-properties--json)
-11. [Configuration](#configuration)
-12. [Troubleshooting](#troubleshooting)
+3. [LocatorDescriptor](#locatordescriptor)
+4. [LocatorStrategy](#locatorstrategy)
+5. [LocatorResolvers — strict() vs legacyPadded()](#locatorresolvers--strict-vs-legacypadded)
+6. [LocatorRequest](#locatorrequest)
+7. [ElementRole](#elementrole)
+8. [Locator File Formats](#locator-file-formats)
+9. [LocatorSource Implementations](#locatorsource-implementations)
+10. [Template Substitution](#template-substitution)
+11. [ByParser and Prefix Strategies](#byparser-and-prefix-strategies)
+12. [Engine Resolution: UIEngine.resolve()](#engine-resolution-uiengineresolve)
+13. [Scoped Locators: Parent→Child](#scoped-locators-parentchild)
+14. [Migration: Properties → JSON](#migration-properties--json)
+15. [Configuration](#configuration)
+16. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -26,14 +30,38 @@ How VOID resolves element locators at runtime — from enum constant to Selenium
 VOID separates **what** an element is (enum constant) from **where** it lives on the page (locator string). The resolution pipeline bridges the gap:
 
 ```
-Enum Constant → LocatorRequest → LocatorSource → Template Substitution → ByParser → By
+Enum Constant → LocatorRequest → LocatorSource → Template Substitution → LocatorDescriptor
 ```
 
-Locators are never hardcoded in Java. They live in external `.properties` or `.json` files, resolved at runtime by the `LocatorResolvers` API.
+Locators are never hardcoded in Java. They live in external `.properties` or `.json` files, resolved at runtime. The result is a `LocatorDescriptor` — an engine-agnostic record that each `UIEngine` translates into its native locator type.
+
+### Two Resolution Entry Points
+
+| Entry Point | Used By | Returns |
+|-------------|---------|---------|
+| `UIEngine.resolve(element, role, args)` | Action/Flow/Runner (preferred) | `LocatorDescriptor` |
+| `LocatorResolvers.strict().resolve(request)` | Interactions (legacy) | `By` (Selenium) |
+
+Both paths use the same underlying sources, templates, and files. The difference is the output type.
 
 ---
 
 ## The Resolution Pipeline
+
+### Primary Path (UIEngine)
+
+```
+1. Capability interface method   → element.click() / element.type("text")
+2. Inside Action lambda          → engine.resolve(this, ElementRole.TRIGGER)
+   ├─ Engine reads element.getExternalFileName() + getAllLocatorRoles()
+   ├─ Builds LocatorRequest internally
+   ├─ Delegates to LocatorSourceRegistry
+   ├─ Template substitution applied
+   └─ Returns LocatorDescriptor(value, strategy, args)
+3. Engine executes               → engine.click(descriptor)
+```
+
+### Legacy Path (LocatorResolvers)
 
 ```
 1. Element.getExternalFileName()   → "login-page-elements.properties"
@@ -53,9 +81,72 @@ Locators are never hardcoded in Java. They live in external `.properties` or `.j
 
 ---
 
+## LocatorDescriptor
+
+`LocatorDescriptor` is the engine-agnostic locator record that bridges resolution and execution:
+
+```java
+public record LocatorDescriptor(
+    String value,              // "//button[@id='apply']"
+    LocatorStrategy strategy,  // XPATH, CSS, ID, NAME
+    Object[] args,             // dynamic substitution args (metadata/logging)
+    LocatorDescriptor parent   // optional parent scope (null = global)
+) {}
+```
+
+### Factory Methods
+
+```java
+// Infer strategy from value
+LocatorDescriptor.of("//button[@id='apply']")                        // XPATH inferred
+
+// Explicit strategy
+LocatorDescriptor.of("button.primary", LocatorStrategy.CSS)          // CSS explicit
+
+// With args metadata
+LocatorDescriptor.of("//tr[@data-user='john']", LocatorStrategy.XPATH, "john")
+```
+
+### Engine Translation
+
+Each engine translates `LocatorDescriptor` into its native locator:
+
+| Engine | XPATH | CSS | ID |
+|--------|-------|-----|-----|
+| **SeleniumEngine** | `By.xpath(value)` | `By.cssSelector(value)` | `By.id(value)` |
+| **PlaywrightEngine** (future) | `page.locator("xpath=" + value)` | `page.locator(value)` | `page.locator("#" + value)` |
+
+---
+
+## LocatorStrategy
+
+```java
+public enum LocatorStrategy {
+    XPATH,   // XPath expression
+    CSS,     // CSS selector
+    ID,      // Element ID
+    NAME;    // Element name attribute
+
+    public static LocatorStrategy infer(String locatorValue) {
+        // Starts with // or (// → XPATH
+        // Otherwise → CSS (safest default)
+    }
+}
+```
+
+### Inference Rules
+
+| Pattern | Strategy |
+|---------|----------|
+| Starts with `//` or `(//` or `(./` | `XPATH` |
+| Starts with `#` | `CSS` (ID shorthand) |
+| Everything else | `CSS` (default) |
+
+---
+
 ## LocatorResolvers — strict() vs legacyPadded()
 
-`LocatorResolvers` is the main entry point. It provides two preconfigured resolver singletons:
+`LocatorResolvers` is the main entry point for direct resolution (legacy path). It provides two preconfigured resolver singletons:
 
 ### `LocatorResolvers.strict()` ⭐ Recommended
 
@@ -83,13 +174,14 @@ By locator = LocatorResolvers.legacyPadded().resolve(element);
 The `Via` utility provides shorthand methods:
 
 ```java
-// Resolve element's primary locator
+// Engine-agnostic descriptors (preferred)
+LocatorDescriptor d = Via.descriptor(MyElements.SAVE_BUTTON);
+LocatorDescriptor d = Via.descriptor(MyElements.COUNTRY_DROPDOWN, ElementRole.LIST, "Australia");
+LocatorDescriptor d = Via.descriptor("common-elements.json", "searchInput");
+
+// Legacy: Selenium By (deprecated)
 By locator = Via.locator(MyElements.SAVE_BUTTON);
-
-// Resolve a specific role
 By listLocator = Via.locator(MyElements.COUNTRY_DROPDOWN, ElementRole.LIST, "Australia");
-
-// Resolve from raw file + key
 By raw = Via.locator("common-elements.json", "searchInput");
 ```
 
@@ -138,24 +230,24 @@ request.isHardcoded()  // true when fileName == null → key IS the template
 |-------------------|-------------------------------------------|-------------------------------------------|
 | `PRIMARY`         | `Element`                                 | Primary locator (first attempt)           |
 | `SECONDARY`       | `Element`                                 | Fallback locator                          |
-| `TRIGGER`         | `Clickable`, `Dropdown`, `Checkbox`       | Clickable trigger (button/icon)           |
-| `INPUT`           | `TextInputField`, `FileInputElement`      | Text or file input field                  |
-| `LIST`            | `Dropdown`                                | Options panel / list container            |
-| `TEXT`            | `ReadOnlyElement`, `ToolTipElement`       | Static text element                       |
-| `SEARCH_INPUT`    | `Searchable`, `SearchableDropdown`        | Search text input                         |
+| `TRIGGER`         | `Clickable`, `Selectable`, `Checkable`    | Clickable trigger (button/icon)           |
+| `INPUT`           | `Typeable`, `Uploadable`                  | Text or file input field                  |
+| `LIST`            | `Selectable`, `Listable`                  | Options panel / list container            |
+| `TEXT`            | `ReadOnly`, `Hoverable`                   | Static text element                       |
+| `SEARCH_INPUT`    | `Searchable`, `SearchableDropdown`, `SearchField` | Search text input              |
 | `SEARCH_BUTTON`   | `SearchField`, `SearchableDropdown`       | Search action button                      |
 | `SEARCH_RESULT`   | `Searchable`, `SearchableDropdown`        | Search result list/panel                  |
-| `TOOLTIP_CONTENT` | `ToolTipElement`                          | Full tooltip text element                 |
-| `TABLE`           | `TableElement`, `WritableTableElement`    | Table root element                        |
-| `ROW`             | `TableElement`, `WritableTableElement`    | Row locator                               |
-| `COLUMN`          | `TableElement`, `WritableTableElement`    | Column locator                            |
-| `CELL`            | `TableElement`, `WritableTableElement`    | Cell locator                              |
-| `HEADER`          | `TableElement`, `WritableTableElement`    | Header cell locator                       |
-| `ADD_ROW`         | `WritableTableElement`                    | "Add row" button                          |
-| `REMOVE_ROW`      | `WritableTableElement`                    | "Remove row" button                       |
-| `FOOTER_INPUT`    | `WritableTableElement`                    | Footer input field                        |
-| `MULTI_TRIGGER`   | `MultipleIdenticalDropdowns`              | Repeated dropdown trigger (e.g. 3-dots)   |
-| `MULTI_LIST`      | `MultipleIdenticalDropdowns`              | Repeated dropdown list                    |
+| `TOOLTIP_CONTENT` | `Hoverable`                               | Full tooltip text element                 |
+| `TABLE`           | `Table`, `EditableTable`                  | Table root element                        |
+| `ROW`             | `Table`, `EditableTable`                  | Row locator                               |
+| `COLUMN`          | `Table`, `EditableTable`                  | Column locator                            |
+| `CELL`            | `Table`, `EditableTable`                  | Cell locator                              |
+| `HEADER`          | `Table`, `EditableTable`                  | Header cell locator                       |
+| `ADD_ROW_BUTTON`  | `EditableTable`                           | "Add row" button                          |
+| `REMOVE_ROW_BUTTON` | `EditableTable`                        | "Remove row" button                       |
+| `FOOTER_INPUT_ROW` | `EditableTable`                          | Footer input field                        |
+| `MULTI_TRIGGER`   | `MultiSelectable`                         | Repeated dropdown trigger (e.g. 3-dots)   |
+| `MULTI_LIST`      | `MultiSelectable`                         | Repeated dropdown list                    |
 
 ### Role Maps
 
@@ -165,6 +257,25 @@ Every element exposes its locators via `getAllLocatorRoles()`:
 Map<ElementRole, String> roles = element.getAllLocatorRoles();
 // e.g. {TRIGGER="DROPDOWN_BUTTON", LIST="DROPDOWN_LIST"}
 ```
+
+### Capability Interface → Role Mapping
+
+| Capability | Primary Role | Additional Roles |
+|------------|-------------|-----------------|
+| `Clickable` | `TRIGGER` | — |
+| `Typeable` | `INPUT` | — |
+| `ReadOnly` | `TEXT` | — |
+| `Checkable` | `TRIGGER` | — |
+| `Selectable` | `TRIGGER` | `LIST` |
+| `MultiSelectable` | `MULTI_TRIGGER` | `MULTI_LIST` |
+| `SearchField` | `SEARCH_INPUT` | `SEARCH_BUTTON` |
+| `Searchable` | `SEARCH_INPUT` | `SEARCH_BUTTON`, `SEARCH_RESULT` |
+| `SearchableDropdown` | `TRIGGER` | `SEARCH_INPUT`, `SEARCH_BUTTON`, `SEARCH_RESULT` |
+| `Hoverable` | `TEXT` | `TOOLTIP_CONTENT` |
+| `Uploadable` | `INPUT` | — |
+| `Table` | `TABLE` | `ROW`, `COLUMN`, `CELL`, `HEADER` |
+| `EditableTable` | `TABLE` | `ROW`, `COLUMN`, `CELL`, `HEADER`, `ADD_ROW_BUTTON`, `REMOVE_ROW_BUTTON`, `FOOTER_INPUT_ROW` |
+| `Listable` | `LIST` | — |
 
 ---
 
@@ -202,16 +313,16 @@ JSON files mirror the nested-enum structure of your element interfaces, making t
 
 Both formats support prefix tokens to specify the locator strategy:
 
-| Prefix             | Strategy                  | Example                              |
-|--------------------|---------------------------|--------------------------------------|
-| `xpath=`           | `By.xpath(...)`           | `xpath=//input[@id='user']`          |
-| `css=`             | `By.cssSelector(...)`     | `css=input.login-field`              |
-| `id=`              | `By.id(...)`              | `id=signInBtn`                       |
-| `name=`            | `By.name(...)`            | `name=username`                      |
-| `tag=`             | `By.tagName(...)`         | `tag=button`                         |
-| `linkText=`        | `By.linkText(...)`        | `linkText=Sign In`                   |
-| `partialLinkText=` | `By.partialLinkText(...)` | `partialLinkText=Sign`               |
-| *(no prefix)*      | `By.xpath(...)` (default) | `//input[@id='user']`                |
+| Prefix             | Strategy / LocatorStrategy    | Example                              |
+|--------------------|-------------------------------|--------------------------------------|
+| `xpath=`           | `XPATH` / `By.xpath(...)`     | `xpath=//input[@id='user']`          |
+| `css=`             | `CSS` / `By.cssSelector(...)` | `css=input.login-field`              |
+| `id=`              | `ID` / `By.id(...)`          | `id=signInBtn`                       |
+| `name=`            | `NAME` / `By.name(...)`      | `name=username`                      |
+| `tag=`             | `By.tagName(...)`             | `tag=button`                         |
+| `linkText=`        | `By.linkText(...)`            | `linkText=Sign In`                   |
+| `partialLinkText=` | `By.partialLinkText(...)`     | `partialLinkText=Sign`               |
+| *(no prefix)*      | `XPATH` (default)             | `//input[@id='user']`                |
 
 ---
 
@@ -253,6 +364,19 @@ USER_ROW=//tr[@data-user='%s']//td[@class='%s']
 | `STRICT`    | Args count must match `%s` count exactly. Throws on mismatch.|
 | `PAD_LAST`  | If fewer args than placeholders, the last arg fills remaining slots. |
 
+### Effective Args
+
+Elements support override args via `effectiveArgs()`:
+
+```java
+// Element's own args used by default
+element.getArgs()           // → ["john.doe"]
+
+// Override args take precedence when non-empty
+element.effectiveArgs("jane.doe")  // → ["jane.doe"]
+element.effectiveArgs()             // → ["john.doe"] (falls back to getArgs())
+```
+
 ---
 
 ## ByParser and Prefix Strategies
@@ -265,6 +389,66 @@ By result = ByParser.parse("//div[@id='main']");  // → By.xpath("//div[@id='ma
 ```
 
 The parser uses `ByPrefixStrategy` to match prefix tokens. If no prefix is found, the default is `By.xpath`.
+
+---
+
+## Engine Resolution: UIEngine.resolve()
+
+In the primary Action/Flow/Runner path, `UIEngine.resolve()` is the single resolution authority:
+
+```java
+// Resolution inside an Action lambda
+default Action click() {
+    return engine -> {
+        var d = engine.resolve(this, ElementRole.TRIGGER);  // returns LocatorDescriptor
+        engine.click(d);                                     // engine translates internally
+    };
+}
+```
+
+### UIEngine.resolve() Signatures
+
+```java
+// Resolve from element + role
+LocatorDescriptor resolve(Element element, ElementRole role, Object... args);
+
+// Resolve from raw file + key
+LocatorDescriptor resolve(String fileName, String key, Object... args);
+```
+
+The engine internally:
+1. Reads the element's `getAllLocatorRoles()` to find the key for the given role
+2. Reads `getExternalFileName()` and `effectiveArgs(args)`
+3. Delegates to `LocatorSourceRegistry` for file/key lookup
+4. Applies template substitution
+5. Wraps the result in a `LocatorDescriptor` with inferred `LocatorStrategy`
+
+---
+
+## Scoped Locators: Parent→Child
+
+For elements within a parent scope, use `LocatorDescriptor.withParent()`:
+
+```java
+LocatorDescriptor table = engine.resolve(MyPage.DATA_TABLE, ElementRole.TABLE);
+LocatorDescriptor row = engine.resolve(MyPage.DATA_TABLE, ElementRole.ROW, "john")
+                              .withParent(table);
+
+// Engine finds parent first, then searches within
+engine.click(row);
+```
+
+### How scoped resolution works
+
+```java
+descriptor.isScoped()  // true if parent != null
+descriptor.parent()    // the parent LocatorDescriptor
+```
+
+The engine recursively resolves parent→child at execution time:
+1. Find the parent element in the DOM
+2. Search within the parent for the child element
+3. Perform the action on the child
 
 ---
 
@@ -310,8 +494,6 @@ JsonLocatorMigrator.writeResolvedJson(MyPageElements.class)
   └─► Writes to locators/json/<name>-locators.json
 ```
 
-> See [`core/resolvers/locator/json/README.md`](../src/main/java/core/resolvers/locator/json/README.md) for implementation details.
-
 ---
 
 ## Configuration
@@ -348,7 +530,7 @@ The file name is returned by each element's `getExternalFileName()` method.
 
 **Check**:
 1. The `.properties` or `.json` file exists at the correct classpath location.
-2. The key in the file matches exactly what `getPrimaryLocator()` returns (case-sensitive).
+2. The key in the file matches exactly what `getPrimaryLocator()` / `getAllLocatorRoles()` returns (case-sensitive).
 3. The `getExternalFileName()` value includes the correct extension.
 
 ### "Wrong number of format arguments" (STRICT mode)
@@ -381,17 +563,26 @@ The file name is returned by each element's `getExternalFileName()` method.
           └─ By          : By.xpath: //input[@id='username']
 ```
 
+### LocatorDescriptor Strategy Mismatch
+
+**Symptoms**: Engine uses wrong locator type (e.g., treats CSS as XPath).
+
+**Check**:
+1. Ensure the locator value uses the correct prefix (`xpath=`, `css=`, `id=`).
+2. If no prefix, verify the value format — XPath must start with `//` or `(//`.
+3. The strategy is inferred via `LocatorStrategy.infer()` when no prefix is present.
+
 ---
 
 ## Related Documentation
 
-- [System Overview](system-overview.md) — full execution flow
+- [System Overview](system-overview.md) — full execution flow with UIEngine
 - [Quick Start Guide](quick-start.md) — defining elements and locators
 - [Configuration Reference](configuration-reference.md) — all config keys
+- [Hooks Pipeline](hooks-pipeline.md) — how hooks interact with resolution
 - [`core/resolvers/locator/json/README.md`](../../src/main/java/core/resolvers/locator/json/README.md) — JSON migration internals
+- [`UIEngine.java`](../../src/main/java/core/engine/UIEngine.java) — execution contract with resolve() methods
 
 ---
 
 *MIT License © 2025–2026 VOID Project*
-
-

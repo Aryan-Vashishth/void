@@ -76,6 +76,12 @@ pref.download.prompt_for_download=
 
 # Extra capabilities
 cap.someCapability=
+
+# Engine selection (Phase 2+)
+engine=selenium         # selenium | playwright (default: selenium)
+engine.timeout=10       # default element interaction timeout (seconds)
+engine.pollingMs=200    # polling interval for explicit waits (milliseconds)
+engine.baseUrl=         # base URL for navigation
 ```
 
 All keys have sensible defaults — the file works out of the box for a local Chrome run.
@@ -84,21 +90,23 @@ All keys have sensible defaults — the file works out of the box for a local Ch
 
 ## 3 — Define Your Elements
 
-Create an interface with nested enums for each page / component.  
+Create an interface with nested enums for each page / component.
 Each enum constant maps to a locator key in an external `.properties` or `.json` file.
+
+### Capability interfaces define what an element CAN DO:
 
 ```java
 package elements;
 
-import elements.api.*;
+import elements.api.capability.*;
 
 public interface LoginPageElements {
 
     /** Shared properties file for all enums in this interface. */
     String PROPS = "login-page-elements.properties";
 
-    // --- Text fields use TextInputField (role: INPUT) ---
-    enum Credentials implements TextInputField {
+    // --- Text fields use Typeable (role: INPUT) ---
+    enum Credentials implements Typeable {
         USERNAME_INPUT("USERNAME_INPUT"),
         PASSWORD_INPUT("PASSWORD_INPUT");
 
@@ -125,21 +133,60 @@ public interface LoginPageElements {
 }
 ```
 
-> **Why separate enums?** Each enum implements exactly one element interface matching its UI role.
-> Text inputs implement `TextInputField` (provides `getInputLocator()`), buttons implement
+> **Why separate enums?** Each enum implements exactly one capability interface matching its UI role.
+> Text inputs implement `Typeable` (provides `getInputLocator()`), buttons implement
 > `Clickable` (provides `getTriggerLocator()`). This keeps role maps clean and lets the
 > resolver pipeline pick the correct `ElementRole` automatically.
 
+### Capability Interfaces: What to Implement
+
+| Interface | Role(s) | Purpose | Key Method |
+|-----------|---------|---------|------------|
+| `ReadOnly` | `TEXT` | Static labels, badges, headings | `getTextLocator()` |
+| `Clickable` | `TRIGGER` | Buttons, links, any clickable | `getTriggerLocator()` |
+| `Typeable` | `INPUT` | Text fields, date pickers | `getInputLocator()` |
+| `Checkable` | `TRIGGER` | Toggle / checkbox controls | inherits from `Clickable` |
+| `Selectable` | `TRIGGER`, `LIST` | Single-value dropdowns | `getTriggerLocator()`, `getListLocator()` |
+| `SearchableDropdown` | `TRIGGER`, `SEARCH_INPUT`, `SEARCH_BUTTON`, `SEARCH_RESULT` | Dropdowns with inline search | all four locators |
+| `SearchField` | `SEARCH_INPUT`, `SEARCH_BUTTON` | Standalone search bars | `getSearchInputLocator()`, `getSearchButtonLocator()` |
+| `Searchable` | `SEARCH_INPUT`, `SEARCH_BUTTON`, `SEARCH_RESULT` | Search with result selection | adds `getSearchResultLocator()` |
+| `MultiSelectable` | `MULTI_TRIGGER`, `MULTI_LIST` | Repeated dropdowns (e.g., three-dot menus) | `getTriggerLocator()`, `getListLocator()` |
+| `Hoverable` | `TEXT`, `TOOLTIP_CONTENT` | Truncated text with hover tooltip | `getToolTipContentLocator()`, `getEndsWith()` |
+| `Uploadable` | `INPUT` | `<input type="file">` for uploads | `getInputLocator()` |
+| `Table` | `TABLE`, `ROW`, `COLUMN`, `CELL`, `HEADER` | Read-only tables | `getTableLocator()` + optional sub-locators |
+| `EditableTable` | + `ADD_ROW_BUTTON`, `REMOVE_ROW_BUTTON`, `FOOTER_INPUT_ROW` | Editable tables | adds row management locators |
+| `Listable` | `LIST` | Ordered/unordered list items | `getListLocator()`, `getIndex()` |
+
+> **Dynamic locators** — use `%s` placeholders in the locator template and supply runtime values via `getArgs()`.
+
+### Action Emission: What Capabilities Provide
+
+Every capability interface emits **deferred Action objects** — intent, not execution:
+
+| Capability | Actions Emitted | Description |
+|------------|----------------|-------------|
+| `Clickable` | `click()` | Deferred click |
+| `Typeable` | `type(text)`, `clear()`, `append(text)`, `typeAndPress(text, key)` | Text input actions |
+| `Checkable` | `toggle()`, `set(boolean)` | Checkbox control |
+| `Selectable` | `open()`, `select()`, `selectByText(text)`, `selectByValue(value)` | Dropdown selection |
+| `MultiSelectable` | `open()`, `selectAtIndex(index)` | Indexed dropdown selection |
+| `SearchField` | `typeSearch(text)`, `submitSearch()` | Search actions |
+| `SearchableDropdown` | `searchAndSelect(term)` | Composite search+select |
+| `Hoverable` | `hover()` | Tooltip trigger |
+| `ReadOnly` | `getText()` | Text retrieval |
+| `Uploadable` | `upload(path)` | File upload |
+| `EditableTable` | `clickAddRow()`, `clickRemoveRow()` | Table row management |
+
 ### Adding BDD / Step-Definition Support
 
-If you need string-to-enum resolution (for Cucumber step definitions), add `ResolvableEnum` as a second interface.  
+If you need string-to-enum resolution (for Cucumber step definitions), add `ResolvableEnum` as a second interface.
 It adds **zero** boilerplate — only label/name resolution, no locator methods:
 
 ```java
-import elements.api.*;
+import elements.api.capability.*;
 import core.utils.ResolvableEnum;
 
-enum UserCards implements ReadOnlyElement, ResolvableEnum {
+enum UserCards implements ReadOnly, ResolvableEnum {
     FULL_NAME("FULL_NAME"),
     EMAIL("EMAIL");
 
@@ -151,27 +198,6 @@ enum UserCards implements ReadOnlyElement, ResolvableEnum {
     @Override public Object[] getArgs()           { return new Object[0]; }
 }
 ```
-
-### Available Element Interfaces
-
-| Interface | Roles | Purpose |
-|-----------|-------|---------|
-| `ReadOnlyElement` | `TEXT` | Static labels, badges, headings |
-| `Clickable` | `TRIGGER` | Buttons, links, any clickable |
-| `TextInputField` | `INPUT` | Text fields, date pickers |
-| `Checkbox` | `TRIGGER` | Toggle / checkbox controls |
-| `Dropdown` | `TRIGGER`, `LIST` | Single-value dropdowns |
-| `SearchableDropdown` | `TRIGGER`, `SEARCH_INPUT`, `SEARCH_BUTTON`, `SEARCH_RESULT` | Dropdowns with an inline search |
-| `SearchField` | `SEARCH_INPUT`, `SEARCH_BUTTON` | Standalone search bars |
-| `Searchable` | `SEARCH_INPUT`, `SEARCH_RESULT` | Generic search with result selection |
-| `MultipleIdenticalDropdowns` | `MULTI_TRIGGER`, `MULTI_LIST` | Repeated dropdowns (e.g. three-dot menus in table rows) |
-| `ToolTipElement` | `TEXT`, `TOOLTIP_CONTENT` | Truncated text with hover tooltip |
-| `FileInputElement` | `INPUT` | `<input type="file">` for uploads |
-| `TableElement` | `TABLE`, `ROW`, `COLUMN`, `CELL`, `HEADER` | Read-only tables |
-| `WritableTableElement` | `TABLE`, `ROW`, `COLUMN`, `CELL`, `HEADER`, `ADD_ROW`, `REMOVE_ROW`, `FOOTER_INPUT` | Editable tables |
-| `ListElement` | (varies) | Ordered/unordered list items |
-
-> **Dynamic locators** — use `%s` placeholders in the locator template and supply runtime values via `getArgs()`.
 
 ---
 
@@ -187,7 +213,7 @@ PASSWORD_INPUT  = //input[@id='password']
 SIGN_IN_BUTTON  = //button[@type='submit']
 ```
 
-### Option B — `.json` file
+### Option B — `.json` file ⭐ Recommended
 
 Create `src/main/resources/locators/json/login-page-elements.json`:
 
@@ -207,17 +233,14 @@ Create `src/main/resources/locators/json/login-page-elements.json`:
 
 ### Option C — Migrate from Properties → JSON automatically
 
-Use the built-in CLI migrator to generate JSON files from your enum element descriptors:
+Use the built-in CLI migrator:
 
 ```bash
-# Print resolved JSON to stdout
+# Preview
 java core.resolvers.locator.json.JsonMigratorCli --print  elements.LoginPageElements
 
-# Write to the default output directory (src/main/resources/locators/json/)
+# Write to default directory
 java core.resolvers.locator.json.JsonMigratorCli --write  elements.LoginPageElements
-
-# Write to a specific file
-java core.resolvers.locator.json.JsonMigratorCli --write  elements.LoginPageElements  path/to/output.json
 ```
 
 Or programmatically:
@@ -225,23 +248,58 @@ Or programmatically:
 ```java
 import core.resolvers.locator.json.JsonLocatorMigrator;
 
-// Build JSON string
 String json = JsonLocatorMigrator.buildResolvedJson(LoginPageElements.class);
-
-// Build and write to default directory
 Path file = JsonLocatorMigrator.writeResolvedJson(LoginPageElements.class);
 ```
-
-> See [`core/resolvers/locator/json/README.md`](../../src/main/java/core/resolvers/locator/json/README.md) for full details on the migration pipeline.
 
 ---
 
 ## 5 — Write a Test
 
+### Modern: Action / Flow / Runner (Preferred)
+
 ```java
-import WebApplication.VOID;
-import interactions.hooks.Before;
-import interactions.hooks.After;
+import core.engine.UIEngine;
+import core.engine.UIEngineFactory;
+import core.flow.Flow;
+import core.runner.Runner;
+import core.driver.DriverFactory;
+import org.testng.annotations.*;
+
+public class LoginTest {
+
+    private UIEngine engine;
+    private Runner runner;
+
+    @BeforeClass
+    public void setUp() {
+        var driver = DriverFactory.build();
+        engine = UIEngineFactory.create(new java.util.Properties(), driver);
+        runner = new Runner(engine);
+    }
+
+    @Test
+    public void userCanLogIn() {
+        runner.run(Flow.of(
+            LoginPageElements.Credentials.USERNAME_INPUT.type("admin@example.com"),
+            LoginPageElements.Credentials.PASSWORD_INPUT.type("secret"),
+            LoginPageElements.Actions.SIGN_IN_BUTTON.click()
+        ));
+    }
+
+    @AfterClass
+    public void tearDown() {
+        if (engine != null) engine.shutdown();
+    }
+}
+```
+
+### Legacy: Interactions (Backward Compatible)
+
+```java
+import core.bootstrap.VOID;
+import core.interactions.hooks.Before;
+import core.interactions.hooks.After;
 import org.testng.annotations.*;
 
 public class LoginTest {
@@ -250,7 +308,6 @@ public class LoginTest {
 
     @BeforeClass
     public void setUp() {
-        // DriverFactory reads driver.properties and starts the browser
         app = new VOID();
     }
 
@@ -263,8 +320,6 @@ public class LoginTest {
 
     @Test
     public void clickWithHooks() {
-        // Before: wait for Angular overlay to clear
-        // After:  no-op
         app.interaction().clickOn(
             java.util.List.of(Before.WAIT_FOR_ANGULAR_LOADER),
             LoginPageElements.Actions.SIGN_IN_BUTTON,
@@ -272,6 +327,17 @@ public class LoginTest {
         );
     }
 }
+```
+
+### DSL Layer (BDD / Step Definitions)
+
+```java
+import dsl.VoidDSL;
+
+VoidDSL dsl = new VoidDSL(app.interaction());
+dsl.clickOnFrom("tiles", "admin_home", "Account Mapping");
+dsl.selectFromDropdownByContext("filters", "Status Dropdown");
+dsl.setCheckboxByContext("settings", "options", "Enable Notifications", true);
 ```
 
 ---
@@ -284,22 +350,21 @@ public class LoginTest {
 mvn clean test
 ```
 
-### Via TestNG XML directly
+### Engine Selection at Runtime
 
-The default suite is at `src/testNgXml/testng.xml`:
+```bash
+# Default (Selenium)
+mvn clean test
 
-```xml
-<suite name="VoidFrameworkSuite" verbose="1">
-    <test name="UnitTests">
-        <packages>
-            <package name="core.*"/>
-            <package name="elements.*"/>
-        </packages>
-    </test>
-</suite>
+# Explicitly select engine
+mvn clean test -Dengine=selenium
+
+# Via environment variable
+$env:ENGINE = "selenium"
+mvn clean test
 ```
 
-Override the suite in Maven if needed:
+### Override Suite
 
 ```bash
 mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/my-suite.xml
@@ -329,100 +394,78 @@ Example log line:
 
 | Concept | What It Means |
 |---------|---------------|
-| **Enum-driven elements** | Every UI element is an enum constant implementing a behavioral interface (`Clickable`, `Dropdown`, `Searchable`, etc.). |
+| **Enum-driven elements** | Every UI element is an enum constant implementing a capability interface (`Clickable`, `Selectable`, `Searchable`, etc.). |
+| **Capability interfaces** | Located in `elements.api.capability.*`. Define what an element CAN DO. Emit deferred `Action` objects. |
+| **Action / Flow / Runner** | `element.click()` returns `Action` (deferred intent). `Flow.of(...)` composes. `Runner` executes via `UIEngine`. |
+| **UIEngine** | Single execution authority. Owns scroll, waits, retries, fallback. `SeleniumEngine` is the current implementation. |
+| **LocatorDescriptor** | Engine-agnostic locator record. Contains value, strategy, args, optional parent scope. |
 | **External locators** | Locators live in `.properties` or `.json` — never in Java code. |
-| **Role-based resolution** | `LocatorResolvers.strict()` (recommended) and `LocatorResolvers.legacyPadded()` (backward compat) resolve locators by `ElementRole`. |
-| **`ResolvableEnum`** | Standalone mixin (`core.utils.ResolvableEnum`) for name↔label resolution (used by `EnumResolver`). **Not** a locator interface — add it alongside a role interface when you need step-definition string-to-enum matching. |
-| **Hook pipeline** | Pass `Before.*` / `After.*` hooks to any interaction for composable pre/post behavior. |
-| **VOID façade** | `new VOID()` is the entry point; call `interaction()` for all UI actions. |
-| **AutomationVOID** | Extends `VOID` with `stepDefInteraction()` for BDD / Cucumber step-definition helpers. |
-| **`Via` helper** | Static utility for casting elements, resolving locators, and finding `WebElement`s without touching resolvers directly. |
-| **JSON migration** | `JsonLocatorMigrator` and `JsonMigratorCli` auto-generate JSON locator files from enum + `.properties` definitions. |
+| **Role-based resolution** | `LocatorResolvers.strict()` (recommended) resolves locators by `ElementRole`. |
+| **`ResolvableEnum`** | Mixin for name↔label resolution. Add alongside a capability interface for BDD string-to-enum matching. |
+| **Hook pipeline** | `Before.*` / `After.*` hooks for composable pre/post behavior (used with `Interactions`). |
+| **VOID façade** | Legacy entry point. `VoidDSL` for BDD. `Runner` + `Flow` for new code. |
+| **`Via` helper** | Static utility. Descriptor-based methods preferred over `By`-based (deprecated). |
 
 ---
 
-## Common Interactions Cheat Sheet
+## Common Cheat Sheet
+
+### Action / Flow / Runner
+
+```java
+Runner runner = new Runner(engine);
+
+// Single action
+runner.execute(LoginPage.SUBMIT.click());
+
+// Flow of actions
+runner.run(Flow.of(
+    LoginPage.USERNAME.type("user@example.com"),
+    LoginPage.PASSWORD.type("secret"),
+    LoginPage.SUBMIT.click()
+));
+
+// Dropdown
+runner.execute(MyPage.STATUS_DROPDOWN.select());
+
+// Search dropdown
+runner.execute(MyPage.GLOBAL_SEARCH.searchAndSelect("Deal Registration"));
+
+// Checkbox
+runner.execute(MyPage.NOTIFICATIONS.set(true));
+
+// Type and press Enter
+runner.execute(MyPage.SEARCH_INPUT.typeAndPress("query", "ENTER"));
+
+// File upload
+runner.execute(MyPage.AVATAR_INPUT.upload("/path/to/image.png"));
+
+// Table
+runner.execute(MyPage.DATA_TABLE.clickAddRow());
+```
+
+### Legacy Interactions
 
 ```java
 VOID app = new VOID();
 
-// Click
 app.interaction().clickOn(MyElements.SUBMIT);
-
-// Click with hooks
-app.interaction().clickOn(
-    List.of(Before.WAIT_FOR_ANGULAR_LOADER),
-    MyElements.SUBMIT,
-    List.of(After.DO_NOTHING)
-);
-
-// Type into a text field
 app.interaction().typeInto(MyElements.EMAIL_FIELD, "user@example.com");
-
-// Type with hooks
-app.interaction().typeInto(Before.WAIT_FOR_ANGULAR_LOADER, MyElements.EMAIL_FIELD, "user@example.com");
-
-// Append to existing text (no clear)
-app.interaction().appendTo(MyElements.NOTES_FIELD, " — additional note");
-
-// Clear a field
-app.interaction().clearField(MyElements.NOTES_FIELD);
-
-// Type and press Enter
-app.interaction().typeIntoAndPress(MyElements.SEARCH_INPUT, "query", Keys.ENTER);
-
-// Dropdown (single-value)
 app.interaction().selectFromDropdown(MyElements.AppSwitcher.ADMIN);
-
-// Dropdown (three-dots by row index)
-app.interaction().selectFromDropdown(2, MyElements.RowMenu.VIEW_REGISTRATION);
-
-// Search + click first result
 app.interaction().searchFor(MyElements.GlobalSearch.SEARCH, "Deal Registration");
-
-// Search without clicking
-app.interaction().searchForWithoutClick(MyElements.GlobalSearch.SEARCH, "Partnership");
-
-// Read text
 String name = app.interaction().getText(MyElements.UserCards.FULL_NAME);
-
-// Tooltip text
-String tip = app.interaction().getTextViaToolTip(null, MyElements.EMAIL, null, true);
-
-// Click within a scoped parent
-app.interaction().clickOnWithin(parentElement, MyElements.CHILD_LINK);
-```
-
-### Using `Via` for direct locator access
-
-```java
-import interactions.Via;
-
-// Cast to a specific interface
-Clickable  btn = Via.clickable(MyElements.SAVE_BUTTON);
-Dropdown   ddl = Via.dropdown(MyElements.STATUS_DROPDOWN);
-
-// Resolve a By locator directly
-By locator     = Via.locator(MyElements.SAVE_BUTTON);
-By roleLocator = Via.locator(MyElements.STATUS_DROPDOWN, ElementRole.LIST, "Active");
-By rawLocator  = Via.locator("common-elements.json", "searchInput");
-
-// Find a live WebElement
-WebElement el = Via.webElement(MyElements.SAVE_BUTTON);
-
-// Type-check before casting
-if (Via.isDropdown(element)) { ... }
 ```
 
 ---
 
 ## Next Steps
 
-- 📖 [System Overview](system-overview.md)
-- 🧩 Browse `src/main/java/elements/api/` for all element interfaces
-- 🪝 Explore `core/interactions/hooks/Before.java` & `After.java` for built-in hooks
-- 🧰 Check `core/utils/` for `ConfigLoader`, `DOMUtils`, `WaitUtils`, `UIContext`, and more
-- 🔧 See `core/resolvers/locator/` for the full locator resolution pipeline
+- 📖 [System Overview](system-overview.md) — full architecture and execution flow
+- 🪝 [Hooks Pipeline](hooks-pipeline.md) — composable before/after action hooks
+- 📍 [Locator Resolution](locator-resolution.md) — full resolution pipeline
+- ⚙️ [Configuration Reference](configuration-reference.md) — all config keys
+- 🧩 Browse `src/main/java/elements/api/capability/` for all capability interfaces
+- 🔧 See `core/engine/UIEngine.java` for the execution contract
 - 📦 See [`core/resolvers/locator/json/README.md`](../../src/main/java/core/resolvers/locator/json/README.md) for the JSON migration tool
 
 ---

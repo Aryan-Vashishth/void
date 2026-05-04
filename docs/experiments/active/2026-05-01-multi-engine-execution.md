@@ -1,7 +1,7 @@
 # Prospect: Multi-Engine Execution (Selenium ↔ Playwright)
 
-**Status:** Design / Vision  
-**Date:** May 2026  
+**Status:** Active — Phases 1–2 Complete, Phase 3 Next  
+**Date:** May 2026 (updated June 2026)  
 **Scope:** Execution layer portability  
 **Impact on user-facing API:** None
 
@@ -337,30 +337,38 @@ The logging system sits **above** the engine — it observes `Interactions`, not
 
 ## 10. Incremental Roadmap
 
-### Phase 1: Introduce Engine Abstraction (No Behavior Change)
+### Phase 1: Introduce Engine Abstraction (No Behavior Change) ✅ COMPLETE
 
 **Goal:** Extract the `UIEngine` interface from existing Selenium usage.
 
-- Define `UIEngine` interface
-- Define `LocatorDescriptor` record
-- Create `SeleniumEngine` implementing `UIEngine` (wrapping current behavior)
-- Refactor `Interactions` to delegate to `UIEngine` instead of calling WebDriver directly
-- **All existing tests pass without modification**
+- ✅ Defined `UIEngine` interface (`core.engine.UIEngine`) — 40+ methods covering lifecycle, resolution, actions, retrieval, waits, and advanced operations
+- ✅ Defined `LocatorDescriptor` record (`core.engine.LocatorDescriptor`) with scoped parent support
+- ✅ Defined `LocatorStrategy` enum (`core.engine.LocatorStrategy`) — XPATH, CSS, ID, NAME with inference
+- ✅ Defined `EngineConfig` holder (`core.engine.EngineConfig`) — timeout, polling, baseUrl
+- ✅ Created `SeleniumEngine` implementing `UIEngine` (wrapping current WebDriver behavior)
+- ✅ Refactored `Interactions` to pure orchestrator — delegates all execution to `UIEngine`
+- ✅ Introduced `Action` functional interface (`core.actions.Action`) — deferred execution intent
+- ✅ Introduced `Flow` (`core.flow.Flow`) — immutable ordered sequence of Actions
+- ✅ Introduced `Runner` (`core.runner.Runner`) — iterates Flows against UIEngine
+- ✅ All capability interfaces emit deferred `Action` objects (Clickable, Typeable, Selectable, etc.)
+- ✅ All existing tests pass without modification
 
-**Validation:** Zero behavior change. This is a pure structural refactor.
+**Validation:** Zero behavior change. Pure structural refactor. Backward compatible.
 
-**Estimated scope:** `Interactions`, `Via`, `DriverContext`, `DOMUtils`, `WaitUtils`
+**Actual scope:** `UIEngine`, `SeleniumEngine`, `LocatorDescriptor`, `LocatorStrategy`, `EngineConfig`, `Action`, `Flow`, `Runner`, `Interactions`, `Via`, `UIContext`, all 15 capability interfaces
 
 ---
 
-### Phase 2: Runtime Engine Selection
+### Phase 2: Runtime Engine Selection ✅ COMPLETE
 
 **Goal:** Engine choice becomes configuration-driven.
 
-- Add `engine` property to config (`selenium` | `playwright`)
-- `FrameworkBootstrap` instantiates the correct engine at startup
-- Engine lifecycle (init/shutdown) managed by VOID runtime
-- Fallback: default to Selenium if not specified
+- ✅ Added `engine` property to config (`selenium` | `playwright`)
+- ✅ `UIEngineFactory` instantiates the correct engine at startup (switch-based dispatch)
+- ✅ Engine name resolution: System property → ENV → config → default ("selenium")
+- ✅ Engine lifecycle (init/shutdown) managed by `UIEngineFactory` + `EngineConfig`
+- ✅ Fallback: defaults to Selenium if not specified
+- ✅ `FrameworkBootstrap` performs one-time JVM initialization
 
 **Validation:** Existing behavior unchanged. Config defaults to `selenium`.
 

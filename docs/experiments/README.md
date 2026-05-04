@@ -18,6 +18,19 @@ prospects/ → active/ → outcomes/
 
 ---
 
+## Current Status
+
+### Active
+- **Multi-Engine Execution** (`2026-05-01`) — Phases 1–2 complete (UIEngine, Action/Flow/Runner, SeleniumEngine, UIEngineFactory). Phase 3 (Playwright prototype) next.
+
+### Completed Outcomes
+- **Interaction–Execution Separation** (`2026-06`) — **Implemented**. `Interactions` refactored to pure orchestrator. `UIEngine` is the single execution authority. All legacy methods deprecated.
+
+### Prospects
+_(empty — all current ideas are in active development)_
+
+---
+
 ## Rules
 
 1. All files use: `YYYY-MM-DD-<short-title>.md`
@@ -75,4 +88,3 @@ What was decided.
 
 Key takeaways.
 ```
-

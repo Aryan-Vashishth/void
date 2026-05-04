@@ -1,9 +1,9 @@
 # VOID — Dependency Audit
 
 
-> Generated: 2026-05-01 (updated after cleanup)
+> Generated: 2026-05-01 (updated June 2026 — reflects UIEngine/Action/Flow/Runner architecture)
 > Scope: All runtime and provided-scope dependencies declared in `pom.xml`
-> Philosophy lens: transparency, traceability, debuggability, self-containment
+> Philosophy lens: transparency, traceability, debuggability, self-containment, engine portability
 
 ---
 
@@ -45,13 +45,13 @@
 
 ### 1. `selenium-java` (4.38.0)
 
-- **Purpose:** WebDriver API — the entire reason VOID exists.
-- **Usage locations:** `DriverFactory`, `DriverContext`, `Interactions`, `Via`, `WaitUtils`, `DOMUtils`, `TableHandler`, `After` hooks, and all test classes that drive browsers. ~20+ files with direct imports.
+- **Purpose:** WebDriver API — powers the `SeleniumEngine` implementation of `UIEngine`.
+- **Usage locations:** `SeleniumEngine`, `DriverFactory`, `DriverContext`, `Interactions` (legacy), `Via`, `WaitUtils`, `DOMUtils`, `TableHandler`, `After` hooks, and all test classes that drive browsers. ~20+ files with direct imports.
 - **Hidden behavior risk:** **Low.** Selenium is explicit — locators, waits, and actions are all visible. The `RemoteWebDriver` protocol is well-documented.
-- **Internal replacement feasibility:** None. This is the core I/O layer with browser binaries. Replacing it would mean writing a WebDriver implementation.
+- **Internal replacement feasibility:** The `UIEngine` interface (`core.engine.UIEngine`) abstracts over Selenium. A `PlaywrightEngine` implementation could replace `SeleniumEngine` without changing any test code — this is the multi-engine execution design (see `docs/experiments/active/2026-05-01-multi-engine-execution.md`).
 - **Migration effort:** —
 - **Recommendation:** **KEEP**
-- **Reasoning:** Foundational dependency. VOID is a Selenium automation system; removing Selenium removes the system.
+- **Reasoning:** Powers the default `SeleniumEngine`. All Selenium coupling is contained within the engine layer — `Action`, `Flow`, `Runner`, capability interfaces, and DSL are fully engine-agnostic.
 
 ---
 
@@ -238,4 +238,4 @@ Three dependencies have **zero active usage**: `cucumber-java`, `cucumber-testng
 
 ---
 
-*This audit reflects the codebase state as of 2026-05-01.*
+*This audit reflects the codebase state as of 2026-05-01, updated June 2026 to reflect the UIEngine/Action/Flow/Runner architecture. Selenium is now isolated behind the `UIEngine` interface — making future engine additions (Playwright) possible without dependency changes to the core framework.*

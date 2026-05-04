@@ -1,6 +1,6 @@
 # Configuration Reference
 
-Complete reference for all VOID configuration files and the `ConfigLoader` layering system.
+Complete reference for all VOID configuration files, the `ConfigLoader` layering system, and engine configuration.
 
 ---
 
@@ -9,9 +9,10 @@ Complete reference for all VOID configuration files and the `ConfigLoader` layer
 1. [Configuration Layering](#configuration-layering)
 2. [`driver.properties`](#driverproperties)
 3. [`test.properties`](#testproperties)
-4. [Locator Path Configuration](#locator-path-configuration)
-5. [Overriding at Runtime](#overriding-at-runtime)
-6. [`log4j2.xml`](#log4j2xml)
+4. [Engine Configuration](#engine-configuration)
+5. [Locator Path Configuration](#locator-path-configuration)
+6. [Overriding at Runtime](#overriding-at-runtime)
+7. [`log4j2.xml`](#log4j2xml)
 
 ---
 
@@ -155,6 +156,25 @@ acceptInsecureCerts=true
 args=--no-sandbox,--disable-dev-shm-usage
 ```
 
+### Config Profiles
+
+VOID supports multiple config profiles for different environments:
+
+| Profile | File | Classpath | Use Case |
+|---------|------|-----------|----------|
+| Default | `driver.properties` | `core/driver/config/driver.properties` | Local development |
+| Local   | `driver-local.properties` | `core/driver/config/driver-local.properties` | Developer overrides |
+| CI      | `driver-ci.properties` | `core/driver/config/driver-ci.properties` | CI/CD pipelines |
+| Grid    | `driver-grid.properties` | `core/driver/config/driver-grid.properties` | Remote Grid execution |
+
+Accessed via `ConfigPaths`:
+```java
+ConfigPaths.DRIVER_DEFAULT  // "core/driver/config/driver.properties"
+ConfigPaths.DRIVER_LOCAL    // "core/driver/config/driver-local.properties"
+ConfigPaths.DRIVER_CI       // "core/driver/config/driver-ci.properties"
+ConfigPaths.DRIVER_GRID     // "core/driver/config/driver-grid.properties"
+```
+
 ---
 
 ## `test.properties`
@@ -185,6 +205,65 @@ locators.template.output.dir=locators/
 
 ---
 
+## Engine Configuration
+
+**Purpose**: Configures the `UIEngine` abstraction layer — the single execution authority.
+
+### Engine Selection
+
+| Key      | Type     | Default    | Description                                            |
+|----------|----------|------------|--------------------------------------------------------|
+| `engine` | `String` | `selenium` | Execution engine: `selenium` (or `playwright` future)  |
+
+Engine selection priority:
+1. System property: `-Dengine=selenium`
+2. Environment variable: `ENGINE=selenium`
+3. Config file property
+4. Default: `selenium`
+
+### Engine Timeout Settings
+
+These are consumed by `EngineConfig` and passed to the active `UIEngine` during initialization:
+
+| Key                    | Type     | Default    | Description                                            |
+|------------------------|----------|------------|--------------------------------------------------------|
+| `engine.timeout`       | `int`    | `10`       | Default element interaction timeout in seconds         |
+| `engine.pollingMs`     | `int`    | `200`      | Polling interval for explicit waits in milliseconds    |
+| `engine.baseUrl`       | `String` | *(empty)*  | Base URL for navigation                                |
+
+### Example
+
+```properties
+# Engine config (can be in driver.properties or passed via system properties)
+engine=selenium
+engine.timeout=10
+engine.pollingMs=200
+engine.baseUrl=https://app.example.com
+```
+
+### UIEngineFactory
+
+Engine creation is handled by `UIEngineFactory`:
+
+```java
+// Automatic engine creation from config
+UIEngine engine = UIEngineFactory.create(config, driver);
+
+// Engine name resolution
+String name = UIEngineFactory.resolveEngineName(config);  // "selenium"
+```
+
+### EngineConfig Access
+
+```java
+EngineConfig config = new EngineConfig(properties);
+config.getDefaultTimeout();    // Duration.ofSeconds(10)
+config.getPollingInterval();   // Duration.ofMillis(200)
+config.getBaseUrl();           // "https://app.example.com"
+config.getProperty("engine");  // "selenium"
+```
+
+---
 
 ## Locator Path Configuration
 
@@ -206,7 +285,7 @@ These are loaded at startup by `LocatorPaths` and used by all locator source imp
 Pass `-D` flags to Maven or the JVM:
 
 ```bash
-mvn clean test -Dbrowser=firefox -Dheadless=true -DgridUrl=http://grid:4444/wd/hub
+mvn clean test -Dbrowser=firefox -Dheadless=true -DgridUrl=http://grid:4444/wd/hub -Dengine=selenium
 ```
 
 ### Environment Variables
@@ -217,11 +296,13 @@ Set environment variables before running:
 # Linux/macOS
 export BROWSER=firefox
 export HEADLESS=true
+export ENGINE=selenium
 mvn clean test
 
 # Windows PowerShell
 $env:BROWSER = "firefox"
 $env:HEADLESS = "true"
+$env:ENGINE = "selenium"
 mvn clean test
 ```
 
@@ -275,5 +356,23 @@ Config file locations (single source of truth: ConfigPaths.java):
   DRIVER_CI       = core/driver/config/driver-ci.properties
   DRIVER_GRID     = core/driver/config/driver-grid.properties
   UTILS_TEST      = core/utils/config/test.properties
+
+Engine selection:
+  UIEngineFactory.resolveEngineName(config)
+  Priority: -Dengine → ENV:ENGINE → config property → default ("selenium")
 ```
 
+---
+
+## Related Documentation
+
+- [System Overview](system-overview.md) — architecture and UIEngine
+- [Quick Start Guide](quick-start.md) — configuring your first test
+- [Locator Resolution](locator-resolution.md) — locator path config details
+- [`EngineConfig.java`](../../src/main/java/core/engine/EngineConfig.java) — engine config source
+- [`UIEngineFactory.java`](../../src/main/java/core/engine/UIEngineFactory.java) — engine creation
+- [`ConfigLoader.java`](../../src/main/java/core/utils/ConfigLoader.java) — config layering
+
+---
+
+*MIT License © 2025–2026 VOID Project*

@@ -2,6 +2,11 @@
 
 VOID's hook system allows you to compose reusable pre- and post-action behaviors around every UI interaction. This guide covers the hook model, built-in hook constants, and patterns for writing custom hooks.
 
+> **Note:** The hook system is part of the **legacy `Interactions` path**. In the primary
+> Action/Flow/Runner path, UIEngine handles waits, scrolling, and retries internally.
+> Hooks remain fully supported for backward compatibility and for scenarios where
+> explicit pre/post behavior is needed around `Interactions` calls.
+
 ---
 
 ## Table of Contents
@@ -14,7 +19,8 @@ VOID's hook system allows you to compose reusable pre- and post-action behaviors
 6. [Using Hooks in Interactions](#using-hooks-in-interactions)
 7. [UIContext and Element State](#uicontext-and-element-state)
 8. [Writing Custom Hooks](#writing-custom-hooks)
-9. [Patterns and Best Practices](#patterns-and-best-practices)
+9. [Hooks vs UIEngine Built-In Behavior](#hooks-vs-uiengine-built-in-behavior)
+10. [Patterns and Best Practices](#patterns-and-best-practices)
 
 ---
 
@@ -43,15 +49,22 @@ Hooks are **composable** — you can chain any number in a list, and they execut
 The execution flow for a hooked interaction is:
 
 ```
-1. Element resolution     → LocatorResolvers resolve the By locator
-2. UIContext update        → last-resolved element stored in UIContext
+1. Element resolution     → LocatorResolvers resolve the LocatorDescriptor
+2. UIContext update        → last-resolved descriptor stored in UIContext
 3. Before hooks execute   → each Before.* runs in list order
-4. Core action            → Selenium action (click, sendKeys, etc.)
+4. Core action            → UIEngine executes (click, type, etc.)
 5. After hooks execute    → each After.* runs in list order
 6. Logging                → CustomLogger emits the action record
 ```
 
 If a before hook fails (throws), the core action is **not** executed. If the core action fails, after hooks are still attempted for cleanup.
+
+### Two Execution Paths
+
+| Path | Hooks Used? | Wait/Scroll/Retry |
+|------|-------------|-------------------|
+| **Action/Flow/Runner** | No — UIEngine handles all concerns internally | Built into UIEngine |
+| **Interactions (legacy)** | Yes — Before/After hooks compose pre/post behavior | Hooks + UIEngine |
 
 ---
 
@@ -64,13 +77,18 @@ public interface ActionHandler {
 }
 ```
 
-Every hook is simply a lambda or constant that receives the active `WebDriver`. The interface is deliberately minimal — the `WebDriver` parameter gives hooks full access to the browser, and `UIContext` provides the last-resolved element.
+Every hook is simply a lambda or constant that receives the active `WebDriver`. The interface is deliberately minimal — the `WebDriver` parameter gives hooks full access to the browser, and `UIContext` provides the last-resolved element descriptor.
+
+> **Migration note:** Hooks currently receive `WebDriver` directly. When UIEngine portability
+> is fully realized, hooks will migrate to receive `UIEngine` instead. The intent-based
+> constants (`WAIT_FOR_ELEMENT_VISIBLE`, etc.) will remain unchanged — only the internal
+> dispatch changes.
 
 ---
 
 ## Built-In Before Hooks
 
-All constants are in `interactions.hooks.Before`:
+All constants are in `core.interactions.hooks.Before`:
 
 | Constant                          | Description                                                    |
 |-----------------------------------|----------------------------------------------------------------|
@@ -99,7 +117,7 @@ app.interaction().clickOn(
 
 ## Built-In After Hooks
 
-All constants are in `interactions.hooks.After`:
+All constants are in `core.interactions.hooks.After`:
 
 | Constant                          | Description                                                    |
 |-----------------------------------|----------------------------------------------------------------|
@@ -134,7 +152,7 @@ Most `Interactions` methods have overloads accepting hook lists:
 clickOn(List<ActionHandler> before, Clickable element, List<ActionHandler> after)
 
 // Type
-typeInto(ActionHandler before, TextInputField element, String text)
+typeInto(ActionHandler before, Typeable element, String text)
 
 // Search
 performSearch(List<ActionHandler> before, WebElement input, String term,
@@ -161,13 +179,17 @@ Many hooks operate on "the last resolved element" — this is stored in `UIConte
 
 ```java
 // What hooks see internally:
-WebElement element = UIContext.getLastElement();     // the resolved WebElement
-String file     = UIContext.getLastPropertyFile();   // locator file name
-String key      = UIContext.getLastKey();            // locator key
-Object[] args   = UIContext.getLastArgs();           // template arguments
+LocatorDescriptor descriptor = UIContext.getLastActionTarget();  // preferred (engine-agnostic)
+WebElement element = UIContext.getLastElement();                 // deprecated (Selenium-specific)
+String file     = UIContext.getLastPropertyFile();               // locator file name
+String key      = UIContext.getLastKey();                        // locator key
+Object[] args   = UIContext.getLastArgs();                       // template arguments
 ```
 
 `UIContext` is updated **before** the hook pipeline runs, so before-hooks always see the correct element. This also enables **stale-element retry** — if a `StaleElementReferenceException` occurs, VOID can re-resolve using the stored meta.
+
+> **Migration note:** `UIContext.getLastElement()` (returns `WebElement`) is deprecated.
+> Prefer `UIContext.getLastActionTarget()` (returns `LocatorDescriptor`) for engine-agnostic hooks.
 
 ---
 
@@ -268,6 +290,25 @@ app.interaction().clickOn(
 
 ---
 
+## Hooks vs UIEngine Built-In Behavior
+
+The UIEngine already handles many concerns that hooks traditionally addressed:
+
+| Concern | UIEngine (built-in) | Hook (explicit) | When to Use Hook |
+|---------|-------------------|-----------------|-----------------|
+| Scroll to element | ✅ Automatic | `SCROLL_TO_ELEMENT` | Never (UIEngine handles it) |
+| Wait for visible | ✅ Before click/type | `WAIT_FOR_ELEMENT_VISIBLE` | Extra safety before complex flows |
+| Wait for clickable | ✅ Before click | `WAIT_FOR_ELEMENT_CLICKABLE` | Extra safety before complex flows |
+| Highlight element | ❌ Not built-in | `HIGHLIGHT_ELEMENT` | Always (debugging aid) |
+| Wait for Angular loader | ❌ App-specific | `WAIT_FOR_ANGULAR_LOADER` | Always (app-specific wait) |
+| Wait for spinner | ❌ App-specific | `WAIT_FOR_SPIN_SPINNER_LOADER` | Always (app-specific wait) |
+| JS click fallback | ✅ Automatic | N/A | Never (UIEngine handles it) |
+| Stale element retry | ✅ Automatic | N/A | Never (UIEngine handles it) |
+
+**Rule of thumb:** Use hooks for **app-specific concerns** (Angular loaders, custom spinners, cookie banners). Let UIEngine handle **browser interaction concerns** (scroll, waits, retries, fallback).
+
+---
+
 ## Patterns and Best Practices
 
 ### 1. Keep Hooks Focused
@@ -332,7 +373,26 @@ public static final ActionHandler WAIT_FOR_PANEL = driver -> {
 };
 ```
 
-### 5. Common Hook Combinations
+### 5. Prefer Action/Flow/Runner for New Code
+
+For new test code, prefer the Action/Flow/Runner pipeline where UIEngine handles scroll, waits, and retries internally. Use hooks only when you need explicit app-specific behavior with the legacy `Interactions` path:
+
+```java
+// ✅ Preferred — UIEngine handles everything
+runner.run(Flow.of(
+    MyPage.USERNAME.type("admin"),
+    MyPage.SUBMIT.click()
+));
+
+// ✅ Also valid — hooks for app-specific needs
+app.interaction().clickOn(
+    List.of(Before.WAIT_FOR_ANGULAR_LOADER),
+    MyPage.SUBMIT,
+    List.of(After.DO_NOTHING)
+);
+```
+
+### 6. Common Hook Combinations
 
 | Scenario                          | Before Hooks                                            | After Hooks                            |
 |-----------------------------------|---------------------------------------------------------|----------------------------------------|
@@ -346,13 +406,13 @@ public static final ActionHandler WAIT_FOR_PANEL = driver -> {
 
 ## Related Documentation
 
-- [Architecture Deep-Dive](architecture.md) — execution flow and hook pipeline details
-- [Quick Start Guide](quick-start.md) — first test with hooks
-- [`Interactions` API](../src/main/java/interactions/Interactions.java) — all interaction method overloads
-- [`Before.java`](../src/main/java/interactions/hooks/Before.java) — before-hook source
-- [`After.java`](../src/main/java/interactions/hooks/After.java) — after-hook source
+- [System Overview](system-overview.md) — full architecture with Action/Flow/Runner and UIEngine
+- [Quick Start Guide](quick-start.md) — first test with hooks and Flow
+- [Configuration Reference](configuration-reference.md) — all config keys
+- [`Before.java`](../../src/main/java/core/interactions/hooks/Before.java) — before-hook source
+- [`After.java`](../../src/main/java/core/interactions/hooks/After.java) — after-hook source
+- [`UIEngine.java`](../../src/main/java/core/engine/UIEngine.java) — execution contract
 
 ---
 
 *MIT License © 2025–2026 VOID Project*
-
