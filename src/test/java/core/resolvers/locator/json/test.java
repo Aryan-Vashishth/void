@@ -1,6 +1,6 @@
 package core.resolvers.locator.json;
 
-import elements.exapmlepages.AccountMappingElements;
+import tests.demo.pages.AccountMappingElements;
 
 import java.nio.file.Path;
 

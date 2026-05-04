@@ -1,4 +1,4 @@
-package core.misc;
+package tests.demo.pages;
 
 import elements.api.capability.Clickable;
 import elements.api.capability.ReadOnly;

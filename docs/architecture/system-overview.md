@@ -228,7 +228,7 @@ void-framework/
 │   │   ├── meta/
 │   │   │   ├── ElementRole.java
 │   │   │   └── EnumClassRegistry.java
-│   │   └── exapmlepages/                     ← Example page element enums
+│   │   └── exapmlepages/                     ← (removed — see tests.demo.pages)
 │   └── StepDefinition/
 ├── src/main/resources/
 │   ├── locators/

@@ -1,4 +1,4 @@
-package elements.exapmlepages;
+package tests.demo.pages;
 
 import elements.api.Element;
 import elements.api.capability.*;

@@ -220,7 +220,10 @@ void-framework/
 │   ├── elements/
 │   │   ├── api/                 ← Element interfaces — the contracts you implement
 │   │   ├── meta/                ← ElementRole enum, EnumClassRegistry
-│   │   └── exapmlepages/        ← Example page element enums
+│   │   └── meta/                ← ElementRole enum, EnumClassRegistry
+│   ├── tests/demo/              ← Runnable demos and example page elements
+│   │   ├── VoidDemo.java        ← Entry point (Action/Flow/Runner demo)
+│   │   └── pages/               ← Example page element enums
 │   └── StepDefinition/          ← Cucumber step definitions (optional adapter layer)
 ├── src/main/resources/
 │   ├── config/                  ← driver.properties, test.properties

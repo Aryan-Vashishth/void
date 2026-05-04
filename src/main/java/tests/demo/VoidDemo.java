@@ -1,4 +1,4 @@
-package core.misc;
+package tests.demo;
 
 import core.engine.UIEngine;
 import core.flow.Flow;
@@ -6,6 +6,7 @@ import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.runner.Runner;
 import core.runtime.VOID;
+import tests.demo.pages.DemoLoginElements;
 
 import static core.logging.CustomLogger.*;
 
@@ -15,7 +16,7 @@ import static core.logging.CustomLogger.*;
  * <p>Demonstrates the modern Action / Flow / Runner pattern from the Quick Start Guide.
  * Targets the public demo site: https://the-internet.herokuapp.com/login</p>
  *
- * <p>Run directly via: {@code java -cp <classpath> core.misc.VoidDemo}</p>
+ * <p>Run directly via: {@code java -cp <classpath> tests.demo.VoidDemo}</p>
  */
 public class VoidDemo {
 

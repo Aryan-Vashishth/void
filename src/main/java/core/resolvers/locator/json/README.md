@@ -55,13 +55,13 @@ JsonLocatorMigrator.writeResolvedJson(MyPageElements.class)
 
 ```bash
 # Print resolved JSON to stdout
-java core.resolvers.locator.json.JsonMigratorCli --print  elements.exapmlepages.AccountMappingElements
+java core.resolvers.locator.json.JsonMigratorCli --print  tests.demo.pages.AccountMappingElements
 
 # Write to the default output directory (src/main/resources/locators/json/)
-java core.resolvers.locator.json.JsonMigratorCli --write  elements.exapmlepages.AccountMappingElements
+java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.AccountMappingElements
 
 # Write to a specific file
-java core.resolvers.locator.json.JsonMigratorCli --write  elements.exapmlepages.AccountMappingElements  path/to/output.json
+java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.AccountMappingElements  path/to/output.json
 ```
 
 ## Example Output

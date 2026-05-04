@@ -1,0 +1,27 @@
+/**
+ * VOID Framework — Runnable Demos and Examples.
+ *
+ * <p>This package contains self-contained demo applications that exercise
+ * the full VOID pipeline (Action / Flow / Runner) against public demo sites.</p>
+ *
+ * <h3>Structure</h3>
+ * <pre>
+ *   tests.demo/
+ *   ├── VoidDemo.java              ← Entry point: bootstraps VOID, runs login flow
+ *   └── pages/
+ *       ├── DemoLoginElements.java ← Simple example (Typeable, Clickable, ReadOnly)
+ *       ├── AccountMappingElements.java ← Complex example (all capability interfaces)
+ *       └── ManageUsersElements.java    ← ResolvableEnum example
+ * </pre>
+ *
+ * <h3>Running</h3>
+ * <pre>
+ *   // IDE: Run VoidDemo.main() directly
+ *   // CLI: mvn compile exec:java -Dexec.mainClass=tests.demo.VoidDemo
+ * </pre>
+ *
+ * @see tests.demo.VoidDemo
+ * @see tests.demo.pages.DemoLoginElements
+ */
+package tests.demo;
+

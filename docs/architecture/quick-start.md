@@ -470,7 +470,7 @@ A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs in
 | File | Purpose |
 |------|---------|
 | [`VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) | Main entry point — bootstraps VOID, runs login flow, verifies redirect |
-| [`DemoLoginElements.java`](../../src/main/java/tests/demo/DemoLoginElements.java) | Element definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
+| [`DemoLoginElements.java`](../../src/main/java/tests/demo/pages/DemoLoginElements.java) | Element definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
 | [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) | Locator file — XPath locators keyed by element name |
 
 ### Running
@@ -496,7 +496,7 @@ mvn compile exec:java -Dexec.mainClass=tests.demo.VoidDemo
 ## Next Steps
 
 - 🚀 **[Runnable Demo](../../src/main/java/tests/demo/VoidDemo.java)** — complete working example targeting `the-internet.herokuapp.com/login`
-  - [`DemoLoginElements.java`](../../src/main/java/tests/demo/DemoLoginElements.java) — element definitions (Typeable, Clickable, ReadOnly)
+  - [`DemoLoginElements.java`](../../src/main/java/tests/demo/pages/DemoLoginElements.java) — element definitions (Typeable, Clickable, ReadOnly)
   - [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) — locator file
   - Run via: `mvn exec:java -Dexec.mainClass=tests.demo.VoidDemo` or IDE main method
 - 📖 [System Overview](system-overview.md) — full architecture and execution flow
