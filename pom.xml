@@ -18,7 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Core -->
-        <selenium.version>4.38.0</selenium.version>
+        <selenium.version>4.43.0</selenium.version>
         <testng.version>7.11.0</testng.version>
 
         <!-- Cucumber (optional BDD adapter — not part of core) -->
