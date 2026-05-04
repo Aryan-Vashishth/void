@@ -40,7 +40,7 @@ Replace all behavioral element interfaces with **capability interfaces** in `ele
 ## Reasoning
 
 1. **Verb-based naming is self-documenting** — `implements Clickable` tells you immediately what the element can do
-2. **Action emission enables Flow composition** — `element.click()`, `element.type("text")` return `Action` objects for `Flow.of(...)` + `Runner.run(flow)`
+2. **Action emission enables Flow composition** — `element.click()`, `element.type("text")` return `Action` objects for `Flow.of(...)` + `FlowExecutor.run(flow)`
 3. **Deferred resolution pattern** — locator resolution happens inside Action lambdas at execution time, preventing stale locators
 4. **Consistent hierarchy** — all capabilities extend `Element`, with clear inheritance chains (e.g., `Clickable → Checkable`, `ReadOnly → Hoverable`, `Clickable + Listable → Selectable`)
 5. **Package separation** — capabilities live in `elements.api.capability.*`, keeping the API surface organized

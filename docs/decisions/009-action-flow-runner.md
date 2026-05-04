@@ -1,4 +1,4 @@
-# 009 — Action / Flow / Runner Execution Model
+# 009 — Action / Flow / FlowExecutor Execution Model
 
 **Date:** 2026-06-01  
 **Status:** Accepted
@@ -48,36 +48,38 @@ public class Flow {
 - Factory method: `Flow.of(action1, action2, action3)`
 - Represents a declarative UI workflow
 
-### `Runner` — Sequential Executor
+### `FlowExecutor` — Sequential Executor
 
 ```java
-public class Runner {
-    public Runner(UIEngine engine) { ... }
+public class FlowExecutor {
+    public FlowExecutor(UIEngine engine) { ... }
     public void run(Flow flow) { ... }
-    public void execute(Action action) { ... }
+    public void run(Action action) { ... }
 }
 ```
 
 - Holds a `UIEngine` reference
 - `run(Flow)` iterates all Actions sequentially
-- `execute(Action)` runs a single Action
+- `run(Action)` runs a single Action
+- Uses ONE verb consistently ("run") for both Flow and Action
 
 ---
 
 ## Reasoning
 
-1. **Minimal surface area** — Action is a single functional interface. Flow is 5 methods. Runner is 2 methods. Total: ~100 lines of code.
+1. **Minimal surface area** — Action is a single functional interface. Flow is 5 methods. FlowExecutor is 2 methods. Total: ~100 lines of code.
 2. **Composability** — `Flow.of(...)` reads like a test script. Actions can be mixed freely.
 3. **Deferred resolution** — Locators aren't resolved until `action.perform(engine)` is called. No stale locator risk.
 4. **Engine-agnostic by construction** — Action only knows about `UIEngine`. No Selenium imports possible.
 5. **No framework tax** — No annotation processing, no reflection, no lifecycle hooks. Pure Java method calls.
+6. **Clear naming** — `FlowExecutor` describes its responsibility: executing Actions and Flows via UIEngine. Visible in stack traces.
 
 ---
 
 ## Usage Example
 
 ```java
-Runner runner = new Runner(engine);
+FlowExecutor executor = new FlowExecutor(engine);
 
 // Compose a login flow
 Flow loginFlow = Flow.of(
@@ -87,29 +89,29 @@ Flow loginFlow = Flow.of(
 );
 
 // Execute
-runner.run(loginFlow);
+executor.run(loginFlow);
 
 // Single action
-runner.execute(DashboardPage.PROFILE_BUTTON.click());
+executor.run(DashboardPage.PROFILE_BUTTON.click());
 ```
 
 ---
 
 ## Consequences
 
-- **Primary path for new code** — Action/Flow/Runner is the recommended execution path
+- **Primary path for new code** — Action/Flow/FlowExecutor is the recommended execution path
 - **Interactions remains** as frozen legacy orchestrator for backward compatibility
 - **Capability interfaces are dual-purpose** — they define structure AND emit Actions
 - **VoidDSL** continues to use `Interactions` internally (for BDD context-driven resolution)
-- **No migration required** — both paths coexist. New tests use Action/Flow/Runner. Existing tests use `Interactions` unchanged.
+- **No migration required** — both paths coexist. New tests use Action/Flow/FlowExecutor. Existing tests use `Interactions` unchanged.
 
 ### Path Comparison
 
-| Aspect | Action/Flow/Runner | Interactions (Legacy) |
+| Aspect | Action/Flow/FlowExecutor | Interactions (Legacy) |
 |--------|-------------------|----------------------|
-| Engine coupling | None | `ActionHandler` receives `WebDriver` |
+| Engine coupling | None | `ActionHandler` receives `UIEngine` |
 | Locator type | `LocatorDescriptor` | `By` (Selenium) |
-| Hook support | Not needed (UIEngine handles) | `Before.*` / `After.*` composable hooks |
+| Hook support | `.withHooks(before, after)` on Action | `Before.*` / `After.*` composable hooks |
 | Composability | `Flow.of(...)` | Imperative method calls |
 | New features | Yes | Frozen — no new features |
 

@@ -37,13 +37,17 @@ This enables interchangeable engines (Selenium, Playwright), composable flows, d
 ### 🪝 Composable Before / After Action Hooks
 - `Before` and `After` constant libraries provide pre-built `ActionHandler` instances:
   `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE`, `HIGHLIGHT_ELEMENT`, `WAIT_FOR_ANGULAR_LOADER`, `LOG_INTENT`, `DO_NOTHING`, etc.
+- `ActionHandler` receives `(UIEngine engine, LocatorDescriptor descriptor)` — fully engine-agnostic.
 - Hook lists are passed directly to every interaction method overload for fully composable behaviour.
+- **Fluent API:** Actions created via capability interfaces support `.withHooks(before, after)` for inline hook composition.
 
-### ⚡ Action / Flow / Runner Pipeline
+### ⚡ Action / Flow / FlowExecutor Pipeline
 - Capability interfaces emit **deferred `Action` objects** — lambdas over `UIEngine`.
+- `ElementActions.of(element, role, op)` creates element-bound actions that support `resolve()` and `withHooks()`.
 - `Flow` composes multiple Actions into ordered sequences.
-- `Runner` iterates Flows and calls `action.perform(engine)` for each.
+- `FlowExecutor` iterates Flows and calls `action.perform(engine)` for each.
 - Locator resolution happens **inside** the Action lambda at execution time — never eagerly.
+- `HookedAction` decorates an Action with before/after hooks, sharing a single resolved descriptor.
 
 ### 🧩 Capability-Based Element Model
 
@@ -63,7 +67,7 @@ This enables interchangeable engines (Selenium, Playwright), composable flows, d
 | `Listable` | `elements.api.capability` | Static or dynamic list-based UI patterns. |
 | `Checkable` | `elements.api.capability` | Checkbox toggle logic. Emits `toggle()`, `set(boolean)`. |
 | `Uploadable` | `elements.api.capability` | File upload automation. Emits `upload(path)`. |
-| `ReadOnly` | `elements.api.capability` | Non-editable / display-only elements. Emits `getText()`. |
+| `ReadOnly` | `elements.api.capability` | Non-editable / display-only elements. Emits `readText()`. |
 | `KeyValuePair` | `elements.api` | Key-value display or edit pairs. |
 | `ResolvableEnum` | `core.utils` | Mixin for name↔label enum resolution. Not a locator interface. |
 
@@ -74,7 +78,7 @@ This enables interchangeable engines (Selenium, Playwright), composable flows, d
 **Primary path (new code):**
 
 ```
-Element → Action (intent) → Flow (composition) → Runner (iteration) → UIEngine (execution)
+Element → Action (intent) → Flow (composition) → FlowExecutor (iteration) → UIEngine (execution)
 ```
 
 **Legacy path (backward compat):**
@@ -83,7 +87,7 @@ Element → Action (intent) → Flow (composition) → Runner (iteration) → UI
 Element → Interactions (frozen orchestrator) → UIEngine (execution)
 ```
 
-**`Interactions`** is a **frozen legacy orchestrator** — preserved for backward compatibility with existing step definitions and page objects. No new features should be added there. New development should use the Action/Flow/Runner pipeline.
+**`Interactions`** is a **frozen legacy orchestrator** — preserved for backward compatibility with existing step definitions and page objects. No new features should be added there. New development should use the Action/Flow/FlowExecutor pipeline.
 
 **`UIEngine`** is the single execution authority:
 - Resolves `LocatorDescriptor` to native locators
@@ -115,7 +119,7 @@ Element → Interactions (frozen orchestrator) → UIEngine (execution)
 
 **`DriverContext`** — manages active driver per thread; accessed by engine and resolvers.
 
-**`UIContext`** — thread-local state holding the last resolved `LocatorDescriptor` and meta for stale-element re-resolution and diagnostics.
+**`UIContext`** — *(deprecated)* thread-local state holding the last resolved `LocatorDescriptor`. In the modern path, hooks receive descriptors directly as parameters. Retained only for legacy `Interactions` compatibility.
 
 ---
 
@@ -158,11 +162,13 @@ void-framework/
 ├── src/main/java/
 │   ├── core/
 │   │   ├── actions/
-│   │   │   └── Action.java                   ← Deferred execution intent (functional interface)
+│   │   │   ├── Action.java                   ← Deferred execution intent (functional interface)
+│   │   │   ├── ElementActions.java            ← Internal helper: creates resolvable Actions
+│   │   │   └── HookedAction.java              ← Pure decorator: before → action → after
 │   │   ├── flow/
 │   │   │   └── Flow.java                     ← Composes Actions into sequences
-│   │   ├── runner/
-│   │   │   └── Runner.java                   ← Iterates Flow, calls action.perform(engine)
+│   │   ├── executor/
+│   │   │   └── FlowExecutor.java              ← Iterates Flow, calls action.perform(engine)
 │   │   ├── engine/
 │   │   │   ├── UIEngine.java                 ← Execution contract (interface)
 │   │   │   ├── EngineConfig.java             ← Engine configuration
@@ -243,12 +249,12 @@ void-framework/
 
 ## ⚙️ Execution Flow
 
-### Primary Path: Action / Flow / Runner
+### Primary Path: Action / Flow / FlowExecutor
 
 ```
 1. Page enum        → element.click() / element.type("text")     ← returns Action (deferred)
 2. Flow             → Flow.of(action1, action2, action3)         ← groups Actions
-3. Runner           → runner.run(flow)                            ← iterates
+3. FlowExecutor     → executor.run(flow)                         ← iterates
 4. Action lambda    → engine.resolve(this, ROLE)                 ← resolves LocatorDescriptor
 5. UIEngine         → engine.click(descriptor)                   ← executes (scroll, wait, retry internal)
 6. Logging          → CustomLogger emits color-coded output
@@ -269,13 +275,13 @@ void-framework/
 
 ## 🧠 Example Usage
 
-### Modern: Action / Flow / Runner
+### Modern: Action / Flow / FlowExecutor
 
 ```java
 import elements.api.capability.Clickable;
 import elements.api.capability.Typeable;
 import core.flow.Flow;
-import core.runner.Runner;
+import core.executor.FlowExecutor;
 
 // Define elements
 enum LoginField implements Typeable {
@@ -295,8 +301,8 @@ enum LoginButton implements Clickable {
 }
 
 // Execute
-Runner runner = new Runner(engine);
-runner.run(Flow.of(
+FlowExecutor executor = new FlowExecutor(engine);
+executor.run(Flow.of(
     LoginField.USERNAME.type("admin@example.com"),
     LoginField.PASSWORD.type("secret"),
     LoginButton.SUBMIT.click()
@@ -402,9 +408,9 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 ### Architecture Invariants
 
 - **Elements NEVER execute** — they emit Action (intent) only
-- **Actions NEVER perform work** until executed by UIEngine via Runner
+- **Actions NEVER perform work** until executed by UIEngine via FlowExecutor
 - **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
-- **One execution path**: Element → Action → Flow → Runner → UIEngine
+- **One execution path**: Element → Action → Flow → FlowExecutor → UIEngine
 - **No compile-time code generation** — all behavior is visible and debuggable
 
 ---
@@ -415,10 +421,10 @@ VOID uses explicit stability tiers to control how the architecture evolves. Each
 
 | Tier | Scope | Guarantees | Rules |
 |------|-------|------------|-------|
-| **Stable (frozen)** | `Interactions`, hook system (`Before`, `After`, `ActionHandler`) | No breaking changes. No new features. Hook execution semantics will not change. | Will not evolve further. |
-| **Stable (user-facing)** | Capability interfaces (`Clickable`, `Typeable`, etc.), `Element`, `UIEngine` | No breaking changes. May gain new methods. | Backward-compatible evolution only. |
-| **Beta** | `Action`, `Flow`, `Runner` | May change without notice between releases. | Must not be used inside stable modules. |
-| **Internal** | Migration bridges, adapters, helper classes | No guarantees. May be changed, moved, or removed at any time. | External consumers must not depend on these. |
+| **Stable (frozen)** | `Interactions` | No breaking changes. No new features. | Will not evolve further. |
+| **Stable (user-facing)** | Capability interfaces (`Clickable`, `Typeable`, etc.), `Element`, `UIEngine`, `ActionHandler`, `Before`, `After` | No breaking changes. May gain new methods. | Backward-compatible evolution only. |
+| **Beta** | `Action`, `Flow`, `FlowExecutor`, `HookedAction` | May change without notice between releases. | Must not be used inside stable modules. |
+| **Internal** | `ElementActions`, migration bridges, adapters, helper classes | No guarantees. May be changed, moved, or removed at any time. | External consumers must not depend on these. |
 
 ### Usage Rules
 
@@ -426,7 +432,7 @@ VOID uses explicit stability tiers to control how the architecture evolves. Each
 2. **Stable APIs may depend on stable APIs only.**
 3. **Beta APIs may change, be renamed, or be removed in any release.**
 4. **Internal APIs are not for external consumption** — they exist for framework plumbing only.
-5. **Capability interfaces are stable contracts** — they define structure. The Action objects they return are beta types, but callers consume them opaquely (pass to `Flow.of(...)` / `Runner`), so beta internals don't leak into test-level code.
+5. **Capability interfaces are stable contracts** — they define structure. The Action objects they return are beta types, but callers consume them opaquely (pass to `Flow.of(...)` / `FlowExecutor`), so beta internals don't leak into test-level code.
 
 ### Annotations
 

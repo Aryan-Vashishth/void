@@ -21,7 +21,7 @@ prospects/ → active/ → outcomes/
 ## Current Status
 
 ### Active
-- **Multi-Engine Execution** (`2026-05-01`) — Phases 1–2 complete (UIEngine, Action/Flow/Runner, SeleniumEngine, UIEngineFactory). Phase 3 (Playwright prototype) next.
+- **Multi-Engine Execution** (`2026-05-01`) — Phases 1–2 complete (UIEngine, Action/Flow/FlowExecutor, SeleniumEngine, UIEngineFactory). Phase 3 (Playwright prototype) next.
 
 ### Completed Outcomes
 - **Interaction–Execution Separation** (`2026-06`) — **Implemented**. `Interactions` refactored to pure orchestrator. `UIEngine` is the single execution authority. All legacy methods deprecated.

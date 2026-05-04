@@ -2,10 +2,13 @@
 
 VOID's hook system allows you to compose reusable pre- and post-action behaviors around every UI interaction. This guide covers the hook model, built-in hook constants, and patterns for writing custom hooks.
 
-> **Note:** The hook system is part of the **legacy `Interactions` path**. In the primary
-> Action/Flow/Runner path, UIEngine handles waits, scrolling, and retries internally.
-> Hooks remain fully supported for backward compatibility and for scenarios where
-> explicit pre/post behavior is needed around `Interactions` calls.
+> **Note:** Hooks are available on **both** execution paths:
+> - **Action/Flow/FlowExecutor (modern):** Use the fluent `.withHooks(before, after)` API on any
+>   element-bound Action (e.g., `element.click().withHooks(...)`).
+> - **Interactions (legacy):** Pass hook lists to `Interactions` method overloads.
+>
+> UIEngine handles waits, scrolling, and retries internally regardless of path.
+> Hooks are for **app-specific** pre/post behavior (Angular loaders, highlights, etc.).
 
 ---
 
@@ -63,7 +66,7 @@ If a before hook fails (throws), the core action is **not** executed. If the cor
 
 | Path | Hooks Used? | Wait/Scroll/Retry |
 |------|-------------|-------------------|
-| **Action/Flow/Runner** | No — UIEngine handles all concerns internally | Built into UIEngine |
+| **Action/Flow/FlowExecutor** | Optional — via `.withHooks(before, after)` | Built into UIEngine |
 | **Interactions (legacy)** | Yes — Before/After hooks compose pre/post behavior | Hooks + UIEngine |
 
 ---
@@ -73,16 +76,27 @@ If a before hook fails (throws), the core action is **not** executed. If the cor
 ```java
 @FunctionalInterface
 public interface ActionHandler {
-    void execute(WebDriver driver);
+    void execute(UIEngine engine, @Nullable LocatorDescriptor descriptor);
 }
 ```
 
-Every hook is simply a lambda or constant that receives the active `WebDriver`. The interface is deliberately minimal — the `WebDriver` parameter gives hooks full access to the browser, and `UIContext` provides the last-resolved element descriptor.
+Every hook is a lambda or constant that receives:
+- **`UIEngine`** — the active engine (engine-agnostic, not tied to WebDriver directly)
+- **`LocatorDescriptor`** — the resolved descriptor of the element being acted upon
 
-> **Migration note:** Hooks currently receive `WebDriver` directly. When UIEngine portability
-> is fully realized, hooks will migrate to receive `UIEngine` instead. The intent-based
-> constants (`WAIT_FOR_ELEMENT_VISIBLE`, etc.) will remain unchanged — only the internal
-> dispatch changes.
+In the modern pipeline (`Action.withHooks()`), the descriptor is always non-null.
+In the legacy pipeline (`Interactions`), the descriptor may be `null` — hooks should guard accordingly.
+
+### Legacy adapter
+
+For migrating old single-arg hooks:
+
+```java
+@Deprecated(forRemoval = true)
+static ActionHandler legacy(Consumer<UIEngine> handler) {
+    return (engine, descriptor) -> handler.accept(engine);
+}
+```
 
 ---
 
@@ -175,21 +189,30 @@ When you call a method without specifying hooks, VOID applies sensible defaults 
 
 ## UIContext and Element State
 
-Many hooks operate on "the last resolved element" — this is stored in `UIContext`, a thread-local state holder:
+> ⚠️ **Deprecated:** In the modern Action/Flow/FlowExecutor path, hooks receive the `LocatorDescriptor`
+> directly as a parameter — no need to access `UIContext`. The section below applies only
+> to the legacy `Interactions` path.
+
+Many legacy hooks operate on "the last resolved element" — this is stored in `UIContext`, a thread-local state holder:
 
 ```java
-// What hooks see internally:
-LocatorDescriptor descriptor = UIContext.getLastActionTarget();  // preferred (engine-agnostic)
-WebElement element = UIContext.getLastElement();                 // deprecated (Selenium-specific)
+// What legacy hooks see internally (DEPRECATED):
+LocatorDescriptor descriptor = UIContext.getLastActionTarget();  // @Deprecated(forRemoval = true)
 String file     = UIContext.getLastPropertyFile();               // locator file name
 String key      = UIContext.getLastKey();                        // locator key
 Object[] args   = UIContext.getLastArgs();                       // template arguments
 ```
 
-`UIContext` is updated **before** the hook pipeline runs, so before-hooks always see the correct element. This also enables **stale-element retry** — if a `StaleElementReferenceException` occurs, VOID can re-resolve using the stored meta.
+In the modern path, hooks receive everything they need as parameters:
 
-> **Migration note:** `UIContext.getLastElement()` (returns `WebElement`) is deprecated.
-> Prefer `UIContext.getLastActionTarget()` (returns `LocatorDescriptor`) for engine-agnostic hooks.
+```java
+// Modern hook — descriptor is passed directly
+ActionHandler myHook = (engine, descriptor) -> {
+    // descriptor is the element being acted upon — no UIContext needed
+    if (descriptor == null) return; // legacy guard
+    engine.highlight(descriptor);
+};
+```
 
 ---
 
@@ -200,13 +223,27 @@ Object[] args   = UIContext.getLastArgs();                       // template arg
 The simplest approach — write a lambda directly in your hook list:
 
 ```java
+// Modern path — fluent withHooks on Action
+executor.run(
+    MyElements.SUBMIT_BUTTON.click()
+        .withHooks(
+            List.of(
+                Before.WAIT_FOR_ANGULAR_LOADER,
+                (engine, descriptor) -> {
+                    // Custom: dismiss any visible cookie banner
+                    // Use engine methods — never reference WebDriver directly
+                    engine.click(engine.resolve(/* banner element */));
+                }
+            ),
+            List.of(After.DO_NOTHING))
+);
+
+// Legacy path — Interactions
 app.interaction().clickOn(
     List.of(
         Before.WAIT_FOR_ANGULAR_LOADER,
-        driver -> {
-            // Custom: dismiss any visible cookie banner
-            List<WebElement> banners = driver.findElements(By.id("cookie-dismiss"));
-            if (!banners.isEmpty()) banners.get(0).click();
+        (engine, descriptor) -> {
+            // Custom hook logic using engine
         }
     ),
     MyElements.SUBMIT_BUTTON,
@@ -224,23 +261,21 @@ public final class CustomHooks {
     private CustomHooks() {}
 
     /** Dismiss the cookie consent banner if present. */
-    public static final ActionHandler DISMISS_COOKIE_BANNER = driver -> {
-        List<WebElement> banners = driver.findElements(By.id("cookie-dismiss"));
-        if (!banners.isEmpty()) {
-            banners.get(0).click();
-            WaitUtils.resolveAngularLoader();
-        }
+    public static final ActionHandler DISMISS_COOKIE_BANNER = (engine, descriptor) -> {
+        // Use engine methods for interactions
+        // Guard against null descriptor in legacy path
     };
 
     /** Wait for a custom loading spinner specific to your app. */
-    public static final ActionHandler WAIT_FOR_APP_SPINNER = driver -> {
-        WaitUtils.resolveLoader(By.cssSelector(".app-loading-spinner"));
+    public static final ActionHandler WAIT_FOR_APP_SPINNER = (engine, descriptor) -> {
+        // engine-based wait logic
     };
 
-    /** Take a screenshot before the action (for debugging). */
-    public static final ActionHandler SCREENSHOT_BEFORE = driver -> {
-        File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        // copy to target/screenshots/...
+    /** Log the descriptor being acted upon. */
+    public static final ActionHandler LOG_TARGET = (engine, descriptor) -> {
+        if (descriptor != null) {
+            System.out.println("Acting on: " + descriptor);
+        }
     };
 }
 ```
@@ -248,6 +283,15 @@ public final class CustomHooks {
 Usage:
 
 ```java
+// Modern path
+executor.run(
+    MyElements.CHECKOUT_BUTTON.click()
+        .withHooks(
+            List.of(CustomHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE),
+            List.of(CustomHooks.WAIT_FOR_APP_SPINNER))
+);
+
+// Legacy path
 app.interaction().clickOn(
     List.of(CustomHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE),
     MyElements.CHECKOUT_BUTTON,
@@ -262,29 +306,28 @@ For hooks that need runtime parameters, use a static factory method:
 ```java
 public final class CustomHooks {
 
-    /** Wait for a specific element (by locator) to disappear. */
-    public static ActionHandler waitForAbsence(By locator) {
-        return driver -> {
-            new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.invisibilityOfElementLocated(locator));
+    /** Wait for a specific element (by descriptor) to disappear. */
+    public static ActionHandler waitForAbsence(Element element, ElementRole role) {
+        return (engine, descriptor) -> {
+            LocatorDescriptor target = engine.resolve(element, role);
+            engine.waitForInvisible(target, Duration.ofSeconds(10));
         };
     }
 
-    /** Scroll to a specific pixel offset. */
-    public static ActionHandler scrollToY(int yOffset) {
-        return driver -> {
-            ((JavascriptExecutor) driver).executeScript(
-                "window.scrollTo(0, arguments[0]);", yOffset
-            );
+    /** Log a specific message before the action. */
+    public static ActionHandler logMessage(String message) {
+        return (engine, descriptor) -> {
+            System.out.println("[HOOK] " + message);
         };
     }
 }
 
 // Usage
-app.interaction().clickOn(
-    List.of(CustomHooks.waitForAbsence(By.id("loading-overlay"))),
-    MyElements.SUBMIT,
-    List.of(After.DO_NOTHING)
+executor.run(
+    MyElements.SUBMIT.click()
+        .withHooks(
+            List.of(CustomHooks.waitForAbsence(MyElements.LOADING, ElementRole.TEXT)),
+            List.of(After.DO_NOTHING))
 );
 ```
 
@@ -339,15 +382,14 @@ app.interaction().clickOn(
 );
 ```
 
-### 3. Guard Against Null Elements
+### 3. Guard Against Null Descriptors
 
-Hooks that use `UIContext.getLastElement()` should null-check gracefully:
+Hooks in the legacy path may receive `null` descriptors. Guard gracefully:
 
 ```java
-public static final ActionHandler MY_HOOK = driver -> {
-    WebElement el = UIContext.getLastElement();
-    if (el == null) return;  // graceful no-op
-    // ... operate on el
+public static final ActionHandler MY_HOOK = (engine, descriptor) -> {
+    if (descriptor == null) return;  // graceful no-op in legacy path
+    // ... operate on descriptor via engine
 };
 ```
 
@@ -357,34 +399,40 @@ Let meaningful exceptions propagate — VOID's retry and logging mechanisms depe
 
 ```java
 // ✅ Good — let TimeoutException propagate
-public static final ActionHandler WAIT_FOR_PANEL = driver -> {
-    new WebDriverWait(driver, Duration.ofSeconds(10))
-        .until(ExpectedConditions.visibilityOfElementLocated(By.id("panel")));
+public static final ActionHandler WAIT_FOR_PANEL = (engine, descriptor) -> {
+    engine.waitForVisible(/* panel descriptor */, Duration.ofSeconds(10));
 };
 
 // ❌ Bad — hides failures
-public static final ActionHandler WAIT_FOR_PANEL = driver -> {
+public static final ActionHandler WAIT_FOR_PANEL = (engine, descriptor) -> {
     try {
-        new WebDriverWait(driver, Duration.ofSeconds(10))
-            .until(ExpectedConditions.visibilityOfElementLocated(By.id("panel")));
+        engine.waitForVisible(/* panel descriptor */, Duration.ofSeconds(10));
     } catch (Exception e) {
         // silently ignored
     }
 };
 ```
 
-### 5. Prefer Action/Flow/Runner for New Code
+### 5. Prefer Action/Flow/FlowExecutor for New Code
 
-For new test code, prefer the Action/Flow/Runner pipeline where UIEngine handles scroll, waits, and retries internally. Use hooks only when you need explicit app-specific behavior with the legacy `Interactions` path:
+For new test code, prefer the Action/Flow/FlowExecutor pipeline. When you need app-specific hooks, use the fluent `.withHooks()` API:
 
 ```java
-// ✅ Preferred — UIEngine handles everything
-runner.run(Flow.of(
+// ✅ Preferred — no hooks needed, UIEngine handles everything
+executor.run(Flow.of(
     MyPage.USERNAME.type("admin"),
     MyPage.SUBMIT.click()
 ));
 
-// ✅ Also valid — hooks for app-specific needs
+// ✅ Modern hooks — fluent withHooks on Action
+executor.run(
+    MyPage.SUBMIT.click()
+        .withHooks(
+            List.of(Before.WAIT_FOR_ANGULAR_LOADER),
+            List.of(After.HIGHLIGHT_ELEMENT))
+);
+
+// ✅ Also valid — legacy Interactions with hooks
 app.interaction().clickOn(
     List.of(Before.WAIT_FOR_ANGULAR_LOADER),
     MyPage.SUBMIT,
@@ -406,7 +454,7 @@ app.interaction().clickOn(
 
 ## Related Documentation
 
-- [System Overview](system-overview.md) — full architecture with Action/Flow/Runner and UIEngine
+- [System Overview](system-overview.md) — full architecture with Action/Flow/FlowExecutor and UIEngine
 - [Quick Start Guide](quick-start.md) — first test with hooks and Flow
 - [Configuration Reference](configuration-reference.md) — all config keys
 - [`Before.java`](../../src/main/java/core/interactions/hooks/Before.java) — before-hook source

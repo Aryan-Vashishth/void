@@ -39,7 +39,7 @@ Locators are never hardcoded in Java. They live in external `.properties` or `.j
 
 | Entry Point | Used By | Returns |
 |-------------|---------|---------|
-| `UIEngine.resolve(element, role, args)` | Action/Flow/Runner (preferred) | `LocatorDescriptor` |
+| `UIEngine.resolve(element, role, args)` | Action/Flow/FlowExecutor (preferred) | `LocatorDescriptor` |
 | `LocatorResolvers.strict().resolve(request)` | Interactions (legacy) | `By` (Selenium) |
 
 Both paths use the same underlying sources, templates, and files. The difference is the output type.
@@ -394,7 +394,7 @@ The parser uses `ByPrefixStrategy` to match prefix tokens. If no prefix is found
 
 ## Engine Resolution: UIEngine.resolve()
 
-In the primary Action/Flow/Runner path, `UIEngine.resolve()` is the single resolution authority:
+In the primary Action/Flow/FlowExecutor path, `UIEngine.resolve()` is the single resolution authority:
 
 ```java
 // Resolution inside an Action lambda

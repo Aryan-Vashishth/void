@@ -27,7 +27,7 @@ interface that receives the `LocatorDescriptor` explicitly:
 ```java
 @FunctionalInterface
 public interface ActionHandler {
-    void execute(UIEngine engine, LocatorDescriptor descriptor);
+    void execute(UIEngine engine, @Nullable LocatorDescriptor descriptor);
 }
 ```
 
@@ -39,9 +39,10 @@ global state in the hook pipeline.
 
 1. **One interface, evolved** — no second `ContextAwareActionHandler`.
 2. **No `_V2` constants** — hooks replaced in-place (same names).
-3. **`HookedAction` owns descriptor resolution** — not `Runner`, not hooks.
-4. **`Runner` stays dumb** — it just calls `action.perform(engine)`.
+3. **`HookedAction` owns descriptor resolution** — not `FlowExecutor`, not hooks.
+4. **`FlowExecutor` stays dumb** — it just calls `action.perform(engine)`.
 5. **`Interactions` stays legacy** — passes `null` descriptor; no migration.
+6. **Single abstraction** — only `Action` exists as the execution contract.
 
 ## Migration phases
 
@@ -53,6 +54,36 @@ global state in the hook pipeline.
 | 4     | Deprecate `UIContext` hook access          | none |
 | 5     | Remove legacy adapter + clean up          | none |
 
+## Fluent Hook API (post-migration)
+
+After phases 1–5, the hook system gained a fluent API on `Action` itself:
+
+```java
+// Capability interfaces emit resolvable Actions via ElementActions.of()
+LoginPage.USERNAME.type("admin")
+    .withHooks(
+        List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
+        List.of(After.HIGHLIGHT_ELEMENT));
+```
+
+### Key components
+
+| Component | Role |
+|-----------|------|
+| `Action` | Single execution contract with `perform()`, `resolve()`, `withHooks()` |
+| `ElementActions` | Internal helper — creates element-bound Actions with `resolve()` support |
+| `HookedAction` | Pure decorator — orchestrates before → action → after |
+
+### How it works
+
+1. `ElementActions.of(element, role, (engine, d) -> ...)` creates an `Action` that overrides `resolve()`.
+2. `action.withHooks(before, after)` calls `resolve(engine)` to get the descriptor, then delegates to `HookedAction`.
+3. `HookedAction.perform(engine)` runs: before hooks (list order) → delegate action → after hooks (list order).
+
+### Composite actions
+
+Multi-role actions (e.g., `Selectable.select()`, `SearchableDropdown.searchAndSelect()`) remain as raw lambda actions. They cannot meaningfully resolve to a single descriptor, so `.withHooks()` is not supported on them — this is by design.
+
 ## Consequences
 
 - **Hooks are deterministic** — they receive the descriptor of the
@@ -62,6 +93,8 @@ global state in the hook pipeline.
   descriptors; hooks log warnings and return early.
 - **`ActionHandler.legacy()`** adapter exists for migration; will be
   removed in Phase 5.
+- **Fluent API** — `.withHooks()` on Action provides ergonomic hook composition
+  without manual `HookedAction.wrap()` calls.
 
 ## Hook ordering guarantee (documented)
 
@@ -78,7 +111,7 @@ global state in the hook pipeline.
 
 | Pipeline | Descriptor |
 |---|---|
-| Action/Flow/Runner (`HookedAction`) | **non-null** (guaranteed) |
+| Action/Flow/FlowExecutor (`HookedAction`) | **non-null** (guaranteed) |
 | Legacy (`Interactions`) | may be `null` (hooks guard + warn) |
 
 New code must always supply a non-null descriptor.

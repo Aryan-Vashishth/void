@@ -1,7 +1,7 @@
 # VOID — Dependency Audit
 
 
-> Generated: 2026-05-01 (updated June 2026 — reflects UIEngine/Action/Flow/Runner architecture)
+> Generated: 2026-05-01 (updated June 2026 — reflects UIEngine/Action/Flow/FlowExecutor architecture)
 > Scope: All runtime and provided-scope dependencies declared in `pom.xml`
 > Philosophy lens: transparency, traceability, debuggability, self-containment, engine portability
 
@@ -51,7 +51,7 @@
 - **Internal replacement feasibility:** The `UIEngine` interface (`core.engine.UIEngine`) abstracts over Selenium. A `PlaywrightEngine` implementation could replace `SeleniumEngine` without changing any test code — this is the multi-engine execution design (see `docs/experiments/active/2026-05-01-multi-engine-execution.md`).
 - **Migration effort:** —
 - **Recommendation:** **KEEP**
-- **Reasoning:** Powers the default `SeleniumEngine`. All Selenium coupling is contained within the engine layer — `Action`, `Flow`, `Runner`, capability interfaces, and DSL are fully engine-agnostic.
+- **Reasoning:** Powers the default `SeleniumEngine`. All Selenium coupling is contained within the engine layer — `Action`, `Flow`, `FlowExecutor`, capability interfaces, and DSL are fully engine-agnostic.
 
 ---
 
@@ -238,4 +238,4 @@ Three dependencies have **zero active usage**: `cucumber-java`, `cucumber-testng
 
 ---
 
-*This audit reflects the codebase state as of 2026-05-01, updated June 2026 to reflect the UIEngine/Action/Flow/Runner architecture. Selenium is now isolated behind the `UIEngine` interface — making future engine additions (Playwright) possible without dependency changes to the core framework.*
+*This audit reflects the codebase state as of 2026-05-01, updated June 2026 to reflect the UIEngine/Action/Flow/FlowExecutor architecture. Selenium is now isolated behind the `UIEngine` interface — making future engine additions (Playwright) possible without dependency changes to the core framework.*
