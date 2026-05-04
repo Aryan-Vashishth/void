@@ -9,8 +9,8 @@
 
         <!-- Rolling daily file for normal test run logs -->
         <RollingFile name="Rolling"
-                     fileName="./logs/RenewalsWithAdminUser.log"
-                     filePattern="./logs/RenewalsWithAdminUser.%d{yyyy-MM-dd}.log"
+                     fileName="./logs/void-framework.log"
+                     filePattern="./logs/void-framework.%d{yyyy-MM-dd}.log"
                      append="false">
             <PatternLayout pattern="%m%n"/>
             <Policies>
