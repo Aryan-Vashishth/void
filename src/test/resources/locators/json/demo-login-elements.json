@@ -1,0 +1,15 @@
+{
+  "DemoLoginElements": {
+    "Credentials": {
+      "USERNAME_INPUT": "//input[@id='username']",
+      "PASSWORD_INPUT": "//input[@id='password']"
+    },
+    "Actions": {
+      "LOGIN_BUTTON": "//button[@type='submit']"
+    },
+    "Labels": {
+      "SUCCESS_MESSAGE": "//div[@id='flash']"
+    }
+  }
+}
+
