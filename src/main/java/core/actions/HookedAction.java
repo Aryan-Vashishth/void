@@ -1,6 +1,5 @@
 package core.actions;
 
-import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import core.interactions.hooks.ActionHandler;
@@ -10,35 +9,33 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Wraps an {@link Action} with before/after {@link ActionHandler} hooks and an explicit
- * {@link LocatorDescriptor}, eliminating the need for global state ({@code UIContext}).
+ * Decorator that applies before/after hooks around a delegate {@link Action}.
  *
- * <h3>Execution contract</h3>
- * <ol>
- *   <li><b>Before hooks</b> execute in list order with {@code (engine, descriptor)}.</li>
- *   <li>The <b>delegate action</b> executes via {@code delegate.perform(engine)}.</li>
- *   <li><b>After hooks</b> execute in list order with {@code (engine, descriptor)}.</li>
- * </ol>
- *
- * <h3>Descriptor ownership</h3>
- * <p>The descriptor is supplied at construction time by the element capability that creates
- * the action, <em>not</em> looked up from UIContext.  This makes HookedAction deterministic
- * and free of hidden global state.</p>
- *
- * <h3>Usage</h3>
+ * <p>Execution order:</p>
  * <pre>
- *   Action raw = engine -&gt; engine.click(descriptor);
- *   Action hooked = new HookedAction(raw, descriptor,
- *       List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE),
- *       List.of(After.HIGHLIGHT_ELEMENT));
- *   runner.execute(hooked);   // Runner stays dumb — HookedAction is just an Action
+ *   before hooks → delegate.perform(engine) → after hooks
  * </pre>
  *
- * @apiNote <b>Beta.</b> This API may change without notice.
+ * <p>Hooks receive the resolved {@link LocatorDescriptor} for this action.
+ * Descriptor is guaranteed non-null in the Action/Flow/Runner pipeline.
+ * Null only occurs when bridging from legacy {@link core.interactions.Interactions}.</p>
+ *
+ * <h3>Failure behavior</h3>
+ * <ul>
+ *   <li>If a before hook throws → the action is <b>not</b> executed.</li>
+ *   <li>If an after hook throws → propagates (caller decides recovery).</li>
+ * </ul>
+ *
+ * <h3>Design rules</h3>
+ * <ul>
+ *   <li>Descriptor is <b>passed in</b>, not resolved here — Action owns resolution.</li>
+ *   <li>HookedAction contains <b>no engine logic</b> — only orchestrates.</li>
+ *   <li>Runner stays dumb — HookedAction is just another {@link Action}.</li>
+ * </ul>
+ *
  * @see Action
  * @see ActionHandler
  */
-@Beta(since = "2.0", note = "Hook evolution — descriptor-based hooks (no UIContext)")
 public class HookedAction implements Action {
 
     private final Action delegate;
@@ -47,38 +44,33 @@ public class HookedAction implements Action {
     private final List<ActionHandler> after;
 
     /**
-     * Creates a hooked action wrapping the given delegate.
-     *
      * @param delegate   the core action to execute (must not be null)
-     * @param descriptor the locator descriptor for the target element (may be null for
-     *                   actions that don't target a specific element)
-     * @param before     before-hooks to run (null or empty = none)
-     * @param after      after-hooks to run (null or empty = none)
+     * @param descriptor the locator descriptor for the target element;
+     *                   non-null in Action/Flow/Runner pipeline,
+     *                   may be null only in legacy bridging
+     * @param before     before-hooks to run (null = none)
+     * @param after      after-hooks to run (null = none)
      */
     public HookedAction(Action delegate,
-                        @Nullable LocatorDescriptor descriptor,
+                        LocatorDescriptor descriptor,
                         @Nullable List<ActionHandler> before,
                         @Nullable List<ActionHandler> after) {
         this.delegate   = Objects.requireNonNull(delegate, "delegate action must not be null");
-        this.descriptor = descriptor;
-        this.before     = before == null ? List.of() : List.copyOf(before);
-        this.after      = after  == null ? List.of() : List.copyOf(after);
+        this.descriptor = descriptor; // may be null only in legacy bridging
+        this.before     = before == null ? List.of() : before;
+        this.after      = after  == null ? List.of() : after;
     }
 
-    /**
-     * Executes the full hook pipeline: before → action → after.
-     *
-     * @param engine the UI engine that performs the actual browser interaction
-     */
     @Override
     public void perform(UIEngine engine) {
-        runHooks(before, engine);
+        executeHooks(before, engine, descriptor);
         delegate.perform(engine);
-        runHooks(after, engine);
+        executeHooks(after, engine, descriptor);
     }
 
-    /** Runs a list of hooks sequentially, passing the engine and descriptor. */
-    private void runHooks(List<ActionHandler> hooks, UIEngine engine) {
+    private void executeHooks(List<ActionHandler> hooks,
+                              UIEngine engine,
+                              LocatorDescriptor descriptor) {
         for (ActionHandler hook : hooks) {
             if (hook != null) {
                 hook.execute(engine, descriptor);
@@ -86,28 +78,20 @@ public class HookedAction implements Action {
         }
     }
 
-    /** Returns the descriptor associated with this hooked action (may be null). */
-    @Nullable
-    public LocatorDescriptor getDescriptor() {
-        return descriptor;
-    }
-
-    // ── Deferred-resolution factories ───────────────────────────────────────
+    // ── Deferred-resolution factory ─────────────────────────────────────────
 
     /**
-     * Creates an {@link Action} that resolves the descriptor at execution time, then
-     * runs before hooks → delegate → after hooks with that descriptor.
+     * Creates an {@link Action} that resolves the descriptor at execution time,
+     * then runs before → delegate → after with that descriptor.
      *
-     * <p>This keeps resolution fully deferred (consistent with the Action/Flow/Runner
-     * pipeline) while giving hooks access to the descriptor.</p>
-     *
+     * <p>Keeps resolution fully deferred (consistent with Action/Flow/Runner).</p>
      * <pre>
-     *   runner.run(Flow.of(
+     *   Flow.of(
      *       HookedAction.wrap(USERNAME.type("user"), USERNAME, ElementRole.INPUT,
      *           List.of(Before.CLEAR_FIELD), List.of(After.HIGHLIGHT_ELEMENT)),
      *       HookedAction.wrap(LOGIN.click(), LOGIN, ElementRole.TRIGGER,
      *           List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE), null)
-     *   ));
+     *   );
      * </pre>
      *
      * @param delegate the core action to wrap
@@ -115,7 +99,7 @@ public class HookedAction implements Action {
      * @param role     the locator role to resolve (INPUT, TRIGGER, TEXT, etc.)
      * @param before   before-hooks (null = none)
      * @param after    after-hooks (null = none)
-     * @return a new deferred Action that resolves the descriptor and executes hooks
+     * @return a deferred Action that resolves the descriptor and executes hooks
      */
     public static Action wrap(Action delegate,
                               elements.api.Element element,
@@ -131,4 +115,3 @@ public class HookedAction implements Action {
         };
     }
 }
-

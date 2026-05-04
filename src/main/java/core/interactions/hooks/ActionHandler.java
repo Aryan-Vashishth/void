@@ -28,6 +28,12 @@ import javax.annotation.Nullable;
  *   <li>After hooks execute in list order.</li>
  * </ul>
  *
+ * <h3>Failure behavior</h3>
+ * <ul>
+ *   <li>If a <b>before</b> hook throws, the action is <b>not</b> executed.</li>
+ *   <li>If an <b>after</b> hook throws, propagates (caller decides recovery).</li>
+ * </ul>
+ *
  * @apiNote <b>Stable.</b> Hook execution semantics will not change.
  * Compatible with both Interactions and Action/Flow/Runner pipelines.
  */
@@ -40,6 +46,12 @@ public interface ActionHandler {
      * @param engine     the UI engine that performs browser interactions
      * @param descriptor the locator descriptor for the element being acted upon;
      *                   may be {@code null} in legacy code paths
+     *
+     * @implNote Descriptor is non-null in the Action/Flow/Runner pipeline
+     * ({@link core.actions.HookedAction}).  Null only occurs in legacy
+     * {@link core.interactions.Interactions} usage where hooks are invoked
+     * without an explicit descriptor.  New code must always supply a
+     * non-null descriptor.
      */
     void execute(UIEngine engine, @Nullable LocatorDescriptor descriptor);
 
@@ -54,9 +66,11 @@ public interface ActionHandler {
      *
      * @param handler single-arg hook (receives only the engine)
      * @return two-arg {@link ActionHandler} that ignores the descriptor
+     * @deprecated Use descriptor-aware {@code (engine, descriptor) -> ...} hooks instead.
+     *             This adapter exists only for migration and will be removed.
      */
+    @Deprecated(forRemoval = true)
     static ActionHandler legacy(java.util.function.Consumer<UIEngine> handler) {
         return (engine, descriptor) -> handler.accept(engine);
     }
 }
-

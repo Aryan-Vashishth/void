@@ -10,7 +10,7 @@ import core.logging.theme.LogTheme;
 import core.runner.Runner;
 import core.runtime.VOID;
 import elements.meta.ElementRole;
-import tests.demo.pages.DemoLoginElements;
+import tests.demo.pages.DemoLoginPage;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -76,9 +76,9 @@ public class VoidDemo {
         debug.log("--> Clicking Login button");
 
         runner.run(Flow.of(
-                DemoLoginElements.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
-                DemoLoginElements.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
-                DemoLoginElements.Actions.LOGIN_BUTTON.click()
+                DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
+                DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
+                DemoLoginPage.Button.LOGIN_BUTTON.click()
         ));
 
         info.success("Flow executed successfully.");
@@ -123,24 +123,24 @@ public class VoidDemo {
         runner.run(Flow.of(
                 // Type username — with clear + highlight hooks
                 HookedAction.wrap(
-                        DemoLoginElements.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
-                        DemoLoginElements.Credentials.USERNAME_INPUT, ElementRole.INPUT,
+                        DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
+                        DemoLoginPage.Credentials.USERNAME_INPUT, ElementRole.INPUT,
                         List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
                         List.of(After.HIGHLIGHT_ELEMENT)
                 ),
 
                 // Type password — with clear + highlight hooks
                 HookedAction.wrap(
-                        DemoLoginElements.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
-                        DemoLoginElements.Credentials.PASSWORD_INPUT, ElementRole.INPUT,
+                        DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
+                        DemoLoginPage.Credentials.PASSWORD_INPUT, ElementRole.INPUT,
                         List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
                         List.of(After.HIGHLIGHT_ELEMENT)
                 ),
 
                 // Click login — wait for clickable, highlight, then wait for result
                 HookedAction.wrap(
-                        DemoLoginElements.Actions.LOGIN_BUTTON.click(),
-                        DemoLoginElements.Actions.LOGIN_BUTTON, ElementRole.TRIGGER,
+                        DemoLoginPage.Button.LOGIN_BUTTON.click(),
+                        DemoLoginPage.Button.LOGIN_BUTTON, ElementRole.TRIGGER,
                         List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
                         null
                 )

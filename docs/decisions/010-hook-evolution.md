@@ -69,7 +69,21 @@ global state in the hook pipeline.
 2. The delegate action executes.
 3. After hooks execute in list order.
 
+## Failure behavior contract
+
+- If a **before** hook throws → the action is **not** executed.
+- If an **after** hook throws → propagates (caller decides recovery).
+
+## Descriptor nullability rule
+
+| Pipeline | Descriptor |
+|---|---|
+| Action/Flow/Runner (`HookedAction`) | **non-null** (guaranteed) |
+| Legacy (`Interactions`) | may be `null` (hooks guard + warn) |
+
+New code must always supply a non-null descriptor.
+`@Nullable` on the parameter exists only for the legacy bridge.
+
 ## One-liner
 
 > Move from "what happened last" → to "what is being executed now."
-

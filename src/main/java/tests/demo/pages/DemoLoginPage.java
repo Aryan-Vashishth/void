@@ -8,7 +8,7 @@ import elements.api.capability.Typeable;
  * Element definitions for the-internet.herokuapp.com/login demo page.
  * Follows the Quick Start Guide pattern: capability interfaces + external locators.
  */
-public interface DemoLoginElements {
+public interface DemoLoginPage {
 
     /** Shared JSON locator file for all enums in this interface. */
     String LOCATOR_FILE = "demo-login-elements.json";
@@ -27,12 +27,12 @@ public interface DemoLoginElements {
     }
 
     // --- Buttons use Clickable (role: TRIGGER) ---
-    enum Actions implements Clickable {
+    enum Button implements Clickable {
         LOGIN_BUTTON("LOGIN_BUTTON", "Login");
 
         private final String key;
         private final String label;
-        Actions(String k, String l) { this.key = k; this.label = l; }
+        Button(String k, String l) { this.key = k; this.label = l; }
 
         @Override public String getTriggerLocator()   { return key; }
         @Override public String getExternalFileName() { return LOCATOR_FILE; }

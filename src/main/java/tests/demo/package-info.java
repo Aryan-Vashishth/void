@@ -21,7 +21,7 @@
  * </pre>
  *
  * @see tests.demo.VoidDemo
- * @see tests.demo.pages.DemoLoginElements
+ * @see tests.demo.pages.DemoLoginPage
  */
 package tests.demo;
 
