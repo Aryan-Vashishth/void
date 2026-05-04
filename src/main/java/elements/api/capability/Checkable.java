@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.annotations.Beta;
 import elements.meta.ElementRole;
 
 /**
@@ -21,6 +22,7 @@ public interface Checkable extends Clickable {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Toggles the checkbox (click). */
+    @Beta
     default Action toggle() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.TRIGGER);
@@ -29,6 +31,7 @@ public interface Checkable extends Clickable {
     }
 
     /** Sets the checkbox to the desired state. Reads current state, clicks only if needed. */
+    @Beta
     default Action set(boolean desiredState) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.TRIGGER);

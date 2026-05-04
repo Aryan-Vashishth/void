@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.annotations.Beta;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -60,6 +61,7 @@ public interface MultiSelectable extends Element {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Opens the multi-dropdown trigger (default index). */
+    @Beta
     default Action open() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.MULTI_TRIGGER);
@@ -68,6 +70,7 @@ public interface MultiSelectable extends Element {
     }
 
     /** Composite: opens Nth trigger → waits overlay → clicks option by label. */
+    @Beta
     default Action selectAtIndex(Integer index) {
         return engine -> {
             engine.click(engine.resolve(this, ElementRole.MULTI_TRIGGER, argsForIndex(index)));

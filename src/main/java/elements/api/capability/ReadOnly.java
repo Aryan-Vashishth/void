@@ -6,47 +6,47 @@ import elements.api.Element;
 import elements.meta.ElementRole;
 
 /**
- * Capability interface for file upload fields (e.g., &lt;input type="file"/&gt;).
+ * Capability interface for non-interactive text/display elements (label, span, static cell).
  *
- * <p>Role: {@link ElementRole#INPUT}</p>
+ * <p>Primary locator role: {@link ElementRole#TEXT}</p>
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Uploadable
+ *   Element → ReadOnly
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Uploadable extends Element {
+public interface ReadOnly extends Element {
 
-    String getInputLocator();
+    String getTextLocator();
 
     @Override
-    default String getPrimaryLocator() { return getInputLocator(); }
+    default String getPrimaryLocator() { return getTextLocator(); }
 
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getInputLocator();
+        return args.length > 0 ? args[0].toString() : getTextLocator();
     }
 
     @Override
     default java.util.Map<ElementRole, String> getAllLocatorRoles() {
         java.util.Map<ElementRole, String> roles = new java.util.LinkedHashMap<>();
-        String key = getInputLocator();
-        if (key != null && !key.isBlank()) roles.put(ElementRole.INPUT, key);
+        String text = getTextLocator();
+        if (text != null && !text.isBlank()) roles.put(ElementRole.TEXT, text);
         return roles;
     }
 
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Uploads a file via this input element. */
+    /** Reads the visible text of this element. Engine handles scroll internally. */
     @Beta
-    default Action upload(String filePath) {
+    default Action getText() {
         return engine -> {
-            var d = engine.resolve(this, ElementRole.INPUT);
-            engine.uploadFile(d, filePath);
+            var d = engine.resolve(this, ElementRole.TEXT);
+            engine.getText(d);
         };
     }
 }

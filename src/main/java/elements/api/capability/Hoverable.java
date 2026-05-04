@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.annotations.Beta;
 import elements.meta.ElementRole;
 
 /**
@@ -10,13 +11,13 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Readable → Hoverable
+ *   Element → ReadOnly → Hoverable
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Hoverable extends Readable {
+public interface Hoverable extends ReadOnly {
 
     String getToolTipContentLocator();
 
@@ -26,14 +27,8 @@ public interface Hoverable extends Readable {
     String getEndsWith();
 
     @Override
-    default String getDisplayText() {
-        Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getTextLocator();
-    }
-
-    @Override
     default java.util.Map<ElementRole, String> getAllLocatorRoles() {
-        java.util.Map<ElementRole, String> roles = new java.util.LinkedHashMap<>(Readable.super.getAllLocatorRoles());
+        java.util.Map<ElementRole, String> roles = new java.util.LinkedHashMap<>(ReadOnly.super.getAllLocatorRoles());
         String tip = getToolTipContentLocator();
         if (tip != null && !tip.isBlank() && !roles.containsValue(tip)) roles.put(ElementRole.TOOLTIP_CONTENT, tip);
         return roles;
@@ -42,6 +37,7 @@ public interface Hoverable extends Readable {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Hovers over the element to trigger tooltip display. */
+    @Beta
     default Action hover() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.TEXT);

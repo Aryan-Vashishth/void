@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.annotations.Beta;
 import elements.meta.ElementRole;
 
 /**
@@ -54,6 +55,7 @@ public interface SearchField extends Typeable, Clickable {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Types into the search input field. */
+    @Beta
     default Action typeSearch(String text) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.SEARCH_INPUT);
@@ -62,6 +64,7 @@ public interface SearchField extends Typeable, Clickable {
     }
 
     /** Clicks the search/submit button. */
+    @Beta
     default Action submitSearch() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.SEARCH_BUTTON);
