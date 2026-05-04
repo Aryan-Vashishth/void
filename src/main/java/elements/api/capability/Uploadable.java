@@ -1,7 +1,6 @@
 package elements.api.capability;
 
 import core.actions.Action;
-import core.annotations.Beta;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -42,7 +41,6 @@ public interface Uploadable extends Element {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Uploads a file via this input element. */
-    @Beta
     default Action upload(String filePath) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.INPUT);

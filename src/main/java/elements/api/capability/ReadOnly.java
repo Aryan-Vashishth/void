@@ -1,7 +1,6 @@
 package elements.api.capability;
 
 import core.actions.Action;
-import core.annotations.Beta;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -42,7 +41,6 @@ public interface ReadOnly extends Element {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Reads the visible text of this element. Engine handles scroll internally. */
-    @Beta
     default Action getText() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.TEXT);

@@ -1,7 +1,6 @@
 package elements.api.capability;
 
 import core.actions.Action;
-import core.annotations.Beta;
 import elements.meta.ElementRole;
 
 /**
@@ -74,7 +73,6 @@ public interface SearchableDropdown extends Selectable, Searchable {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Composite: opens trigger → types search → waits for result → clicks it. */
-    @Beta
     default Action searchAndSelect(String term) {
         return engine -> {
             engine.click(engine.resolve(this, ElementRole.TRIGGER));

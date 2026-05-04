@@ -1,7 +1,6 @@
 package elements.api.capability;
 
 import core.actions.Action;
-import core.annotations.Beta;
 import elements.meta.ElementRole;
 
 /**
@@ -42,7 +41,6 @@ public interface EditableTable extends Table {
 
     // ── Action emission ─────────────────────────────────────────────────
 
-    @Beta
     default Action clickAddRow() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.ADD_ROW_BUTTON);
@@ -50,7 +48,6 @@ public interface EditableTable extends Table {
         };
     }
 
-    @Beta
     default Action clickRemoveRow() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.REMOVE_ROW_BUTTON);

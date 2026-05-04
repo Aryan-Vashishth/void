@@ -1,7 +1,6 @@
 package elements.api.capability;
 
 import core.actions.Action;
-import core.annotations.Beta;
 import elements.meta.ElementRole;
 
 import java.time.Duration;
@@ -59,7 +58,6 @@ public interface Selectable extends Clickable, Listable {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Opens the dropdown trigger. */
-    @Beta
     default Action open() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.TRIGGER);
@@ -68,7 +66,6 @@ public interface Selectable extends Clickable, Listable {
     }
 
     /** Composite: opens trigger → waits for overlay → clicks option. */
-    @Beta
     default Action select() {
         return engine -> {
             engine.click(engine.resolve(this, ElementRole.TRIGGER));
@@ -77,7 +74,6 @@ public interface Selectable extends Clickable, Listable {
         };
     }
 
-    @Beta
     default Action selectByText(String text) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.LIST);
@@ -85,7 +81,6 @@ public interface Selectable extends Clickable, Listable {
         };
     }
 
-    @Beta
     default Action selectByValue(String value) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.LIST);

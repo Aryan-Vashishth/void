@@ -1,7 +1,6 @@
 package elements.api.capability;
 
 import core.actions.Action;
-import core.annotations.Beta;
 import elements.meta.ElementRole;
 
 /**
@@ -37,7 +36,6 @@ public interface Hoverable extends ReadOnly {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Hovers over the element to trigger tooltip display. */
-    @Beta
     default Action hover() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.TEXT);

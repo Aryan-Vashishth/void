@@ -1,7 +1,6 @@
 package elements.api.capability;
 
 import core.actions.Action;
-import core.annotations.Beta;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -43,7 +42,6 @@ public interface Typeable extends Element {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Deferred type action — clears then types. */
-    @Beta
     default Action type(String text) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.INPUT);
@@ -52,7 +50,6 @@ public interface Typeable extends Element {
     }
 
     /** Deferred clear action. */
-    @Beta
     default Action clear() {
         return engine -> {
             var d = engine.resolve(this, ElementRole.INPUT);
@@ -61,7 +58,6 @@ public interface Typeable extends Element {
     }
 
     /** Deferred append action — types without clearing. */
-    @Beta
     default Action append(String text) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.INPUT);
@@ -70,7 +66,6 @@ public interface Typeable extends Element {
     }
 
     /** Deferred type-and-press action — types then sends a key (e.g., "ENTER"). */
-    @Beta
     default Action typeAndPress(String text, String key) {
         return engine -> {
             var d = engine.resolve(this, ElementRole.INPUT);
