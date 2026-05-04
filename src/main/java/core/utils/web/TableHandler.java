@@ -1,6 +1,6 @@
 package core.utils.web;
 
-import elements.api.ReadOnlyElement; // if table headers treated as read-only
+import elements.api.capability.ReadOnly;
 import core.driver.DriverContext;
 import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
@@ -23,20 +23,20 @@ import static core.logging.CustomLogger.error;
  *
  * <p>Provides helpers for mapping table headers to column indices, reading row/cell
  * values, and inserting data into editable table footers. Works with both
- * {@link elements.api.TableElement} and the simplified {@link TableElementV1}
+ * {@link elements.api.capability.Table} and the simplified {@link TableElementV1}
  * contract defined below.</p>
  *
  * <p>Locator resolution uses {@link core.resolvers.locator.api.LocatorResolvers}
  * to look up header, row, and cell locators from external files.</p>
  *
- * @see elements.api.TableElement
- * @see elements.api.WritableTableElement
+ * @see elements.api.capability.Table
+ * @see elements.api.capability.EditableTable
  */
 public class TableHandler {
 
     private TableHandler() { /* static utility */ }
 
-    public interface TableElementV1 extends ReadOnlyElement { // minimal v1 table contract
+    public interface TableElementV1 extends ReadOnly { // minimal v1 table contract
         String getHeaderLocator();
         String getRowLocator();
         @Override default String getTextLocator(){ return getHeaderLocator(); }

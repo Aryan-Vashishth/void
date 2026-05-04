@@ -2,7 +2,8 @@ package core.utils.web;
 
 import core.resolvers.locator.api.LocatorResolvers;
 
-import elements.api.*;
+import elements.api.Element;
+import elements.api.capability.ReadOnly;
 import javax.annotation.Nullable;
 import javax.annotation.Nonnull;
 import core.driver.DriverContext;
@@ -126,7 +127,7 @@ public class WaitUtils {
         waitForCondition(DriverContext.getDriver(), ExpectedConditions.invisibilityOfElementLocated(locator), locator, 20, 200, true, "element to disappear: " + locator);
     }
 
-    public static void waitForElementToDisappear(ReadOnlyElement element) {
+    public static void waitForElementToDisappear(ReadOnly element) {
         By locator = LocatorResolvers.strict().resolve(element);
         waitForElementToDisappear(locator);
     }
@@ -215,7 +216,7 @@ public class WaitUtils {
             ));
 
             if (!appeared) {
-                debug.success("No loader (" + locator + ") appeared within " + appearMs + " ms — continuing without wait.");
+                debug.success("No loader (" + locator + ") appeared within " + appearMs + " ms Ã¢â‚¬â€ continuing without wait.");
                 return;
             }
 
@@ -268,7 +269,7 @@ public class WaitUtils {
                     Thread.sleep(pollMs);
                 }
 
-                debug.success("Loader (" + locator + ") is stable — no flicker detected during stability window.");
+                debug.success("Loader (" + locator + ") is stable Ã¢â‚¬â€ no flicker detected during stability window.");
             }
         } catch (Exception e) {
             warn.timeout("Loader (" + locator + ") wait failed with exception: " + e.getMessage());
@@ -374,11 +375,11 @@ public class WaitUtils {
                 }
 
                 if (!appearedStable) {
-                    debug.success("No loader (" + locator + ") appeared — continuing immediately.");
+                    debug.success("No loader (" + locator + ") appeared Ã¢â‚¬â€ continuing immediately.");
                     return; // nothing to wait for
                 }
             } else {
-                debug.log("Loader (" + locator + ") already visible — skipping 'appear' phase.");
+                debug.log("Loader (" + locator + ") already visible Ã¢â‚¬â€ skipping 'appear' phase.");
             }
 
             // ---- PHASE 2: DISAPPEAR ----
@@ -407,12 +408,12 @@ public class WaitUtils {
                 }
 
                 if (!flickered) {
-                    debug.success("No flicker detected in quick window — finishing immediately.");
+                    debug.success("No flicker detected in quick window Ã¢â‚¬â€ finishing immediately.");
                     return; // early out: no 3s tax
                 }
 
                 // Escalate to full stability window only if flicker detected
-                debug.wait("Flicker detected — enforcing full stability window (" + DEFAULT_STABILITY_MS + " ms)...");
+                debug.wait("Flicker detected Ã¢â‚¬â€ enforcing full stability window (" + DEFAULT_STABILITY_MS + " ms)...");
                 long stabilityDeadline = System.currentTimeMillis() + DEFAULT_STABILITY_MS;
                 while (System.currentTimeMillis() < stabilityDeadline) {
                     if (isLoaderPresent(driver, locator, true)) {
@@ -425,7 +426,7 @@ public class WaitUtils {
                     }
                     Thread.sleep(pollMs);
                 }
-                debug.success("Stable — no further loader flicker detected.");
+                debug.success("Stable Ã¢â‚¬â€ no further loader flicker detected.");
             }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();

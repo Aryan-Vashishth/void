@@ -42,15 +42,15 @@ public final class FrameworkBootstrap {
 
         CustomLogger.debug.log("FrameworkBootstrap: starting...");
 
-        // 1. Verify driver.properties is on the classpath
-        Properties driverProps = ConfigLoader.loadFromClasspath(ConfigPaths.DRIVER_DEFAULT);
-        if (driverProps.isEmpty()) {
+        // 1. Verify driver.properties is on the classpath (existence check only — actual
+        //    loading happens later in DriverFactory.fromProfile via ConfigLoader.Layered)
+        if (Thread.currentThread().getContextClassLoader().getResource(ConfigPaths.DRIVER_DEFAULT) == null) {
             throw new IllegalStateException(
                     "FrameworkBootstrap failed: driver.properties not found on classpath at '"
                             + ConfigPaths.DRIVER_DEFAULT + "'. "
                             + "Ensure the file exists at src/main/resources/core/driver/config/driver.properties");
         }
-        CustomLogger.debug.log("FrameworkBootstrap: driver.properties loaded (" + driverProps.size() + " keys)");
+        CustomLogger.debug.log("FrameworkBootstrap: driver.properties verified on classpath.");
 
         // 2. Load utils/test config
         Properties loaded = ConfigLoader.loadFromClasspath(ConfigPaths.UTILS_TEST);

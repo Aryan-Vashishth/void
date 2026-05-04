@@ -2,7 +2,7 @@ package core.utils.web;
 
 import core.utils.ConfigLoader;
 import core.utils.io.FileUtils;
-import elements.api.FileInputElement;
+import elements.api.capability.Uploadable;
 import core.driver.Waiter;
 import core.resolvers.locator.api.LocatorResolvers;
 import org.openqa.selenium.By;
@@ -29,7 +29,7 @@ import static core.logging.CustomLogger.error;
  *   Upload.uploadFile(MyElements.RESUME_INPUT, "test-resume.pdf");
  * </pre>
  *
- * @see elements.api.FileInputElement
+ * @see elements.api.Uploadable
  * @see core.utils.ConfigLoader
  */
 public class Upload {
@@ -46,7 +46,7 @@ public class Upload {
      * @param fileElement Enum representing the file input
      * @param filePath    Path to the file to upload (relative to upload.base.path if not absolute)
      */
-    public static void uploadFile(FileInputElement fileElement, String filePath) {
+    public static void uploadFile(Uploadable fileElement, String filePath) {
         try {
             By locator = LocatorResolvers.strict().resolve(fileElement);
             WebElement fileInput = Waiter.get().until(ExpectedConditions.presenceOfElementLocated(locator));
@@ -55,7 +55,7 @@ public class Upload {
 
             fileInput.sendKeys(absolutePath);
 
-            info.success("File uploaded into: " + fileElement.getDisplayText() + " → " + absolutePath);
+            info.success("File uploaded into: " + fileElement.getDisplayText() + " Ã¢â€ â€™ " + absolutePath);
 
         } catch (Exception e) {
             error.upload("File upload failed for: " + fileElement.getDisplayText());
