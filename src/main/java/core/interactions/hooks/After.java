@@ -22,8 +22,8 @@ import java.time.Duration;
  *
  * <p>This class is a pure constants holder — never instantiate it.</p>
  *
- * @apiNote <b>Stable.</b> Can be used with both legacy and new pipelines.
- * This contract will not change.
+ * @apiNote <b>Stable.</b> Hook execution semantics will not change.
+ * Compatible with both Interactions and Action/Flow/Runner pipelines.
  */
 public final class After {
 
