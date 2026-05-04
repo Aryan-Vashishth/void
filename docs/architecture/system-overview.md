@@ -415,22 +415,25 @@ VOID uses explicit stability tiers to control how the architecture evolves. Each
 
 | Tier | Scope | Guarantees | Rules |
 |------|-------|------------|-------|
-| **Stable (frozen)** | `Interactions`, hook system (`Before`, `After`, `ActionHandler`) | No breaking changes. No new features. Behavior will remain unchanged. | Will not evolve further. |
+| **Stable (frozen)** | `Interactions`, hook system (`Before`, `After`, `ActionHandler`) | No breaking changes. No new features. Hook execution semantics will not change. | Will not evolve further. |
 | **Stable (user-facing)** | Capability interfaces (`Clickable`, `Typeable`, etc.), `Element`, `UIEngine` | No breaking changes. May gain new methods. | Backward-compatible evolution only. |
-| **Beta** | `Action`, `Flow`, `Runner`, Action-emitting default methods on capability interfaces | May change without notice between releases. | Must not be used inside stable modules. |
+| **Beta** | `Action`, `Flow`, `Runner` | May change without notice between releases. | Must not be used inside stable modules. |
+| **Internal** | Migration bridges, adapters, helper classes | No guarantees. May be changed, moved, or removed at any time. | External consumers must not depend on these. |
 
 ### Usage Rules
 
 1. **Beta APIs must not be used inside stable modules.**
 2. **Stable APIs may depend on stable APIs only.**
 3. **Beta APIs may change, be renamed, or be removed in any release.**
-4. **Capability interfaces are stable contracts** — they define structure. The `@Beta` Action-emitting methods they carry are intentionally beta: callers consume Actions opaquely, so beta internals don't leak into test-level code.
+4. **Internal APIs are not for external consumption** — they exist for framework plumbing only.
+5. **Capability interfaces are stable contracts** — they define structure. The Action objects they return are beta types, but callers consume them opaquely (pass to `Flow.of(...)` / `Runner`), so beta internals don't leak into test-level code.
 
 ### Annotations
 
 | Annotation | Meaning |
 |---|---|
 | `@Beta(since = "2.0")` | API is evolving — do not depend on from stable modules |
+| `@Internal` | Framework plumbing — external consumers must not use |
 | `@Deprecated(since = "2.0", forRemoval = false)` | Stable but frozen — no new features, no removal planned |
 | *(no annotation)* | Stable — normal backward-compatibility guarantees apply |
 
