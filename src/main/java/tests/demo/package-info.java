@@ -16,8 +16,8 @@
  *
  * <h3>Running</h3>
  * <pre>
- *   // IDE: Run VoidDemo.main() directly
- *   // CLI: mvn compile exec:java -Dexec.mainClass=tests.demo.VoidDemo
+ *   // IDE: Run VoidDemo as a TestNG test
+ *   // CLI: mvn test -Dtest=tests.demo.VoidDemo
  * </pre>
  *
  * @see tests.demo.VoidDemo

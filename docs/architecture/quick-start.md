@@ -3,7 +3,7 @@
 Get up and running with VOID in under 10 minutes.
 
 > 💡 **Want to see it in action first?** Jump to the [Runnable Demo](#runnable-demo) at the end, or run
-> `VoidDemo.main()` from [`src/main/java/tests/demo/VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) directly.
+> `VoidDemo` as a TestNG test from [`src/main/java/tests/demo/VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) directly.
 
 ---
 
@@ -476,10 +476,10 @@ A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs in
 ### Running
 
 ```bash
-# From IDE: run VoidDemo.main() directly
+# From IDE: run VoidDemo as a TestNG test
 
-# From command line (ensure driver.properties has headless=false or true):
-mvn compile exec:java -Dexec.mainClass=tests.demo.VoidDemo
+# From command line:
+mvn test -Dtest=tests.demo.VoidDemo
 ```
 
 ### What It Demonstrates
@@ -498,7 +498,7 @@ mvn compile exec:java -Dexec.mainClass=tests.demo.VoidDemo
 - 🚀 **[Runnable Demo](../../src/main/java/tests/demo/VoidDemo.java)** — complete working example targeting `the-internet.herokuapp.com/login`
   - [`DemoLoginElements.java`](../../src/main/java/tests/demo/pages/DemoLoginElements.java) — element definitions (Typeable, Clickable, ReadOnly)
   - [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) — locator file
-  - Run via: `mvn exec:java -Dexec.mainClass=tests.demo.VoidDemo` or IDE main method
+  - Run via: `mvn test -Dtest=tests.demo.VoidDemo` or IDE TestNG runner
 - 📖 [System Overview](system-overview.md) — full architecture and execution flow
 - 🪝 [Hooks Pipeline](hooks-pipeline.md) — composable before/after action hooks
 - 📍 [Locator Resolution](locator-resolution.md) — full resolution pipeline
