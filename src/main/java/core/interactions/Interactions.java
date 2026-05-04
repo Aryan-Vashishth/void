@@ -114,11 +114,17 @@ public class Interactions {
         return descriptor;
     }
 
-    /** Execute hooks safely. */
+    /**
+     * Execute hooks safely.
+     * <p>Legacy path: passes {@code null} as the descriptor. Element-dependent hooks
+     * will log a warning and return early.  For descriptor-aware hook execution,
+     * use {@link core.actions.HookedAction} instead.</p>
+     */
     private void executeHooks(@Nullable List<ActionHandler> hooks) {
         if (hooks != null) {
             for (ActionHandler action : hooks) {
-                if (action != null) action.execute(engine);
+                // ⚠️ Legacy: descriptor is null — hooks that need it will log a warning.
+                if (action != null) action.execute(engine, null);
             }
         }
     }

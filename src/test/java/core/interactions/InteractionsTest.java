@@ -116,8 +116,8 @@ public class InteractionsTest {
     @Test
     public void of_returnsImmutableListWithSuppliedHandlers() {
         AtomicInteger counter = new AtomicInteger();
-        ActionHandler a = drv -> counter.incrementAndGet();
-        ActionHandler b = drv -> counter.addAndGet(10);
+        ActionHandler a = (drv, desc) -> counter.incrementAndGet();
+        ActionHandler b = (drv, desc) -> counter.addAndGet(10);
         List<ActionHandler> hooks = Interactions.of(a, b);
         assertNotNull(hooks);
         assertEquals(hooks.size(), 2);
@@ -126,7 +126,7 @@ public class InteractionsTest {
         // Returned list is created via List.of(...) and must be immutable.
         assertThrows(UnsupportedOperationException.class, () -> hooks.add(a));
         // Handlers should still be invocable and produce the expected side effects.
-        hooks.forEach(h -> h.execute(null));
+        hooks.forEach(h -> h.execute(null, null));
         assertEquals(counter.get(), 11, "Both handlers should have run exactly once");
     }
 }

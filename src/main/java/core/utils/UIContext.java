@@ -57,14 +57,23 @@ public class UIContext {
      * Stores the last resolved {@link LocatorDescriptor} for use by engine-agnostic hooks.
      *
      * @param descriptor the resolved locator descriptor
+     * @deprecated Hooks now receive the descriptor via {@link core.interactions.hooks.ActionHandler#execute}.
+     *             Use {@link core.actions.HookedAction} to pass descriptors explicitly.
+     *             This method will be removed once all legacy call paths are migrated.
      */
+    @Deprecated(forRemoval = true)
     public static void setLastLocatorDescriptor(LocatorDescriptor descriptor) {
         lastLocatorDescriptor.set(descriptor);
     }
 
     /**
      * Returns the last resolved {@link LocatorDescriptor}, or null if not set.
+     *
+     * @deprecated Hooks now receive the descriptor directly via
+     *             {@link core.interactions.hooks.ActionHandler#execute(core.engine.UIEngine, LocatorDescriptor)}.
+     *             Do not add new usages. This method will be removed once all legacy call paths are migrated.
      */
+    @Deprecated(forRemoval = true)
     public static LocatorDescriptor getLastLocatorDescriptor() {
         return lastLocatorDescriptor.get();
     }
