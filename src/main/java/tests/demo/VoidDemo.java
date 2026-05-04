@@ -19,7 +19,7 @@ import static core.logging.CustomLogger.*;
  * VOID Framework -- Quick Start Demo (TestNG).
  *
  * <p>Demonstrates the modern Action / Flow / Runner pattern from the Quick Start Guide.
- * Targets the public demo site: <a href="https://the-internet.herokuapp.com/login">...</a></p>
+ * Targets the public demo site: <a href="https://the-internet.herokuapp.com/login">the-internet.herokuapp.com</a></p>
  *
  * <p>Run via TestNG or: {@code mvn test -Dtest=tests.demo.VoidDemo}</p>
  */
