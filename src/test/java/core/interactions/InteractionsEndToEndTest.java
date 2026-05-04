@@ -5,10 +5,10 @@ import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.resolvers.locator.api.LocatorResolver;
 import core.resolvers.locator.api.LocatorResolvers;
-import elements.api.Clickable;
-import elements.api.ReadOnlyElement;
+import elements.api.capability.Clickable;
+import elements.api.capability.ReadOnly;
 import core.utils.ResolvableEnum;
-import elements.api.TextInputField;
+import elements.api.capability.Typeable;
 import elements.meta.ElementRole;
 import core.interactions.Interactions;
 import core.interactions.hooks.ActionHandler;
@@ -36,18 +36,18 @@ import static org.testng.Assert.*;
 /**
  * End-to-end style integration test for the resolver -&gt; interactions pipeline.
  *
- * <p>This test exercises the FULL chain that occurs at runtime — minus the
- * actual browser — for the most common UI flows:</p>
+ * <p>This test exercises the FULL chain that occurs at runtime Ã¢â‚¬â€ minus the
+ * actual browser Ã¢â‚¬â€ for the most common UI flows:</p>
  *
  * <pre>
  *   Element enum (with template + args)
- *        ↓        getExternalFileName(), getInputLocator()/getTriggerLocator(), getArgs()
+ *        Ã¢â€ â€œ        getExternalFileName(), getInputLocator()/getTriggerLocator(), getArgs()
  *   LocatorResolver.resolve(Element)
- *        ↓        rawTemplate() → LocatorTemplate.format(args) → ByParser.parse()
- *   By locator (xpath/css/id…)
- *        ↓        passed into wait.until(...) / driver.findElement(...)
+ *        Ã¢â€ â€œ        rawTemplate() Ã¢â€ â€™ LocatorTemplate.format(args) Ã¢â€ â€™ ByParser.parse()
+ *   By locator (xpath/css/idÃ¢â‚¬Â¦)
+ *        Ã¢â€ â€œ        passed into wait.until(...) / driver.findElement(...)
  *   Interactions.typeInto / clickOn / typeInto(By,String)
- *        ↓
+ *        Ã¢â€ â€œ
  *   WebElement.clear()/sendKeys()/click()  (verified via recording proxy)
  * </pre>
  *
@@ -68,18 +68,18 @@ import static org.testng.Assert.*;
  */
 public class InteractionsEndToEndTest {
 
-    /** File name fragment — base path {@code locators/properties/} is auto-prepended. */
+    /** File name fragment Ã¢â‚¬â€ base path {@code locators/properties/} is auto-prepended. */
     private static final String FILE = "test-locators.properties";
 
     private static final LocatorResolver RESOLVER = LocatorResolvers.strict();
 
     // ---------------------------------------------------------------------
-    // Test-only Element enums — hand-crafted so we can drive the resolver
+    // Test-only Element enums Ã¢â‚¬â€ hand-crafted so we can drive the resolver
     // through every interesting branch (no-arg, single-arg, two-arg, css/id).
     // ---------------------------------------------------------------------
 
     /** Single-arg XPath template: {@code //input[@placeholder='%s']}. */
-    enum SearchInput implements TextInputField, ResolvableEnum {
+    enum SearchInput implements Typeable, ResolvableEnum {
         BY_PLACEHOLDER("TEMPLATE_WITH_ARG", "username");
 
         private final String key;
@@ -92,7 +92,7 @@ public class InteractionsEndToEndTest {
     }
 
     /** Two-arg XPath template: {@code //tr[@data-row='%s']//td[@data-col='%s']}. */
-    enum CellInput implements TextInputField, ResolvableEnum {
+    enum CellInput implements Typeable, ResolvableEnum {
         ROW_COL("TEMPLATE_TWO_ARGS", "3", "name");
 
         private final String key;
@@ -117,7 +117,7 @@ public class InteractionsEndToEndTest {
     }
 
     /** CSS prefix: {@code css=input#username} (LOGIN_INPUT). */
-    enum LoginField implements TextInputField, ResolvableEnum {
+    enum LoginField implements Typeable, ResolvableEnum {
         USERNAME("LOGIN_INPUT");
 
         private final String key;
@@ -129,7 +129,7 @@ public class InteractionsEndToEndTest {
     }
 
     /** Read-only element keyed off TEXT role (defaults from ResolvableEnum). */
-    enum HeaderLabel implements ReadOnlyElement, ResolvableEnum {
+    enum HeaderLabel implements ReadOnly, ResolvableEnum {
         WELCOME("BUTTON_TRIGGER");                  // re-uses an existing key for the demo
 
         private final String key;
@@ -218,7 +218,7 @@ public class InteractionsEndToEndTest {
     }
 
     // ---------------------------------------------------------------------
-    // Stage 1 — pure resolver pipeline (no driver needed)
+    // Stage 1 Ã¢â‚¬â€ pure resolver pipeline (no driver needed)
     // ---------------------------------------------------------------------
 
     @Test
@@ -258,7 +258,7 @@ public class InteractionsEndToEndTest {
 
     @Test
     public void pipeline_explicitRoleResolution_returnsSameLocator() {
-        // Resolving via role (INPUT for TextInputField) must give same By as primary lookup.
+        // Resolving via role (INPUT for Typeable) must give same By as primary lookup.
         By primary = RESOLVER.resolve(LoginField.USERNAME);
         By byRole  = RESOLVER.resolve(LoginField.USERNAME, ElementRole.INPUT);
         assertEquals(byRole, primary);
@@ -272,7 +272,7 @@ public class InteractionsEndToEndTest {
     }
 
     // ---------------------------------------------------------------------
-    // Stage 2 — full Interactions methods consuming a resolved By
+    // Stage 2 Ã¢â‚¬â€ full Interactions methods consuming a resolved By
     // ---------------------------------------------------------------------
 
     @Test
@@ -369,7 +369,7 @@ public class InteractionsEndToEndTest {
     }
 
     // ---------------------------------------------------------------------
-    // Stage 3 — diagnostic / logging-only test (no asserts on driver)
+    // Stage 3 Ã¢â‚¬â€ diagnostic / logging-only test (no asserts on driver)
     // ---------------------------------------------------------------------
 
     @Test

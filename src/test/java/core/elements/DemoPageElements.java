@@ -1,11 +1,11 @@
 package core.elements;
 
-import elements.api.Clickable;
-import elements.api.Dropdown;
-import elements.api.TextInputField;
+import elements.api.capability.Clickable;
+import elements.api.capability.Selectable;
+import elements.api.capability.Typeable;
 
 public class DemoPageElements {
-    public enum Login implements TextInputField {
+    public enum Login implements Typeable {
         USERNAME("username"),
         PASSWORD("password");
 
@@ -55,7 +55,7 @@ public class DemoPageElements {
             }
         }
     }
-    public enum NavBar implements Dropdown {
+    public enum NavBar implements Selectable {
         PARTNER("Partner"),
         VENDOR("Vendor"),;
 
