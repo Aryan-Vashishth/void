@@ -30,20 +30,20 @@ import static core.logging.CustomLogger.*;
  * Interactions — Legacy Orchestrator (Frozen)
  * ————————————————————————————————————————————
  * <b>This class is frozen.</b> No new features should be added here.
- * For new code, use the Action-based pipeline: {@code Element → Action → Flow → Runner → UIEngine}.
+ * For new code, use the Action-based pipeline: {@code Element → Action → Flow → FlowExecutor → UIEngine}.
  *
  * <p>This class is preserved for backward compatibility with existing step definitions
  * and page objects. All execution is delegated to {@link UIEngine}.</p>
  *
  * @apiNote <b>Stable (frozen).</b> This API will not receive new features.
  * Existing behavior will remain unchanged, but this API will not evolve further.
- * Prefer Action/Flow/Runner pipeline for new development.
+ * Prefer Action/Flow/FlowExecutor pipeline for new development.
  *
  * @deprecated Prefer capability methods like {@code Clickable.click()}, {@code Typeable.type()}, etc. which return
  *             {@link core.actions.Action} objects composed via {@link core.flow.Flow}.
  * @see core.actions.Action
  * @see core.flow.Flow
- * @see core.runner.Runner
+ * @see core.executor.FlowExecutor
  * @see UIEngine
  */
 @Deprecated(since = "2.0", forRemoval = false)

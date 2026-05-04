@@ -1,5 +1,6 @@
 package core.actions;
 
+import core.annotations.Internal;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import core.interactions.hooks.ActionHandler;
@@ -17,7 +18,7 @@ import java.util.Objects;
  * </pre>
  *
  * <p>Hooks receive the resolved {@link LocatorDescriptor} for this action.
- * Descriptor is guaranteed non-null in the Action/Flow/Runner pipeline.
+ * Descriptor is guaranteed non-null in the Action/Flow/FlowExecutor pipeline.
  * Null only occurs when bridging from legacy {@link core.interactions.Interactions}.</p>
  *
  * <h3>Failure behavior</h3>
@@ -30,8 +31,7 @@ import java.util.Objects;
  * <ul>
  *   <li>Descriptor is <b>passed in</b>, not resolved here — Action owns resolution.</li>
  *   <li>HookedAction contains <b>no engine logic</b> — only orchestrates.</li>
- *   <li>Runner stays dumb — HookedAction is just another {@link Action}.</li>
- * </ul>
+ *   <li>FlowExecutor stays dumb — HookedAction is just another {@link Action}.</li> * </ul>
  *
  * @see Action
  * @see ActionHandler
@@ -46,7 +46,7 @@ public class HookedAction implements Action {
     /**
      * @param delegate   the core action to execute (must not be null)
      * @param descriptor the locator descriptor for the target element;
-     *                   non-null in Action/Flow/Runner pipeline,
+     *                   non-null in Action/Flow/FlowExecutor pipeline,
      *                   may be null only in legacy bridging
      * @param before     before-hooks to run (null = none)
      * @param after      after-hooks to run (null = none)
@@ -78,29 +78,14 @@ public class HookedAction implements Action {
         }
     }
 
-    // ── Deferred-resolution factory ─────────────────────────────────────────
+    // ── Deferred-resolution factory (deprecated) ────────────────────────────
 
     /**
-     * Creates an {@link Action} that resolves the descriptor at execution time,
-     * then runs before → delegate → after with that descriptor.
-     *
-     * <p>Keeps resolution fully deferred (consistent with Action/Flow/Runner).</p>
-     * <pre>
-     *   Flow.of(
-     *       HookedAction.wrap(USERNAME.type("user"), USERNAME, ElementRole.INPUT,
-     *           List.of(Before.CLEAR_FIELD), List.of(After.HIGHLIGHT_ELEMENT)),
-     *       HookedAction.wrap(LOGIN.click(), LOGIN, ElementRole.TRIGGER,
-     *           List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE), null)
-     *   );
-     * </pre>
-     *
-     * @param delegate the core action to wrap
-     * @param element  the element whose locator will be resolved
-     * @param role     the locator role to resolve (INPUT, TRIGGER, TEXT, etc.)
-     * @param before   before-hooks (null = none)
-     * @param after    after-hooks (null = none)
-     * @return a deferred Action that resolves the descriptor and executes hooks
+     * @deprecated Use {@link Action#withHooks(List, List)} instead:
+     *             {@code element.click().withHooks(before, after)}
      */
+    @Deprecated(forRemoval = true)
+    @Internal
     public static Action wrap(Action delegate,
                               elements.api.Element element,
                               elements.meta.ElementRole role,

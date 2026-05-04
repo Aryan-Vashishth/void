@@ -29,7 +29,7 @@ import static core.logging.CustomLogger.debug;
  * <p>This class is a pure constants holder — never instantiate it.</p>
  *
  * @apiNote <b>Stable.</b> Hook execution semantics will not change.
- * Compatible with both Interactions and Action/Flow/Runner pipelines.
+ * Compatible with both Interactions and Action/Flow/FlowExecutor pipelines.
  */
 public final class Before {
 

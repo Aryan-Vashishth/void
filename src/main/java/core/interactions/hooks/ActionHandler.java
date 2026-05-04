@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
  * </ul>
  *
  * @apiNote <b>Stable.</b> Hook execution semantics will not change.
- * Compatible with both Interactions and Action/Flow/Runner pipelines.
+ * Compatible with both Interactions and Action/Flow/FlowExecutor pipelines.
  */
 @FunctionalInterface
 public interface ActionHandler {
@@ -47,7 +47,7 @@ public interface ActionHandler {
      * @param descriptor the locator descriptor for the element being acted upon;
      *                   may be {@code null} in legacy code paths
      *
-     * @implNote Descriptor is non-null in the Action/Flow/Runner pipeline
+     * @implNote Descriptor is non-null in the Action/Flow/FlowExecutor pipeline
      * ({@link core.actions.HookedAction}).  Null only occurs in legacy
      * {@link core.interactions.Interactions} usage where hooks are invoked
      * without an explicit descriptor.  New code must always supply a
