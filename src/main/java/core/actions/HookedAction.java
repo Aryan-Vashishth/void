@@ -91,5 +91,44 @@ public class HookedAction implements Action {
     public LocatorDescriptor getDescriptor() {
         return descriptor;
     }
+
+    // ── Deferred-resolution factories ───────────────────────────────────────
+
+    /**
+     * Creates an {@link Action} that resolves the descriptor at execution time, then
+     * runs before hooks → delegate → after hooks with that descriptor.
+     *
+     * <p>This keeps resolution fully deferred (consistent with the Action/Flow/Runner
+     * pipeline) while giving hooks access to the descriptor.</p>
+     *
+     * <pre>
+     *   runner.run(Flow.of(
+     *       HookedAction.wrap(USERNAME.type("user"), USERNAME, ElementRole.INPUT,
+     *           List.of(Before.CLEAR_FIELD), List.of(After.HIGHLIGHT_ELEMENT)),
+     *       HookedAction.wrap(LOGIN.click(), LOGIN, ElementRole.TRIGGER,
+     *           List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE), null)
+     *   ));
+     * </pre>
+     *
+     * @param delegate the core action to wrap
+     * @param element  the element whose locator will be resolved
+     * @param role     the locator role to resolve (INPUT, TRIGGER, TEXT, etc.)
+     * @param before   before-hooks (null = none)
+     * @param after    after-hooks (null = none)
+     * @return a new deferred Action that resolves the descriptor and executes hooks
+     */
+    public static Action wrap(Action delegate,
+                              elements.api.Element element,
+                              elements.meta.ElementRole role,
+                              @Nullable List<ActionHandler> before,
+                              @Nullable List<ActionHandler> after) {
+        Objects.requireNonNull(delegate, "delegate must not be null");
+        Objects.requireNonNull(element, "element must not be null");
+        Objects.requireNonNull(role, "role must not be null");
+        return engine -> {
+            LocatorDescriptor descriptor = engine.resolve(element, role);
+            new HookedAction(delegate, descriptor, before, after).perform(engine);
+        };
+    }
 }
 

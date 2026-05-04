@@ -1,11 +1,15 @@
 package tests.demo;
 
+import core.actions.HookedAction;
 import core.engine.UIEngine;
 import core.flow.Flow;
+import core.interactions.hooks.After;
+import core.interactions.hooks.Before;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.runner.Runner;
 import core.runtime.VOID;
+import elements.meta.ElementRole;
 import tests.demo.pages.DemoLoginElements;
 
 import org.testng.Assert;
@@ -13,13 +17,17 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.List;
+
 import static core.logging.CustomLogger.*;
 
 /**
- * VOID Framework -- Quick Start Demo (TestNG).
+ * VOID Framework — Quick Start Demo (TestNG).
  *
- * <p>Demonstrates the modern Action / Flow / Runner pattern from the Quick Start Guide.
- * Targets the public demo site: <a href="https://the-internet.herokuapp.com/login">the-internet.herokuapp.com</a></p>
+ * <p>Demonstrates both the plain Action/Flow/Runner pattern and the new
+ * descriptor-based {@link HookedAction} pipeline with before/after hooks.
+ * Targets the public demo site:
+ * <a href="https://the-internet.herokuapp.com/login">the-internet.herokuapp.com</a></p>
  *
  * <p>Run via TestNG or: {@code mvn test -Dtest=tests.demo.VoidDemo}</p>
  */
@@ -51,6 +59,9 @@ public class VoidDemo {
         info.success("VOID started, engine: " + engine.getEngineName());
     }
 
+    /**
+     * Plain login — no hooks. Shows the basic Action / Flow / Runner pattern.
+     */
     @Test
     public void loginWithValidCredentials() {
         // Navigate to the login page
@@ -79,7 +90,70 @@ public class VoidDemo {
 
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
-        info.success("LOGIN PASSED -- Redirected to secure area.");
+        info.success("LOGIN PASSED — Redirected to secure area.");
+    }
+
+    /**
+     * Hooked login — demonstrates descriptor-based {@link HookedAction} with
+     * before/after hook chains.
+     *
+     * <p>Each action is wrapped with hooks that receive the element's
+     * {@code LocatorDescriptor} explicitly — no global state involved.</p>
+     *
+     * <h3>Hook pipeline per action</h3>
+     * <pre>
+     *   before hooks  →  action  →  after hooks
+     *       ↓                           ↓
+     *   (engine, descriptor)       (engine, descriptor)
+     * </pre>
+     */
+    @Test(dependsOnMethods = "loginWithValidCredentials")
+    public void loginWithHookedActions() {
+        // Navigate back to login
+        info.log("[HOOKED 1/3] Navigating to: " + TARGET_URL);
+        engine.navigateTo(TARGET_URL);
+
+        // Build a login flow with hooks around every action:
+        //   - Before type: clear field + highlight (red)
+        //   - After type:  highlight (green = success)
+        //   - Before click: wait for clickable + highlight
+        //   - After click:  wait for element visible (success message)
+        info.log("[HOOKED 2/3] Executing hooked login flow...");
+
+        runner.run(Flow.of(
+                // Type username — with clear + highlight hooks
+                HookedAction.wrap(
+                        DemoLoginElements.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
+                        DemoLoginElements.Credentials.USERNAME_INPUT, ElementRole.INPUT,
+                        List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
+                        List.of(After.HIGHLIGHT_ELEMENT)
+                ),
+
+                // Type password — with clear + highlight hooks
+                HookedAction.wrap(
+                        DemoLoginElements.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
+                        DemoLoginElements.Credentials.PASSWORD_INPUT, ElementRole.INPUT,
+                        List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
+                        List.of(After.HIGHLIGHT_ELEMENT)
+                ),
+
+                // Click login — wait for clickable, highlight, then wait for result
+                HookedAction.wrap(
+                        DemoLoginElements.Actions.LOGIN_BUTTON.click(),
+                        DemoLoginElements.Actions.LOGIN_BUTTON, ElementRole.TRIGGER,
+                        List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
+                        null
+                )
+        ));
+
+        info.success("Hooked flow executed successfully.");
+
+        // Verify result
+        info.log("[HOOKED 3/3] Verifying result...");
+        String currentUrl = engine.getCurrentUrl();
+        Assert.assertTrue(currentUrl.contains("/secure"),
+                "Expected URL to contain '/secure' but was: " + currentUrl);
+        info.success("HOOKED LOGIN PASSED — Redirected to secure area.");
     }
 
     @AfterClass(alwaysRun = true)
