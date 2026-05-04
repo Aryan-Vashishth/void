@@ -1,6 +1,5 @@
 package tests.demo;
 
-import core.actions.HookedAction;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import core.flow.Flow;
@@ -8,7 +7,7 @@ import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
-import core.runner.Runner;
+import core.executor.FlowExecutor;
 import core.runtime.VOID;
 import elements.meta.ElementRole;
 import tests.demo.pages.DemoLoginPage;
@@ -26,8 +25,8 @@ import static core.logging.CustomLogger.*;
 /**
  * VOID Framework — Quick Start Demo (TestNG).
  *
- * <p>Demonstrates both the plain Action/Flow/Runner pattern and the new
- * descriptor-based {@link HookedAction} pipeline with before/after hooks.
+ * <p>Demonstrates both the plain Action/Flow/FlowExecutor pattern and the fluent
+ * {@code .withHooks(before, after)} pipeline with before/after hooks.
  * Targets the public demo site:
  * <a href="https://the-internet.herokuapp.com/login">the-internet.herokuapp.com</a></p>
  *
@@ -41,7 +40,7 @@ public class VoidDemo {
 
     private VOID app;
     private UIEngine engine;
-    private Runner runner;
+    private FlowExecutor executor;
 
     @BeforeClass
     public void setUp() {
@@ -57,12 +56,12 @@ public class VoidDemo {
         info.log("[SETUP] Starting VOID framework...");
         app = VOID.start();
         engine = app.getEngine();
-        runner = new Runner(engine);
+        executor = new FlowExecutor(engine);
         info.success("VOID started, engine: " + engine.getEngineName());
     }
 
     /**
-     * Plain login — no hooks. Shows the basic Action / Flow / Runner pattern.
+     * Plain login — no hooks. Shows the basic Action / Flow / FlowExecutor pattern.
      */
     @Test
     public void loginWithValidCredentials() {
@@ -71,13 +70,13 @@ public class VoidDemo {
         engine.navigateTo(TARGET_URL);
         info.success("Page loaded. Current URL: " + engine.getCurrentUrl());
 
-        // Execute login flow using Action / Flow / Runner pattern
+        // Execute login flow using Action / Flow / FlowExecutor pattern
         info.log("[2/3] Executing login flow...");
         debug.log("--> Typing username: " + VALID_USERNAME);
         debug.log("--> Typing password: ********");
         debug.log("--> Clicking Login button");
 
-        runner.run(Flow.of(
+        executor.run(Flow.of(
                 DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
@@ -99,10 +98,10 @@ public class VoidDemo {
     }
 
     /**
-     * Hooked login — demonstrates descriptor-based {@link HookedAction} with
-     * before/after hook chains.
+     * Hooked login — demonstrates the fluent {@code .withHooks(before, after)} API
+     * with before/after hook chains.
      *
-     * <p>Each action is wrapped with hooks that receive the element's
+     * <p>Each action is composed with hooks that receive the element's
      * {@code LocatorDescriptor} explicitly — no global state involved.</p>
      *
      * <h3>Hook pipeline per action</h3>
@@ -125,40 +124,34 @@ public class VoidDemo {
         //   - After click:  custom hook waits for success message (demonstrates inline lambdas)
         info.log("[HOOKED 2/3] Executing hooked login flow...");
 
-        runner.run(Flow.of(
+        executor.run(Flow.of(
                 // Type username — with clear + highlight hooks
-                HookedAction.wrap(
-                        DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
-                        DemoLoginPage.Credentials.USERNAME_INPUT, ElementRole.INPUT,
-                        List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-                        List.of(After.HIGHLIGHT_ELEMENT)
-                ),
+                DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME)
+                        .withHooks(
+                                List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
+                                List.of(After.HIGHLIGHT_ELEMENT)),
 
                 // Type password — with clear + highlight hooks
-                HookedAction.wrap(
-                        DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
-                        DemoLoginPage.Credentials.PASSWORD_INPUT, ElementRole.INPUT,
-                        List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-                        List.of(After.HIGHLIGHT_ELEMENT)
-                ),
+                DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD)
+                        .withHooks(
+                                List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
+                                List.of(After.HIGHLIGHT_ELEMENT)),
 
                 // Click login — wait for clickable, then wait for success message after
-                HookedAction.wrap(
-                        DemoLoginPage.Button.LOGIN_BUTTON.click(),
-                        DemoLoginPage.Button.LOGIN_BUTTON, ElementRole.TRIGGER,
-                        List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
-                        List.of(
-                                // Custom inline hook: wait for the success message after login click.
-                                // Demonstrates: hooks can resolve other elements via the engine,
-                                // not just the descriptor they receive.
-                                (eng, desc) -> {
-                                    LocatorDescriptor successMsg = eng.resolve(
-                                            DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
-                                    eng.waitForVisible(successMsg, Duration.ofSeconds(5));
-                                    debug.log("[HOOK] Success message visible after login click.");
-                                }
-                        )
-                )
+                DemoLoginPage.Button.LOGIN_BUTTON.click()
+                        .withHooks(
+                                List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
+                                List.of(
+                                        // Custom inline hook: wait for the success message after login click.
+                                        // Demonstrates: hooks can resolve other elements via the engine,
+                                        // not just the descriptor they receive.
+                                        (eng, desc) -> {
+                                            LocatorDescriptor successMsg = eng.resolve(
+                                                    DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
+                                            eng.waitForVisible(successMsg, Duration.ofSeconds(5));
+                                            debug.log("[HOOK] Success message visible after login click.");
+                                        }
+                                ))
         ));
 
         info.success("Hooked flow executed successfully.");
