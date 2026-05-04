@@ -1,30 +1,39 @@
 package core.engine;
 
+import elements.api.Element;
+import elements.meta.ElementRole;
 import java.time.Duration;
-import java.util.List;
 
 /**
  * UIEngine — VOID's Execution Contract
  * ─────────────────────────────────────
- * Defines the minimal set of browser operations that VOID's {@code Interactions}
- * layer requires. Each engine implementation (Selenium, Playwright, etc.) provides
- * a concrete class that fulfills this contract using its own native APIs.
+ * Single authority for all browser execution. Each engine implementation
+ * (Selenium, Playwright, etc.) provides a concrete class.
  *
  * <h3>Design principles</h3>
  * <ul>
- *   <li>Mirrors VOID's actual interaction vocabulary — not Selenium's API surface.</li>
+ *   <li>One method per logical action — engine handles retry, fallback, waits internally.</li>
  *   <li>Every method added here must be implemented by <em>every</em> engine.</li>
- *   <li>Edge cases use {@link #getNativeDriver()} as an explicit escape hatch.</li>
+ *   <li>{@code click()} is robust by default — includes wait, scroll, retry, JS fallback.</li>
  *   <li>Locators are received as {@link LocatorDescriptor} — engine translates internally.</li>
  * </ul>
  *
- * <h3>Lifecycle</h3>
+ * <h3>Engine responsibilities</h3>
+ * <p>The engine owns ALL execution concerns:</p>
+ * <ul>
+ *   <li>Resolving {@link LocatorDescriptor} to native locators</li>
+ *   <li>Scrolling elements into view (if needed)</li>
+ *   <li>Waiting for visibility, clickability, or presence</li>
+ *   <li>Retrying on stale element or intercept exceptions</li>
+ *   <li>Fallback strategies (e.g., JS click when native fails)</li>
+ * </ul>
+ *
+ * <p><b>Callers must NOT perform scroll, waits, or direct execution.
+ * All such behavior is encapsulated within the engine.</b></p>
+ *
+ * <h3>Single execution path</h3>
  * <pre>
- *   engine.initialize(config);   // once at startup
- *   engine.navigateTo(url);
- *   engine.click(locator);
- *   engine.type(locator, text);
- *   engine.shutdown();           // once at teardown
+ *   Element → Action → Flow → Runner → UIEngine
  * </pre>
  *
  * @see LocatorDescriptor
@@ -64,7 +73,34 @@ public interface UIEngine {
     String getCurrentUrl();
 
     // ─────────────────────────────────────────────────────────────────────
-    // CORE ACTIONS
+    // RESOLUTION — engine owns locator resolution
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Resolves a {@link LocatorDescriptor} for an element using its role mapping.
+     * This is the single resolution authority — elements call this
+     * rather than importing resolver infrastructure directly.
+     *
+     * @param element the element descriptor (enum implementing Element)
+     * @param role    the locator role to resolve (e.g., TRIGGER, INPUT)
+     * @param args    optional format arguments for parameterized locators
+     * @return resolved locator descriptor
+     */
+    LocatorDescriptor resolve(Element element, ElementRole role, Object... args);
+
+    /**
+     * Resolves a {@link LocatorDescriptor} from a raw file name, key, and args.
+     * Used for locators that don't map to an element's role system.
+     *
+     * @param fileName properties or JSON file
+     * @param key      locator key
+     * @param args     optional format arguments
+     * @return resolved locator descriptor
+     */
+    LocatorDescriptor resolve(String fileName, String key, Object... args);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CORE ACTIONS — each method is robust (retry + fallback built in)
     // ─────────────────────────────────────────────────────────────────────
 
     /**
@@ -74,12 +110,6 @@ public interface UIEngine {
      */
     void click(LocatorDescriptor locator);
 
-    /**
-     * Clicks using JavaScript execution (bypasses native event pipeline).
-     *
-     * @param locator target element descriptor
-     */
-    void jsClick(LocatorDescriptor locator);
 
     /**
      * Clears and types text into the element identified by the locator.
@@ -127,6 +157,7 @@ public interface UIEngine {
      * @param value   option value
      */
     void selectByValue(LocatorDescriptor locator, String value);
+
 
     // ─────────────────────────────────────────────────────────────────────
     // RETRIEVAL
@@ -181,6 +212,26 @@ public interface UIEngine {
      */
     int getElementCount(LocatorDescriptor locator);
 
+    /**
+     * Reads visible text, falling back to specified attributes if text is empty or truncated.
+     * Useful for ellipsized cells or tooltip-bearing elements.
+     *
+     * @param locator    target element descriptor
+     * @param endsWith   if the visible text ends with this suffix, treat as truncated (nullable)
+     * @param attributes attribute names to try as fallbacks (in order), e.g., "title", "aria-label"
+     * @return resolved text (trimmed)
+     */
+    String getTextWithAttributeFallback(LocatorDescriptor locator, String endsWith, String... attributes);
+
+    /**
+     * Returns the checked/selected state of a checkbox element.
+     * Checks {@code aria-checked}, {@code checked} attribute, then {@code isSelected()} in order.
+     *
+     * @param locator target checkbox element descriptor
+     * @return true if currently checked/selected
+     */
+    boolean getCheckboxState(LocatorDescriptor locator);
+
     // ─────────────────────────────────────────────────────────────────────
     // WAITS
     // ─────────────────────────────────────────────────────────────────────
@@ -216,6 +267,14 @@ public interface UIEngine {
      * @param timeout maximum wait duration
      */
     void waitForPresence(LocatorDescriptor locator, Duration timeout);
+
+    /**
+     * Waits for a CDK/Material overlay pane to appear in the DOM.
+     * Used after triggering Angular Material dropdowns/menus.
+     *
+     * @param timeout maximum wait duration
+     */
+    void waitForOverlay(Duration timeout);
 
     // ─────────────────────────────────────────────────────────────────────
     // ADVANCED

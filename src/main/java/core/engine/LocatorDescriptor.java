@@ -10,24 +10,53 @@ import java.util.Arrays;
  * locator format). Each {@link UIEngine} implementation translates this descriptor
  * into its own locator type internally.</p>
  *
+ * <p>For scoped (parent→child) element lookups, use {@link #withParent(LocatorDescriptor)}
+ * to compose a locator tree. The engine resolves the parent first, then searches
+ * within that scope for the child element.</p>
+ *
  * <p>Example:
  * <pre>
  *   new LocatorDescriptor("//button[@id='apply']", LocatorStrategy.XPATH)
+ *   // Scoped: find button within a specific row
+ *   row.withParent(tableLocator)
  * </pre>
  *
  * @param value    the resolved locator string (e.g., {@code //button[@id='apply']})
  * @param strategy the locator strategy (XPATH, CSS, ID, NAME)
  * @param args     dynamic substitution args (already applied to value; kept for metadata/logging)
+ * @param parent   optional parent descriptor for scoped lookups (null = global scope)
  */
 public record LocatorDescriptor(
         String value,
         LocatorStrategy strategy,
-        Object[] args
+        Object[] args,
+        LocatorDescriptor parent
 ) {
 
-    /** Convenience constructor without args. */
+    /** Canonical constructor without parent (global scope). */
+    public LocatorDescriptor(String value, LocatorStrategy strategy, Object[] args) {
+        this(value, strategy, args, null);
+    }
+
+    /** Convenience constructor without args or parent. */
     public LocatorDescriptor(String value, LocatorStrategy strategy) {
-        this(value, strategy, new Object[0]);
+        this(value, strategy, new Object[0], null);
+    }
+
+    /**
+     * Returns a new descriptor that is scoped within the given parent.
+     * The engine will find the parent element first, then search within it.
+     *
+     * @param parent the parent scope descriptor
+     * @return new descriptor with parent context
+     */
+    public LocatorDescriptor withParent(LocatorDescriptor parent) {
+        return new LocatorDescriptor(this.value, this.strategy, this.args, parent);
+    }
+
+    /** @return true if this descriptor has a parent scope */
+    public boolean isScoped() {
+        return parent != null;
     }
 
     /**
@@ -65,8 +94,8 @@ public record LocatorDescriptor(
 
     @Override
     public String toString() {
-        return strategy + "=" + value +
+        String base = strategy + "=" + value +
                 (args != null && args.length > 0 ? " args=" + Arrays.toString(args) : "");
+        return parent != null ? base + " [within: " + parent + "]" : base;
     }
 }
-

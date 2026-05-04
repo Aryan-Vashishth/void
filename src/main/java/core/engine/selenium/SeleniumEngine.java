@@ -4,6 +4,9 @@ import core.engine.EngineConfig;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
+import core.resolvers.locator.api.LocatorResolvers;
+import elements.api.Element;
+import elements.meta.ElementRole;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -78,21 +81,89 @@ public final class SeleniumEngine implements UIEngine {
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // CORE ACTIONS
+    // RESOLUTION
     // ─────────────────────────────────────────────────────────────────────
 
     @Override
-    public void click(LocatorDescriptor locator) {
-        By by = toBy(locator);
-        WebElement element = driver.findElement(by);
-        element.click();
+    public LocatorDescriptor resolve(Element element, ElementRole role, Object... args) {
+        return LocatorResolvers.strict().resolveDescriptor(element, role, args);
     }
 
     @Override
-    public void jsClick(LocatorDescriptor locator) {
+    public LocatorDescriptor resolve(String fileName, String key, Object... args) {
+        return LocatorResolvers.strict().resolveDescriptor(fileName, key, args);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // CORE ACTIONS
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Robust click: wait-visible → wait-clickable → scroll → highlight → click → JS fallback → stale retry.
+     */
+    @Override
+    public void click(LocatorDescriptor locator) {
         By by = toBy(locator);
-        WebElement element = driver.findElement(by);
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        String currentUrl = driver.getCurrentUrl();
+
+        // Phase 1: Wait visible + clickable + scroll + highlight
+        try {
+            WebElement element = new WebDriverWait(driver, defaultTimeout)
+                    .until(ExpectedConditions.visibilityOfElementLocated(by));
+            scrollToElement(element);
+            highlightElement(element, "red");
+            new WebDriverWait(driver, defaultTimeout)
+                    .until(ExpectedConditions.elementToBeClickable(by));
+        } catch (Exception e) {
+            debug.log("[SeleniumEngine] Pre-click wait failed for: " + locator + " — " + e.getMessage());
+        }
+
+        // Phase 2: Standard click
+        try {
+            WebElement element = driver.findElement(by);
+            String text = safeText(element);
+            element.click();
+            info.success("Clicked on: " + (text.isBlank() ? locator.toString() : text));
+            debug.click("Clicked using Selenium click(). Locator: " + locator);
+            return;
+        } catch (StaleElementReferenceException staleEx) {
+            if (urlChanged(currentUrl)) {
+                debug.log("[SeleniumEngine] Page navigated after stale — treating as success.");
+                return;
+            }
+            debug.error("[SeleniumEngine] Stale element on standard click, will retry...");
+        } catch (Exception e) {
+            debug.log("[SeleniumEngine] Standard click failed for: " + locator + " — " + e.getMessage());
+        }
+
+        // Phase 3: JS click fallback
+        warn.fallback("[SeleniumEngine] Retrying with JavaScript click for: " + locator);
+        try {
+            WebElement element = driver.findElement(by);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            info.success("Clicked on: " + safeText(element));
+            debug.success("Clicked using JavaScriptExecutor.");
+            return;
+        } catch (StaleElementReferenceException staleEx) {
+            if (urlChanged(currentUrl)) {
+                debug.log("[SeleniumEngine] Page navigated after stale (JS) — treating as success.");
+                return;
+            }
+            debug.error("[SeleniumEngine] Stale on JS click, will re-locate and retry...");
+        } catch (Exception e) {
+            debug.log("[SeleniumEngine] JS click also failed: " + e.getMessage());
+        }
+
+        // Phase 4: Re-locate and final attempt
+        try {
+            WebElement freshElement = new WebDriverWait(driver, defaultTimeout)
+                    .until(ExpectedConditions.elementToBeClickable(by));
+            freshElement.click();
+            info.success("Clicked on (re-located): " + safeText(freshElement));
+        } catch (Exception retryEx) {
+            error.failed("[SeleniumEngine] click() exhausted all strategies for: " + locator);
+            throw new RuntimeException("click failed for: " + locator, retryEx);
+        }
     }
 
     @Override
@@ -140,6 +211,7 @@ public final class SeleniumEngine implements UIEngine {
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         new org.openqa.selenium.support.ui.Select(element).selectByValue(value);
     }
+
 
     // ─────────────────────────────────────────────────────────────────────
     // RETRIEVAL
@@ -198,6 +270,49 @@ public final class SeleniumEngine implements UIEngine {
         return driver.findElements(by).size();
     }
 
+    @Override
+    public String getTextWithAttributeFallback(LocatorDescriptor locator, String endsWith, String... attributes) {
+        By by = toBy(locator);
+        WebElement element = waitFor(by).until(ExpectedConditions.presenceOfElementLocated(by));
+        scrollToElement(element);
+        String text = element.getText().trim();
+
+        // If text is non-empty and not truncated, return it
+        if (!text.isEmpty() && (endsWith == null || !text.endsWith(endsWith))) {
+            return text;
+        }
+
+        // Fallback: try each attribute in order
+        for (String attr : attributes) {
+            String value = element.getAttribute(attr);
+            if (value != null && !value.trim().isEmpty()) {
+                debug.log("[SeleniumEngine] Text fallback to attribute '" + attr + "': " + value.trim());
+                return value.trim();
+            }
+        }
+
+        return text; // return whatever we have
+    }
+
+    @Override
+    public boolean getCheckboxState(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement cb = driver.findElement(by);
+        try {
+            String aria = cb.getAttribute("aria-checked");
+            if (aria != null && !aria.isBlank()) {
+                return aria.equalsIgnoreCase("true");
+            }
+            String checkedAttr = cb.getAttribute("checked");
+            if (checkedAttr != null) {
+                return true;
+            }
+            return cb.isSelected();
+        } catch (Exception ignored) {
+            return cb.isSelected();
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // WAITS
     // ─────────────────────────────────────────────────────────────────────
@@ -228,6 +343,21 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         new WebDriverWait(driver, timeout)
                 .until(ExpectedConditions.presenceOfElementLocated(by));
+    }
+
+    @Override
+    public void waitForOverlay(Duration timeout) {
+        By overlayPane = By.cssSelector("div.cdk-overlay-pane");
+        try {
+            new FluentWait<>(driver)
+                    .withTimeout(timeout)
+                    .pollingEvery(Duration.ofMillis(100))
+                    .ignoring(NoSuchElementException.class)
+                    .until(drv -> !drv.findElements(overlayPane).isEmpty());
+            debug.log("[SeleniumEngine] CDK overlay appeared.");
+        } catch (Exception e) {
+            debug.log("[SeleniumEngine] Overlay wait timed out — continuing.");
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -346,6 +476,18 @@ public final class SeleniumEngine implements UIEngine {
     // INTERNAL HELPERS
     // ─────────────────────────────────────────────────────────────────────
 
+    /**
+     * Finds an element, respecting scoped (parent→child) descriptors.
+     * If the descriptor has a parent, finds within the parent scope.
+     */
+    private WebElement findElement(LocatorDescriptor locator) {
+        if (locator.isScoped()) {
+            WebElement parent = findElement(locator.parent());
+            return parent.findElement(toBy(locator));
+        }
+        return driver.findElement(toBy(locator));
+    }
+
     private WebDriverWait waitFor(By by) {
         return new WebDriverWait(driver, defaultTimeout);
     }
@@ -357,6 +499,25 @@ public final class SeleniumEngine implements UIEngine {
         } catch (Exception ignored) {
             // scroll is best-effort
         }
+    }
+
+    private void highlightElement(WebElement element, String color) {
+        try {
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].style.border='6px solid " + color + "';", element);
+        } catch (Exception ignored) {}
+    }
+
+    private boolean urlChanged(String originalUrl) {
+        try {
+            return !java.util.Objects.equals(originalUrl, driver.getCurrentUrl());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static String safeText(WebElement el) {
+        try { return el.getText().trim(); } catch (Exception ignored) { return ""; }
     }
 
     private static Keys mapKey(String key) {
