@@ -2,6 +2,9 @@
 
 Get up and running with VOID in under 10 minutes.
 
+> 💡 **Want to see it in action first?** Jump to the [Runnable Demo](#runnable-demo) at the end, or run
+> `VoidDemo.main()` from [`src/main/java/tests/demo/VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) directly.
+
 ---
 
 ## Prerequisites
@@ -458,8 +461,44 @@ String name = app.interaction().getText(MyElements.UserCards.FULL_NAME);
 
 ---
 
+## Runnable Demo
+
+A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs into [the-internet.herokuapp.com/login](https://the-internet.herokuapp.com/login) using the Action/Flow/Runner pattern.
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| [`VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) | Main entry point — bootstraps VOID, runs login flow, verifies redirect |
+| [`DemoLoginElements.java`](../../src/main/java/tests/demo/DemoLoginElements.java) | Element definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
+| [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) | Locator file — XPath locators keyed by element name |
+
+### Running
+
+```bash
+# From IDE: run VoidDemo.main() directly
+
+# From command line (ensure driver.properties has headless=false or true):
+mvn compile exec:java -Dexec.mainClass=tests.demo.VoidDemo
+```
+
+### What It Demonstrates
+
+1. **`VOID.start()`** — full framework bootstrap (config validation → driver creation → engine init)
+2. **`Runner` + `Flow.of(...)`** — composable Action pipeline
+3. **Capability interfaces** — `Typeable.type()`, `Clickable.click()` emitting deferred Actions
+4. **External JSON locators** — resolved at execution time by the engine
+5. **`CustomLogger`** — color-coded, call-site-traced output
+6. **`app.shutdown()`** — clean teardown
+
+---
+
 ## Next Steps
 
+- 🚀 **[Runnable Demo](../../src/main/java/tests/demo/VoidDemo.java)** — complete working example targeting `the-internet.herokuapp.com/login`
+  - [`DemoLoginElements.java`](../../src/main/java/tests/demo/DemoLoginElements.java) — element definitions (Typeable, Clickable, ReadOnly)
+  - [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) — locator file
+  - Run via: `mvn exec:java -Dexec.mainClass=tests.demo.VoidDemo` or IDE main method
 - 📖 [System Overview](system-overview.md) — full architecture and execution flow
 - 🪝 [Hooks Pipeline](hooks-pipeline.md) — composable before/after action hooks
 - 📍 [Locator Resolution](locator-resolution.md) — full resolution pipeline
