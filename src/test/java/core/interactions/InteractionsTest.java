@@ -74,24 +74,24 @@ public class InteractionsTest {
     @Test
     public void constructor_assignsEngineField() throws Exception {
         WebDriver fake = newFakeDriver();
-        Interactions ix = new Interactions(fake);
+        Interactions ix = new Interactions(new SeleniumEngine(fake));
         Field engineField = Interactions.class.getDeclaredField("engine");
         engineField.setAccessible(true);
         Object engine = engineField.get(ix);
 
         assertNotNull(engine, "engine field should be initialized");
         assertEquals(engine.getClass(), SeleniumEngine.class,
-                "WebDriver constructor should wrap the driver in SeleniumEngine");
+                "UIEngine constructor should keep the supplied SeleniumEngine");
     }
     @Test
-    public void constructor_webDriverPath_setsSeleniumEngineDefaultTimeoutToTenSeconds() throws Exception {
-        Interactions ix = new Interactions(newFakeDriver());
+    public void constructor_uiEnginePath_keepsSeleniumEngineDefaultTimeoutAtTenSeconds() throws Exception {
+        Interactions ix = new Interactions(new SeleniumEngine(newFakeDriver()));
         Field engineField = Interactions.class.getDeclaredField("engine");
         engineField.setAccessible(true);
         Object engine = engineField.get(ix);
 
         assertTrue(engine instanceof SeleniumEngine,
-                "WebDriver constructor should produce a SeleniumEngine-backed Interactions instance");
+                "UIEngine constructor should produce a SeleniumEngine-backed Interactions instance");
 
         Field defaultTimeoutField = SeleniumEngine.class.getDeclaredField("defaultTimeout");
         defaultTimeoutField.setAccessible(true);
@@ -101,7 +101,7 @@ public class InteractionsTest {
     @Test
     public void constructor_registersDriverInDriverContext() {
         WebDriver fake = newFakeDriver();
-        new Interactions(fake);
+        new Interactions(new SeleniumEngine(fake));
         assertSame(DriverContext.getDriver(), fake,
                 "Interactions constructor must register driver as PRIMARY in DriverContext");
     }
