@@ -222,7 +222,7 @@ void-framework/
 │   │   ├── meta/                ← ElementRole enum, EnumClassRegistry
 │   │   └── meta/                ← ElementRole enum, EnumClassRegistry
 │   ├── tests/demo/              ← Runnable demos and example page elements
-│   │   ├── VoidDemo.java        ← Entry point (Action/Flow/Runner demo)
+│   │   ├── VoidDemo.java        ← Entry point (Action/Flow/FlowExecutor demo)
 │   │   └── pages/               ← Example page element enums
 │   └── StepDefinition/          ← Cucumber step definitions (optional adapter layer)
 ├── src/main/resources/

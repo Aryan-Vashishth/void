@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ElementActions;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -47,10 +48,7 @@ public interface Clickable extends Element {
 
     /** Deferred click action. Locator resolved at execution time by the engine. */
     default Action click() {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.TRIGGER);
-            engine.click(d);
-        };
+        return ElementActions.of(this, ElementRole.TRIGGER,
+                (engine, d) -> engine.click(d));
     }
 }
-

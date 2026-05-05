@@ -349,13 +349,13 @@ The logging system sits **above** the engine — it observes `Interactions`, not
 - ✅ Refactored `Interactions` to pure orchestrator — delegates all execution to `UIEngine`
 - ✅ Introduced `Action` functional interface (`core.actions.Action`) — deferred execution intent
 - ✅ Introduced `Flow` (`core.flow.Flow`) — immutable ordered sequence of Actions
-- ✅ Introduced `Runner` (`core.runner.Runner`) — iterates Flows against UIEngine
+- ✅ Introduced `FlowExecutor` (`core.executor.FlowExecutor`) — iterates Flows against UIEngine
 - ✅ All capability interfaces emit deferred `Action` objects (Clickable, Typeable, Selectable, etc.)
 - ✅ All existing tests pass without modification
 
 **Validation:** Zero behavior change. Pure structural refactor. Backward compatible.
 
-**Actual scope:** `UIEngine`, `SeleniumEngine`, `LocatorDescriptor`, `LocatorStrategy`, `EngineConfig`, `Action`, `Flow`, `Runner`, `Interactions`, `Via`, `UIContext`, all 15 capability interfaces
+**Actual scope:** `UIEngine`, `SeleniumEngine`, `LocatorDescriptor`, `LocatorStrategy`, `EngineConfig`, `Action`, `Flow`, `FlowExecutor`, `Interactions`, `Via`, `UIContext`, all 15 capability interfaces
 
 ---
 

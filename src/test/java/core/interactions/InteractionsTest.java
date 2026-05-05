@@ -3,6 +3,7 @@ import core.driver.DriverContext;
 import core.logging.CustomLogger;
 import core.interactions.Interactions;
 import core.interactions.hooks.ActionHandler;
+import core.engine.selenium.SeleniumEngine;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -71,27 +72,31 @@ public class InteractionsTest {
     // Constructor
     // ---------------------------------------------------------------------
     @Test
-    public void constructor_assignsDriverField() throws Exception {
+    public void constructor_assignsEngineField() throws Exception {
         WebDriver fake = newFakeDriver();
         Interactions ix = new Interactions(fake);
-        Field driverField = Interactions.class.getDeclaredField("driver");
-        driverField.setAccessible(true);
-        assertSame(driverField.get(ix), fake, "driver field should be the supplied WebDriver");
+        Field engineField = Interactions.class.getDeclaredField("engine");
+        engineField.setAccessible(true);
+        Object engine = engineField.get(ix);
+
+        assertNotNull(engine, "engine field should be initialized");
+        assertEquals(engine.getClass(), SeleniumEngine.class,
+                "WebDriver constructor should wrap the driver in SeleniumEngine");
     }
     @Test
-    public void constructor_initialisesWebDriverWaitWithTenSecondTimeout() throws Exception {
+    public void constructor_webDriverPath_setsSeleniumEngineDefaultTimeoutToTenSeconds() throws Exception {
         Interactions ix = new Interactions(newFakeDriver());
-        Field waitField = Interactions.class.getDeclaredField("wait");
-        waitField.setAccessible(true);
-        Object wait = waitField.get(ix);
-        assertNotNull(wait, "wait field must be initialised");
-        assertEquals(wait.getClass().getSimpleName(), "WebDriverWait");
-        // Verify timeout by reading the private `timeout` field declared on
-        // FluentWait (WebDriverWait''s parent). FluentWait does not expose a
-        // public getter in the Selenium version this project pins to.
-        Field timeoutField = wait.getClass().getSuperclass().getDeclaredField("timeout");
-        timeoutField.setAccessible(true);
-        assertEquals(timeoutField.get(wait), Duration.ofSeconds(10));
+        Field engineField = Interactions.class.getDeclaredField("engine");
+        engineField.setAccessible(true);
+        Object engine = engineField.get(ix);
+
+        assertTrue(engine instanceof SeleniumEngine,
+                "WebDriver constructor should produce a SeleniumEngine-backed Interactions instance");
+
+        Field defaultTimeoutField = SeleniumEngine.class.getDeclaredField("defaultTimeout");
+        defaultTimeoutField.setAccessible(true);
+        assertEquals(defaultTimeoutField.get(engine), Duration.ofSeconds(10),
+                "SeleniumEngine should initialize with a 10 second default timeout");
     }
     @Test
     public void constructor_registersDriverInDriverContext() {
@@ -116,8 +121,8 @@ public class InteractionsTest {
     @Test
     public void of_returnsImmutableListWithSuppliedHandlers() {
         AtomicInteger counter = new AtomicInteger();
-        ActionHandler a = drv -> counter.incrementAndGet();
-        ActionHandler b = drv -> counter.addAndGet(10);
+        ActionHandler a = (drv, desc) -> counter.incrementAndGet();
+        ActionHandler b = (drv, desc) -> counter.addAndGet(10);
         List<ActionHandler> hooks = Interactions.of(a, b);
         assertNotNull(hooks);
         assertEquals(hooks.size(), 2);
@@ -126,7 +131,7 @@ public class InteractionsTest {
         // Returned list is created via List.of(...) and must be immutable.
         assertThrows(UnsupportedOperationException.class, () -> hooks.add(a));
         // Handlers should still be invocable and produce the expected side effects.
-        hooks.forEach(h -> h.execute(null));
+        hooks.forEach(h -> h.execute(null, null));
         assertEquals(counter.get(), 11, "Both handlers should have run exactly once");
     }
 }

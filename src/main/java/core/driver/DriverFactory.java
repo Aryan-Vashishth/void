@@ -672,6 +672,12 @@ public final class DriverFactory {
                 mergedPrefs.put("download.directory_upgrade", true);
                 mergedPrefs.put("safebrowsing.enabled", true);
             }
+
+            // Suppress Chrome password manager / credential popups
+            mergedPrefs.put("credentials_enable_service", false);
+            mergedPrefs.put("profile.password_manager_enabled", false);
+            mergedPrefs.put("profile.password_manager_leak_detection", false);
+
             if (!mergedPrefs.isEmpty()) opts.setExperimentalOption("prefs", mergedPrefs);
 
             // Mobile emulation

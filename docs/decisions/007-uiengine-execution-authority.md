@@ -33,7 +33,7 @@ Introduce `UIEngine` (`core.engine.UIEngine`) as the **single execution authorit
 | `UIEngineFactory` | `core.engine` | Factory: config → engine instance |
 | `Action` | `core.actions` | Deferred execution intent (functional interface) |
 | `Flow` | `core.flow` | Immutable ordered sequence of Actions |
-| `Runner` | `core.runner` | Iterates Flows against UIEngine |
+| `FlowExecutor` | `core.executor` | Iterates Flows against UIEngine |
 
 ---
 
@@ -51,14 +51,14 @@ Introduce `UIEngine` (`core.engine.UIEngine`) as the **single execution authorit
 
 ### Architecture
 
-- Two execution paths: `Element → Action → Flow → Runner → UIEngine` (preferred) and `Element → Interactions → UIEngine` (legacy)
+- Two execution paths: `Element → Action → Flow → FlowExecutor → UIEngine` (preferred) and `Element → Interactions → UIEngine` (legacy)
 - 15 capability interfaces emit deferred `Action` objects: `Clickable.click()`, `Typeable.type()`, `Selectable.select()`, etc.
 - `LocatorDescriptor` replaces `By` as the standard locator representation in new code
 - `UIContext.getLastActionTarget()` replaces `UIContext.getLastElement()` for engine-agnostic state
 
 ### Files Changed
 
-- New: `UIEngine`, `SeleniumEngine`, `LocatorDescriptor`, `LocatorStrategy`, `EngineConfig`, `UIEngineFactory`, `Action`, `Flow`, `Runner`
+- New: `UIEngine`, `SeleniumEngine`, `LocatorDescriptor`, `LocatorStrategy`, `EngineConfig`, `UIEngineFactory`, `Action`, `Flow`, `FlowExecutor`
 - Refactored: `Interactions` (removed WebDriver/WebDriverWait/ExpectedConditions, delegates to engine)
 - Updated: `Via` (added `descriptor()` methods, deprecated `locator()`/`webElement()`)
 - Updated: `UIContext` (added `lastActionTarget` ThreadLocal<LocatorDescriptor>)

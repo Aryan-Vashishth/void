@@ -114,7 +114,7 @@ execute after-hooks
 ```
 User Code
   │
-  ├── Action → Flow → Runner → UIEngine  (preferred: fully engine-agnostic)
+  ├── Action → Flow → FlowExecutor → UIEngine  (preferred: fully engine-agnostic)
   │
   └── Interactions (orchestrator)
         ├── resolve → LocatorDescriptor
@@ -135,7 +135,7 @@ UIEngine (executor)
 
 1. **No `ActionRequest` abstraction** — The existing `Action` functional interface (`core.actions.Action`) is the sole execution currency. `Interactions` delegates directly to `engine.*` methods rather than introducing a competing request/dispatch model.
 
-2. **Dispatcher is internal, not user-facing** — The `executeHooks` helper in `Interactions` routes hooks, but there is no exposed dispatcher registry. All user-facing execution flows through `Action → Flow → Runner → UIEngine` or `Interactions → UIEngine`.
+2. **Dispatcher is internal, not user-facing** — The `executeHooks` helper in `Interactions` routes hooks, but there is no exposed dispatcher registry. All user-facing execution flows through `Action → Flow → FlowExecutor → UIEngine` or `Interactions → UIEngine`.
 
 3. **`LocatorDescriptor.withParent()` instead of `findWithin()`** — Scoped operations use a composable locator tree rather than a method explosion on UIEngine. The engine recursively resolves parent→child at execution time.
 

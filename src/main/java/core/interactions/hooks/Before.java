@@ -2,8 +2,6 @@ package core.interactions.hooks;
 
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
-import core.utils.UIContext;
-import core.utils.web.WaitUtils;
 
 import java.time.Duration;
 
@@ -20,10 +18,18 @@ import static core.logging.CustomLogger.debug;
  * <p>All hooks are <b>engine-agnostic</b> — they delegate to {@link UIEngine} methods
  * rather than calling Selenium APIs directly. This ensures portability across engines.</p>
  *
+ * <p>Element-dependent hooks receive the {@link LocatorDescriptor} of the element being
+ * acted upon via the second parameter.  When invoked from legacy code paths (e.g.
+ * {@link core.interactions.Interactions}) the descriptor may be {@code null}; each hook
+ * logs a warning and returns early in that case.</p>
+ *
+ * <h3>Hook ordering guarantee</h3>
+ * <p>Before hooks execute <b>in list order</b>, then the action, then after hooks.</p>
+ *
  * <p>This class is a pure constants holder — never instantiate it.</p>
  *
  * @apiNote <b>Stable.</b> Hook execution semantics will not change.
- * Compatible with both Interactions and Action/Flow/Runner pipelines.
+ * Compatible with both Interactions and Action/Flow/FlowExecutor pipelines.
  */
 public final class Before {
 
@@ -32,62 +38,70 @@ public final class Before {
     private Before() {}
 
     // ── No-ops / logging ──────────────────────────────────────────────────
-    public static final ActionHandler DO_NOTHING  = engine -> {};
-    public static final ActionHandler LOG_INTENT  = engine -> debug.log("[DEBUG] Performing UI action...");
+    public static final ActionHandler DO_NOTHING  = (engine, descriptor) -> {};
+    public static final ActionHandler LOG_INTENT  = (engine, descriptor) -> debug.log("[DEBUG] Performing UI action...");
 
     // ── Loader waits ──────────────────────────────────────────────────────
-    public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = engine -> {
+    public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = (engine, descriptor) -> {
         LocatorDescriptor loader = LocatorDescriptor.of("app-loader", core.engine.LocatorStrategy.CSS);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
         catch (Exception ignored) { /* loader not present — continue */ }
     };
 
-    public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = engine -> {
+    public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (engine, descriptor) -> {
         LocatorDescriptor loader = LocatorDescriptor.of(
                 "//span[contains(@class, 'spin spinner')]", core.engine.LocatorStrategy.XPATH);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
         catch (Exception ignored) { /* loader not present — continue */ }
     };
 
-    // ── Element-state waits (use UIContext.getLastLocatorDescriptor()) ─────
-    /** Waits for the last resolved element to become clickable. */
-    public static final ActionHandler WAIT_FOR_ELEMENT_CLICKABLE = engine -> {
-        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
-        if (locator != null) {
-            engine.waitForClickable(locator, DEFAULT_TIMEOUT);
+    // ── Element-state waits (use descriptor passed by HookedAction / caller) ─────
+
+    /** Waits for the element to become clickable. */
+    public static final ActionHandler WAIT_FOR_ELEMENT_CLICKABLE = (engine, descriptor) -> {
+        if (descriptor == null) {
+            debug.log("[HOOK WARNING] No locator descriptor provided to WAIT_FOR_ELEMENT_CLICKABLE");
+            return;
         }
+        engine.waitForClickable(descriptor, DEFAULT_TIMEOUT);
     };
 
-    /** Waits for the last resolved element to be visible. */
-    public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = engine -> {
-        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
-        if (locator != null) {
-            engine.waitForVisible(locator, DEFAULT_TIMEOUT);
+    /** Waits for the element to be visible. */
+    public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = (engine, descriptor) -> {
+        if (descriptor == null) {
+            debug.log("[HOOK WARNING] No locator descriptor provided to WAIT_FOR_ELEMENT_VISIBLE");
+            return;
         }
+        engine.waitForVisible(descriptor, DEFAULT_TIMEOUT);
     };
 
     // ── Element manipulation ───────────────────────────────────────────────
-    /** Clears the last resolved input element. Throws if no locator tracked. */
-    public static final ActionHandler CLEAR_FIELD = engine -> {
-        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
-        if (locator != null) {
-            engine.clear(locator);
-        } else {
+
+    /** Clears the input element. Throws if no descriptor provided. */
+    public static final ActionHandler CLEAR_FIELD = (engine, descriptor) -> {
+        if (descriptor == null) {
             throw new IllegalStateException(
-                    "[Before.CLEAR_FIELD] UIContext.getLastLocatorDescriptor() is null – resolve the element first.");
+                    "[Before.CLEAR_FIELD] No descriptor provided – resolve the element first.");
         }
+        engine.clear(descriptor);
     };
 
-    /** Scrolls the last resolved element into view. */
-    public static final ActionHandler SCROLL_TO_ELEMENT = engine -> {
-        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
-        if (locator != null) engine.scrollTo(locator);
+    /** Scrolls the element into view. */
+    public static final ActionHandler SCROLL_TO_ELEMENT = (engine, descriptor) -> {
+        if (descriptor == null) {
+            debug.log("[HOOK WARNING] No locator descriptor provided to SCROLL_TO_ELEMENT");
+            return;
+        }
+        engine.scrollTo(descriptor);
     };
 
-    /** Highlights the last resolved element with a red border (debug aid). */
-    public static final ActionHandler HIGHLIGHT_ELEMENT = engine -> {
-        LocatorDescriptor locator = UIContext.getLastLocatorDescriptor();
-        if (locator != null) engine.highlight(locator, "red");
+    /** Highlights the element with a red border (debug aid). */
+    public static final ActionHandler HIGHLIGHT_ELEMENT = (engine, descriptor) -> {
+        if (descriptor == null) {
+            debug.log("[HOOK WARNING] No locator descriptor provided to HIGHLIGHT_ELEMENT");
+            return;
+        }
+        engine.highlight(descriptor, "red");
     };
 }
 

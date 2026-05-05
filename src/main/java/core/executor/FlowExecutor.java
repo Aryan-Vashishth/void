@@ -1,4 +1,4 @@
-package core.runner;
+package core.executor;
 
 import core.actions.Action;
 import core.annotations.Beta;
@@ -12,17 +12,17 @@ import core.flow.Flow;
  *
  * <p>Usage:</p>
  * <pre>
- *   Runner runner = new Runner(engine);
- *   runner.run(Flow.of(page.USERNAME.type("user"), page.LOGIN.click()));
- *   runner.execute(page.SUBMIT.click());
+ *   FlowExecutor executor = new FlowExecutor(engine);
+ *   executor.run(Flow.of(page.USERNAME.type("user"), page.LOGIN.click()));
+ *   executor.run(page.SUBMIT.click());
  * </pre>
  */
-@Beta(since = "2.0", note = "Action/Flow/Runner pipeline is evolving — API may change")
-public class Runner {
+@Beta(since = "2.0", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
+public class FlowExecutor {
 
     private final UIEngine engine;
 
-    public Runner(UIEngine engine) {
+    public FlowExecutor(UIEngine engine) {
         this.engine = engine;
     }
 
@@ -42,7 +42,7 @@ public class Runner {
      *
      * @param action the action to execute
      */
-    public void execute(Action action) {
+    public void run(Action action) {
         action.perform(engine);
     }
 }

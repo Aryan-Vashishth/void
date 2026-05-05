@@ -176,7 +176,7 @@ Every capability interface emits **deferred Action objects** — intent, not exe
 | `SearchField` | `typeSearch(text)`, `submitSearch()` | Search actions |
 | `SearchableDropdown` | `searchAndSelect(term)` | Composite search+select |
 | `Hoverable` | `hover()` | Tooltip trigger |
-| `ReadOnly` | `getText()` | Text retrieval |
+| `ReadOnly` | `readText()` | Text retrieval |
 | `Uploadable` | `upload(path)` | File upload |
 | `EditableTable` | `clickAddRow()`, `clickRemoveRow()` | Table row management |
 
@@ -259,31 +259,31 @@ Path file = JsonLocatorMigrator.writeResolvedJson(LoginPageElements.class);
 
 ## 5 — Write a Test
 
-### Modern: Action / Flow / Runner (Preferred)
+### Modern: Action / Flow / FlowExecutor (Preferred)
 
 ```java
 import core.engine.UIEngine;
 import core.engine.UIEngineFactory;
 import core.flow.Flow;
-import core.runner.Runner;
+import core.executor.FlowExecutor;
 import core.driver.DriverFactory;
 import org.testng.annotations.*;
 
 public class LoginTest {
 
     private UIEngine engine;
-    private Runner runner;
+    private FlowExecutor executor;
 
     @BeforeClass
     public void setUp() {
         var driver = DriverFactory.build();
         engine = UIEngineFactory.create(new java.util.Properties(), driver);
-        runner = new Runner(engine);
+        executor = new FlowExecutor(engine);
     }
 
     @Test
     public void userCanLogIn() {
-        runner.run(Flow.of(
+        executor.run(Flow.of(
             LoginPageElements.Credentials.USERNAME_INPUT.type("admin@example.com"),
             LoginPageElements.Credentials.PASSWORD_INPUT.type("secret"),
             LoginPageElements.Actions.SIGN_IN_BUTTON.click()
@@ -399,52 +399,60 @@ Example log line:
 |---------|---------------|
 | **Enum-driven elements** | Every UI element is an enum constant implementing a capability interface (`Clickable`, `Selectable`, `Searchable`, etc.). |
 | **Capability interfaces** | Located in `elements.api.capability.*`. Define what an element CAN DO. Emit deferred `Action` objects. |
-| **Action / Flow / Runner** | `element.click()` returns `Action` (deferred intent). `Flow.of(...)` composes. `Runner` executes via `UIEngine`. |
+| **Action / Flow / FlowExecutor** | `element.click()` returns `Action` (deferred intent). `Flow.of(...)` composes. `FlowExecutor` executes via `UIEngine`. |
 | **UIEngine** | Single execution authority. Owns scroll, waits, retries, fallback. `SeleniumEngine` is the current implementation. |
 | **LocatorDescriptor** | Engine-agnostic locator record. Contains value, strategy, args, optional parent scope. |
 | **External locators** | Locators live in `.properties` or `.json` — never in Java code. |
 | **Role-based resolution** | `LocatorResolvers.strict()` (recommended) resolves locators by `ElementRole`. |
 | **`ResolvableEnum`** | Mixin for name↔label resolution. Add alongside a capability interface for BDD string-to-enum matching. |
-| **Hook pipeline** | `Before.*` / `After.*` hooks for composable pre/post behavior (used with `Interactions`). |
-| **VOID façade** | Legacy entry point. `VoidDSL` for BDD. `Runner` + `Flow` for new code. |
+| **Hook pipeline** | `Before.*` / `After.*` hooks for composable pre/post behavior. Used with `Interactions` (legacy) or fluent `.withHooks()` (modern). |
+| **VOID façade** | Legacy entry point. `VoidDSL` for BDD. `FlowExecutor` + `Flow` for new code. |
 | **`Via` helper** | Static utility. Descriptor-based methods preferred over `By`-based (deprecated). |
 
 ---
 
 ## Common Cheat Sheet
 
-### Action / Flow / Runner
+### Action / Flow / FlowExecutor
 
 ```java
-Runner runner = new Runner(engine);
+FlowExecutor executor = new FlowExecutor(engine);
 
 // Single action
-runner.execute(LoginPage.SUBMIT.click());
+executor.run(LoginPage.SUBMIT.click());
 
 // Flow of actions
-runner.run(Flow.of(
+executor.run(Flow.of(
     LoginPage.USERNAME.type("user@example.com"),
     LoginPage.PASSWORD.type("secret"),
     LoginPage.SUBMIT.click()
 ));
 
+// Fluent hooks — before/after composed inline
+executor.run(
+    LoginPage.SUBMIT.click()
+        .withHooks(
+            List.of(Before.WAIT_FOR_ANGULAR_LOADER),
+            List.of(After.HIGHLIGHT_ELEMENT))
+);
+
 // Dropdown
-runner.execute(MyPage.STATUS_DROPDOWN.select());
+executor.run(MyPage.STATUS_DROPDOWN.select());
 
 // Search dropdown
-runner.execute(MyPage.GLOBAL_SEARCH.searchAndSelect("Deal Registration"));
+executor.run(MyPage.GLOBAL_SEARCH.searchAndSelect("Deal Registration"));
 
 // Checkbox
-runner.execute(MyPage.NOTIFICATIONS.set(true));
+executor.run(MyPage.NOTIFICATIONS.set(true));
 
 // Type and press Enter
-runner.execute(MyPage.SEARCH_INPUT.typeAndPress("query", "ENTER"));
+executor.run(MyPage.SEARCH_INPUT.typeAndPress("query", "ENTER"));
 
 // File upload
-runner.execute(MyPage.AVATAR_INPUT.upload("/path/to/image.png"));
+executor.run(MyPage.AVATAR_INPUT.upload("/path/to/image.png"));
 
 // Table
-runner.execute(MyPage.DATA_TABLE.clickAddRow());
+executor.run(MyPage.DATA_TABLE.clickAddRow());
 ```
 
 ### Legacy Interactions
@@ -463,7 +471,7 @@ String name = app.interaction().getText(MyElements.UserCards.FULL_NAME);
 
 ## Runnable Demo
 
-A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs into [the-internet.herokuapp.com/login](https://the-internet.herokuapp.com/login) using the Action/Flow/Runner pattern.
+A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs into [the-internet.herokuapp.com/login](https://the-internet.herokuapp.com/login) using the Action/Flow/FlowExecutor pattern.
 
 ### Files
 
@@ -485,11 +493,12 @@ mvn test -Dtest=tests.demo.VoidDemo
 ### What It Demonstrates
 
 1. **`VOID.start()`** — full framework bootstrap (config validation → driver creation → engine init)
-2. **`Runner` + `Flow.of(...)`** — composable Action pipeline
+2. **`FlowExecutor` + `Flow.of(...)`** — composable Action pipeline
 3. **Capability interfaces** — `Typeable.type()`, `Clickable.click()` emitting deferred Actions
-4. **External JSON locators** — resolved at execution time by the engine
-5. **`CustomLogger`** — color-coded, call-site-traced output
-6. **`app.shutdown()`** — clean teardown
+4. **Fluent hooks** — `.withHooks(before, after)` for inline hook composition
+5. **External JSON locators** — resolved at execution time by the engine
+6. **`CustomLogger`** — color-coded, call-site-traced output
+7. **`app.shutdown()`** — clean teardown
 
 ---
 

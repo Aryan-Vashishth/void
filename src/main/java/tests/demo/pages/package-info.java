@@ -7,7 +7,7 @@
  *
  * <h3>Examples</h3>
  * <ul>
- *   <li>{@link tests.demo.pages.DemoLoginElements} — simple login page (3 capabilities)</li>
+ *   <li>{@link tests.demo.pages.DemoLoginPage} — simple login page (3 capabilities)</li>
  *   <li>{@link tests.demo.pages.AccountMappingElements} — complex page (all capability types)</li>
  *   <li>{@link tests.demo.pages.ManageUsersElements} — ResolvableEnum for BDD step definitions</li>
  * </ul>

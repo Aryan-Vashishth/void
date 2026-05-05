@@ -286,7 +286,7 @@ Element → MultiSelectable
 import elements.api.capability.Clickable;
 import elements.api.capability.Typeable;
 import core.flow.Flow;
-import core.runner.Runner;
+import core.executor.FlowExecutor;
 
 // Define page elements (implement capability for Flow-compatible enums)
 enum LoginButton implements Clickable {
@@ -312,16 +312,16 @@ enum LoginField implements Typeable {
     @Override public Object[] getArgs()           { return new Object[0]; }
 }
 
-// Execute via Flow + Runner
-Runner runner = new Runner(engine);
-runner.run(Flow.of(
+// Execute via Flow + FlowExecutor
+FlowExecutor executor = new FlowExecutor(engine);
+executor.run(Flow.of(
     LoginField.USERNAME.type("admin"),
     LoginField.PASSWORD.type("secret"),
     LoginButton.SUBMIT.click()
 ));
 
 // Single action execution
-runner.execute(LoginButton.SUBMIT.click());
+executor.run(LoginButton.SUBMIT.click());
 ```
 
 ---
@@ -329,11 +329,11 @@ runner.execute(LoginButton.SUBMIT.click());
 ## Execution Pipeline
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌───────────┐     ┌──────────┐
-│ Page Enum   │────▶│ Capability   │────▶│  Flow     │────▶│  Runner  │
-│ .click()    │     │ returns      │     │ groups    │     │ iterates │
-│ .type(text) │     │ Action λ     │     │ Actions   │     │ & calls  │
-└─────────────┘     └──────────────┘     └───────────┘     └──────────┘
+┌─────────────┐     ┌──────────────┐     ┌───────────┐     ┌──────────────┐
+│ Page Enum   │────▶│ Capability   │────▶│  Flow     │────▶│FlowExecutor  │
+│ .click()    │     │ returns      │     │ groups    │     │ iterates     │
+│ .type(text) │     │ Action λ     │     │ Actions   │     │ & calls      │
+└─────────────┘     └──────────────┘     └───────────┘     └──────────────┘
                            │                                       │
                            ▼                                       ▼
                     ┌──────────────┐                       ┌──────────────┐
@@ -346,7 +346,7 @@ runner.execute(LoginButton.SUBMIT.click());
 1. **Page enum** calls `element.click()` / `element.type("text")`
 2. **Capability interface** returns a lambda `(engine) -> { resolve + execute }`
 3. **Flow** groups multiple Actions into an ordered sequence
-4. **Runner** iterates the Flow and calls `action.perform(engine)` for each
+4. **FlowExecutor** iterates the Flow and calls `action.perform(engine)` for each
 5. **Inside the lambda**: `engine.resolve(this, role)` resolves at execution time
 6. **UIEngine** receives the `LocatorDescriptor` and performs the browser operation
    (including scroll, wait, retry, fallback — all handled internally by the engine)

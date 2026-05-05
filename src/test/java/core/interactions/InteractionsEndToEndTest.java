@@ -332,8 +332,8 @@ public class InteractionsEndToEndTest {
         int[] beforeAt = {-1};
         int[] afterAt  = {-1};
 
-        ActionHandler before = drv -> beforeAt[0] = order.incrementAndGet();
-        ActionHandler after  = drv -> afterAt[0]  = order.incrementAndGet();
+        ActionHandler before = (drv, desc) -> beforeAt[0] = order.incrementAndGet();
+        ActionHandler after  = (drv, desc) -> afterAt[0]  = order.incrementAndGet();
 
         ix.clickOn(Interactions.of(before), SubmitButton.SUBMIT, Interactions.of(after));
 
