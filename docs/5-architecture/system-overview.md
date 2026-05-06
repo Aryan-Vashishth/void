@@ -15,6 +15,23 @@ This enables interchangeable engines (Selenium, Playwright), composable flows, d
 
 ---
 
+## Decision Traceability
+
+Architecture in this document is projected from accepted decisions, now archived under `docs/7-archive/decisions/accepted/`:
+
+- [001 - Remove WebDriverManager](../7-archive/decisions/accepted/001-remove-webdrivermanager.md)
+- [002 - Cucumber as Optional Dependency](../7-archive/decisions/accepted/002-cucumber-optional-dependency.md)
+- [003 - No Compile-Time Code Generation](../7-archive/decisions/accepted/003-no-lombok-no-codegen.md)
+- [004 - Dependency Philosophy](../7-archive/decisions/accepted/004-dependency-philosophy.md)
+- [005 - Logging Architecture](../7-archive/decisions/accepted/005-logging-architecture.md)
+- [006 - Replace JavaFaker with Datafaker](../7-archive/decisions/accepted/006-replace-javafaker-with-datafaker.md)
+- [007 - UIEngine as Single Execution Authority](../7-archive/decisions/accepted/007-uiengine-execution-authority.md)
+- [008 - Capability Interfaces](../7-archive/decisions/accepted/008-capability-interfaces.md)
+- [009 - Action / Flow / FlowExecutor Execution Model](../7-archive/decisions/accepted/009-action-flow-runner.md)
+- [010 - Hook Evolution](../7-archive/decisions/accepted/010-hook-evolution.md)
+
+---
+
 ## 🚀 Key Features
 
 ### 🧠 Not Just Another Driver Wrapper
