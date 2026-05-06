@@ -1,6 +1,6 @@
 # `core.logging` — CustomLogger Package
 
-A structured, ANSI-colored, theme-aware logger for Selenium/TestNG automation frameworks.
+A structured, ANSI-colored, theme-aware logger for engine-agnostic UI automation frameworks (Selenium/TestNG and Playwright-style adapters).
 Wraps **Apache Log4j 2** (with a 1.x bridge for API compatibility) with semantic action methods, multiple built-in color themes, and a
 clean object-oriented architecture — all without requiring any external logging framework changes.
 
