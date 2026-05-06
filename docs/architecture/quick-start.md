@@ -15,7 +15,7 @@ Get up and running with VOID in under 10 minutes.
 | **Maven**  | 3.x      |
 | **Browser**| Chrome (default), Firefox, or Edge |
 
-> WebDriver binaries are managed automatically by Selenium Manager (built into Selenium 4.6+) — no manual driver downloads needed.
+> Selenium runs use Selenium Manager (built into Selenium 4.6+) for driver binaries. Playwright runs use the Playwright runtime/browser install path.
 
 ---
 
@@ -261,6 +261,8 @@ Path file = JsonLocatorMigrator.writeResolvedJson(LoginPageElements.class);
 
 ### Modern: Action / Flow / FlowExecutor (Preferred)
 
+This test code stays the same across engines. Select `selenium` or `playwright` at runtime via config/system property.
+
 ```java
 import core.engine.UIEngine;
 import core.engine.UIEngineFactory;
@@ -359,11 +361,17 @@ mvn clean test
 # Default (Selenium)
 mvn clean test
 
-# Explicitly select engine
+# Explicitly select Selenium
 mvn clean test -Dengine=selenium
+
+# Explicitly select Playwright
+mvn clean test -Dengine=playwright
 
 # Via environment variable
 $env:ENGINE = "selenium"
+mvn clean test
+
+$env:ENGINE = "playwright"
 mvn clean test
 ```
 
@@ -400,7 +408,7 @@ Example log line:
 | **Enum-driven elements** | Every UI element is an enum constant implementing a capability interface (`Clickable`, `Selectable`, `Searchable`, etc.). |
 | **Capability interfaces** | Located in `elements.api.capability.*`. Define what an element CAN DO. Emit deferred `Action` objects. |
 | **Action / Flow / FlowExecutor** | `element.click()` returns `Action` (deferred intent). `Flow.of(...)` composes. `FlowExecutor` executes via `UIEngine`. |
-| **UIEngine** | Single execution authority. Owns scroll, waits, retries, fallback. `SeleniumEngine` is the current implementation. |
+| **UIEngine** | Single execution authority. Owns scroll, waits, retries, fallback. Engine implementations are selected at runtime (`selenium` / `playwright`). |
 | **LocatorDescriptor** | Engine-agnostic locator record. Contains value, strategy, args, optional parent scope. |
 | **External locators** | Locators live in `.properties` or `.json` — never in Java code. |
 | **Role-based resolution** | `LocatorResolvers.strict()` (recommended) resolves locators by `ElementRole`. |

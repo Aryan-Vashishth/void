@@ -213,11 +213,11 @@ locators.template.output.dir=locators/
 
 | Key      | Type     | Default    | Description                                            |
 |----------|----------|------------|--------------------------------------------------------|
-| `engine` | `String` | `selenium` | Execution engine: `selenium` (or `playwright` future)  |
+| `engine` | `String` | `selenium` | Execution engine: `selenium` or `playwright` |
 
 Engine selection priority:
-1. System property: `-Dengine=selenium`
-2. Environment variable: `ENGINE=selenium`
+1. System property: `-Dengine=selenium` or `-Dengine=playwright`
+2. Environment variable: `ENGINE=selenium` or `ENGINE=playwright`
 3. Config file property
 4. Default: `selenium`
 
@@ -241,6 +241,13 @@ engine.pollingMs=200
 engine.baseUrl=https://app.example.com
 ```
 
+```properties
+engine=playwright
+engine.timeout=10
+engine.pollingMs=200
+engine.baseUrl=https://app.example.com
+```
+
 ### UIEngineFactory
 
 Engine creation is handled by `UIEngineFactory`:
@@ -250,7 +257,7 @@ Engine creation is handled by `UIEngineFactory`:
 UIEngine engine = UIEngineFactory.create(config, driver);
 
 // Engine name resolution
-String name = UIEngineFactory.resolveEngineName(config);  // "selenium"
+String name = UIEngineFactory.resolveEngineName(config);  // "selenium" or "playwright"
 ```
 
 ### EngineConfig Access
@@ -260,7 +267,7 @@ EngineConfig config = new EngineConfig(properties);
 config.getDefaultTimeout();    // Duration.ofSeconds(10)
 config.getPollingInterval();   // Duration.ofMillis(200)
 config.getBaseUrl();           // "https://app.example.com"
-config.getProperty("engine");  // "selenium"
+config.getProperty("engine");  // "selenium" or "playwright"
 ```
 
 ---
@@ -286,6 +293,7 @@ Pass `-D` flags to Maven or the JVM:
 
 ```bash
 mvn clean test -Dbrowser=firefox -Dheadless=true -DgridUrl=http://grid:4444/wd/hub -Dengine=selenium
+mvn clean test -Dengine=playwright
 ```
 
 ### Environment Variables
@@ -299,10 +307,16 @@ export HEADLESS=true
 export ENGINE=selenium
 mvn clean test
 
+export ENGINE=playwright
+mvn clean test
+
 # Windows PowerShell
 $env:BROWSER = "firefox"
 $env:HEADLESS = "true"
 $env:ENGINE = "selenium"
+mvn clean test
+
+$env:ENGINE = "playwright"
 mvn clean test
 ```
 

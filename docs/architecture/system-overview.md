@@ -17,7 +17,7 @@ This enables interchangeable engines (Selenium, Playwright), composable flows, d
 
 ## 🚀 Key Features
 
-### 🧠 Not Just Another Selenium Wrapper
+### 🧠 Not Just Another Driver Wrapper
 - Every UI element is modeled as a **typed enum constant** implementing fine-grained capability interfaces.
 - Elements emit **deferred Action objects** (intent) — they never execute directly.
 - **UIEngine** is the single execution authority — handles scroll, waits, retries, and fallback internally.
@@ -361,6 +361,8 @@ locators.template.output.dir=locators/
 | `jsr305` | 3.0.2 | `@Nullable` / `@Nonnull` annotations |
 
 > **Java 17**, **Maven 3.x** required.
+
+Playwright is supported at the architecture contract level through `UIEngine`; adding a Playwright adapter does not require changes to test-level Action/Flow code.
 
 ---
 

@@ -114,7 +114,7 @@ Each engine translates `LocatorDescriptor` into its native locator:
 | Engine | XPATH | CSS | ID |
 |--------|-------|-----|-----|
 | **SeleniumEngine** | `By.xpath(value)` | `By.cssSelector(value)` | `By.id(value)` |
-| **PlaywrightEngine** (future) | `page.locator("xpath=" + value)` | `page.locator(value)` | `page.locator("#" + value)` |
+| **PlaywrightEngine** (via same `UIEngine` contract) | `page.locator("xpath=" + value)` | `page.locator(value)` | `page.locator("#" + value)` |
 
 ---
 
@@ -381,14 +381,14 @@ element.effectiveArgs()             // → ["john.doe"] (falls back to getArgs()
 
 ## ByParser and Prefix Strategies
 
-`ByParser` converts a raw string (with optional prefix) into a Selenium `By`:
+`ByParser` converts a raw string (with optional prefix) into a Selenium `By` for legacy resolver paths:
 
 ```java
 By result = ByParser.parse("css=input.login");    // → By.cssSelector("input.login")
 By result = ByParser.parse("//div[@id='main']");  // → By.xpath("//div[@id='main']")
 ```
 
-The parser uses `ByPrefixStrategy` to match prefix tokens. If no prefix is found, the default is `By.xpath`.
+The parser uses `ByPrefixStrategy` to match prefix tokens. If no prefix is found, the default is `By.xpath`. In the modern path, `UIEngine` consumes `LocatorDescriptor` and each engine performs its own native translation.
 
 ---
 
