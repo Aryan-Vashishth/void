@@ -80,7 +80,7 @@ All methods accepting raw Selenium types are deprecated:
 
 ## Related
 
-- [Experiment: Multi-Engine Execution](../experiments/active/2026-05-01-multi-engine-execution.md) — design vision and roadmap
+- [Experiment: Multi-Engine Execution](../experiments/archive/2026-05-01-multi-engine-execution.md) — design vision and roadmap
 - [Outcome: Interaction–Execution Separation](../experiments/outcomes/2026-06-interaction-execution-separation.md) — implementation details
 - [004 — Dependency Philosophy](004-dependency-philosophy.md) — alignment with minimal-dependency principles
 

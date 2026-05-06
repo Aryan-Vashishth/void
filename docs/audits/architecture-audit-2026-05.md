@@ -290,7 +290,31 @@ PR enforcement (block merge if violated):
 
 ## 9. Suggested Phased Refactor Plan
 
-### Phase 0 — Lock Architecture Rules
+> **NOTE — Execution order ≠ Phase number.**  
+> Phase numbers are stable audit identifiers. Execution order reflects the
+> dependency-driven sequence. Phase 2 (Resolution Unification) **must run
+> before Phase 1** (Bootstrap) so that new bootstrap infrastructure builds
+> against `UIEngine`'s final descriptor-only shape, not against a contract
+> that gets refactored again one phase later.
+
+### Execution Sequence
+
+| Exec Order | Phase # | Title | Depends On |
+|:---:|:---:|---|---|
+| 1 | 0 | Lock Architecture Rules | — |
+| 2 | 2 | Resolution Unification | Phase 0 |
+| 3 | 1 | Fix Bootstrap & Startup Ownership | Phase 2 |
+| 4 | 1.5 | Lock Execution Model in Code | Phase 0 |
+| 5 | 3 | Wire `FlowExecutor` into Runtime | Phase 2, Phase 1 |
+| 6 | 4 | Remove Selenium Leakage from Public Surface | Phase 3 |
+| 7 | 5 | Convert `Interactions` to Strict Adapter | Phase 2, Phase 3 |
+| 8 | 6 | Remove `UIContext` | Phase 5 |
+| 9 | 7 | Finalize Hook Model | Phase 5, Phase 6 |
+| 10 | 8 | Add Playwright Engine | Phases 1–7 |
+
+---
+
+### Phase 0 — Lock Architecture Rules *(Exec order: 1 — always-on)*
 **Goal:** Prevent further drift while refactor is in progress  
 **Scope:** Architecture governance, code review gates, contribution rules  
 **Changes:**
@@ -298,24 +322,8 @@ PR enforcement (block merge if violated):
 - Block new usages of `Interactions`, `UIContext`, and direct `LocatorResolvers` outside Action
 - Require new UI behaviors to be expressed as `Action`
 
-### Phase 1 — Fix Bootstrap & Startup Ownership
-**Goal:** Remove Selenium-first boot assumptions and WebDriver dependency from startup  
-**Scope:** `FrameworkBootstrap`, `UIEngineFactory`, `VOID.start()`, `ExecutionContext`  
-**Changes:**
-- Make bootstrap validation engine-aware
-- Move native session creation into engine implementations/factory
-- Introduce engine-agnostic session context (`SessionContext`)
-
-### Phase 1.5 — Lock Execution Model in Code
-**Goal:** Enforce `Element → Action → Flow → Runner → UIEngine` as the only path  
-**Scope:** `VOID`, `Interactions`, action entry points  
-**Changes:**
-- No direct engine calls outside Action execution
-- No resolution outside Action path
-- Start converting Interactions methods into adapter delegations
-
-### Phase 2 — Resolution Unification (**Critical**)
-**Goal:** Establish single source of truth for resolution before runtime wiring  
+### Phase 2 — Resolution Unification *(Exec order: 2 — runs before Phase 1)*
+**Goal:** Establish single source of truth for resolution; must complete before Phase 1  
 **Scope:** `Action`, `UIEngine`, `Interactions`, resolver access points  
 **Changes:**
 - Move all element resolution logic to Action path
@@ -323,12 +331,29 @@ PR enforcement (block merge if violated):
 - Enforce engine execution inputs as `LocatorDescriptor` only
 - Remove `LocatorResolvers` usage outside Action construction/execution path
 
-**Exit criteria (must pass before Phase 3):**
+**Exit criteria (must pass before Phase 1 and Phase 3):**
 - No new `UIEngine` calls outside Action execution path
 - No new resolver calls outside Action path
 - `UIEngine.resolve(Element...)` deprecation active and migration path defined
 
-### Phase 3 — Wire FlowExecutor into Runtime
+### Phase 1 — Fix Bootstrap & Startup Ownership *(Exec order: 3)*
+**Goal:** Remove Selenium-first boot assumptions and WebDriver dependency from startup  
+**Scope:** `FrameworkBootstrap`, `UIEngineFactory`, `VOID.start()`, `ExecutionContext`  
+**Changes:**
+- Make bootstrap validation engine-aware
+- Move native session creation into engine implementations/factory
+- Introduce engine-agnostic session context (`SessionContext`)
+
+### Phase 1.5 — Lock Execution Model in Code *(Exec order: 4)*
+**Goal:** Enforce `Element → Action → Flow → Runner → UIEngine` as the only path  
+**Scope:** `VOID`, `Interactions`, action entry points, ArchUnit test suite  
+**Changes:**
+- Add `ArchitectureRulesTest` and `TestArchitectureRulesTest` enforcing R2–R9
+- Commit freeze baseline (`archunit_store/`)
+- No direct engine calls outside Action execution
+- No resolution outside Action path
+
+### Phase 3 — Wire FlowExecutor into Runtime *(Exec order: 5)*
 **Goal:** Make unified pipeline the default runtime entry  
 **Scope:** `VOID`, `VoidDSL`, `FlowExecutor`  
 **Changes:**
@@ -336,10 +361,9 @@ PR enforcement (block merge if violated):
 - Update shutdown to call `engine.shutdown()`
 - Start DSL migration from imperative calls to Action/Flow composition
 
-**Guardrail:**
-- Do not start this phase if Resolution Unification exit criteria are incomplete
+**Guardrail:** Do not start this phase if Phase 2 exit criteria are incomplete.
 
-### Phase 4 — Remove Selenium Leakage from Public Surface
+### Phase 4 — Remove Selenium Leakage from Public Surface *(Exec order: 6)*
 **Goal:** Break framework-level Selenium binding  
 **Scope:** `VoidDSL`, `Via`, resolver public APIs  
 **Changes:**
@@ -347,7 +371,7 @@ PR enforcement (block merge if violated):
 - Retire Selenium-returning helper methods from shared surface
 - Keep Selenium specifics isolated to selenium engine package
 
-### Phase 5 — Convert Interactions to Strict Adapter
+### Phase 5 — Convert Interactions to Strict Adapter *(Exec order: 7)*
 **Goal:** Eliminate dual pipelines permanently  
 **Scope:** `Interactions`  
 **Changes:**
@@ -358,17 +382,16 @@ PR enforcement (block merge if violated):
 - Compatibility shape only: `Flow.of(...).run()`
 - Keep Interactions only as compatibility façade until removal window
 
-**Guardrail:**
-- Any new direct `UIEngine` call in `Interactions` fails review
+**Guardrail:** Any new direct `UIEngine` call in `Interactions` fails review.
 
-### Phase 6 — Remove UIContext
+### Phase 6 — Remove UIContext *(Exec order: 8)*
 **Goal:** Remove global mutable action state  
 **Scope:** `UIContext`, dependent utilities (`DOMUtils`, legacy hooks/flows)  
 **Changes:**
 - Delete `UIContext` and migrate remaining consumers to explicit descriptor flow
 - Remove fallback behaviors that rely on thread-local action target
 
-### Phase 7 — Finalize Hook Model
+### Phase 7 — Finalize Hook Model *(Exec order: 9)*
 **Goal:** Make hooks pipeline-native and deterministic  
 **Scope:** `ActionHandler`, `Before`, `After`, hook packaging  
 **Changes:**
@@ -376,7 +399,7 @@ PR enforcement (block merge if violated):
 - Enforce Action-decorator-only hook execution model
 - Remove legacy hook adapters
 
-### Phase 8 — Add Playwright Engine
+### Phase 8 — Add Playwright Engine *(Exec order: 10)*
 **Goal:** Deliver true multi-engine runtime  
 **Scope:** New `core.engine.playwright` package + factory wiring  
 **Changes:**
