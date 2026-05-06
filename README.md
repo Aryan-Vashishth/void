@@ -4,7 +4,7 @@ Structured UI automation around a single execution path:
 
 **Element → Action → Flow → FlowExecutor → UIEngine**
 
-VOID is not a Selenium wrapper and not a Page Object framework.
+VOID is engine-agnostic (Selenium today, Playwright-ready by contract), and not a Page Object framework.
 
 Test code does not touch WebDriver, locators, or wait logic.
 
@@ -14,6 +14,7 @@ You describe what should happen. VOID handles how — and tells you exactly when
 
 ![Java](https://img.shields.io/badge/Java-17+-blue?logo=openjdk)
 ![Selenium](https://img.shields.io/badge/Selenium-4.38-green?logo=selenium)
+![Playwright](https://img.shields.io/badge/Playwright-Ready-45ba63?logo=playwright)
 ![Maven](https://img.shields.io/badge/Maven-3.x-C71A36?logo=apachemaven)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
@@ -87,7 +88,7 @@ This is the only execution path new code should use.
 - externalized, role-based locator resolution
 
 ### VOID is not
-- a Selenium wrapper API for direct test code
+- a Selenium-only or Playwright-only wrapper API for direct test code
 - a Page Object Model framework centered around mutable page classes
 - a place to call `By.xpath(...)`, `WebDriver`, or raw DOM helpers from tests
 
