@@ -381,6 +381,7 @@ Engine selection:
 ## Related Documentation
 
 - [System Overview](system-overview.md) — architecture and UIEngine
+- [Logging Reference](logging-reference.md) — log channels, folder layout, and run-id naming
 - [Quick Start Guide](quick-start.md) — configuring your first test
 - [Locator Resolution](locator-resolution.md) — locator path config details
 - [`EngineConfig.java`](../../src/main/java/core/engine/EngineConfig.java) — engine config source

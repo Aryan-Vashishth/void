@@ -368,6 +368,7 @@ This mirrors `src/main/java/tests/demo/VoidDemo.java`.
 | `docs/architecture/quick-start.md` | Getting started walkthrough |
 | `docs/architecture/system-overview.md` | Architecture and execution flow |
 | `docs/architecture/configuration-reference.md` | Config keys and behavior |
+| `docs/5-architecture/logging-reference.md` | Log channels, folder layout, and trace depth |
 | `docs/architecture/locator-resolution.md` | Locator roles and resolution pipeline |
 | `docs/architecture/hooks-pipeline.md` | Hook behavior and composition |
 | `docs/audits/architecture-audit-2026-05.md` | Current architecture audit |
