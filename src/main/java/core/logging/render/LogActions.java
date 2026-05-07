@@ -296,6 +296,20 @@ public class LogActions {
                 default      -> LoggerContext.getLogger().debug(out);
             }
 
+            switch (logLevel) {
+                case "ERROR" -> LoggerContext.getDebugTraceLogger().error(out);
+                case "WARN"  -> LoggerContext.getDebugTraceLogger().warn(out);
+                case "INFO"  -> LoggerContext.getDebugTraceLogger().info(out);
+                default      -> LoggerContext.getDebugTraceLogger().debug(out);
+            }
+
+            switch (logLevel) {
+                case "ERROR" -> LoggerContext.getPartialTraceLogger().error(body);
+                case "WARN"  -> LoggerContext.getPartialTraceLogger().warn(body);
+                case "INFO"  -> LoggerContext.getPartialTraceLogger().info(body);
+                default      -> LoggerContext.getPartialTraceLogger().debug(body);
+            }
+
             String traceLine = body;
             if (!fullChain.isEmpty()) {
                 traceLine = traceLine + div + "[CHAIN] " + fullChain;

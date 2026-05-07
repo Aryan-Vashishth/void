@@ -49,6 +49,8 @@ public final class LoggerContext {
     private static final String RUN_ID = initializeRunId();
     private static final String RUN_DATE = initializeRunDate();
     private static volatile Logger log = LogManager.getLogger(CustomLogger.class);
+    private static volatile Logger debugTraceLog = LogManager.getLogger("debug-trace");
+    private static volatile Logger partialTraceLog = LogManager.getLogger("partial-trace");
     private static volatile Logger traceLog = LogManager.getLogger("trace");
 
     private static String initializeRunDate() {
@@ -86,6 +88,8 @@ public final class LoggerContext {
         log = (clazz != null) ? LogManager.getLogger(clazz) : LogManager.getLogger(CustomLogger.class);
     }
     public static Logger getLogger() { return (log != null) ? log : LogManager.getLogger(CustomLogger.class); }
+    public static Logger getDebugTraceLogger() { return (debugTraceLog != null) ? debugTraceLog : LogManager.getLogger("debug-trace"); }
+    public static Logger getPartialTraceLogger() { return (partialTraceLog != null) ? partialTraceLog : LogManager.getLogger("partial-trace"); }
     public static Logger getTraceLogger() { return (traceLog != null) ? traceLog : LogManager.getLogger("trace"); }
     public static boolean isDebugEnabled() { return getLogger().isDebugEnabled(); }
 

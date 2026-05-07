@@ -5,6 +5,7 @@
         <Property name="voidRunId">${sys:void.runId:-startup}</Property>
         <Property name="voidRunDate">${sys:void.runDate:-unknown-date}</Property>
         <Property name="voidDateLogDir">${voidLogDir}/${voidRunDate}</Property>
+        <Property name="voidDebugLogDir">${voidDateLogDir}/debug-trace</Property>
         <Property name="voidPartialLogDir">${voidDateLogDir}/partial-trace</Property>
         <Property name="voidFullTraceLogDir">${voidDateLogDir}/full-trace</Property>
     </Properties>
@@ -16,10 +17,22 @@
             <PatternLayout pattern="%m%n"/>
         </Console>
 
-        <!-- Rolling daily file for normal test run logs -->
-        <RollingFile name="Rolling"
-                     fileName="${voidPartialLogDir}/run-${voidRunId}.log"
-                     filePattern="${voidPartialLogDir}/archive/run-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
+        <!-- Debug trace file (includes caller chain suffix) -->
+        <RollingFile name="DebugTraceFile"
+                     fileName="${voidDebugLogDir}/debug-trace-${voidRunId}.log"
+                     filePattern="${voidDebugLogDir}/archive/debug-trace-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
+                     append="false">
+            <PatternLayout pattern="%replace{%m}{\u001B\[[;\d]*m}{}%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="25 MB"/>
+            </Policies>
+        </RollingFile>
+
+        <!-- Partial trace file (no caller chain suffix) -->
+        <RollingFile name="PartialTraceFile"
+                     fileName="${voidPartialLogDir}/partial-trace-${voidRunId}.log"
+                     filePattern="${voidPartialLogDir}/archive/partial-trace-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
                      append="false">
             <PatternLayout pattern="%replace{%m}{\u001B\[[;\d]*m}{}%n"/>
             <Policies>
@@ -50,15 +63,22 @@
         <Logger name="org.apache.http"         level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
         <Logger name="io.opentelemetry"        level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
 
-        <!-- Trace-only logger (mirrors old log4j.logger.trace) -->
+        <Logger name="debug-trace" level="DEBUG" additivity="false">
+            <AppenderRef ref="DebugTraceFile"/>
+        </Logger>
+
+        <Logger name="partial-trace" level="DEBUG" additivity="false">
+            <AppenderRef ref="PartialTraceFile"/>
+        </Logger>
+
+        <!-- Trace-only logger (full chain) -->
         <Logger name="trace" level="INFO" additivity="false">
             <AppenderRef ref="TraceFile"/>
         </Logger>
 
-        <!-- Root: DEBUG so CustomLogger's info/warn/debug/error all appear -->
+        <!-- Root: console only; file traces are routed via dedicated loggers -->
         <Root level="DEBUG">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="Rolling"/>
         </Root>
     </Loggers>
 </Configuration>
