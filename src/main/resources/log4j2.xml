@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
+    <Properties>
+        <Property name="voidLogDir">${sys:void.logDir:-./logs}</Property>
+        <Property name="voidRunId">${sys:void.runId:-startup}</Property>
+        <Property name="voidRunDate">${sys:void.runDate:-unknown-date}</Property>
+        <Property name="voidDateLogDir">${voidLogDir}/${voidRunDate}</Property>
+        <Property name="voidPartialLogDir">${voidDateLogDir}/partial-trace</Property>
+        <Property name="voidFullTraceLogDir">${voidDateLogDir}/full-trace</Property>
+    </Properties>
+
     <Appenders>
 
         <!-- Console: plain %m%n so CustomLogger controls all formatting -->
@@ -9,23 +18,25 @@
 
         <!-- Rolling daily file for normal test run logs -->
         <RollingFile name="Rolling"
-                     fileName="./logs/void-framework.log"
-                     filePattern="./logs/void-framework.%d{yyyy-MM-dd}.log"
+                     fileName="${voidPartialLogDir}/run-${voidRunId}.log"
+                     filePattern="${voidPartialLogDir}/archive/run-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
                      append="false">
-            <PatternLayout pattern="%m%n"/>
+            <PatternLayout pattern="%replace{%m}{\u001B\[[;\d]*m}{}%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="25 MB"/>
             </Policies>
         </RollingFile>
 
         <!-- Full trace file (no ANSI) -->
         <RollingFile name="TraceFile"
-                     fileName="./logs/full-trace.log"
-                     filePattern="./logs/full-trace.%d{yyyy-MM-dd}.log"
+                     fileName="${voidFullTraceLogDir}/full-trace-${voidRunId}.log"
+                     filePattern="${voidFullTraceLogDir}/archive/full-trace-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
                      append="false">
-            <PatternLayout pattern="%m%n"/>
+            <PatternLayout pattern="%replace{%m}{\u001B\[[;\d]*m}{}%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="25 MB"/>
             </Policies>
         </RollingFile>
 
