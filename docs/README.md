@@ -12,7 +12,7 @@ This directory is organized by **state**, not by document type.
 - `4-decisions/rejected/` - rejected decisions
 - `5-architecture/` - stable truth projected from accepted decisions
 - `6-audits/` - system evaluations and assessments
-- `7-archive/` - historical or retired material
+- `7-archive/` - historical, already implemented plans or retired material
 
 ## Strict lifecycle
 
