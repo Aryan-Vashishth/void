@@ -20,6 +20,14 @@ import static core.logging.ansi.AnsiColors.*;
  */
 public class LogActions {
 
+    private static final String[] PROJECT_PREFIXES = {
+            "core.",
+            "dsl.",
+            "elements.",
+            "tests.",
+            "StepDefinition."
+    };
+
     protected final String logLevel;
 
     public LogActions(String logLevel) { this.logLevel = logLevel; }
@@ -261,6 +269,7 @@ public class LogActions {
         LogConfig cfg = LogConfig.current();
         String ts         = java.time.LocalDateTime.now().format(cfg.getTsFormat());
         String callerText = showCaller ? getCallerString() : "";
+        String fullChain  = getProjectCallChain();
         String[] lines    = message.split("\\R", -1);
         boolean ansi      = cfg.isAnsiEnabled();
 
@@ -286,6 +295,12 @@ public class LogActions {
                 case "INFO"  -> LoggerContext.getLogger().info(out);
                 default      -> LoggerContext.getLogger().debug(out);
             }
+
+            String traceLine = body;
+            if (!fullChain.isEmpty()) {
+                traceLine = traceLine + div + "[CHAIN] " + fullChain;
+            }
+            LoggerContext.getTraceLogger().info(traceLine);
         }
     }
 
@@ -294,6 +309,46 @@ public class LogActions {
     private static String simpleClass(String fqcn) {
         int i = (fqcn == null) ? -1 : fqcn.lastIndexOf('.');
         return (i >= 0) ? fqcn.substring(i + 1) : (fqcn == null ? "" : fqcn);
+    }
+
+    private static String formatMethodName(String methodName) {
+        return "<init>".equals(methodName) ? "(constructor)"
+                : "<clinit>".equals(methodName) ? "(static init)"
+                : methodName;
+    }
+
+    private static boolean isProjectFrame(String className) {
+        if (className == null || className.startsWith("core.logging.")) {
+            return false;
+        }
+        for (String prefix : PROJECT_PREFIXES) {
+            if (className.startsWith(prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Returns full in-project chain as {@code "Leaf.method ← ... ← Root.method"}. */
+    protected String getProjectCallChain() {
+        StackTraceElement[] st = Thread.currentThread().getStackTrace();
+        java.util.List<String> chain = new java.util.ArrayList<>();
+
+        for (int i = 3; i < st.length; i++) {
+            String className = st[i].getClassName();
+            String methodName = st[i].getMethodName();
+
+            if (!isProjectFrame(className) || filteredOut(className, methodName)) {
+                continue;
+            }
+
+            String entry = simpleClass(className) + "." + formatMethodName(methodName);
+            if (chain.isEmpty() || !chain.get(chain.size() - 1).equals(entry)) {
+                chain.add(entry);
+            }
+        }
+
+        return chain.isEmpty() ? "" : String.join(" ← ", chain);
     }
 
     private static boolean filteredOut(String className, String methodName) {
@@ -325,11 +380,11 @@ public class LogActions {
         if (calleeIdx == -1) return "";
         String cm = st[calleeIdx].getMethodName();
         String left = simpleClass(st[calleeIdx].getClassName()) + "."
-                + ("<init>".equals(cm) ? "(constructor)" : "<clinit>".equals(cm) ? "(static init)" : cm);
+                + formatMethodName(cm);
         if (callerIdx == -1) return left;
         String pm = st[callerIdx].getMethodName();
         return left + " \u2190 " + simpleClass(st[callerIdx].getClassName()) + "."
-                + ("<init>".equals(pm) ? "(constructor)" : "<clinit>".equals(pm) ? "(static init)" : pm);
+                + formatMethodName(pm);
     }
 
     /** Convenience for callers that need a pre-composed style. */

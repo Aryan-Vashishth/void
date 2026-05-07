@@ -6,6 +6,7 @@ import core.logging.CustomLogger;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
@@ -18,6 +19,11 @@ import java.util.Set;
  * <p>Prefer {@link LogConfig} directly in new code.</p>
  */
 public final class LoggerContext {
+
+    private static final String RUN_ID_PROPERTY = "void.runId";
+    private static final String RUN_DATE_PROPERTY = "void.runDate";
+    private static final DateTimeFormatter RUN_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter RUN_ID_FMT = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
 
     private LoggerContext() {}
 
@@ -38,14 +44,49 @@ public final class LoggerContext {
 
     public static String truncateCell(String s) { return LogConfig.current().truncateCell(s); }
 
-    // â”€â”€ Log4j logger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â”€â”€ Log4j logger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+    private static final String RUN_ID = initializeRunId();
+    private static final String RUN_DATE = initializeRunDate();
     private static volatile Logger log = LogManager.getLogger(CustomLogger.class);
+    private static volatile Logger traceLog = LogManager.getLogger("trace");
+
+    private static String initializeRunDate() {
+        String existing = System.getProperty(RUN_DATE_PROPERTY);
+        if (existing != null && !existing.isBlank()) {
+            return existing;
+        }
+
+        String generated = LocalDateTime.now().format(RUN_DATE_FMT);
+        System.setProperty(RUN_DATE_PROPERTY, generated);
+        return generated;
+    }
+
+    private static String initializeRunId() {
+        String existing = System.getProperty(RUN_ID_PROPERTY);
+        if (existing != null && !existing.isBlank()) {
+            return existing;
+        }
+
+        String generated = LocalDateTime.now().format(RUN_ID_FMT)
+                + "-pid" + ProcessHandle.current().pid();
+        System.setProperty(RUN_ID_PROPERTY, generated);
+        return generated;
+    }
+
+    public static String getRunId() {
+        return RUN_ID;
+    }
+
+    public static String getRunDate() {
+        return RUN_DATE;
+    }
 
     public static void   initLogger(Class<?> clazz) {
         log = (clazz != null) ? LogManager.getLogger(clazz) : LogManager.getLogger(CustomLogger.class);
     }
     public static Logger getLogger() { return (log != null) ? log : LogManager.getLogger(CustomLogger.class); }
+    public static Logger getTraceLogger() { return (traceLog != null) ? traceLog : LogManager.getLogger("trace"); }
     public static boolean isDebugEnabled() { return getLogger().isDebugEnabled(); }
 
     // â”€â”€ ANSI / caller-color delegates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
