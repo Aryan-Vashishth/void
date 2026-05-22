@@ -28,7 +28,7 @@ You describe what should happen. VOID handles how — and tells you exactly when
 
 ```bash
 git clone https://github.com/Aryan-Vashishth/void.git
-cd void-framework
+cd void
 mvn -B test -Dtest=VoidDemo
 ```
 
