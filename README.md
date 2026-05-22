@@ -42,13 +42,13 @@ Expected output:
 [VOID] -> click(LOGIN_BUTTON)
 [VOID] Flow end: login (3 actions, 1.2s)
 ```
-
+<!--
 Sample report snapshot:
 
 ![Allure sample report](docs/images/allure-report-sample.png)
 
 [View sample Allure report](docs/images/allure-report-sample.png)
-
+-->
 ---
 
 ## TL;DR
