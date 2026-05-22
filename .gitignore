@@ -17,6 +17,10 @@ bin/
 .idea/
 *.iml
 
+# Local classpath dumps
+cp.txt
+*.classpath.txt
+
 # OS junk
 .DS_Store
 Thumbs.db
