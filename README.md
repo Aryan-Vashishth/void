@@ -20,6 +20,37 @@ You describe what should happen. VOID handles how — and tells you exactly when
 
 ---
 
+## Architecture
+
+![VOID execution pipeline](docs/images/architecture.png)
+
+## Run the demo
+
+```bash
+git clone https://github.com/Aryan-Vashishth/void-framework.git
+cd void-framework
+mvn -B test -Dtest=VoidDemo
+```
+
+Expected output:
+
+```text
+[VOID] Engine: SeleniumEngine
+[VOID] Flow start: login
+[VOID] -> type(USERNAME_INPUT, "tomsmith")
+[VOID] -> type(PASSWORD_INPUT, "******")
+[VOID] -> click(LOGIN_BUTTON)
+[VOID] Flow end: login (3 actions, 1.2s)
+```
+
+Sample report snapshot:
+
+![Allure sample report](docs/images/allure-report-sample.png)
+
+[View sample Allure report](docs/images/allure-report-sample.png)
+
+---
+
 ## TL;DR
 
 ```java
@@ -368,7 +399,7 @@ This mirrors `src/main/java/tests/demo/VoidDemo.java`.
 | `docs/architecture/quick-start.md` | Getting started walkthrough |
 | `docs/architecture/system-overview.md` | Architecture and execution flow |
 | `docs/architecture/configuration-reference.md` | Config keys and behavior |
-| `docs/5-architecture/logging-reference.md` | Log channels, folder layout, and trace depth |
+| `docs/architecture/logging-reference.md` | Log channels, folder layout, and trace depth |
 | `docs/architecture/locator-resolution.md` | Locator roles and resolution pipeline |
 | `docs/architecture/hooks-pipeline.md` | Hook behavior and composition |
 | `docs/audits/architecture-audit-2026-05.md` | Current architecture audit |

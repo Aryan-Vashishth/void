@@ -24,3 +24,6 @@ cp.txt
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Internal notes
+.notes/
