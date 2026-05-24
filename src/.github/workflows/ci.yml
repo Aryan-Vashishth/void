@@ -1,0 +1,39 @@
+name: ci.yml
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  backend-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Run unit tests
+        run: mvn test
+
+#  ui-tests:
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - uses: actions/setup-java@v4
+#        with:
+#          distribution: temurin
+#          java-version: 21
+#          cache: maven
+#
+#      - name: Run Selenium tests
+#        run: mvn test -Dgroups=ui
