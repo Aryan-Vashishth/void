@@ -5,6 +5,8 @@ import core.logging.config.LoggerContext;
 import core.logging.intent.LogIntent;
 import core.logging.theme.BuiltInThemes;
 
+import org.apache.logging.log4j.Level;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,21 +51,21 @@ public class LogActions {
     public void frame(String message)      { logMessage(LogIntent.NAVIGATION,  "FRAME [{}]",      message); }
     public void breadcrumb(String message) { logMessage(LogIntent.NAVIGATION,  "BREADCRUMB [/]",  message); }
 
-    // ── OBSERVE group ─────────────────────────────────────────────────────────
+    // ── OBSERVE group ────────────────────────────────────────────────────────[...]
     public void wait(String message)       { logMessage(LogIntent.OBSERVE,     "WAIT [~]",        message); }
     public void search(String message)     { logMessage(LogIntent.OBSERVE,     "SEARCHED [*]",    message); }
     public void result(String message)     { logMessage(LogIntent.OBSERVE,     "RESULT [:]",      message); }
 
-    // ── DATA group ────────────────────────────────────────────────────────────
+    // ── DATA group ─────────────────────────────────────────────────────────[...]
     public void table(String message)      { logMessage(LogIntent.DATA,        "TABLE [=]",       message); }
     public void grid(String message)       { logMessage(LogIntent.DATA,        "GRID [#]",        message); }
 
-    // ── SUCCESS group ─────────────────────────────────────────────────────────
+    // ── SUCCESS group ────────────────────────────────────────────────────────[...]
     public void success(String message)    { logMessage(LogIntent.SUCCESS,     "SUCCESS [+]",     message); }
     public void complete(String message)   { logMessage(LogIntent.SUCCESS,     "COMPLETE [+]",    message); }
     public void resolved(String message)   { logMessage(LogIntent.SUCCESS,     "RESOLVED [ok]",   message); }
 
-    // ── ALERT group ───────────────────────────────────────────────────────────
+    // ── ALERT group ──────────────────────────────────────────────────────────[...]
     public void error(String message)      { logMessage(LogIntent.ALERT,       "ERROR [x]",       message); }
     public void failed(String message)     { logMessage(LogIntent.ALERT,       "FAILED [x]",      message); }
     public void timeout(String message)    { logMessage(LogIntent.ALERT,       "TIMEOUT [!!]",    message); }
@@ -255,7 +257,7 @@ public class LogActions {
         }
     }
 
-    // ── Core rendering ────────────────────────────────────────────────────────
+    // ── Core rendering ───────────────────────────────────────────────────────[...]
 
     protected void logMessage(LogIntent intent, String actionLabel, String message) {
         logMultiline(BuiltInThemes.getColors().resolve(logLevel, intent),
@@ -327,6 +329,11 @@ public class LogActions {
     }
 
     private void emitGitHubWorkflowNotice(String plainLine, LogIntent intent) {
+        // Only emit GitHub workflow notices if the log level is actually enabled
+        if (!isLogLevelEnabled()) {
+            return;
+        }
+
         String command = null;
         if ("ERROR".equals(logLevel) || LogIntent.ALERT.equals(intent)) {
             command = "error";
@@ -339,6 +346,18 @@ public class LogActions {
             return;
         }
         System.out.println("::" + command + "::" + escapeGitHubWorkflowText(plainLine));
+    }
+
+    /** Helper: check if this log level is enabled in Log4j 2. */
+    private boolean isLogLevelEnabled() {
+        Level level = switch (logLevel) {
+            case "ERROR" -> Level.ERROR;
+            case "WARN"  -> Level.WARN;
+            case "INFO"  -> Level.INFO;
+            case "DEBUG" -> Level.DEBUG;
+            default      -> Level.INFO;
+        };
+        return LoggerContext.getLogger().isEnabled(level);
     }
 
     private static String escapeGitHubWorkflowText(String text) {
@@ -436,4 +455,3 @@ public class LogActions {
         return BuiltInThemes.getColors().resolve(logLevel, LogIntent.BASE);
     }
 }
-
