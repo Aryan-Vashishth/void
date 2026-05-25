@@ -20,6 +20,9 @@ import static core.logging.ansi.AnsiColors.*;
  */
 public class LogActions {
 
+    private static final boolean IS_GITHUB_ACTIONS =
+            "true".equalsIgnoreCase(System.getenv("GITHUB_ACTIONS"));
+
     private static final String[] PROJECT_PREFIXES = {
             "core.",
             "dsl.",
@@ -256,15 +259,15 @@ public class LogActions {
 
     protected void logMessage(LogIntent intent, String actionLabel, String message) {
         logMultiline(BuiltInThemes.getColors().resolve(logLevel, intent),
-                     actionLabel, message, LoggerContext.isDebugEnabled());
+                     actionLabel, message, LoggerContext.isDebugEnabled(), intent);
     }
 
     protected void logMessage(String actionColor, String actionLabel, String message) {
-        logMultiline(actionColor, actionLabel, message, LoggerContext.isDebugEnabled());
+        logMultiline(actionColor, actionLabel, message, LoggerContext.isDebugEnabled(), null);
     }
 
     protected void logMultiline(String actionColor, String actionLabel,
-                                String message, boolean showCaller) {
+                                String message, boolean showCaller, LogIntent intent) {
         if (message == null) message = "null";
         LogConfig cfg = LogConfig.current();
         String ts         = java.time.LocalDateTime.now().format(cfg.getTsFormat());
@@ -315,7 +318,34 @@ public class LogActions {
                 traceLine = traceLine + div + "[CHAIN] " + fullChain;
             }
             LoggerContext.getTraceLogger().info(traceLine);
+
+            if (IS_GITHUB_ACTIONS) {
+                String cp = (i == 0 && !callerText.isEmpty()) ? div + callerText : "";
+                emitGitHubWorkflowNotice(body + cp, intent);
+            }
         }
+    }
+
+    private void emitGitHubWorkflowNotice(String plainLine, LogIntent intent) {
+        String command = null;
+        if ("ERROR".equals(logLevel) || LogIntent.ALERT.equals(intent)) {
+            command = "error";
+        } else if ("WARN".equals(logLevel)) {
+            command = "warning";
+        } else if ("DEBUG".equals(logLevel)) {
+            command = "notice";
+        }
+        if (command == null || plainLine == null || plainLine.isBlank()) {
+            return;
+        }
+        System.out.println("::" + command + "::" + escapeGitHubWorkflowText(plainLine));
+    }
+
+    private static String escapeGitHubWorkflowText(String text) {
+        return text
+                .replace("%", "%25")
+                .replace("\r", "%0D")
+                .replace("\n", "%0A");
     }
 
     // ── Caller resolution ─────────────────────────────────────────────────────
