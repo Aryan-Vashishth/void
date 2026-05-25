@@ -20,7 +20,7 @@ jobs:
           cache: maven
 
       - name: Run unit tests
-        run: mvn test
+        run: mvn test -Dvoid.rootLogLevel=WARN
 
 #  ui-tests:
 #
