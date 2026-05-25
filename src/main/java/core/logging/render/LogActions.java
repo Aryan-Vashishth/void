@@ -322,8 +322,7 @@ public class LogActions {
             LoggerContext.getTraceLogger().info(traceLine);
 
             if (IS_GITHUB_ACTIONS) {
-                String cp = (i == 0 && !callerText.isEmpty()) ? div + callerText : "";
-                emitGitHubWorkflowNotice(body + cp, intent);
+                emitGitHubWorkflowNotice(ts + div + lines[i], intent);
             }
         }
     }
