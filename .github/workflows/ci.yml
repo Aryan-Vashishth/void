@@ -1,4 +1,4 @@
-name: ci.yml
+name: CI
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
           cache: maven
 
       - name: Run unit tests
-        run: mvn test -Dvoid.rootLogLevel=WARN
+        run: mvn -B test -Dvoid.rootLogLevel=WARN
 
 #  ui-tests:
 #
