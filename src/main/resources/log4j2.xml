@@ -4,6 +4,8 @@
         <Property name="voidLogDir">${sys:void.logDir:-./logs}</Property>
         <Property name="voidRunId">${sys:void.runId:-startup}</Property>
         <Property name="voidRunDate">${sys:void.runDate:-unknown-date}</Property>
+        <Property name="voidRootLogLevel">${sys:void.rootLogLevel:-DEBUG}</Property>
+
         <Property name="voidDateLogDir">${voidLogDir}/${voidRunDate}</Property>
         <Property name="voidDebugLogDir">${voidDateLogDir}/debug-trace</Property>
         <Property name="voidPartialLogDir">${voidDateLogDir}/partial-trace</Property>
@@ -56,12 +58,27 @@
     </Appenders>
 
     <Loggers>
+
         <!-- Suppress noisy framework loggers -->
-        <Logger name="io.github.bonigarcia"    level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
-        <Logger name="org.seleniumhq.selenium" level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
-        <Logger name="io.cucumber"             level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
-        <Logger name="org.apache.http"         level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
-        <Logger name="io.opentelemetry"        level="WARN" additivity="false"><AppenderRef ref="Console"/></Logger>
+        <Logger name="io.github.bonigarcia" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger name="org.seleniumhq.selenium" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger name="io.cucumber" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger name="org.apache.http" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger name="io.opentelemetry" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
 
         <Logger name="debug-trace" level="DEBUG" additivity="false">
             <AppenderRef ref="DebugTraceFile"/>
@@ -77,9 +94,9 @@
         </Logger>
 
         <!-- Root: console only; file traces are routed via dedicated loggers -->
-        <Root level="DEBUG">
+        <Root level="${voidRootLogLevel}">
             <AppenderRef ref="Console"/>
         </Root>
+
     </Loggers>
 </Configuration>
-
