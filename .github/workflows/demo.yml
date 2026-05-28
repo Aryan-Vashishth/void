@@ -45,10 +45,19 @@ jobs:
           distribution: temurin
           cache: maven
 
-      # Chrome is pre-installed on ubuntu-latest.
+      - name: Setup Chrome + ChromeDriver
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+        id: setup-chrome
+
       # Print version for traceability.
       - name: Browser info
-        run: google-chrome --version
+        run: |
+          echo "Chrome:      ${{ steps.setup-chrome.outputs.chrome-path }}"
+          echo "ChromeDriver: ${{ steps.setup-chrome.outputs.chromedriver-path }}"
+          "${{ steps.setup-chrome.outputs.chrome-path }}" --version
+          "${{ steps.setup-chrome.outputs.chromedriver-path }}" --version
 
       - name: Run VoidDemo
         run: |
@@ -57,11 +66,12 @@ jobs:
             -Dbrowser=${{ github.event.inputs.browser || 'chrome' }} \
             -Dheadless=true \
             -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu \
-            -Dmaximize=false
+            -Dmaximize=false \
+            -DchromeBinary="${{ steps.setup-chrome.outputs.chrome-path }}"
         env:
-          # Prevents Selenium Manager from trying to download a driver binary
-          # on agents that already have the browser/driver pre-installed.
-          SE_MANAGER_PATH: ""
+          # Tell Selenium Manager where ChromeDriver lives so it doesn't
+          # attempt a network download that may fail on the runner.
+          SE_CHROMEDRIVER: ${{ steps.setup-chrome.outputs.chromedriver-path }}
 
       - name: Upload surefire report on failure
         if: failure()
@@ -78,4 +88,3 @@ jobs:
           name: void-logs
           path: logs/
           if-no-files-found: ignore
-
