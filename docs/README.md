@@ -13,6 +13,7 @@ This directory contains only public, stable documentation.
 
 - `architecture/quick-start.md`
 - `architecture/system-overview.md`
+- `architecture/core-packages.md` — detailed reference for every `core/` sub-package
 - `architecture/configuration-reference.md`
 - `architecture/logging-reference.md`
 - `architecture/locator-resolution.md`
