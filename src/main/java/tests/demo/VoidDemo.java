@@ -1,13 +1,11 @@
 package tests.demo;
 
 import core.engine.LocatorDescriptor;
-import core.engine.UIEngine;
 import core.flow.Flow;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
-import core.executor.FlowExecutor;
 import core.runtime.VOID;
 import elements.meta.ElementRole;
 import tests.demo.pages.DemoLoginPage;
@@ -25,9 +23,10 @@ import static core.logging.CustomLogger.*;
 /**
  * VOID Framework — Quick Start Demo (TestNG).
  *
- * <p>Demonstrates both the plain Action/Flow/FlowExecutor pattern and the fluent
- * {@code .withHooks(before, after)} pipeline with before/after hooks.
- * Targets the public demo site:
+ * <p>Demonstrates the session-façade pattern: all interactions go through
+ * the {@code VOID} session object — no direct engine or executor access.</p>
+ *
+ * <p>Targets the public demo site:
  * <a href="https://the-internet.herokuapp.com/login">the-internet.herokuapp.com</a></p>
  *
  * <p>Run via TestNG or: {@code mvn test -Dtest=tests.demo.VoidDemo}</p>
@@ -39,8 +38,6 @@ public class VoidDemo {
     private static final String VALID_PASSWORD = "SuperSecretPassword!";
 
     private VOID app;
-    private UIEngine engine;
-    private FlowExecutor executor;
 
     @BeforeClass
     public void setUp() {
@@ -52,31 +49,29 @@ public class VoidDemo {
         info.log("|       VOID Framework -- Quick Start Demo        |");
         info.log("==================================================");
 
-        // Start VOID (bootstraps framework + creates browser via DriverFactory)
-        info.log("[SETUP] Starting VOID framework...");
+        info.log("[SETUP] Starting VOID session...");
         app = VOID.start();
-        engine = app.getEngine();
-        executor = new FlowExecutor(engine);
-        info.success("VOID started, engine: " + engine.getEngineName());
+        info.success("VOID session started — engine: " + app.getEngine().getEngineName());
     }
 
     /**
-     * Plain login — no hooks. Shows the basic Action / Flow / FlowExecutor pattern.
+     * Plain login — no hooks. Shows the session-façade pattern:
+     * {@code app.navigateTo()}, {@code app.run(flow)}, {@code app.getCurrentUrl()}.
      */
     @Test
     public void loginWithValidCredentials() {
-        // Navigate to the login page
+        // Navigate via session façade
         info.log("[1/3] Navigating to: " + TARGET_URL);
-        engine.navigateTo(TARGET_URL);
-        info.success("Page loaded. Current URL: " + engine.getCurrentUrl());
+        app.navigateTo(TARGET_URL);
+        info.success("Page loaded. Current URL: " + app.getCurrentUrl());
 
-        // Execute login flow using Action / Flow / FlowExecutor pattern
+        // Execute login flow via session façade
         info.log("[2/3] Executing login flow...");
         debug.log("--> Typing username: " + VALID_USERNAME);
         debug.log("--> Typing password: ********");
         debug.log("--> Clicking Login button");
 
-        executor.run(Flow.of(
+        app.run(Flow.of(
                 DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
@@ -84,12 +79,9 @@ public class VoidDemo {
 
         info.success("Flow executed successfully.");
 
-        // Wait for navigation, then verify we landed on the secure page
+        // Verify via session façade — engine resolves/waits internally
         info.log("[3/3] Verifying result...");
-        LocatorDescriptor successMsg = engine.resolve(
-                DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
-        engine.waitForVisible(successMsg, Duration.ofSeconds(5));
-        String currentUrl = engine.getCurrentUrl();
+        String currentUrl = app.getCurrentUrl();
         debug.log("Current URL: " + currentUrl);
 
         Assert.assertTrue(currentUrl.contains("/secure"),
@@ -98,11 +90,11 @@ public class VoidDemo {
     }
 
     /**
-     * Hooked login — demonstrates the fluent {@code .withHooks(before, after)} API
-     * with before/after hook chains.
+     * Hooked login — demonstrates the fluent {@code .withHooks(before, after)} API.
      *
-     * <p>Each action is composed with hooks that receive the element's
-     * {@code LocatorDescriptor} explicitly — no global state involved.</p>
+     * <p>Custom hook lambdas receive a {@code UIEngine} parameter — this is the
+     * designated way for hooks to interact with the engine within the Action pipeline.
+     * Test code itself remains engine-free; only the hooks touch the engine.</p>
      *
      * <h3>Hook pipeline per action</h3>
      * <pre>
@@ -113,38 +105,30 @@ public class VoidDemo {
      */
     @Test(dependsOnMethods = "loginWithValidCredentials")
     public void loginWithHookedActions() {
-        // Navigate back to login
         info.log("[HOOKED 1/3] Navigating to: " + TARGET_URL);
-        engine.navigateTo(TARGET_URL);
+        app.navigateTo(TARGET_URL);
 
-        // Build a login flow with hooks around every action:
-        //   - Before type: clear field + highlight (red)
-        //   - After type:  highlight (green = success)
-        //   - Before click: wait for clickable + highlight
-        //   - After click:  custom hook waits for success message (demonstrates inline lambdas)
         info.log("[HOOKED 2/3] Executing hooked login flow...");
 
-        executor.run(Flow.of(
-                // Type username — with clear + highlight hooks
+        app.run(Flow.of(
                 DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME)
                         .withHooks(
                                 List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
                                 List.of(After.HIGHLIGHT_ELEMENT)),
 
-                // Type password — with clear + highlight hooks
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD)
                         .withHooks(
                                 List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
                                 List.of(After.HIGHLIGHT_ELEMENT)),
 
-                // Click login — wait for clickable, then wait for success message after
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
                         .withHooks(
                                 List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
                                 List.of(
-                                        // Custom inline hook: wait for the success message after login click.
-                                        // Demonstrates: hooks can resolve other elements via the engine,
-                                        // not just the descriptor they receive.
+                                        // Custom inline hook: wait for success message after login click.
+                                        // Hooks receive the engine as a parameter — this is the intended
+                                        // way for hooks to perform engine-level operations without
+                                        // exposing the engine to test code.
                                         (eng, desc) -> {
                                             LocatorDescriptor successMsg = eng.resolve(
                                                     DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
@@ -156,9 +140,8 @@ public class VoidDemo {
 
         info.success("Hooked flow executed successfully.");
 
-        // Verify result
         info.log("[HOOKED 3/3] Verifying result...");
-        String currentUrl = engine.getCurrentUrl();
+        String currentUrl = app.getCurrentUrl();
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
         info.success("HOOKED LOGIN PASSED — Redirected to secure area.");
@@ -166,7 +149,7 @@ public class VoidDemo {
 
     @AfterClass(alwaysRun = true)
     public void tearDown() {
-        info.log("[TEARDOWN] Shutting down VOID...");
+        info.log("[TEARDOWN] Shutting down VOID session...");
         if (app != null) {
             app.shutdown();
         }
