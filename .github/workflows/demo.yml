@@ -45,19 +45,36 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Setup Chrome + ChromeDriver
+      - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
         id: setup-chrome
 
+      - name: Install matching ChromeDriver
+        run: |
+          VERSION="${{ steps.setup-chrome.outputs.chrome-version }}"
+          MAJOR="${VERSION%%.*}"
+          DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${VERSION}/linux64/chromedriver-linux64.zip"
+          # Fall back to LATEST_RELEASE_<major> if exact version is unavailable
+          if ! curl --silent --head --fail "$DRIVER_URL" > /dev/null; then
+            VERSION=$(curl -sf "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${MAJOR}")
+            DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${VERSION}/linux64/chromedriver-linux64.zip"
+          fi
+          echo "Downloading ChromeDriver ${VERSION} from ${DRIVER_URL}"
+          curl -Lo /tmp/chromedriver.zip "$DRIVER_URL"
+          unzip -q /tmp/chromedriver.zip -d /tmp/
+          chmod +x /tmp/chromedriver-linux64/chromedriver
+          echo "CHROMEDRIVER=/tmp/chromedriver-linux64/chromedriver" >> "$GITHUB_ENV"
+
       # Print version for traceability.
       - name: Browser info
         run: |
-          echo "Chrome:      ${{ steps.setup-chrome.outputs.chrome-path }}"
-          echo "ChromeDriver: ${{ steps.setup-chrome.outputs.chromedriver-path }}"
+          echo "Chrome path:      ${{ steps.setup-chrome.outputs.chrome-path }}"
+          echo "Chrome version:   ${{ steps.setup-chrome.outputs.chrome-version }}"
+          echo "ChromeDriver:     $CHROMEDRIVER"
           "${{ steps.setup-chrome.outputs.chrome-path }}" --version
-          "${{ steps.setup-chrome.outputs.chromedriver-path }}" --version
+          "$CHROMEDRIVER" --version
 
       - name: Run VoidDemo
         run: |
@@ -71,7 +88,7 @@ jobs:
         env:
           # Tell Selenium Manager where ChromeDriver lives so it doesn't
           # attempt a network download that may fail on the runner.
-          SE_CHROMEDRIVER: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+          SE_CHROMEDRIVER: ${{ env.CHROMEDRIVER }}
 
       - name: Upload surefire report on failure
         if: failure()
