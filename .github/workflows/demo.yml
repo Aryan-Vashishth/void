@@ -1,0 +1,81 @@
+name: VoidDemo
+
+# Runs the quick-start browser demo against the-internet.herokuapp.com/login.
+# Triggered manually or on every push to main.
+# NOT triggered on PRs — browser tests require a real network and take ~60 s.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Re-run when demo code, locators, engine, or facade changes
+      - 'src/main/java/tests/demo/**'
+      - 'src/main/java/core/runtime/VOID.java'
+      - 'src/main/java/core/engine/**'
+      - 'src/main/java/core/executor/**'
+      - 'src/main/java/core/flow/**'
+      - 'src/main/java/core/actions/**'
+      - 'src/main/resources/locators/**'
+      - 'src/testNgXml/void-demo.xml'
+      - '.github/workflows/demo.yml'
+
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to use'
+        required: false
+        default: 'chrome'
+        type: choice
+        options: [chrome, firefox, edge]
+
+jobs:
+  demo:
+    name: VoidDemo — ${{ github.event.inputs.browser || 'chrome' }} (headless)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      # Chrome is pre-installed on ubuntu-latest.
+      # Print version for traceability.
+      - name: Browser info
+        run: google-chrome --version
+
+      - name: Run VoidDemo
+        run: |
+          mvn -B -ntp test \
+            -Dsurefire.suiteXmlFiles=src/testNgXml/void-demo.xml \
+            -Dbrowser=${{ github.event.inputs.browser || 'chrome' }} \
+            -Dheadless=true \
+            -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu \
+            -Dmaximize=false
+        env:
+          # Prevents Selenium Manager from trying to download a driver binary
+          # on agents that already have the browser/driver pre-installed.
+          SE_MANAGER_PATH: ""
+
+      - name: Upload surefire report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-report
+          path: target/surefire-reports/
+          if-no-files-found: ignore
+
+      - name: Upload VOID logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: void-logs
+          path: logs/
+          if-no-files-found: ignore
+

@@ -13,6 +13,7 @@ Elements emit actions, actions form flows, and `FlowExecutor` runs those flows t
 You describe what should happen. VOID handles how — and tells you exactly when it can’t.
 
 [![CI](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml)
+[![Demo](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml)
 ![Java](https://img.shields.io/badge/Java-17+-blue?logo=openjdk)
 ![Selenium](https://img.shields.io/badge/Selenium-4.38-green?logo=selenium)
 ![Playwright](https://img.shields.io/badge/Playwright-Ready-45ba63?logo=playwright)

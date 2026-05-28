@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="VoidDemoSuite" verbose="2">
+
+    <!--
+        Runs the VOID Quick Start Demo against the-internet.herokuapp.com/login.
+
+        Requires a real browser (Chrome headless in CI).
+        Not included in the default unit-test suite (testng.xml).
+
+        Run locally:
+            mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/void-demo.xml
+
+        Run in CI:
+            Uses .github/workflows/demo.yml with headless=true
+    -->
+
+    <test name="VoidDemo">
+        <classes>
+            <class name="tests.demo.VoidDemo"/>
+        </classes>
+    </test>
+
+</suite>
+
