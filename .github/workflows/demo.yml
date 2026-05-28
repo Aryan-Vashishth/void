@@ -84,9 +84,10 @@ jobs:
             -Dheadless=true \
             -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu \
             -Dmaximize=false \
-            -DchromeBinary="${{ steps.setup-chrome.outputs.chrome-path }}"
+            -DchromeBinary="${{ steps.setup-chrome.outputs.chrome-path }}" \
+            -Dvoid.rootLogLevel=INFO
         env:
-          # Tell Selenium Manager where ChromeDriver lives so it doesn't
+          SE_CHROMEDRIVER: ${{ env.CHROMEDRIVER }}
           # attempt a network download that may fail on the runner.
           SE_CHROMEDRIVER: ${{ env.CHROMEDRIVER }}
 
