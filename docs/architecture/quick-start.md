@@ -259,52 +259,13 @@ Path file = JsonLocatorMigrator.writeResolvedJson(LoginPageElements.class);
 
 ## 5 — Write a Test
 
-### Modern: Action / Flow / FlowExecutor (Preferred)
+### Modern: VOID Session Façade (Preferred)
 
-This test code stays the same across engines. Select `selenium` or `playwright` at runtime via config/system property.
+Test code stays engine-agnostic. Select `selenium` or `playwright` at runtime via config.
 
 ```java
-import core.engine.UIEngine;
-import core.engine.UIEngineFactory;
 import core.flow.Flow;
-import core.executor.FlowExecutor;
-import core.driver.DriverFactory;
-import org.testng.annotations.*;
-
-public class LoginTest {
-
-    private UIEngine engine;
-    private FlowExecutor executor;
-
-    @BeforeClass
-    public void setUp() {
-        var driver = DriverFactory.build();
-        engine = UIEngineFactory.create(new java.util.Properties(), driver);
-        executor = new FlowExecutor(engine);
-    }
-
-    @Test
-    public void userCanLogIn() {
-        executor.run(Flow.of(
-            LoginPageElements.Credentials.USERNAME_INPUT.type("admin@example.com"),
-            LoginPageElements.Credentials.PASSWORD_INPUT.type("secret"),
-            LoginPageElements.Actions.SIGN_IN_BUTTON.click()
-        ));
-    }
-
-    @AfterClass
-    public void tearDown() {
-        if (engine != null) engine.shutdown();
-    }
-}
-```
-
-### Legacy: Interactions (Backward Compatible)
-
-```java
-import core.bootstrap.VOID;
-import core.interactions.hooks.Before;
-import core.interactions.hooks.After;
+import core.runtime.VOID;
 import org.testng.annotations.*;
 
 public class LoginTest {
@@ -313,25 +274,91 @@ public class LoginTest {
 
     @BeforeClass
     public void setUp() {
-        app = new VOID();
+        app = VOID.start();
     }
 
     @Test
     public void userCanLogIn() {
-        app.interaction().typeInto(LoginPageElements.Credentials.USERNAME_INPUT, "admin@example.com");
-        app.interaction().typeInto(LoginPageElements.Credentials.PASSWORD_INPUT, "secret");
-        app.interaction().clickOn(LoginPageElements.Actions.SIGN_IN_BUTTON);
+        app.navigateTo("https://example.com/login");
+
+        app.run(Flow.of(
+            LoginPageElements.Credentials.USERNAME_INPUT.type("admin@example.com"),
+            LoginPageElements.Credentials.PASSWORD_INPUT.type("secret"),
+            LoginPageElements.Actions.SIGN_IN_BUTTON.click()
+        ));
+
+        assertTrue(app.getCurrentUrl().contains("/dashboard"));
     }
 
-    @Test
-    public void clickWithHooks() {
-        app.interaction().clickOn(
-            java.util.List.of(Before.WAIT_FOR_ANGULAR_LOADER),
-            LoginPageElements.Actions.SIGN_IN_BUTTON,
-            java.util.List.of(After.DO_NOTHING)
-        );
+    @AfterClass
+    public void tearDown() {
+        if (app != null) app.shutdown();
     }
 }
+```
+
+### Multi-Session Test
+
+Each `VOID` instance is a fully independent session. `shutdown()` is session-scoped.
+
+```java
+VOID admin    = VOID.start();
+VOID customer = VOID.start();
+
+admin.navigateTo(ADMIN_URL);
+admin.run(adminLoginFlow);
+
+customer.navigateTo(APP_URL);
+customer.run(customerLoginFlow);
+
+admin.run(createUserFlow);
+
+customer.run(searchUserFlow);
+
+admin.run(approveFlow);
+
+customer.run(verifyApprovalFlow);
+
+admin.shutdown();    // does NOT affect customer session
+customer.shutdown();
+```
+
+### Advanced: Engine Escape Hatch
+
+When engine-specific operations are genuinely needed, use `getEngine()`. Document why.
+
+```java
+// Advanced: custom wait not yet on the facade
+UIEngine engine = app.getEngine();
+engine.waitForVisible(descriptor, Duration.ofSeconds(10));
+```
+
+### Hooks on Actions
+
+Hooks wrap individual actions. They receive the engine as a parameter — this is the
+designated way for hooks to interact with the engine without exposing it to test code.
+
+```java
+app.run(Flow.of(
+    LoginPageElements.Credentials.USERNAME_INPUT.type("admin@example.com")
+        .withHooks(
+            List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
+            List.of(After.HIGHLIGHT_ELEMENT)
+        ),
+    LoginPageElements.Actions.SIGN_IN_BUTTON.click()
+        .withHooks(
+            List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE),
+            List.of(After.HIGHLIGHT_ELEMENT)
+        )
+));
+```
+
+### Legacy: Interactions (Backward Compatible, Deprecated)
+
+```java
+// @Deprecated since 2.1 — use app.run(element.click()) instead
+app.interaction().typeInto(LoginPageElements.Credentials.USERNAME_INPUT, "admin@example.com");
+app.interaction().clickOn(LoginPageElements.Actions.SIGN_IN_BUTTON);
 ```
 
 ### DSL Layer (BDD / Step Definitions)
@@ -407,37 +434,44 @@ Example log line:
 |---------|---------------|
 | **Enum-driven elements** | Every UI element is an enum constant implementing a capability interface (`Clickable`, `Selectable`, `Searchable`, etc.). |
 | **Capability interfaces** | Located in `elements.api.capability.*`. Define what an element CAN DO. Emit deferred `Action` objects. |
-| **Action / Flow / FlowExecutor** | `element.click()` returns `Action` (deferred intent). `Flow.of(...)` composes. `FlowExecutor` executes via `UIEngine`. |
+| **Action / Flow** | `element.click()` returns `Action` (deferred intent). `Flow.of(...)` composes Actions into a sequence. |
+| **`VOID` session** | Primary test object. Owns navigation (`navigateTo`, `getCurrentUrl`, `getTitle`, `refresh`), execution (`run(flow)`, `run(action)`), and lifecycle (`start`, `shutdown`). |
+| **`VOID.run()`** | Preferred execution entry — delegates to the internal `FlowExecutor`. Test code never constructs `FlowExecutor` directly. |
 | **UIEngine** | Single execution authority. Owns scroll, waits, retries, fallback. Engine implementations are selected at runtime (`selenium` / `playwright`). |
+| **`getEngine()`** | Advanced escape hatch. Most tests never need it. Document why when used. |
 | **LocatorDescriptor** | Engine-agnostic locator record. Contains value, strategy, args, optional parent scope. |
 | **External locators** | Locators live in `.properties` or `.json` — never in Java code. |
 | **Role-based resolution** | `LocatorResolvers.strict()` (recommended) resolves locators by `ElementRole`. |
 | **`ResolvableEnum`** | Mixin for name↔label resolution. Add alongside a capability interface for BDD string-to-enum matching. |
-| **Hook pipeline** | `Before.*` / `After.*` hooks for composable pre/post behavior. Used with `Interactions` (legacy) or fluent `.withHooks()` (modern). |
-| **VOID façade** | Legacy entry point. `VoidDSL` for BDD. `FlowExecutor` + `Flow` for new code. |
-| **`Via` helper** | Static utility. Descriptor-based methods preferred over `By`-based (deprecated). |
+| **Hook pipeline** | `Before.*` / `After.*` hooks composed via `.withHooks()`. Hooks receive `(UIEngine, LocatorDescriptor)` — engine-agnostic. |
 
 ---
 
 ## Common Cheat Sheet
 
-### Action / Flow / FlowExecutor
+### Session Façade
 
 ```java
-FlowExecutor executor = new FlowExecutor(engine);
+VOID app = VOID.start();
+
+// Navigation
+app.navigateTo("https://example.com");
+String url   = app.getCurrentUrl();
+String title = app.getTitle();
+app.refresh();
 
 // Single action
-executor.run(LoginPage.SUBMIT.click());
+app.run(LoginPage.SUBMIT.click());
 
 // Flow of actions
-executor.run(Flow.of(
+app.run(Flow.of(
     LoginPage.USERNAME.type("user@example.com"),
     LoginPage.PASSWORD.type("secret"),
     LoginPage.SUBMIT.click()
 ));
 
 // Fluent hooks — before/after composed inline
-executor.run(
+app.run(
     LoginPage.SUBMIT.click()
         .withHooks(
             List.of(Before.WAIT_FOR_ANGULAR_LOADER),
@@ -445,33 +479,58 @@ executor.run(
 );
 
 // Dropdown
-executor.run(MyPage.STATUS_DROPDOWN.select());
+app.run(MyPage.STATUS_DROPDOWN.select());
 
 // Search dropdown
-executor.run(MyPage.GLOBAL_SEARCH.searchAndSelect("Deal Registration"));
+app.run(MyPage.GLOBAL_SEARCH.searchAndSelect("Deal Registration"));
 
 // Checkbox
-executor.run(MyPage.NOTIFICATIONS.set(true));
+app.run(MyPage.NOTIFICATIONS.set(true));
 
 // Type and press Enter
-executor.run(MyPage.SEARCH_INPUT.typeAndPress("query", "ENTER"));
+app.run(MyPage.SEARCH_INPUT.typeAndPress("query", "ENTER"));
 
 // File upload
-executor.run(MyPage.AVATAR_INPUT.upload("/path/to/image.png"));
+app.run(MyPage.AVATAR_INPUT.upload("/path/to/image.png"));
 
 // Table
-executor.run(MyPage.DATA_TABLE.clickAddRow());
+app.run(MyPage.DATA_TABLE.clickAddRow());
+
+// Engine escape hatch (advanced — document why)
+UIEngine engine = app.getEngine();
+
+// Teardown
+app.shutdown();
 ```
 
-### Legacy Interactions
+### Multi-Session
 
 ```java
-VOID app = new VOID();
+VOID admin    = VOID.start();
+VOID customer = VOID.start();
 
+admin.navigateTo(ADMIN_URL);
+admin.run(adminLoginFlow);
+
+customer.navigateTo(APP_URL);
+customer.run(customerLoginFlow);
+
+admin.run(createUserFlow);
+customer.run(searchUserFlow);
+admin.run(approveFlow);
+customer.run(verifyApprovalFlow);
+
+admin.shutdown();    // session-scoped — does NOT affect customer
+customer.shutdown();
+```
+
+### Legacy Interactions (Deprecated since 2.1)
+
+```java
+// @Deprecated — use app.run(element.click()) instead
 app.interaction().clickOn(MyElements.SUBMIT);
 app.interaction().typeInto(MyElements.EMAIL_FIELD, "user@example.com");
 app.interaction().selectFromDropdown(MyElements.AppSwitcher.ADMIN);
-app.interaction().searchFor(MyElements.GlobalSearch.SEARCH, "Deal Registration");
 String name = app.interaction().getText(MyElements.UserCards.FULL_NAME);
 ```
 
@@ -501,12 +560,13 @@ mvn test -Dtest=tests.demo.VoidDemo
 ### What It Demonstrates
 
 1. **`VOID.start()`** — full framework bootstrap (config validation → driver creation → engine init)
-2. **`FlowExecutor` + `Flow.of(...)`** — composable Action pipeline
-3. **Capability interfaces** — `Typeable.type()`, `Clickable.click()` emitting deferred Actions
-4. **Fluent hooks** — `.withHooks(before, after)` for inline hook composition
-5. **External JSON locators** — resolved at execution time by the engine
-6. **`CustomLogger`** — color-coded, call-site-traced output
-7. **`app.shutdown()`** — clean teardown
+2. **`app.navigateTo(url)`** — session-level navigation via the façade
+3. **`app.run(Flow.of(...))`** — composable Action pipeline via the session façade
+4. **Capability interfaces** — `Typeable.type()`, `Clickable.click()` emitting deferred Actions
+5. **Fluent hooks** — `.withHooks(before, after)` for inline hook composition
+6. **External JSON locators** — resolved at execution time by the engine
+7. **`CustomLogger`** — color-coded, call-site-traced output
+8. **`app.shutdown()`** — session-scoped teardown
 
 ---
 

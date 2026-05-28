@@ -17,18 +17,19 @@ This enables interchangeable engines (Selenium, Playwright), composable flows, d
 
 ## Decision Traceability
 
-Architecture in this document is projected from accepted decisions, now archived under `docs/7-archive/decisions/accepted/`:
+Architecture in this document is projected from accepted decisions under `docs/decisions/accepted/`:
 
-- [001 - Remove WebDriverManager](../7-archive/decisions/accepted/001-remove-webdrivermanager.md)
-- [002 - Cucumber as Optional Dependency](../7-archive/decisions/accepted/002-cucumber-optional-dependency.md)
-- [003 - No Compile-Time Code Generation](../7-archive/decisions/accepted/003-no-lombok-no-codegen.md)
-- [004 - Dependency Philosophy](../7-archive/decisions/accepted/004-dependency-philosophy.md)
-- [005 - Logging Architecture](../7-archive/decisions/accepted/005-logging-architecture.md)
-- [006 - Replace JavaFaker with Datafaker](../7-archive/decisions/accepted/006-replace-javafaker-with-datafaker.md)
-- [007 - UIEngine as Single Execution Authority](../7-archive/decisions/accepted/007-uiengine-execution-authority.md)
-- [008 - Capability Interfaces](../7-archive/decisions/accepted/008-capability-interfaces.md)
-- [009 - Action / Flow / FlowExecutor Execution Model](../7-archive/decisions/accepted/009-action-flow-runner.md)
-- [010 - Hook Evolution](../7-archive/decisions/accepted/010-hook-evolution.md)
+- [001 - Remove WebDriverManager](../decisions/accepted/001-remove-webdrivermanager.md)
+- [002 - Cucumber as Optional Dependency](../decisions/accepted/002-cucumber-optional-dependency.md)
+- [003 - No Compile-Time Code Generation](../decisions/accepted/003-no-lombok-no-codegen.md)
+- [004 - Dependency Philosophy](../decisions/accepted/004-dependency-philosophy.md)
+- [005 - Logging Architecture](../decisions/accepted/005-logging-architecture.md)
+- [006 - Replace JavaFaker with Datafaker](../decisions/accepted/006-replace-javafaker-with-datafaker.md)
+- [007 - UIEngine as Single Execution Authority](../decisions/accepted/007-uiengine-execution-authority.md)
+- [008 - Capability Interfaces](../decisions/accepted/008-capability-interfaces.md)
+- [009 - Action / Flow / FlowExecutor Execution Model](../decisions/accepted/009-action-flow-runner.md)
+- [010 - Hook Evolution](../decisions/accepted/010-hook-evolution.md)
+- [011 - VOID as Primary Session Façade](../decisions/accepted/011-void-facade-boundary.md)
 
 ---
 
@@ -95,7 +96,15 @@ Architecture in this document is projected from accepted decisions, now archived
 **Primary path (new code):**
 
 ```
-Element → Action (intent) → Flow (composition) → FlowExecutor (iteration) → UIEngine (execution)
+VOID (session) → FlowExecutor → UIEngine
+     ↑
+Element → Action (intent) → Flow (composition)
+```
+
+Full expansion:
+
+```
+Element → Action → Flow → VOID.run() → FlowExecutor → UIEngine
 ```
 
 **Legacy path (backward compat):**
@@ -104,7 +113,14 @@ Element → Action (intent) → Flow (composition) → FlowExecutor (iteration) 
 Element → Interactions (frozen orchestrator) → UIEngine (execution)
 ```
 
-**`Interactions`** is a **frozen legacy orchestrator** — preserved for backward compatibility with existing step definitions and page objects. No new features should be added there. New development should use the Action/Flow/FlowExecutor pipeline.
+**`VOID`** is the primary test-facing session object:
+- `VOID.navigateTo(url)` — session-level navigation
+- `VOID.getCurrentUrl()` / `VOID.getTitle()` / `VOID.refresh()` — session-level queries
+- `VOID.run(Flow)` / `VOID.run(Action)` — execution via internal FlowExecutor
+- `VOID.getEngine()` — advanced escape hatch (most tests never need this)
+- `VOID.shutdown()` — session-scoped teardown (only this session's browser is closed)
+
+**`Interactions`** is a **frozen legacy orchestrator** — preserved for backward compatibility with existing step definitions and page objects. No new features should be added there. New development uses the VOID session façade.
 
 **`UIEngine`** is the single execution authority:
 - Resolves `LocatorDescriptor` to native locators
@@ -279,15 +295,19 @@ void-framework/
 
 ## ⚙️ Execution Flow
 
-### Primary Path: Action / Flow / FlowExecutor
+### Primary Path: VOID Session Façade
 
 ```
-1. Page enum        → element.click() / element.type("text")     ← returns Action (deferred)
-2. Flow             → Flow.of(action1, action2, action3)         ← groups Actions
-3. FlowExecutor     → executor.run(flow)                         ← iterates
-4. Action lambda    → engine.resolve(this, ROLE)                 ← resolves LocatorDescriptor
-5. UIEngine         → engine.click(descriptor)                   ← executes (scroll, wait, retry internal)
-6. Logging          → CustomLogger emits color-coded output
+1. VOID.start()         → bootstrap → driver → engine → VOID session ready
+2. app.navigateTo(url)  → engine.navigateTo(url)
+3. Page enum            → element.click() / element.type("text")     ← returns Action (deferred)
+4. Flow                 → Flow.of(action1, action2, action3)         ← groups Actions
+5. app.run(flow)        → FlowExecutor.run(flow) (internal)          ← iterates
+6. Action lambda        → engine.resolve(this, ROLE)                 ← resolves LocatorDescriptor
+7. UIEngine             → engine.click(descriptor)                   ← executes (scroll, wait, retry internal)
+8. Logging              → CustomLogger emits color-coded output
+9. app.getCurrentUrl()  → engine.getCurrentUrl()                     ← session-level query
+10. app.shutdown()      → engine.shutdown() + DriverContext cleanup   ← session-scoped
 ```
 
 ### Legacy Path: Interactions (Frozen)
@@ -305,44 +325,57 @@ void-framework/
 
 ## 🧠 Example Usage
 
-### Modern: Action / Flow / FlowExecutor
+### Session Façade (Preferred)
 
 ```java
-import elements.api.capability.Clickable;
-import elements.api.capability.Typeable;
 import core.flow.Flow;
-import core.executor.FlowExecutor;
+import core.runtime.VOID;
 
-// Define elements
-enum LoginField implements Typeable {
-    USERNAME("USERNAME_INPUT"), PASSWORD("PASSWORD_INPUT");
-    private final String key; LoginField(String k) { this.key = k; }
-    @Override public String getExternalFileName() { return "login.properties"; }
-    @Override public String getInputLocator()     { return key; }
-    @Override public Object[] getArgs()           { return new Object[0]; }
-}
+VOID app = VOID.start();
 
-enum LoginButton implements Clickable {
-    SUBMIT("SIGN_IN_BTN");
-    private final String key; LoginButton(String k) { this.key = k; }
-    @Override public String getExternalFileName() { return "login.properties"; }
-    @Override public String getTriggerLocator()   { return key; }
-    @Override public Object[] getArgs()           { return new Object[0]; }
-}
+app.navigateTo("https://example.com/login");
 
-// Execute
-FlowExecutor executor = new FlowExecutor(engine);
-executor.run(Flow.of(
+app.run(Flow.of(
     LoginField.USERNAME.type("admin@example.com"),
     LoginField.PASSWORD.type("secret"),
     LoginButton.SUBMIT.click()
 ));
+
+assertTrue(app.getCurrentUrl().contains("/dashboard"));
+String title = app.getTitle();
+
+app.shutdown();
 ```
 
-### Legacy: Interactions (Backward Compat)
+### Multi-Session
 
 ```java
-VOID app = new VOID();
+VOID admin    = VOID.start();
+VOID customer = VOID.start();
+
+admin.navigateTo(ADMIN_URL);
+admin.run(adminLoginFlow);
+
+customer.navigateTo(APP_URL);
+customer.run(customerLoginFlow);
+
+admin.run(createUserFlow);
+
+customer.run(searchUserFlow);
+
+admin.run(approveFlow);
+
+customer.run(verifyApprovalFlow);
+
+admin.shutdown();    // session-scoped — does NOT affect customer
+customer.shutdown();
+```
+
+### Legacy: Interactions (Backward Compat, Deprecated)
+
+```java
+// @Deprecated since 2.1 — use app.run(element.click()) instead
+VOID app = VOID.start();
 app.interaction().typeInto(LoginPageElements.Credentials.USERNAME_INPUT, "admin@example.com");
 app.interaction().typeInto(LoginPageElements.Credentials.PASSWORD_INPUT, "secret");
 app.interaction().clickOn(LoginPageElements.Actions.SIGN_IN_BUTTON);
@@ -442,7 +475,9 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 - **Elements NEVER execute** — they emit Action (intent) only
 - **Actions NEVER perform work** until executed by UIEngine via FlowExecutor
 - **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
-- **One execution path**: Element → Action → Flow → FlowExecutor → UIEngine
+- **`VOID` is the primary session object** — tests navigate, run flows, and teardown through it
+- **`FlowExecutor` is internal** — test code calls `app.run()`, not `new FlowExecutor(engine)`
+- **One execution path**: Element → Action → Flow → `VOID.run()` → FlowExecutor → UIEngine
 - **No compile-time code generation** — all behavior is visible and debuggable
 
 ---

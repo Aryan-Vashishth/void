@@ -1,5 +1,66 @@
 # Changelog
 
+## [Unreleased] — 2026-05-29
+
+### Added
+
+- **`VOID` session façade — ADR-011**
+  - `VOID.navigateTo(String url)` — navigate without touching the engine directly
+  - `VOID.getCurrentUrl()` — read URL from the session façade
+  - `VOID.getTitle()` — read page title from the session façade
+  - `VOID.refresh()` — reload the page from the session façade
+  - `VOID.run(Action action)` — execute a single Action without wrapping in `Flow.of()`
+  - `UIEngine.getTitle()` — new engine contract method
+  - `UIEngine.refresh()` — new engine contract method
+  - `SeleniumEngine` implements `getTitle()` and `refresh()`
+
+- **`VOID.shutdown()` — session-scoped teardown**
+  - Now calls `engine.shutdown()` (releases browser) then `DriverContext.removePrimary()` (cleans ThreadLocal)
+  - Previously called `DriverManager.quitAll()` which killed **all** drivers on the thread — a multi-session isolation bug
+  - Multi-session tests can now call `admin.shutdown()` without affecting `customer`
+
+- **ArchUnit façade boundary enforcement** (`FacadeBoundaryRulesTest`)
+  - Rule 1: No `UIEngine` fields in `tests.*` classes — use the VOID façade instead
+  - Rule 2: No direct `new FlowExecutor(engine)` construction in `tests.*` — use `app.run()`
+  - Rule 3: No `FlowExecutor` fields in `tests.*` classes
+  - All rules include actionable `because()` messages pointing to ADR-011
+  - `archunit:1.3.0` added as a test-scoped dependency
+
+### Changed
+
+- **`VOID` Javadoc** — rewritten to reflect session-façade model with multi-session examples
+- **`FlowExecutor` Javadoc** — updated to prefer `VOID.run()` over direct construction
+- **`VoidDemo`** — migrated to session façade: removed `UIEngine` and `FlowExecutor` fields; all interactions now via `app.*`
+
+### Deprecated
+
+The following are deprecated since **2.1** and scheduled for removal in **3.0**:
+
+| Method | Replacement |
+|--------|------------|
+| `VOID.interaction()` | `app.run(flow)` / `app.run(action)` |
+| `VOID.getDriver()` | `app.getEngine().getNativeDriver()` (escape hatch) |
+| `VOID.getContext()` | engine-level abstractions |
+
+### Migration
+
+| Old pattern | New pattern |
+|-------------|-------------|
+| `engine.navigateTo(url)` | `app.navigateTo(url)` |
+| `engine.getCurrentUrl()` | `app.getCurrentUrl()` |
+| `new FlowExecutor(engine).run(flow)` | `app.run(flow)` |
+| `executor.run(action)` | `app.run(action)` |
+| `app.interaction().clickOn(element)` | `app.run(element.click())` |
+| `app.getDriver()` | `app.getEngine().getNativeDriver()` |
+| `admin.shutdown()` then `customer.run(flow)` → crash | Now safe — each shutdown is session-scoped |
+
+### Documentation
+
+- Added `docs/audits/facade-boundary-audit-2026-05.md` — façade boundary audit (10 findings, A–D execution plan)
+- Added `docs/decisions/accepted/011-void-facade-boundary.md` — ADR-011
+
+---
+
 ## 2.0-SNAPSHOT (chore/remove-deprecated-apis)
 
 ### Removed (binary-breaking)

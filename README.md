@@ -55,19 +55,21 @@ Sample report snapshot:
 ## TL;DR
 
 ```java
-import core.executor.FlowExecutor;
 import core.flow.Flow;
 import core.runtime.VOID;
 import tests.demo.pages.DemoLoginPage;
 
 VOID app = VOID.start();
-FlowExecutor executor = new FlowExecutor(app.getEngine());
 
-executor.run(Flow.of(
+app.navigateTo("https://the-internet.herokuapp.com/login");
+
+app.run(Flow.of(
     DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith"),
     DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!"),
     DemoLoginPage.Button.LOGIN_BUTTON.click()
 ));
+
+assertTrue(app.getCurrentUrl().contains("/secure"));
 
 app.shutdown();
 ```
@@ -79,7 +81,13 @@ app.shutdown();
 VOID enforces one execution path:
 
 ```text
-Element → Action → Flow → FlowExecutor → UIEngine
+Tests → VOID (session) → FlowExecutor → UIEngine
+```
+
+The full expansion:
+
+```text
+Element → Action → Flow → VOID.run() → FlowExecutor → UIEngine
 ```
 
 There is no alternative path for new code.
@@ -96,17 +104,19 @@ This constraint is what makes behavior predictable and debuggable.
 
 | Layer | Responsibility | What it should do | What it should not do |
 |---|---|---|---|
+| `VOID` | session object | navigate, run flows, shutdown | click, type, resolve |
 | `Element` | typed UI contract | declare roles and locator keys | execute browser actions |
 | `Action` | deferred intent | describe what should happen | touch WebDriver / `By` |
 | `Flow` | composition | group actions into a workflow | execute anything |
-| `FlowExecutor` | flow executor | execute actions in order | resolve locators outside action flow |
+| `FlowExecutor` | internal executor | execute actions in order | be constructed by test code |
 | `UIEngine` | browser executor | waits, retries, scroll, click, type, screenshot | act as test API |
 
 ```text
-Element → Action → Flow → FlowExecutor → UIEngine
+Element → Action → Flow → VOID.run() → FlowExecutor → UIEngine
 ```
 
-This is the only execution path new code should use.
+Test code interacts with `VOID`, `Flow`, `Action`, and `Element`.
+Everything else is internal.
 
 ---
 
@@ -195,16 +205,16 @@ Key idea:
 
 ## Flow + FlowExecutor
 
-Use `Flow` to compose actions and `FlowExecutor` to run them.
+`Flow` composes actions. `VOID.run()` executes them — you never need to construct `FlowExecutor` in test code.
 
 ```java
-import core.executor.FlowExecutor;
 import core.flow.Flow;
 import core.runtime.VOID;
 import tests.demo.pages.DemoLoginPage;
 
 VOID app = VOID.start();
-FlowExecutor executor = new FlowExecutor(app.getEngine());
+
+app.navigateTo("https://the-internet.herokuapp.com/login");
 
 Flow login = Flow.of(
     DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith"),
@@ -212,16 +222,16 @@ Flow login = Flow.of(
     DemoLoginPage.Button.LOGIN_BUTTON.click()
 );
 
-executor.run(login);
+app.run(login);
 ```
 
 Single action execution also works:
 
 ```java
-executor.run(DemoLoginPage.Button.LOGIN_BUTTON.click());
+app.run(DemoLoginPage.Button.LOGIN_BUTTON.click());
 ```
 
-> Legacy note: `core.interactions.Interactions` still exists for compatibility, but it is deprecated and should not be the main API for new code.
+> Legacy note: `core.interactions.Interactions` still exists for compatibility, but it is deprecated and should not be the primary API for new code.
 
 ---
 
@@ -281,14 +291,15 @@ It owns behavior such as:
 You don’t deal with that complexity.
 
 Test code should think in terms of:
+- sessions (`VOID`)
 - elements
 - actions
 - flows
-- `FlowExecutor`
 
 Not:
 - `WebDriver`
 - `By`
+- `FlowExecutor` construction
 - raw engine calls for ordinary UI interactions
 
 ---
@@ -342,29 +353,54 @@ Legacy compatibility remains under `core/interactions/`, but it is not the prima
 
 ## Current setup path
 
-The execution model is already in place.
-The runtime convenience layer is still catching up.
+The execution model is in place and the session façade is wired.
 
-Today, the typical setup is:
+A typical test looks like this:
 
 ```java
 VOID app = VOID.start();
-FlowExecutor executor = new FlowExecutor(app.getEngine());
+
+app.navigateTo("https://the-internet.herokuapp.com/login");
+
+app.run(loginFlow);
+
+assertTrue(app.getCurrentUrl().contains("/secure"));
+
+app.shutdown();
 ```
 
-That is current codebase reality.
-The recommended mental model remains:
+Multi-session tests are fully supported:
 
-```text
-Element → Action → Flow → FlowExecutor → UIEngine
+```java
+VOID admin    = VOID.start();
+VOID customer = VOID.start();
+
+admin.navigateTo(ADMIN_URL);
+admin.run(adminLoginFlow);
+
+customer.navigateTo(APP_URL);
+customer.run(customerLoginFlow);
+
+admin.run(createUserFlow);
+
+customer.run(searchUserFlow);
+
+admin.run(approveFlow);
+
+customer.run(verifyApprovalFlow);
+
+admin.shutdown();    // does NOT affect customer session
+customer.shutdown();
 ```
+
+Each `VOID` instance is its own isolated session.
+`admin.shutdown()` only quits the admin browser.
 
 ---
 
 ## Minimal example with the demo page
 
 ```java
-import core.executor.FlowExecutor;
 import core.flow.Flow;
 import core.runtime.VOID;
 import tests.demo.pages.DemoLoginPage;
@@ -372,12 +408,11 @@ import tests.demo.pages.DemoLoginPage;
 public class Example {
     public static void main(String[] args) {
         VOID app = VOID.start();
-        FlowExecutor executor = new FlowExecutor(app.getEngine());
 
         try {
-            app.getEngine().navigateTo("https://the-internet.herokuapp.com/login");
+            app.navigateTo("https://the-internet.herokuapp.com/login");
 
-            executor.run(Flow.of(
+            app.run(Flow.of(
                 DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith"),
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!"),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
@@ -403,7 +438,9 @@ This mirrors `src/main/java/tests/demo/VoidDemo.java`.
 | `docs/architecture/logging-reference.md` | Log channels, folder layout, and trace depth |
 | `docs/architecture/locator-resolution.md` | Locator roles and resolution pipeline |
 | `docs/architecture/hooks-pipeline.md` | Hook behavior and composition |
-| `docs/audits/architecture-audit-2026-05.md` | Current architecture audit |
+| `docs/audits/architecture-audit-2026-05.md` | Architecture audit — coupling, leakage, engine-swap readiness |
+| `docs/audits/facade-boundary-audit-2026-05.md` | Façade boundary audit — session abstraction gaps and fixes |
+| `docs/decisions/accepted/` | Architecture Decision Records (ADR-001 → ADR-011) |
 | `CHANGELOG.md` | Version history |
 | `CONTRIBUTING.md` | Contribution guide |
 
