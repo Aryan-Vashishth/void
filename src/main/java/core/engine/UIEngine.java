@@ -72,6 +72,18 @@ public interface UIEngine {
      */
     String getCurrentUrl();
 
+    /**
+     * Returns the title of the current page.
+     *
+     * @return page title string
+     */
+    String getTitle();
+
+    /**
+     * Reloads the current page.
+     */
+    void refresh();
+
     // ─────────────────────────────────────────────────────────────────────
     // RESOLUTION — engine owns locator resolution
     // ─────────────────────────────────────────────────────────────────────
@@ -346,4 +358,3 @@ public interface UIEngine {
      */
     String getEngineName();
 }
-

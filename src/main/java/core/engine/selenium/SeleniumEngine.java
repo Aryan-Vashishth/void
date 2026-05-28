@@ -80,6 +80,17 @@ public final class SeleniumEngine implements UIEngine {
         return driver.getCurrentUrl();
     }
 
+    @Override
+    public String getTitle() {
+        return driver.getTitle();
+    }
+
+    @Override
+    public void refresh() {
+        driver.navigate().refresh();
+        debug.log("[SeleniumEngine] Page refreshed.");
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // RESOLUTION
     // ─────────────────────────────────────────────────────────────────────
