@@ -8,6 +8,8 @@ import core.engine.EngineConfig;
 import core.engine.UIEngine;
 import core.engine.UIEngineFactory;
 import core.engine.selenium.SeleniumEngine;
+import core.executor.FlowExecutor;
+import core.flow.Flow;
 import core.logging.CustomLogger;
 import core.interactions.Interactions;
 import org.openqa.selenium.WebDriver;
@@ -57,6 +59,9 @@ public class VOID {
     /** Lazily-initialised, cached interaction helper. */
     private Interactions interactions;
 
+    /** Executes Actions and Flows against this session's engine. */
+    private final FlowExecutor executor;
+
     // ===========================
     //        Construction
     // ===========================
@@ -70,6 +75,7 @@ public class VOID {
     protected VOID(ExecutionContext context, UIEngine engine) {
         this.context = context;
         this.engine = engine;
+        this.executor = new FlowExecutor(engine);
     }
 
     // ===========================
@@ -161,6 +167,15 @@ public class VOID {
     /** Returns the active {@link UIEngine} for this session. */
     public UIEngine getEngine() {
         return engine;
+    }
+
+    /**
+     * Executes the given flow using this session's execution engine.
+     *
+     * @param flow the flow to execute
+     */
+    public void run(Flow flow) {
+        executor.run(flow);
     }
 }
 
