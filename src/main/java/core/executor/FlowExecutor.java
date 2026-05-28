@@ -10,12 +10,17 @@ import core.flow.Flow;
  *
  * @apiNote <b>Beta.</b> This API may change without notice. Do not use inside stable modules.
  *
- * <p>Usage:</p>
+ * <p><b>Preferred usage — let the VOID session manage execution:</b></p>
  * <pre>
- *   FlowExecutor executor = new FlowExecutor(engine);
- *   executor.run(Flow.of(page.USERNAME.type("user"), page.LOGIN.click()));
- *   executor.run(page.SUBMIT.click());
+ *   VOID app = VOID.start();
+ *   app.run(Flow.of(page.USERNAME.type("user"), page.LOGIN.click()));
+ *   app.run(page.SUBMIT.click());
  * </pre>
+ *
+ * <p>Direct construction of {@code FlowExecutor} is an advanced pattern reserved for
+ * infrastructure code or framework internals. Test authors should use
+ * {@link core.runtime.VOID#run(Flow)} and {@link core.runtime.VOID#run(Action)} instead,
+ * which delegate to the session's internal executor.</p>
  */
 @Beta(since = "2.0", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
 public class FlowExecutor {
@@ -46,4 +51,3 @@ public class FlowExecutor {
         action.perform(engine);
     }
 }
-
