@@ -1,13 +1,14 @@
 package core.runtime;
 
+import core.actions.Action;
 import core.bootstrap.FrameworkBootstrap;
 import core.context.ExecutionContext;
+import core.driver.DriverContext;
 import core.driver.DriverFactory;
 import core.driver.DriverManager;
 import core.engine.EngineConfig;
 import core.engine.UIEngine;
 import core.engine.UIEngineFactory;
-import core.engine.selenium.SeleniumEngine;
 import core.executor.FlowExecutor;
 import core.flow.Flow;
 import core.logging.CustomLogger;
@@ -15,38 +16,63 @@ import core.interactions.Interactions;
 import org.openqa.selenium.WebDriver;
 
 /**
- * Façade / entry point for the core VOID framework.
+ * Primary session object for the VOID framework.
  *
- * <p>This class is intentionally <b>framework-only</b> — it carries no
- * BDD / Cucumber dependencies. For DSL context-driven helpers such as
- * {@code dsl()}, use a subclass that extends this class.</p>
+ * <p>A {@code VOID} instance represents a single browser session. Tests should
+ * think in terms of a session, not an engine. The majority of test code should
+ * interact only with {@code VOID}, {@link Flow}, {@link Action}, and
+ * {@code Element} types.</p>
  *
- * <h3>Framework layer usage</h3>
+ * <h3>Typical usage</h3>
  * <pre>
  *   VOID app = VOID.start();
- *   app.interaction().clickOn(MyElements.SUBMIT_BUTTON);
+ *
+ *   app.navigateTo("https://example.com/login");
+ *
+ *   app.run(Flow.of(
+ *       LoginPage.USERNAME.type("admin"),
+ *       LoginPage.PASSWORD.type("secret"),
+ *       LoginPage.SUBMIT.click()
+ *   ));
+ *
+ *   assertTrue(app.getCurrentUrl().contains("/dashboard"));
+ *
  *   app.shutdown();
  * </pre>
  *
- * <h3>Architecture</h3>
+ * <h3>Multi-session usage</h3>
  * <pre>
- *   VOID.start()
- *     → FrameworkBootstrap.init()     (one-time: validate configs, seed utils)
- *     → DriverManager.createDriver() (create + register WebDriver)
- *     → ExecutionContext              (holds config + driver for this session)
- *     → return VOID façade            (thin wrapper, delegates to context)
+ *   VOID admin    = VOID.start();
+ *   VOID customer = VOID.start();
+ *
+ *   admin.navigateTo(adminUrl);
+ *   admin.run(loginFlow);
+ *
+ *   customer.navigateTo(customerUrl);
+ *   customer.run(customerFlow);
+ *
+ *   admin.shutdown();    // does NOT affect the customer session
+ *   customer.shutdown();
  * </pre>
  *
  * <h3>Layer model</h3>
  * <pre>
  *  ┌──────────────────────────────────────────────────────────────┐
- *  │  dsl layer  (dsl.*)                                          │
- *  │    VoidDSL            →  context-driven DSL                  │
+ *  │  Tests                                                       │
  *  ├──────────────────────────────────────────────────────────────┤
- *  │  framework layer   (this class + core.interactions / core)   │
- *  │    VOID              →  Interactions  (raw UI actions)        │
+ *  │  VOID  (session façade)                                      │
+ *  │    navigateTo / getCurrentUrl / getTitle / refresh           │
+ *  │    run(Flow) / run(Action)                                   │
+ *  ├──────────────────────────────────────────────────────────────┤
+ *  │  FlowExecutor  (internal — do not construct directly)        │
+ *  ├──────────────────────────────────────────────────────────────┤
+ *  │  UIEngine  (execution contract — advanced via getEngine())   │
  *  └──────────────────────────────────────────────────────────────┘
  * </pre>
+ *
+ * @see Flow
+ * @see Action
+ * @see UIEngine
  */
 public class VOID {
 
@@ -56,7 +82,8 @@ public class VOID {
     /** The active execution engine for this session. */
     private final UIEngine engine;
 
-    /** Lazily-initialised, cached interaction helper. */
+    /** Lazily-initialised, cached legacy interaction helper. */
+    @Deprecated
     private Interactions interactions;
 
     /** Executes Actions and Flows against this session's engine. */
@@ -90,9 +117,10 @@ public class VOID {
      *   <li>{@link FrameworkBootstrap#init()} — one-time config validation</li>
      *   <li>{@link DriverManager#createDriver(DriverFactory.Profile)} — WebDriver creation + registration</li>
      *   <li>Builds an {@link ExecutionContext} binding config and driver</li>
+     *   <li>Creates a {@link UIEngine} via factory</li>
      * </ol>
      *
-     * @return a ready-to-use VOID instance
+     * @return a ready-to-use VOID session
      */
     public static VOID start() {
         return start(DriverFactory.Profile.DEFAULT);
@@ -102,7 +130,7 @@ public class VOID {
      * Starts a new VOID session with the specified driver profile.
      *
      * @param profile the driver configuration profile
-     * @return a ready-to-use VOID instance
+     * @return a ready-to-use VOID session
      */
     public static VOID start(DriverFactory.Profile profile) {
         FrameworkBootstrap.init();
@@ -113,10 +141,9 @@ public class VOID {
                 driver
         );
 
-        // Create the engine via factory (reads 'engine' property from config)
         UIEngine engine = UIEngineFactory.create(FrameworkBootstrap.getUtilsConfig(), driver);
 
-        CustomLogger.info.log("VOID initialised — engine=" + engine.getEngineName() + ", driver ready.");
+        CustomLogger.info.log("VOID session started — engine=" + engine.getEngineName() + ", driver ready.");
         return new VOID(ctx, engine);
     }
 
@@ -125,38 +152,113 @@ public class VOID {
     // ===========================
 
     /**
-     * Shuts down this VOID session — quits all drivers for the current thread.
+     * Shuts down this VOID session.
+     *
+     * <p>Calls {@link UIEngine#shutdown()} on this session's engine (which releases
+     * the browser/driver), then removes the driver reference from the thread-local
+     * registry. Only this session's driver is affected — other concurrent sessions
+     * on the same thread are unaffected.</p>
      */
     public void shutdown() {
-        CustomLogger.info.log("VOID shutting down.");
-        DriverManager.quitAll();
+        CustomLogger.info.log("VOID session shutting down — engine=" + engine.getEngineName());
+        engine.shutdown();
+        DriverContext.removePrimary();
     }
 
     // ===========================
-    //   Accessible to subclasses
+    //   Session-Level Navigation
     // ===========================
 
     /**
-     * Returns the {@link ExecutionContext} so subclasses
-     * can access configuration and the driver without re-fetching from globals.
+     * Navigates this session's browser to the given URL.
+     *
+     * @param url the target URL
      */
-    protected ExecutionContext getContext() {
-        return context;
+    public void navigateTo(String url) {
+        engine.navigateTo(url);
     }
 
     /**
-     * Returns the underlying {@link WebDriver} so subclasses
-     * can pass it to their own interaction helpers without re-fetching it from the context.
+     * Returns the current URL of this session's browser.
+     *
+     * @return current URL string
      */
-    protected WebDriver getDriver() {
-        return context.getDriver();
+    public String getCurrentUrl() {
+        return engine.getCurrentUrl();
+    }
+
+    /**
+     * Returns the title of the current page in this session.
+     *
+     * @return page title string
+     */
+    public String getTitle() {
+        return engine.getTitle();
+    }
+
+    /**
+     * Reloads the current page in this session's browser.
+     */
+    public void refresh() {
+        engine.refresh();
     }
 
     // ===========================
-    //         Interactions
+    //          Execution
     // ===========================
 
-    /** Returns the (cached) general-purpose interaction helper. */
+    /**
+     * Executes the given {@link Flow} using this session's engine.
+     *
+     * <p>Prefer this over constructing a {@link FlowExecutor} manually.</p>
+     *
+     * @param flow the flow to execute
+     */
+    public void run(Flow flow) {
+        executor.run(flow);
+    }
+
+    /**
+     * Executes a single {@link Action} using this session's engine.
+     *
+     * <p>Prefer this over constructing a {@link FlowExecutor} manually.</p>
+     *
+     * @param action the action to execute
+     */
+    public void run(Action action) {
+        executor.run(action);
+    }
+
+    // ===========================
+    //   Escape Hatch — Advanced
+    // ===========================
+
+    /**
+     * Returns the underlying {@link UIEngine} for this session.
+     *
+     * <p><b>Advanced API.</b> Most tests should not need direct engine access.
+     * Use this only for advanced scenarios such as custom wait strategies,
+     * engine-specific native commands, or diagnostic tooling. Direct engine
+     * usage bypasses the session abstraction and may reduce engine portability.</p>
+     *
+     * @return the active UIEngine for this session
+     */
+    public UIEngine getEngine() {
+        return engine;
+    }
+
+    // ===========================
+    //   Deprecated — Legacy
+    // ===========================
+
+    /**
+     * Returns the (cached) general-purpose legacy interaction helper.
+     *
+     * @deprecated Since 2.1 — use {@link #run(Flow)} / {@link #run(Action)} instead.
+     *             Prefer composing {@code Element → Action → Flow} and executing via
+     *             {@code app.run(flow)}. Will be removed in 3.0.
+     */
+    @Deprecated(since = "2.1", forRemoval = true)
     public Interactions interaction() {
         if (interactions == null) {
             interactions = new Interactions(engine);
@@ -164,18 +266,28 @@ public class VOID {
         return interactions;
     }
 
-    /** Returns the active {@link UIEngine} for this session. */
-    public UIEngine getEngine() {
-        return engine;
+    /**
+     * Returns the {@link ExecutionContext} so subclasses
+     * can access configuration without re-fetching from globals.
+     *
+     * @deprecated Since 2.1 — subclasses should access session state through
+     *             engine-level abstractions rather than the raw execution context.
+     *             Will be removed in 3.0.
+     */
+    @Deprecated(since = "2.1", forRemoval = true)
+    protected ExecutionContext getContext() {
+        return context;
     }
 
     /**
-     * Executes the given flow using this session's execution engine.
+     * Returns the underlying {@link WebDriver} for this session.
      *
-     * @param flow the flow to execute
+     * @deprecated Since 2.1 — exposes Selenium types directly, breaking engine
+     *             portability. Use {@link #getEngine()}{@code .getNativeDriver()}
+     *             for engine-specific escape-hatch access. Will be removed in 3.0.
      */
-    public void run(Flow flow) {
-        executor.run(flow);
+    @Deprecated(since = "2.1", forRemoval = true)
+    protected WebDriver getDriver() {
+        return context.getDriver();
     }
 }
-
