@@ -174,6 +174,8 @@ Locators live under `src/main/resources/locators/` in two formats:
 
 ## 📂 Project Structure
 
+> For detailed documentation on each `core/` sub-package, see [Core Package Architecture](core-packages.md).
+
 ```
 void-framework/
 ├── src/main/java/
@@ -182,6 +184,16 @@ void-framework/
 │   │   │   ├── Action.java                   ← Deferred execution intent (functional interface)
 │   │   │   ├── ElementActions.java            ← Internal helper: creates resolvable Actions
 │   │   │   └── HookedAction.java              ← Pure decorator: before → action → after
+│   │   ├── adapters/
+│   │   │   └── cucumber/                      ← BDD step definitions (optional)
+│   │   ├── annotations/
+│   │   │   ├── Beta.java                      ← @Beta stability marker
+│   │   │   └── Internal.java                  ← @Internal stability marker
+│   │   ├── bootstrap/
+│   │   │   └── FrameworkBootstrap.java        ← One-time init gate
+│   │   ├── context/
+│   │   │   ├── ExecutionContext.java          ← Immutable per-session context (WebDriver)
+│   │   │   └── SessionContext.java            ← Engine-agnostic session context
 │   │   ├── flow/
 │   │   │   └── Flow.java                     ← Composes Actions into sequences
 │   │   ├── executor/
@@ -192,7 +204,7 @@ void-framework/
 │   │   │   ├── LocatorDescriptor.java        ← Engine-agnostic locator descriptor
 │   │   │   └── selenium/
 │   │   │       └── SeleniumEngine.java       ← Selenium implementation of UIEngine
-│   │   ├── bootstrap/
+│   │   ├── runtime/
 │   │   │   └── VOID.java                     ← Framework entry point / façade
 │   │   ├── interactions/
 │   │   │   ├── Interactions.java             ← Legacy orchestrator (frozen, deprecated)
@@ -205,6 +217,7 @@ void-framework/
 │   │   ├── driver/
 │   │   │   ├── DriverFactory.java
 │   │   │   ├── DriverContext.java
+│   │   │   ├── DriverManager.java             ← Lifecycle orchestration
 │   │   │   └── Waiter.java
 │   │   ├── logging/
 │   │   │   ├── CustomLogger.java             ← Public facade
