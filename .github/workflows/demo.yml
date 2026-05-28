@@ -98,8 +98,8 @@ jobs:
           path: target/surefire-reports/
           if-no-files-found: ignore
 
-      - name: Upload VOID logs on failure
-        if: failure()
+      - name: Upload VOID logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: void-logs
