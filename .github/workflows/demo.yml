@@ -88,8 +88,6 @@ jobs:
             -Dvoid.rootLogLevel=INFO
         env:
           SE_CHROMEDRIVER: ${{ env.CHROMEDRIVER }}
-          # attempt a network download that may fail on the runner.
-          SE_CHROMEDRIVER: ${{ env.CHROMEDRIVER }}
 
       - name: Upload surefire report on failure
         if: failure()
