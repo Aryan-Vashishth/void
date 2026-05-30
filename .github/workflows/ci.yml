@@ -29,19 +29,3 @@ jobs:
           name: void-logs
           path: logs/
           if-no-files-found: ignore
-
-#  ui-tests:
-#
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - uses: actions/setup-java@v4
-#        with:
-#          distribution: temurin
-#          java-version: 21
-#          cache: maven
-#
-#      - name: Run Selenium tests
-#        run: mvn test -Dgroups=ui
