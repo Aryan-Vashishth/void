@@ -16,7 +16,7 @@ You describe what should happen. VOID handles how — and tells you exactly when
 [![VoidDemo](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml)
 ![Java](https://img.shields.io/badge/Java-17+-blue?logo=openjdk)
 ![Selenium](https://img.shields.io/badge/Selenium-4.38-green?logo=selenium)
-![Playwright](https://img.shields.io/badge/Playwright-Ready-45ba63?logo=playwright)
+![Playwright](https://img.shields.io/badge/Playwright-Coming%20Soon-9e9e9e?logo=playwright)
 ![Maven](https://img.shields.io/badge/Maven-3.x-C71A36?logo=apachemaven)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
