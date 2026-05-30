@@ -1,4 +1,4 @@
-# VOID
+# VOID — Versatile Object-Oriented Interactions for DOM
 
 Structured UI automation around a single execution path:
 
