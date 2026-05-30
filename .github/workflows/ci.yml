@@ -22,6 +22,14 @@ jobs:
       - name: Run unit tests
         run: mvn -B test -Dvoid.rootLogLevel=WARN
 
+      - name: Upload framework logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: void-logs
+          path: logs/
+          if-no-files-found: ignore
+
 #  ui-tests:
 #
 #    runs-on: ubuntu-latest
