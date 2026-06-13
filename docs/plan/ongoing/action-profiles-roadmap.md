@@ -1,217 +1,292 @@
-# Action Profiles — Roadmap
+# Action Profiles Refactor and Scalability Plan
 
 **Status:** Ongoing  
-**Date:** 2026-06-13  
-**Area:** `core.actions`, `core.interactions.hooks`, VOID developer experience
+**Architecture Version:** 2.3  
+**Last Updated:** 2026-06-13  
+**Area:** `core.actions`, `core.interactions.hooks`, `core.executor`, docs and DX
 
 ---
 
-## Context
+## Goal
 
-The hook engine is solid. `before(...).after(...)` is correct low-level plumbing.
-
-The gap is the **developer experience layer** sitting on top of it.
-
-Test writers currently need to know: `Before`, `After`, `ActionHandler`, hook ordering, descriptor lifecycle.
-
-They shouldn't.
+Keep `main` stable while evolving VOID from hook-heavy usage to profile-driven execution, with clear observability, bounded complexity, and a safe path to remove deprecated API.
 
 ---
 
-## Direction
+## Why This Plan Exists
 
-Move from:
+The audit identified healthy architecture with rising entropy risk in three places:
 
-```text
-Hooks (explicit plumbing)
-```
+- Action API growth
+- Branching growth (`if/else/switch` density)
+- Hook/profile complexity hidden from users
 
-to:
-
-```text
-Execution Profiles (named behavior)
-```
+This plan prevents accidental complexity while preserving backward compatibility.
 
 ---
 
-## Phase 1 — Action Profiles (Shorthand Methods)
+## Non-Negotiable Guardrails (Apply in Every Phase)
 
-Add to `Action`:
-
-```java
-Action safely();
-Action debug();
-Action raw();
-```
-
-Usage:
-
-```java
-USERNAME.type("admin").safely();
-LOGIN.click().safely();
-```
-
-### Type `safely()` expands to:
-
-```java
-.before(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE)
-.after(After.HIGHLIGHT_ELEMENT)
-```
-
-### Click `safely()` expands to:
-
-```java
-.before(Before.WAIT_FOR_ELEMENT_CLICKABLE)
-.after(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT)
-```
-
-Same API. Different behavior. Action type determines safety strategy.
+- [ ] Keep `main` releasable; all risky refactor work stays on feature branches.
+- [ ] Require local compile before push: `mvn -DskipTests compile`.
+- [ ] If a class reaches 3+ branch paths, evaluate polymorphism.
+- [ ] Keep core branch density target under 5 conditionals per class.
+- [ ] Track Action API size; redesign trigger at 12-15 public methods.
+- [ ] No engine leakage into test DSL (`UIEngine` access only where intended).
 
 ---
 
-## Phase 2 — Profile Registry
+## Phase 0 - Stabilization Baseline (Done and Enforced)
 
-Introduce `ActionProfile`:
+**Objective:** lock a clean baseline after CI breakage so future refactors are traceable.
+
+### Checklist
+
+- [x] Fix compile blocker in `src/main/java/tests/demo/VoidDemo.java`.
+- [x] Apply fix on both `main` and `feature/action-package-refactor`.
+- [x] Verify compile locally on both branches.
+- [ ] Add CI checklist item: demo API usage must match current Action API.
+
+### Exit Criteria
+
+- `main` builds in CI with no compile errors.
+- Feature branch is rebased/cherry-picked with identical compile-critical fixes.
+
+---
+
+## Phase 1 - Profile API Consolidation
+
+**Objective:** make profile APIs predictable and reduce low-level hook exposure.
+
+### Scope
+
+- Keep user-friendly entry points (`safely()`, `debug()`, `raw()`, `using(...)`).
+- Keep low-level hook plumbing available but secondary.
+- Align demo and docs to one preferred style.
+
+### Checklist
+
+- [ ] Confirm canonical public API on `Action` and document it in `core.actions` docs.
+- [ ] Ensure each shorthand maps to explicit before/after behavior.
+- [ ] Audit examples to avoid mixed styles unless intentional.
+- [ ] Add/refresh unit tests around shorthand behavior and composition order.
+
+### Exit Criteria
+
+- Public API is stable and documented.
+- Profile behavior is deterministic across capabilities.
+
+---
+
+## Phase 2 - Observability First (`ActionTrace`)
+
+**Objective:** make execution pipeline visible before adding more behavior.
+
+### Trace Model (MVP)
+
+- Action identity (`element + operation`)
+- Selected profile (`SAFE`, `DEBUG`, `RAW`, custom)
+- Before hooks list
+- Execution step and duration
+- After hooks list
+- Final status and error details (if any)
+
+### Checklist
+
+- [ ] Introduce `ActionTrace` data model.
+- [ ] Add instrumentation point in action execution pipeline.
+- [ ] Provide logger output in debug mode.
+- [ ] Add tests for trace ordering and failure capture.
+
+### Exit Criteria
+
+- Developers can answer: what ran, in what order, and why it failed.
+
+---
+
+## Phase 3 - Capability Resolution Hardening
+
+**Objective:** prevent `instanceof` branching explosion as capabilities grow.
+
+### Direction
+
+Move toward self-describing capabilities:
 
 ```java
-public interface ActionProfile {
-    List<ActionHandler> before();
-    List<ActionHandler> after();
+interface ActionCapabilityProvider {
+    ActionCapability capability();
 }
 ```
 
-Built-ins: `SAFE`, `DEBUG`, `RAW`
+### Checklist
 
-Add to `Action`:
+- [ ] Introduce provider contract and default adaptation path.
+- [ ] Migrate top capabilities first (`Clickable`, `Typeable`, `Selectable`).
+- [ ] Keep compatibility fallback while migration is incomplete.
+- [ ] Remove central branching where provider is available.
 
-```java
-Action using(ActionProfile profile);
-```
+### Exit Criteria
 
-Usage:
-
-```java
-USERNAME.type("admin").using(Profile.SAFE);
-LOGIN.click().using(Profile.DEBUG);
-```
+- New capabilities register themselves without adding central `if/else` chains.
 
 ---
 
-## Phase 3 — Capability-Aware Profiles
+## Phase 4 - Hook Strategy Layer
 
-Each capability resolves a profile differently:
+**Objective:** stop hook list sprawl and preserve action-oriented API.
 
-| Capability | `SAFE` expands to |
-|---|---|
-| `Clickable` | `WAIT_CLICKABLE` → `WAIT_ANGULAR_LOADER, HIGHLIGHT` |
-| `Typeable` | `CLEAR, WAIT_VISIBLE` → `HIGHLIGHT` |
-| `Selectable` | `WAIT_VISIBLE, WAIT_CLICKABLE, WAIT_ANGULAR_LOADER` → `HIGHLIGHT` |
+### Direction
 
----
+Encapsulate hook bundles in strategies:
 
-## Phase 4 — Preset Library
+- `SafeClickStrategy`
+- `SafeTypeStrategy`
+- `DebugStrategy`
+- `FastStrategy`
 
-```java
-Profiles.SAFE
-Profiles.DEBUG
-Profiles.FAST
-Profiles.VISUAL
-Profiles.RELIABLE
-```
+### Checklist
 
-Usage:
+- [ ] Define strategy interface and mapping points.
+- [ ] Route `safely()` and `debug()` through strategy implementations.
+- [ ] Keep direct `before/after` for advanced users.
+- [ ] Add tests proving strategy expansion is correct and ordered.
 
-```java
-LOGIN.click().using(Profiles.RELIABLE);
-SEARCH.type("Laptop").using(Profiles.FAST);
-```
+### Exit Criteria
+
+- Typical user flows do not require long hook argument lists.
 
 ---
 
-## Phase 5 — App-Level Default Profiles
+## Phase 5 - Execution Pipeline Boundary
 
-Framework config:
+**Objective:** keep `FlowExecutor` minimal while enabling retries/timeouts/metrics later.
 
-```properties
-void.profile.default=SAFE
+### Direction
+
+```text
+FlowExecutor -> ExecutionPipeline -> Action
 ```
 
-Application-level constant:
+### Checklist
 
-```java
-Profiles.COMPANY_STANDARD  // includes WAIT_ANGULAR_LOADER, SPINNER, HIGHLIGHT, SCREENSHOT_ON_FAILURE
-```
+- [ ] Introduce `ExecutionPipeline` abstraction.
+- [ ] Move cross-cutting concerns into pipeline stages.
+- [ ] Preserve current behavior as default stage sequence.
+- [ ] Add benchmark/regression check for flow overhead.
 
-Result:
+### Exit Criteria
 
-```java
-LOGIN.click();  // automatically receives COMPANY_STANDARD behavior
-```
-
-No repeated hooks anywhere.
+- `FlowExecutor` remains orchestration-only and small.
 
 ---
 
-## Phase 6 — Docs Shift
+## Phase 6 - Engine Portability Controls
 
-Current docs show `before(...).after(...)` everywhere.
+**Objective:** keep Playwright and future engine support practical.
 
-Future docs should show:
+### Checklist
 
-```java
-USERNAME.type("admin").safely();
-PASSWORD.type("secret").safely();
-LOGIN.click().safely();
-```
+- [ ] Create and maintain `Engine Portability Exceptions` section/doc.
+- [ ] Tag hooks with portability notes where semantics differ.
+- [ ] Audit demo and docs for engine-coupled examples.
+- [ ] Add review gate: new engine-specific behavior must be documented.
 
-Hooks become **framework extension mechanism**, not everyday API.  
-Advanced users still have full `before(...).after(...)` access.
+### Exit Criteria
 
----
-
-## Phase 7 — Custom Profile Builder
-
-```java
-ActionProfile LOGIN_PROFILE = Profile.builder()
-    .before(Before.WAIT_FOR_ANGULAR_LOADER)
-    .before(Before.WAIT_FOR_ELEMENT_CLICKABLE)
-    .after(After.WAIT_FOR_ANGULAR_LOADER)
-    .after(After.HIGHLIGHT_ELEMENT)
-    .build();
-
-LOGIN.click().using(LOGIN_PROFILE);
-```
+- Known portability gaps are explicit, not implicit.
 
 ---
 
-## Priority
+## Phase 7 - Documentation Realignment
 
-| Priority | Feature | Value |
-|---|---|---|
-| 1 | `safely()` / `debug()` / `raw()` | Very High |
-| 2 | Profile Registry + `using(profile)` | High |
-| 3 | Capability-aware profile resolution | Very High |
-| 4 | Preset Library (`Profiles.*`) | High |
-| 5 | Custom Profile builder | Very High |
-| 6 | Global default profile (config-driven) | Extremely High |
-| 7 | Docs shift — profiles as primary API | High |
+**Objective:** ensure contributors learn current architecture, not legacy patterns.
+
+### Checklist
+
+- [ ] Add `Architecture Version` to core architecture docs.
+- [ ] Add `Current Architecture` and `Legacy Architecture` sections where needed.
+- [ ] Update examples to profile-first style.
+- [ ] Keep advanced extension docs for `before/after` users.
+
+### Exit Criteria
+
+- Docs and production API examples are aligned.
 
 ---
 
-## What NOT To Do
+## Phase 8 - Deprecated Code Removal (New)
 
-Do not attempt import-free hook constants (e.g., `.after(HIGHLIGHT_ELEMENT)` without imports).  
-Java syntax battle. Payoff is negligible.
+**Objective:** remove deprecated APIs safely after migration is complete.
+
+### Preconditions
+
+- Migration guides published.
+- Replacement APIs stable for at least one release cycle.
+- CI demonstrates no internal usage of deprecated symbols.
+
+### Checklist
+
+- [ ] Inventory deprecated symbols (API + internal).
+- [ ] Categorize by risk: low (internal), medium (test DSL), high (public API).
+- [ ] Replace all internal call sites first.
+- [ ] Add temporary compile checks or static scans for deprecated usage.
+- [ ] Remove deprecated code in targeted PRs (small batches).
+- [ ] Update changelog and migration notes with before/after examples.
+
+### Exit Criteria
+
+- No deprecated symbol usage remains in core paths.
+- Removed APIs are documented in changelog with migration mapping.
+
+---
+
+## Release and Branch Workflow
+
+- `main`: stable, releasable, no partial refactors.
+- `feature/action-package-refactor`: active architecture work.
+- Use small, phase-scoped PRs with explicit rollback plan.
+- For every phase PR, include:
+  - behavior diff
+  - migration impact
+  - test coverage impact
+
+---
+
+## Metrics Dashboard (Track Weekly)
+
+- [ ] Action API public method count
+- [ ] Branch density in core packages
+- [ ] Number of direct `before/after` usages in docs/examples
+- [ ] Number of `instanceof` checks in capability resolution paths
+- [ ] Deprecated symbol count remaining
+- [ ] CI compile and test pass rate by branch
+
+---
+
+## Priority Order
+
+1. Observability (`ActionTrace`)
+2. Capability resolution hardening
+3. Hook strategy layer
+4. Execution pipeline boundary
+5. Docs realignment
+6. Deprecated code removal
+
+---
+
+## Out of Scope (For Now)
+
+- Full rewrite of `Action` into a large configurable object model.
+- Removing low-level hooks from public surface entirely.
+- Engine-specific optimization before portability baseline is documented.
 
 ---
 
 ## Notes
 
-Hooks (`before` / `after`) remain the implementation mechanism.  
-Profiles are the language people speak.  
-This is the moment VOID transitions from *framework* to *UI execution platform*.
+Hooks remain implementation plumbing. Profiles remain user language. The architecture should keep intent (`Element -> Action -> Flow`) clean while implementation detail moves behind traceable, testable strategies.
 
 ---
 
-*MIT License © 2025–2026 VOID Project*
+*MIT License Copyright (c) 2025-2026 VOID Project*
 
