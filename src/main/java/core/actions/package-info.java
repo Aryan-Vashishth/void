@@ -9,8 +9,9 @@
  * <ul>
  *   <li>{@link core.actions.Action} — functional interface representing a single deferred
  *       UI operation. Produced by capability interfaces (e.g., {@code element.click()},
- *       {@code element.type("text")}). Supports hook composition via
- *       {@link core.actions.Action#withHooks}.</li>
+ *       {@code element.type("text")}). Supports directional hook composition via
+ *       {@link core.actions.Action#before(core.interactions.hooks.BeforeActionHandler...)} and
+ *       {@link core.actions.Action#after(core.interactions.hooks.AfterActionHandler...)}.</li>
  *   <li>{@link core.actions.ElementActions} — internal factory that creates element-bound
  *       Actions supporting descriptor resolution. Not part of the public DSL — capability
  *       interfaces use it internally to emit actions.</li>
@@ -34,7 +35,7 @@
  *       {@link core.actions.Action#perform}, never eagerly.</li>
  *   <li>Actions never reference {@code WebDriver}, {@code WebElement}, or {@code By} directly.</li>
  *   <li>Hook composition is optional and fluent:
- *       {@code element.click().withHooks(before, after)}</li>
+ *       {@code element.click().before(...).after(...)}</li>
  * </ul>
  *
  * <h3>Stability</h3>

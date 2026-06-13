@@ -3,8 +3,12 @@ package core.actions;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import elements.api.Element;
+import elements.api.capability.Clickable;
+import elements.api.capability.Selectable;
+import elements.api.capability.Typeable;
 import elements.meta.ElementRole;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -32,17 +36,51 @@ public final class ElementActions {
      */
     public static Action of(Element element, ElementRole role,
                             BiConsumer<UIEngine, LocatorDescriptor> op) {
-        return new Action() {
-            @Override
-            public void perform(UIEngine engine) {
-                op.accept(engine, resolve(engine));
-            }
+        Action base = new ElementBoundAction(element, role, op, capabilityFor(element, role));
+        return ActionProfiles.applyConfiguredDefault(base);
+    }
 
-            @Override
-            public LocatorDescriptor resolve(UIEngine engine) {
-                return engine.resolve(element, role);
-            }
-        };
+    private static ActionCapability capabilityFor(Element element, ElementRole role) {
+        if (element instanceof Selectable) return ActionCapability.SELECTABLE;
+        if (element instanceof Typeable) return ActionCapability.TYPEABLE;
+        if (element instanceof Clickable) return ActionCapability.CLICKABLE;
+
+        if (role == ElementRole.INPUT) return ActionCapability.TYPEABLE;
+        if (role == ElementRole.LIST) return ActionCapability.SELECTABLE;
+        if (role == ElementRole.TRIGGER) return ActionCapability.CLICKABLE;
+        return ActionCapability.UNKNOWN;
+    }
+
+    private static final class ElementBoundAction implements Action {
+        private final Element element;
+        private final ElementRole role;
+        private final BiConsumer<UIEngine, LocatorDescriptor> op;
+        private final ActionCapability capability;
+
+        private ElementBoundAction(Element element,
+                                   ElementRole role,
+                                   BiConsumer<UIEngine, LocatorDescriptor> op,
+                                   ActionCapability capability) {
+            this.element = Objects.requireNonNull(element, "element must not be null");
+            this.role = Objects.requireNonNull(role, "role must not be null");
+            this.op = Objects.requireNonNull(op, "op must not be null");
+            this.capability = capability == null ? ActionCapability.UNKNOWN : capability;
+        }
+
+        @Override
+        public void perform(UIEngine engine) {
+            op.accept(engine, resolve(engine));
+        }
+
+        @Override
+        public LocatorDescriptor resolve(UIEngine engine) {
+            return engine.resolve(element, role);
+        }
+
+        @Override
+        public ActionCapability capability() {
+            return capability;
+        }
     }
 }
 

@@ -4,9 +4,13 @@ import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import core.interactions.hooks.ActionHandler;
+import core.interactions.hooks.AfterActionHandler;
+import core.interactions.hooks.BeforeActionHandler;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Single execution contract — a UI operation deferred for Flow-based execution.
@@ -22,11 +26,13 @@ import java.util.List;
  * </pre>
  *
  * <h3>Hook support</h3>
- * <p>Actions created via {@link ElementActions} support {@link #withHooks(List, List)}
- * for fluent before/after hook composition:</p>
+ * <p>Actions created via {@link ElementActions} support fluent
+ * {@link #before(BeforeActionHandler...)} / {@link #after(AfterActionHandler...)}
+ * composition:</p>
  * <pre>
  *   LoginPage.USERNAME.type("user")
- *       .withHooks(List.of(Before.CLEAR_FIELD), List.of(After.HIGHLIGHT_ELEMENT));
+ *       .before(Before.CLEAR_FIELD)
+ *       .after(After.HIGHLIGHT_ELEMENT);
  * </pre>
  *
  * <p><b>Rules:</b></p>
@@ -51,7 +57,7 @@ public interface Action {
      * Resolves the {@link LocatorDescriptor} for this action's target element.
      *
      * <p>Override in element-bound actions (via {@link ElementActions}) to enable
-     * {@link #withHooks(List, List)}.  The default throws for raw lambda actions
+     * hook composition APIs. The default throws for raw lambda actions
      * that don't target a specific element.</p>
      *
      * @param engine the engine to resolve against
@@ -62,6 +68,82 @@ public interface Action {
         throw new UnsupportedOperationException(
                 "This action does not support descriptor resolution. " +
                 "Use ElementActions.of() to create resolvable actions.");
+    }
+
+    /**
+     * Adds before-hooks to this action.
+     *
+     * @param hooks hooks to run before the core action
+     * @return action with appended before-hooks
+     */
+    default Action before(@Nullable BeforeActionHandler... hooks) {
+        if (this instanceof HookChainAction chain) {
+            return chain.withAdditionalHooks(toList(hooks), null);
+        }
+        return new HookChainAction(this, toList(hooks), null);
+    }
+
+    /**
+     * Adds after-hooks to this action.
+     *
+     * @param hooks hooks to run after the core action
+     * @return action with appended after-hooks
+     */
+    default Action after(@Nullable AfterActionHandler... hooks) {
+        if (this instanceof HookChainAction chain) {
+            return chain.withAdditionalHooks(null, toList(hooks));
+        }
+        return new HookChainAction(this, null, toList(hooks));
+    }
+
+    /**
+     * Applies the framework's SAFE profile to this action.
+     */
+    default Action safely() {
+        return using(Profiles.SAFE);
+    }
+
+    /**
+     * Applies the framework's DEBUG profile to this action.
+     */
+    default Action debug() {
+        return using(Profiles.DEBUG);
+    }
+
+    /**
+     * Applies the framework's RAW profile (no additional hooks) to this action.
+     */
+    default Action raw() {
+        return using(Profiles.RAW);
+    }
+
+    /**
+     * Applies a named execution profile to this action.
+     */
+    default Action using(ActionProfile profile) {
+        Objects.requireNonNull(profile, "profile must not be null");
+
+        List<BeforeActionHandler> beforeHooks = profile.before(this);
+        List<AfterActionHandler> afterHooks = profile.after(this);
+        if ((beforeHooks == null || beforeHooks.isEmpty()) && (afterHooks == null || afterHooks.isEmpty())) {
+            return this;
+        }
+
+        Action profiled = this;
+        if (beforeHooks != null && !beforeHooks.isEmpty()) {
+            profiled = profiled.before(beforeHooks.toArray(new BeforeActionHandler[0]));
+        }
+        if (afterHooks != null && !afterHooks.isEmpty()) {
+            profiled = profiled.after(afterHooks.toArray(new AfterActionHandler[0]));
+        }
+        return profiled;
+    }
+
+    /**
+     * Returns the capability category of this action for profile resolution.
+     */
+    default ActionCapability capability() {
+        return ActionCapability.UNKNOWN;
     }
 
     /**
@@ -80,12 +162,22 @@ public interface Action {
      * @param before before-hooks (null = none)
      * @param after  after-hooks (null = none)
      * @return a new action that runs: before hooks → this → after hooks
+     * @deprecated Prefer fluent directional APIs:
+     *             {@code action.before(...).after(...)}
      */
+    @Deprecated(forRemoval = true, since = "2.0")
     default Action withHooks(@Nullable List<ActionHandler> before,
                              @Nullable List<ActionHandler> after) {
-        return engine -> {
-            LocatorDescriptor d = resolve(engine);
-            new HookedAction(this, d, before, after).perform(engine);
-        };
+        if (this instanceof HookChainAction chain) {
+            return chain.withAdditionalHooks(before, after);
+        }
+        return new HookChainAction(this, before, after);
+    }
+
+    private static List<ActionHandler> toList(@Nullable ActionHandler... hooks) {
+        if (hooks == null || hooks.length == 0) {
+            return List.of();
+        }
+        return Arrays.asList(hooks);
     }
 }

@@ -36,6 +36,8 @@ import java.util.Objects;
  * @see Action
  * @see ActionHandler
  */
+@Internal
+@Deprecated(forRemoval = true, since = "2.0")
 public class HookedAction implements Action {
 
     private final Action delegate;
@@ -50,7 +52,10 @@ public class HookedAction implements Action {
      *                   may be null only in legacy bridging
      * @param before     before-hooks to run (null = none)
      * @param after      after-hooks to run (null = none)
+     * @deprecated Internal framework constructor.
+     *             Prefer {@code action.before(...).after(...)}.
      */
+    @Deprecated(forRemoval = true, since = "2.0")
     public HookedAction(Action delegate,
                         LocatorDescriptor descriptor,
                         @Nullable List<ActionHandler> before,
@@ -81,8 +86,8 @@ public class HookedAction implements Action {
     // ── Deferred-resolution factory (deprecated) ────────────────────────────
 
     /**
-     * @deprecated Use {@link Action#withHooks(List, List)} instead:
-     *             {@code element.click().withHooks(before, after)}
+     * @deprecated Use fluent directional hooks instead:
+     *             {@code element.click().before(...).after(...)}
      */
     @Deprecated(forRemoval = true)
     @Internal
