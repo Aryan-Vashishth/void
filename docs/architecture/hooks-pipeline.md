@@ -3,8 +3,8 @@
 VOID's hook system allows you to compose reusable pre- and post-action behaviors around every UI interaction. This guide covers the hook model, built-in hook constants, and patterns for writing custom hooks.
 
 > **Note:** Hooks are available on **both** execution paths:
-> - **Action/Flow/FlowExecutor (modern):** Use the fluent `.withHooks(before, after)` API on any
->   element-bound Action (e.g., `element.click().withHooks(...)`).
+> - **Action/Flow/FlowExecutor (modern):** Use directional fluent APIs on any
+>   element-bound action: `element.click().before(...).after(...)`.
 > - **Interactions (legacy):** Pass hook lists to `Interactions` method overloads.
 >
 > UIEngine handles waits, scrolling, and retries internally regardless of path.
@@ -66,7 +66,7 @@ If a before hook fails (throws), the core action is **not** executed. If the cor
 
 | Path | Hooks Used? | Wait/Scroll/Retry |
 |------|-------------|-------------------|
-| **Action/Flow/FlowExecutor** | Optional — via `.withHooks(before, after)` | Built into UIEngine |
+| **Action/Flow/FlowExecutor** | Optional — via `.before(...).after(...)` | Built into UIEngine |
 | **Interactions (legacy)** | Yes — Before/After hooks compose pre/post behavior | Hooks + UIEngine |
 
 ---
@@ -84,7 +84,7 @@ Every hook is a lambda or constant that receives:
 - **`UIEngine`** — the active engine (engine-agnostic, not tied to WebDriver directly)
 - **`LocatorDescriptor`** — the resolved descriptor of the element being acted upon
 
-In the modern pipeline (`Action.withHooks()`), the descriptor is always non-null.
+In the modern pipeline (`Action.before(...).after(...)`), the descriptor is always non-null.
 In the legacy pipeline (`Interactions`), the descriptor may be `null` — hooks should guard accordingly.
 
 ### Legacy adapter
@@ -223,19 +223,18 @@ ActionHandler myHook = (engine, descriptor) -> {
 The simplest approach — write a lambda directly in your hook list:
 
 ```java
-// Modern path — fluent withHooks on Action
+// Modern path — fluent before/after on Action
 executor.run(
     MyElements.SUBMIT_BUTTON.click()
-        .withHooks(
-            List.of(
-                Before.WAIT_FOR_ANGULAR_LOADER,
-                (engine, descriptor) -> {
-                    // Custom: dismiss any visible cookie banner
-                    // Use engine methods — never reference WebDriver directly
-                    engine.click(engine.resolve(/* banner element */));
-                }
-            ),
-            List.of(After.DO_NOTHING))
+        .before(
+            Before.WAIT_FOR_ANGULAR_LOADER,
+            (engine, descriptor) -> {
+                // Custom: dismiss any visible cookie banner
+                // Use engine methods — never reference WebDriver directly
+                engine.click(engine.resolve(/* banner element */));
+            }
+        )
+        .after(After.DO_NOTHING)
 );
 
 // Legacy path — Interactions
@@ -261,18 +260,18 @@ public final class CustomHooks {
     private CustomHooks() {}
 
     /** Dismiss the cookie consent banner if present. */
-    public static final ActionHandler DISMISS_COOKIE_BANNER = (engine, descriptor) -> {
+    public static final BeforeActionHandler DISMISS_COOKIE_BANNER = (engine, descriptor) -> {
         // Use engine methods for interactions
         // Guard against null descriptor in legacy path
     };
 
     /** Wait for a custom loading spinner specific to your app. */
-    public static final ActionHandler WAIT_FOR_APP_SPINNER = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_APP_SPINNER = (engine, descriptor) -> {
         // engine-based wait logic
     };
 
     /** Log the descriptor being acted upon. */
-    public static final ActionHandler LOG_TARGET = (engine, descriptor) -> {
+    public static final BeforeActionHandler LOG_TARGET = (engine, descriptor) -> {
         if (descriptor != null) {
             System.out.println("Acting on: " + descriptor);
         }
@@ -286,9 +285,8 @@ Usage:
 // Modern path
 executor.run(
     MyElements.CHECKOUT_BUTTON.click()
-        .withHooks(
-            List.of(CustomHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE),
-            List.of(CustomHooks.WAIT_FOR_APP_SPINNER))
+        .before(CustomHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE)
+        .after(CustomHooks.WAIT_FOR_APP_SPINNER)
 );
 
 // Legacy path
@@ -307,7 +305,7 @@ For hooks that need runtime parameters, use a static factory method:
 public final class CustomHooks {
 
     /** Wait for a specific element (by descriptor) to disappear. */
-    public static ActionHandler waitForAbsence(Element element, ElementRole role) {
+    public static BeforeActionHandler waitForAbsence(Element element, ElementRole role) {
         return (engine, descriptor) -> {
             LocatorDescriptor target = engine.resolve(element, role);
             engine.waitForInvisible(target, Duration.ofSeconds(10));
@@ -315,7 +313,7 @@ public final class CustomHooks {
     }
 
     /** Log a specific message before the action. */
-    public static ActionHandler logMessage(String message) {
+    public static BeforeActionHandler logMessage(String message) {
         return (engine, descriptor) -> {
             System.out.println("[HOOK] " + message);
         };
@@ -325,9 +323,8 @@ public final class CustomHooks {
 // Usage
 executor.run(
     MyElements.SUBMIT.click()
-        .withHooks(
-            List.of(CustomHooks.waitForAbsence(MyElements.LOADING, ElementRole.TEXT)),
-            List.of(After.DO_NOTHING))
+        .before(CustomHooks.waitForAbsence(MyElements.LOADING, ElementRole.TEXT))
+        .after(After.DO_NOTHING)
 );
 ```
 
@@ -415,7 +412,7 @@ public static final ActionHandler WAIT_FOR_PANEL = (engine, descriptor) -> {
 
 ### 5. Prefer Action/Flow/FlowExecutor for New Code
 
-For new test code, prefer the Action/Flow/FlowExecutor pipeline. When you need app-specific hooks, use the fluent `.withHooks()` API:
+For new test code, prefer the Action/Flow/FlowExecutor pipeline. When you need app-specific hooks, use the fluent `.before(...).after(...)` API:
 
 ```java
 // ✅ Preferred — no hooks needed, UIEngine handles everything
@@ -424,12 +421,11 @@ executor.run(Flow.of(
     MyPage.SUBMIT.click()
 ));
 
-// ✅ Modern hooks — fluent withHooks on Action
+// ✅ Modern hooks — fluent before/after on Action
 executor.run(
     MyPage.SUBMIT.click()
-        .withHooks(
-            List.of(Before.WAIT_FOR_ANGULAR_LOADER),
-            List.of(After.HIGHLIGHT_ELEMENT))
+        .before(Before.WAIT_FOR_ANGULAR_LOADER)
+        .after(After.HIGHLIGHT_ELEMENT)
 );
 
 // ✅ Also valid — legacy Interactions with hooks

@@ -8,7 +8,7 @@ import java.time.Duration;
 import static core.logging.CustomLogger.debug;
 
 /**
- * Standard library of <b>after-action</b> {@link ActionHandler} constants.
+ * Standard library of <b>after-action</b> {@link AfterActionHandler} constants.
  * <p>
  * Use alongside {@link Before} to compose full hook chains:
  * <pre>
@@ -40,16 +40,16 @@ public final class After {
     private After() {}
 
     // ── No-ops ────────────────────────────────────────────────────────────
-    public static final ActionHandler DO_NOTHING = (engine, descriptor) -> {};
+    public static final AfterActionHandler DO_NOTHING = (engine, descriptor) -> {};
 
     // ── Loader waits ──────────────────────────────────────────────────────
-    public static final ActionHandler WAIT_FOR_ANGULAR_LOADER = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_ANGULAR_LOADER = (engine, descriptor) -> {
         LocatorDescriptor loader = LocatorDescriptor.of("app-loader", core.engine.LocatorStrategy.CSS);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
         catch (Exception ignored) { /* loader not present — continue */ }
     };
 
-    public static final ActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (engine, descriptor) -> {
         LocatorDescriptor loader = LocatorDescriptor.of(
                 "//span[contains(@class, 'spin spinner')]", core.engine.LocatorStrategy.XPATH);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
@@ -59,7 +59,7 @@ public final class After {
     // ── Element-state waits ────────────────────────────────────────────────
 
     /** Waits for the element to be visible after the action. */
-    public static final ActionHandler WAIT_FOR_ELEMENT_VISIBLE = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_ELEMENT_VISIBLE = (engine, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to After.WAIT_FOR_ELEMENT_VISIBLE");
             return;
@@ -70,7 +70,7 @@ public final class After {
     // ── Element manipulation ───────────────────────────────────────────────
 
     /** Highlights the element with a green border (success indicator). */
-    public static final ActionHandler HIGHLIGHT_ELEMENT = (engine, descriptor) -> {
+    public static final AfterActionHandler HIGHLIGHT_ELEMENT = (engine, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to After.HIGHLIGHT_ELEMENT");
             return;
@@ -79,7 +79,7 @@ public final class After {
     };
 
     /** Scrolls the element into view after the action. */
-    public static final ActionHandler SCROLL_TO_ELEMENT = (engine, descriptor) -> {
+    public static final AfterActionHandler SCROLL_TO_ELEMENT = (engine, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to After.SCROLL_TO_ELEMENT");
             return;
@@ -87,4 +87,3 @@ public final class After {
         engine.scrollTo(descriptor);
     };
 }
-

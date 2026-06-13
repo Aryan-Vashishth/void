@@ -238,7 +238,10 @@ app.run(DemoLoginPage.Button.LOGIN_BUTTON.click());
 
 ## Hooks
 
-Hooks are applied at the action layer via `Action.withHooks(...)`.
+Hooks are applied at the action layer via directional fluent APIs:
+
+- `Action.before(BeforeActionHandler...)`
+- `Action.after(AfterActionHandler...)`
 
 Hooks wrap actions. They do not change execution — they add behavior around it.
 They operate on the same action pipeline, not outside it.
@@ -251,25 +254,19 @@ import core.interactions.hooks.Before;
 
 Flow login = Flow.of(
     DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith")
-        .withHooks(
-            java.util.List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-            java.util.List.of(After.HIGHLIGHT_ELEMENT)
-        ),
+        .before(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT)
+        .after(After.HIGHLIGHT_ELEMENT),
     DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!")
-        .withHooks(
-            java.util.List.of(Before.CLEAR_FIELD),
-            java.util.List.of(After.HIGHLIGHT_ELEMENT)
-        ),
+        .before(Before.CLEAR_FIELD)
+        .after(After.HIGHLIGHT_ELEMENT),
     DemoLoginPage.Button.LOGIN_BUTTON.click()
-        .withHooks(
-            java.util.List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE),
-            java.util.List.of(After.HIGHLIGHT_ELEMENT)
-        )
+        .before(Before.WAIT_FOR_ELEMENT_CLICKABLE)
+        .after(After.HIGHLIGHT_ELEMENT)
 );
 ```
 
 Current codebase supports:
-- action-level hook composition via `withHooks(...)`
+- action-level hook composition via `.before(...).after(...)`
 - hook execution through the normal action/flow pipeline
 
 FlowExecutor-level hooks are not implemented as a separate public API in the current codebase.
@@ -318,6 +315,19 @@ Example from the demo page:
 - `DemoLoginPage.Credentials.USERNAME_INPUT` → role `INPUT`
 - `DemoLoginPage.Button.LOGIN_BUTTON` → role `TRIGGER`
 - locator file: `demo-login-elements.json`
+
+### Locator resolution pipeline (DemoLoginPage)
+
+Using `tests/demo/pages/DemoLoginPage.java` as reference:
+
+1. `DemoLoginPage.Button.LOGIN_BUTTON.click()` emits a deferred `Action`.
+2. At execution time, the action calls `engine.resolve(element, ElementRole.TRIGGER)`.
+3. `DemoLoginPage.Button.LOGIN_BUTTON.getTriggerLocator()` returns key `LOGIN_BUTTON`.
+4. `DemoLoginPage.Button.LOGIN_BUTTON.getExternalFileName()` returns `demo-login-elements.json`.
+5. Resolver reads the locator template/value, applies `getArgs()` (`"Login"` for `LOGIN_BUTTON`), and builds a `LocatorDescriptor`.
+6. `UIEngine` executes the action (`click`, `type`, etc.) from that resolved descriptor.
+
+This keeps test code free of `By`, hardcoded locator strings, and engine-specific selector APIs.
 
 ---
 

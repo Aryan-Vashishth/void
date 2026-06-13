@@ -66,11 +66,12 @@ public interface Selectable extends Clickable, Listable {
 
     /** Composite: opens trigger → waits for overlay → clicks option. */
     default Action select() {
-        return engine -> {
-            engine.click(engine.resolve(this, ElementRole.TRIGGER));
-            engine.waitForOverlay(Duration.ofSeconds(5));
-            engine.click(engine.resolve(this, ElementRole.LIST, getArgs()));
-        };
+        return ElementActions.of(this, ElementRole.TRIGGER,
+                (engine, d) -> {
+                    engine.click(d);
+                    engine.waitForOverlay(Duration.ofSeconds(5));
+                    engine.click(engine.resolve(this, ElementRole.LIST, getArgs()));
+                });
     }
 
     default Action selectByText(String text) {

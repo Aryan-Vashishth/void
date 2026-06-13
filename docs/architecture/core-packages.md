@@ -70,7 +70,7 @@ core/
 **Rules:**
 - Actions never reference `WebDriver`, `WebElement`, or `By`.
 - Actions are pure intent — UIEngine handles all execution concerns.
-- Hook composition is fluent: `element.click().withHooks(before, after)`
+- Hook composition is fluent: `element.click().before(...).after(...)`
 
 **Stability:** `@Beta` — API may change between releases.
 

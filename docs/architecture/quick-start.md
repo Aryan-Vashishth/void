@@ -341,15 +341,11 @@ designated way for hooks to interact with the engine without exposing it to test
 ```java
 app.run(Flow.of(
     LoginPageElements.Credentials.USERNAME_INPUT.type("admin@example.com")
-        .withHooks(
-            List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-            List.of(After.HIGHLIGHT_ELEMENT)
-        ),
+        .before(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT)
+        .after(After.HIGHLIGHT_ELEMENT),
     LoginPageElements.Actions.SIGN_IN_BUTTON.click()
-        .withHooks(
-            List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE),
-            List.of(After.HIGHLIGHT_ELEMENT)
-        )
+        .before(Before.WAIT_FOR_ELEMENT_CLICKABLE)
+        .after(After.HIGHLIGHT_ELEMENT)
 ));
 ```
 
@@ -443,7 +439,7 @@ Example log line:
 | **External locators** | Locators live in `.properties` or `.json` — never in Java code. |
 | **Role-based resolution** | `LocatorResolvers.strict()` (recommended) resolves locators by `ElementRole`. |
 | **`ResolvableEnum`** | Mixin for name↔label resolution. Add alongside a capability interface for BDD string-to-enum matching. |
-| **Hook pipeline** | `Before.*` / `After.*` hooks composed via `.withHooks()`. Hooks receive `(UIEngine, LocatorDescriptor)` — engine-agnostic. |
+| **Hook pipeline** | `Before.*` / `After.*` hooks composed via `.before(...).after(...)`. Hooks receive `(UIEngine, LocatorDescriptor)` — engine-agnostic. |
 
 ---
 
@@ -473,9 +469,8 @@ app.run(Flow.of(
 // Fluent hooks — before/after composed inline
 app.run(
     LoginPage.SUBMIT.click()
-        .withHooks(
-            List.of(Before.WAIT_FOR_ANGULAR_LOADER),
-            List.of(After.HIGHLIGHT_ELEMENT))
+        .before(Before.WAIT_FOR_ANGULAR_LOADER)
+        .after(After.HIGHLIGHT_ELEMENT)
 );
 
 // Dropdown
@@ -545,7 +540,7 @@ A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs in
 | File | Purpose |
 |------|---------|
 | [`VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) | Main entry point — bootstraps VOID, runs login flow, verifies redirect |
-| [`DemoLoginElements.java`](../../src/main/java/tests/demo/pages/DemoLoginElements.java) | Element definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
+| [`DemoLoginPage.java`](../../src/main/java/tests/demo/pages/DemoLoginPage.java) | Element definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
 | [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) | Locator file — XPath locators keyed by element name |
 
 ### Running
@@ -563,7 +558,7 @@ mvn test -Dtest=tests.demo.VoidDemo
 2. **`app.navigateTo(url)`** — session-level navigation via the façade
 3. **`app.run(Flow.of(...))`** — composable Action pipeline via the session façade
 4. **Capability interfaces** — `Typeable.type()`, `Clickable.click()` emitting deferred Actions
-5. **Fluent hooks** — `.withHooks(before, after)` for inline hook composition
+5. **Fluent hooks** — `.before(...).after(...)` for inline hook composition
 6. **External JSON locators** — resolved at execution time by the engine
 7. **`CustomLogger`** — color-coded, call-site-traced output
 8. **`app.shutdown()`** — session-scoped teardown
@@ -573,7 +568,7 @@ mvn test -Dtest=tests.demo.VoidDemo
 ## Next Steps
 
 - 🚀 **[Runnable Demo](../../src/main/java/tests/demo/VoidDemo.java)** — complete working example targeting `the-internet.herokuapp.com/login`
-  - [`DemoLoginElements.java`](../../src/main/java/tests/demo/pages/DemoLoginElements.java) — element definitions (Typeable, Clickable, ReadOnly)
+  - [`DemoLoginPage.java`](../../src/main/java/tests/demo/pages/DemoLoginPage.java) — element definitions (Typeable, Clickable, ReadOnly)
   - [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) — locator file
   - Run via: `mvn test -Dtest=tests.demo.VoidDemo` or IDE TestNG runner
 - 📖 [System Overview](system-overview.md) — full architecture and execution flow

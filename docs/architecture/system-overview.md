@@ -57,11 +57,11 @@ Architecture in this document is projected from accepted decisions under `docs/d
   `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE`, `HIGHLIGHT_ELEMENT`, `WAIT_FOR_ANGULAR_LOADER`, `LOG_INTENT`, `DO_NOTHING`, etc.
 - `ActionHandler` receives `(UIEngine engine, LocatorDescriptor descriptor)` — fully engine-agnostic.
 - Hook lists are passed directly to every interaction method overload for fully composable behaviour.
-- **Fluent API:** Actions created via capability interfaces support `.withHooks(before, after)` for inline hook composition.
+- **Fluent API:** Actions created via capability interfaces support `.before(...).after(...)` for inline hook composition.
 
 ### ⚡ Action / Flow / FlowExecutor Pipeline
 - Capability interfaces emit **deferred `Action` objects** — lambdas over `UIEngine`.
-- `ElementActions.of(element, role, op)` creates element-bound actions that support `resolve()` and `withHooks()`.
+- `ElementActions.of(element, role, op)` creates element-bound actions that support `resolve()` and fluent hook composition.
 - `Flow` composes multiple Actions into ordered sequences.
 - `FlowExecutor` iterates Flows and calls `action.perform(engine)` for each.
 - Locator resolution happens **inside** the Action lambda at execution time — never eagerly.
