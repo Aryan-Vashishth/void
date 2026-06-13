@@ -38,8 +38,6 @@ This plan prevents accidental complexity while preserving backward compatibility
 
 ## Phase 0 - Stabilization Baseline (Done and Enforced)
 
-> Detailed doc: [`phase-0-stabilization-baseline.md`](done/phase-0-stabilization-baseline.md)
-
 **Objective:** lock a clean baseline after CI breakage so future refactors are traceable.
 
 ### Checklist
@@ -57,8 +55,6 @@ This plan prevents accidental complexity while preserving backward compatibility
 ---
 
 ## Phase 1 - Profile API Consolidation
-
-> Detailed doc: [`phase-1-profile-api-consolidation.md`](ongoing/phase-1-profile-api-consolidation.md)
 
 **Objective:** make profile APIs predictable and reduce low-level hook exposure.
 
@@ -83,8 +79,6 @@ This plan prevents accidental complexity while preserving backward compatibility
 ---
 
 ## Phase 2 - Observability First (`ActionTrace`)
-
-> Detailed doc: [`phase-2-observability-action-trace.md`](ongoing/phase-2-observability-action-trace.md)
 
 **Objective:** make execution pipeline visible before adding more behavior.
 
@@ -111,8 +105,6 @@ This plan prevents accidental complexity while preserving backward compatibility
 ---
 
 ## Phase 3 - Capability Resolution Hardening
-
-> Detailed doc: [`phase-3-capability-resolution-hardening.md`](ongoing/phase-3-capability-resolution-hardening.md)
 
 **Objective:** prevent `instanceof` branching explosion as capabilities grow.
 
@@ -141,8 +133,6 @@ interface ActionCapabilityProvider {
 
 ## Phase 4 - Hook Strategy Layer
 
-> Detailed doc: [`phase-4-hook-strategy-layer.md`](ongoing/phase-4-hook-strategy-layer.md)
-
 **Objective:** stop hook list sprawl and preserve action-oriented API.
 
 ### Direction
@@ -169,8 +159,6 @@ Encapsulate hook bundles in strategies:
 
 ## Phase 5 - Execution Pipeline Boundary
 
-> Detailed doc: [`phase-5-execution-pipeline-boundary.md`](ongoing/phase-5-execution-pipeline-boundary.md)
-
 **Objective:** keep `FlowExecutor` minimal while enabling retries/timeouts/metrics later.
 
 ### Direction
@@ -194,8 +182,6 @@ FlowExecutor -> ExecutionPipeline -> Action
 
 ## Phase 6 - Engine Portability Controls
 
-> Detailed doc: [`phase-6-engine-portability-controls.md`](ongoing/phase-6-engine-portability-controls.md)
-
 **Objective:** keep Playwright and future engine support practical.
 
 ### Checklist
@@ -213,8 +199,6 @@ FlowExecutor -> ExecutionPipeline -> Action
 
 ## Phase 7 - Documentation Realignment
 
-> Detailed doc: [`phase-7-documentation-realignment.md`](ongoing/phase-7-documentation-realignment.md)
-
 **Objective:** ensure contributors learn current architecture, not legacy patterns.
 
 ### Checklist
@@ -230,9 +214,7 @@ FlowExecutor -> ExecutionPipeline -> Action
 
 ---
 
-## Phase 8 - Deprecated Code Removal
-
-> Detailed doc: [`phase-8-deprecated-code-removal.md`](ongoing/phase-8-deprecated-code-removal.md)
+## Phase 8 - Deprecated Code Removal (New)
 
 **Objective:** remove deprecated APIs safely after migration is complete.
 
