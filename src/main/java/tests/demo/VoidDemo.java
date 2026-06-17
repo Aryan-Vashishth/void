@@ -16,7 +16,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
-import java.util.List;
 
 import static core.logging.CustomLogger.*;
 
@@ -112,32 +111,43 @@ public class VoidDemo {
 
         app.run(Flow.of(
                 DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME)
-                        .withHooks(
-                                List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-                                List.of(After.HIGHLIGHT_ELEMENT)
+                        .before(
+                                Before.SCROLL_TO_ELEMENT,
+                                Before.HIGHLIGHT_ELEMENT,
+                                Before.CLEAR_FIELD
+                        )
+                        .after(
+                                After.HIGHLIGHT_ELEMENT
                         ),
 
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD)
-                        .withHooks(
-                                List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-                                List.of(After.HIGHLIGHT_ELEMENT)
+                        .before(
+                                Before.SCROLL_TO_ELEMENT,
+                                Before.HIGHLIGHT_ELEMENT,
+                                Before.CLEAR_FIELD
+                        )
+                        .after(
+                                After.HIGHLIGHT_ELEMENT
                         ),
 
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
-                        .withHooks(
-                                List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
-                                List.of(
-                                        // Custom inline hook: wait for success message after login click.
-                                        // Hooks receive the engine as a parameter — this is the intended
-                                        // way for hooks to perform engine-level operations without
-                                        // exposing the engine to test code.
-                                        (eng, desc) -> {
-                                            LocatorDescriptor successMsg = eng.resolve(
-                                                    DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
-                                            eng.waitForVisible(successMsg, Duration.ofSeconds(5));
-                                            debug.log("[HOOK] Success message visible after login click.");
-                                        }
-                                )
+                        .before(
+                                Before.WAIT_FOR_ELEMENT_VISIBLE,
+                                Before.WAIT_FOR_ELEMENT_CLICKABLE,
+                                Before.HIGHLIGHT_ELEMENT
+                        )
+                        .after(
+                                After.HIGHLIGHT_ELEMENT,
+                                // Custom inline hook: wait for success message after login click.
+                                // Hooks receive the engine as a parameter — this is the intended
+                                // way for hooks to perform engine-level operations without
+                                // exposing the engine to test code.
+                                (eng, desc) -> {
+                                    LocatorDescriptor successMsg = eng.resolve(
+                                            DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
+                                    eng.waitForVisible(successMsg, Duration.ofSeconds(5));
+                                    debug.log("[HOOK] Success message visible after login click.");
+                                }
                         )
         ));
 

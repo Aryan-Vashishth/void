@@ -382,9 +382,14 @@ public final class SeleniumEngine implements UIEngine {
 
     @Override
     public void scrollTo(LocatorDescriptor locator) {
-        By by = toBy(locator);
-        WebElement element = driver.findElement(by);
-        scrollToElement(element);
+        try {
+            By by = toBy(locator);
+            WebElement element = driver.findElement(by);
+            scrollToElement(element);
+        } catch (Exception e) {
+            // Best-effort — element may be gone if the action caused a navigation.
+            debug.log("[SeleniumEngine] scrollTo() skipped — element no longer present: " + e.getMessage());
+        }
     }
 
     @Override
@@ -401,10 +406,15 @@ public final class SeleniumEngine implements UIEngine {
 
     @Override
     public void highlight(LocatorDescriptor locator, String color) {
-        By by = toBy(locator);
-        WebElement element = driver.findElement(by);
-        ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].style.border='6px solid " + color + "';", element);
+        try {
+            By by = toBy(locator);
+            WebElement element = driver.findElement(by);
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].style.border='6px solid " + color + "';", element);
+        } catch (Exception e) {
+            // Best-effort — element may be gone if the action caused a navigation.
+            debug.log("[SeleniumEngine] highlight() skipped — element no longer present: " + e.getMessage());
+        }
     }
 
     @Override
