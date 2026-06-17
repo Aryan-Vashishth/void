@@ -1,6 +1,11 @@
 # Documentation Index
 
-This directory contains only public, stable documentation.
+This directory contains only public, stable documentation for VOID (Virtual Object Interaction Domain), an interaction runtime for modeling and executing interaction workflows.
+
+Current execution narrative:
+- `Element → Action → Flow → FlowExecutor → UIEngine`
+- Test code describes intent; the runtime handles execution.
+- Selenium today, Playwright-ready by contract, engine-agnostic by design.
 
 ## Structure
 

@@ -1,17 +1,21 @@
-# VOID — Versatile Object-Oriented Interactions for DOM
+# VOID — Virtual Object Interaction Domain
 
 ## Overview
 
-VOID is a **structured, engine-agnostic execution model** for UI automation. It ships as a Maven dependency and enforces an opinionated architecture for element definition, locator resolution, action composition, and browser execution. Built on Java 17, it combines an enum-driven element model, capability-based interfaces, role-based locator resolution, composable hook pipelines, a deferred Action/Flow execution system, and deep observability tooling into a cohesive, enterprise-ready platform.
+VOID is an **interaction runtime for modeling and executing interaction workflows**, currently configured for UI automation. It ships as a Maven dependency and enforces an opinionated architecture for element definition, locator resolution, action composition, and browser execution. Built on Java 17, it combines an enum-driven element model, capability-based interfaces, role-based locator resolution, composable hook pipelines, a deferred Action/Flow execution system, and deep observability tooling into a cohesive, enterprise-ready platform.
 
 ### What VOID Is
 
-VOID separates:
-- **Intent** (Action) — what the user wants to do
+VOID separates interaction modeling from execution:
+- **Intent** (Action) — what should happen
 - **Structure** (Element + Capability) — what UI elements exist and what roles they play
-- **Execution** (UIEngine) — how the browser interaction physically happens
+- **Execution** (FlowExecutor + UIEngine) — how interactions physically happen
 
-This enables interchangeable engines (Selenium, Playwright), composable flows, deterministic execution behavior, and clean separation of concerns.
+Elements emit actions. Actions compose flows. Flows are executed by the VOID Runtime through interchangeable engines that own waits, retries, locator resolution, synchronization, and native automation concerns.
+
+Test code describes intent. The runtime handles execution.
+
+This enables interchangeable engines (Selenium today, Playwright-ready by contract), composable flows, deterministic execution behavior, and clean separation of concerns.
 
 ---
 

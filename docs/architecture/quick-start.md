@@ -2,6 +2,14 @@
 
 Get up and running with VOID in under 10 minutes.
 
+VOID (Virtual Object Interaction Domain) is an interaction runtime for modeling and executing interaction workflows, currently configured for UI automation.
+
+Execution pipeline:
+
+`Element → Action → Flow → FlowExecutor → UIEngine`
+
+Test code describes intent. The runtime handles execution.
+
 > 💡 **Want to see it in action first?** Jump to the [Runnable Demo](#runnable-demo) at the end, or run
 > `VoidDemo` as a TestNG test from [`src/main/java/tests/demo/VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) directly.
 
