@@ -41,19 +41,66 @@ Action typeAction  = LoginPage.USERNAME.type("admin"); // returns Action (deferr
 
 Nothing happens yet — no browser interaction, no locator resolution.
 
-### 2. Hook Composition (Optional)
+### 2. Hook Composition — Profiles (Preferred)
 
-Actions support fluent before/after hook attachment:
+Apply a named profile to get capability-aware hooks with no manual wiring:
 
 ```java
+// SAFE profile: correct hooks chosen automatically by capability (Clickable / Typeable / Selectable)
+Action safe = LoginPage.USERNAME.type("admin").safely();
+Action click = LoginPage.SUBMIT.click().safely();
+
+// DEBUG profile: adds LOG_INTENT + HIGHLIGHT_ELEMENT before, HIGHLIGHT_ELEMENT after
+Action debug = LoginPage.SUBMIT.click().debug();
+
+// RAW profile: no hooks — bare perform() only
+Action raw = LoginPage.SUBMIT.click().raw();
+
+// Custom profile via builder
+ActionProfile myProfile = ActionProfile.builder()
+    .before(Before.WAIT_FOR_ANGULAR_LOADER)
+    .after(After.HIGHLIGHT_ELEMENT)
+    .build();
+Action custom = LoginPage.SUBMIT.click().using(myProfile);
+```
+
+Profiles expand to the following hooks:
+
+| Profile | Capability | Before | After |
+|---------|------------|--------|-------|
+| `safely()` | Clickable | `WAIT_FOR_ELEMENT_CLICKABLE` | `WAIT_FOR_ANGULAR_LOADER`, `HIGHLIGHT_ELEMENT` |
+| `safely()` | Typeable | `CLEAR_FIELD`, `WAIT_FOR_ELEMENT_VISIBLE` | `HIGHLIGHT_ELEMENT` |
+| `safely()` | Selectable | `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE` | `HIGHLIGHT_ELEMENT` |
+| `debug()` | Any | `LOG_INTENT`, `HIGHLIGHT_ELEMENT` | `HIGHLIGHT_ELEMENT` |
+| `raw()` | Any | _(none)_ | _(none)_ |
+
+Profiles can be combined with extra hooks via `.after()` or `.before()`:
+
+```java
+LoginPage.SUBMIT.click()
+    .safely()
+    .after((eng, desc) -> eng.waitForVisible(eng.resolve(ResultPage.BANNER, TEXT), Duration.ofSeconds(5)));
+```
+
+### 3. Hook Composition — Manual (Advanced / Power-User)
+
+For full control, chain hooks directly or use `withHooks()`:
+
+```java
+// Fluent directional API
+Action hooked = LoginPage.USERNAME.type("admin")
+    .before(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE)
+    .after(After.HIGHLIGHT_ELEMENT);
+
+// Low-level escape hatch — both lists in one call
 Action hooked = LoginPage.USERNAME.type("admin")
     .withHooks(
-        List.of(Before.WAIT_FOR_ELEMENT_VISIBLE),
+        List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE),
         List.of(After.HIGHLIGHT_ELEMENT)
     );
 ```
 
-This wraps the original action in a `HookedAction` decorator.
+This wraps the original action in a `HookChainAction` decorator.
 
 ### 3. Execution
 
