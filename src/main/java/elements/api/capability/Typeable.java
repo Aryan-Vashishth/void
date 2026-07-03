@@ -3,7 +3,10 @@ package elements.api.capability;
 import core.actions.Action;
 import core.actions.ActionCapability;
 import core.actions.ActionCapabilityProvider;
+import core.actions.ActionProfile;
 import core.actions.ElementActions;
+import core.interactions.hooks.After;
+import core.interactions.hooks.Before;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -44,6 +47,14 @@ public interface Typeable extends Element, ActionCapabilityProvider {
 
     @Override
     default ActionCapability capability() { return ActionCapability.TYPEABLE; }
+
+    ActionProfile TYPEABLE_SAFE_PROFILE = ActionProfile.builder()
+            .before(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE)
+            .after(After.HIGHLIGHT_ELEMENT)
+            .build();
+
+    @Override
+    default ActionProfile safeProfile() { return TYPEABLE_SAFE_PROFILE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 
