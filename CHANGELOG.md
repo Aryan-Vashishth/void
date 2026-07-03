@@ -13,6 +13,12 @@
   - `Profile.builder()` / `ActionProfile.builder()` — fluent builder for custom profiles
   - `Profiles.FAST`, `Profiles.VISUAL`, `Profiles.RELIABLE` — additional built-in presets
 
+- **Capability self-description — Phase 3**
+  - `core.actions.ActionCapabilityProvider` — new interface; capability interfaces implement it to self-describe without a registry
+  - `ActionCapability` enum expanded from 4 to 15 values: added HOVERABLE, CHECKABLE, UPLOADABLE, SEARCHABLE, SEARCH_FIELD, SEARCHABLE_DROPDOWN, READ_ONLY, TABLE, EDITABLE_TABLE, LISTABLE, MULTI_SELECTABLE alongside the existing CLICKABLE, TYPEABLE, SELECTABLE, UNKNOWN
+  - All 14 capability interfaces (`Clickable`, `Typeable`, `Selectable`, `Hoverable`, `Checkable`, `Uploadable`, `MultiSelectable`, `Searchable`, `SearchField`, `SearchableDropdown`, `ReadOnly`, `Table`, `EditableTable`, `Listable`) implement `ActionCapabilityProvider` and return their canonical constant
+  - No behavioral change — capability metadata is for logging, tracing, diagnostics, serialization only
+
 - **Action execution trace — Phase 2 (observability)**
   - `core.actions.trace.ActionTrace` — immutable record of a single action execution (element, operation, profile, hooks, timing, status, failure)
   - `core.actions.trace.TraceStatus` — outcome enum: `SUCCESS`, `FAILED`, `HOOK_FAILED`
