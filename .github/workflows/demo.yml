@@ -6,7 +6,7 @@ name: VoidDemo
 
 on:
   push:
-    branches: [main]
+    #branches: [main]
     paths:
       # Re-run when demo code, locators, engine, or facade changes
       - 'src/main/java/tests/demo/**'
