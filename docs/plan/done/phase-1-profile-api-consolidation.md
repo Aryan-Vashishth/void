@@ -1,6 +1,6 @@
 # Phase 1 — Profile API Consolidation
 
-**Status:** Ongoing  
+**Status:** Complete  
 **Architecture Version:** 2.3  
 **Branch:** `feature/action-package-refactor`  
 **Risk:** Low — additive changes only
@@ -61,31 +61,31 @@ The problem is that examples and docs currently mix styles. Some use `withHooks(
 ## Checklist
 
 ### API Surface
-- [ ] Confirm exactly which methods are public on `Action` and write them down.
-- [ ] Ensure `withHooks(List, List)` is still available as the power-user escape hatch.
-- [ ] Ensure `safely()`, `debug()`, `raw()` all delegate to `withHooks` internally (no duplicate logic).
-- [ ] Ensure `using(ActionProfile)` accepts any `ActionProfile` implementation including custom ones.
+- [x] Confirm exactly which methods are public on `Action` and write them down.
+- [x] Ensure `withHooks(List, List)` is still available as the power-user escape hatch.
+- [x] Ensure `safely()`, `debug()`, `raw()` all delegate to `withHooks` internally (no duplicate logic).
+- [x] Ensure `using(ActionProfile)` accepts any `ActionProfile` implementation including custom ones.
 
 ### Profiles Behavior
-- [ ] Verify `safely()` on a `Clickable` action applies the correct before/after hook set.
-- [ ] Verify `safely()` on a `Typeable` action applies the correct before/after hook set.
-- [ ] Verify `debug()` applies logging and highlight hooks only.
-- [ ] Verify `raw()` applies no hooks.
+- [x] Verify `safely()` on a `Clickable` action applies the correct before/after hook set.
+- [x] Verify `safely()` on a `Typeable` action applies the correct before/after hook set.
+- [x] Verify `debug()` applies logging and highlight hooks only.
+- [x] Verify `raw()` applies no hooks.
 
 ### Demo and Examples
-- [ ] Update `VoidDemo.loginWithHookedActions()` to demonstrate `safely()` or `using(Profiles.SAFE)` as primary example.
-- [ ] Keep at least one `withHooks(...)` example as the advanced usage reference.
-- [ ] Remove any remaining references to non-existent `.before(...)/.after(...)` chaining.
+- [x] Update `VoidDemo.loginWithHookedActions()` to demonstrate `safely()` or `using(Profiles.SAFE)` as primary example.
+- [x] Keep at least one `withHooks(...)` example as the advanced usage reference.
+- [x] Remove any remaining references to non-existent `.before(...)/.after(...)` chaining.
 
 ### Tests
-- [ ] Unit test: `safely()` on click action produces the expected hook order.
-- [ ] Unit test: `debug()` on type action produces the expected hook order.
-- [ ] Unit test: `raw()` skips all hooks and calls perform directly.
-- [ ] Unit test: `using(customProfile)` applies hooks from the custom profile.
+- [x] Unit test: `safely()` on click action produces the expected hook order.
+- [x] Unit test: `debug()` on type action produces the expected hook order.
+- [x] Unit test: `raw()` skips all hooks and calls perform directly.
+- [x] Unit test: `using(customProfile)` applies hooks from the custom profile.
 
 ### Documentation
-- [ ] Update `src/main/java/core/actions/README.md` with profile API examples.
-- [ ] Update `docs/architecture/hooks-pipeline.md` to show `safely()` as the primary path.
+- [x] Update `src/main/java/core/actions/README.md` with profile API examples.
+- [x] Update `docs/architecture/hooks-pipeline.md` to show `safely()` as the primary path.
 
 ---
 

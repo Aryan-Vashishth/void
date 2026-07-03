@@ -1,8 +1,17 @@
 # Changelog
 
-## [Unreleased] — 2026-05-29
+## [Unreleased] — 2026-07-03
 
 ### Added
+
+- **Action profiles — Phase 1 (profile API consolidation)**
+  - `Action.safely()` — applies the SAFE profile (capability-aware hooks: before/after chosen by Clickable / Typeable / Selectable)
+  - `Action.debug()` — applies the DEBUG profile (`LOG_INTENT` + `HIGHLIGHT_ELEMENT` before, `HIGHLIGHT_ELEMENT` after)
+  - `Action.raw()` — applies the RAW profile (no hooks; bare `perform()` only)
+  - `Action.using(ActionProfile)` — applies any custom or built-in profile
+  - `ActionProfile.name()` — default `"custom"`; named presets (SAFE, DEBUG, RAW, FAST, VISUAL, RELIABLE) override with stable identifiers
+  - `Profile.builder()` / `ActionProfile.builder()` — fluent builder for custom profiles
+  - `Profiles.FAST`, `Profiles.VISUAL`, `Profiles.RELIABLE` — additional built-in presets
 
 - **`VOID` session façade — ADR-011**
   - `VOID.navigateTo(String url)` — navigate without touching the engine directly
@@ -27,6 +36,10 @@
   - `archunit:1.3.0` added as a test-scoped dependency
 
 ### Changed
+
+- **`VoidDemo.loginWithHookedActions()`** — refactored to use `safely()` as primary pattern; inline after-hook shows how to extend a profile
+- **`core/actions/README.md`** — added Profiles section with capability expansion table and builder examples; `withHooks()` moved to Manual/Advanced
+- **`docs/architecture/hooks-pipeline.md`** — `safely()` promoted as primary modern path in overview, table, and best-practices section
 
 - **`VOID` Javadoc** — rewritten to reflect session-façade model with multi-session examples
 - **`FlowExecutor` Javadoc** — updated to prefer `VOID.run()` over direct construction
@@ -117,4 +130,3 @@ After bumping to `2.0-SNAPSHOT`:
 | `DriverFactory.createEmptyTemplate()`                            | `DriverFactory.createPropertiesTemplate(Profile.DEFAULT, true, true, false, false)`       |
 | `JsonLocatorMigrator.main(args)`                                 | `JsonMigratorCli.main(args)`                                                              |
 | `ThemeColors.theme()...build()`                                  | `ThemeColors.builder()...build()`                                                         |
-
