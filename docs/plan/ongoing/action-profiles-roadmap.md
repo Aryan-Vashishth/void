@@ -139,31 +139,31 @@ interface ActionCapabilityProvider {
 
 ---
 
-## Phase 4 - Hook Strategy Layer
+## Phase 4 - Capability-Driven Hook Selection
 
-> Detailed doc: [`phase-4-hook-strategy-layer.md`](ongoing/phase-4-hook-strategy-layer.md)
+> Detailed doc: [`phase-4-capability-driven-hook-selection.md`](ongoing/phase-4-capability-driven-hook-selection.md)
 
-**Objective:** stop hook list sprawl and preserve action-oriented API.
+**Objective:** complete Phase 3's self-description promise by wiring `ActionCapabilityProvider` into the action pipeline. Move hook-selection knowledge from a central switch onto the capability interface that owns it.
 
 ### Direction
 
-Encapsulate hook bundles in strategies:
-
-- `SafeClickStrategy`
-- `SafeTypeStrategy`
-- `DebugStrategy`
-- `FastStrategy`
+- Fix `ElementActions.capabilityFor()` to delegate to `ActionCapabilityProvider` (all 14 capabilities now report accurate metadata).
+- Add `safeProfile()` to `ActionCapabilityProvider` — each capability declares its own safe-execution profile.
+- `ElementBoundAction.safely()` uses the capability's declared profile directly, bypassing the central switch.
+- `Profiles.SAFE` is preserved as the fallback for lambda actions and `.using(Profiles.SAFE)` callers.
 
 ### Checklist
 
-- [ ] Define strategy interface and mapping points.
-- [ ] Route `safely()` and `debug()` through strategy implementations.
-- [ ] Keep direct `before/after` for advanced users.
-- [ ] Add tests proving strategy expansion is correct and ordered.
+- [ ] Fix `capabilityFor()` — delegate to `ActionCapabilityProvider.capability()`.
+- [ ] Add `safeProfile()` default to `ActionCapabilityProvider`.
+- [ ] Override `safeProfile()` in `Clickable`, `Typeable`, `Selectable`, `SearchField`, `SearchableDropdown`.
+- [ ] Wire `safeProfile` into `ElementBoundAction` and override `safely()`.
+- [ ] Verify no new central dispatcher, resolver, or strategy class is created.
 
 ### Exit Criteria
 
-- Typical user flows do not require long hook argument lists.
+- Adding a new capability with custom safe hooks requires no changes to any existing framework file.
+- `ElementActions.capabilityFor()` contains no `instanceof` checks.
 
 ---
 
