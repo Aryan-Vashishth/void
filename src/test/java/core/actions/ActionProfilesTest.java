@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -148,6 +149,65 @@ public class ActionProfilesTest {
                 getClass().getClassLoader(),
                 new Class<?>[]{UIEngine.class},
                 handler);
+    }
+
+    @Test
+    public void debugProfile_hasExpectedHookLists() {
+        assertEquals(Profiles.DEBUG.before(), List.of(Before.LOG_INTENT, Before.HIGHLIGHT_ELEMENT));
+        assertEquals(Profiles.DEBUG.after(), List.of(After.HIGHLIGHT_ELEMENT));
+    }
+
+    @Test
+    public void debug_onTypeable_executesHighlightAroundAction() {
+        List<String> calls = new ArrayList<>();
+        UIEngine engine = buildEngine(calls);
+
+        TYPEABLE.type("test").debug().perform(engine);
+
+        assertTrue(calls.contains("type"), "Core type must execute");
+        assertTrue(calls.contains("highlight"), "HIGHLIGHT_ELEMENT hook must run");
+        assertTrue(calls.indexOf("highlight") < calls.indexOf("type"),
+                "Before highlight must precede type");
+        assertTrue(calls.lastIndexOf("highlight") > calls.indexOf("type"),
+                "After highlight must follow type");
+    }
+
+    @Test
+    public void rawProfile_hasNoHooks() {
+        assertEquals(Profiles.RAW.before(), List.of());
+        assertEquals(Profiles.RAW.after(), List.of());
+    }
+
+    @Test
+    public void raw_onClickable_skipsAllHooks() {
+        List<String> calls = new ArrayList<>();
+        UIEngine engine = buildEngine(calls);
+
+        CLICKABLE.click().raw().perform(engine);
+
+        assertTrue(calls.contains("click"), "Core click must execute");
+        assertFalse(calls.contains("highlight"), "raw() must not add any hooks");
+        assertFalse(calls.contains("waitForClickable"), "raw() must not add any hooks");
+    }
+
+    @Test
+    public void usingCustomProfile_appliesHooksFromCustomProfile() {
+        List<String> calls = new ArrayList<>();
+        UIEngine engine = buildEngine(calls);
+
+        ActionProfile custom = ActionProfile.builder()
+                .before(Before.HIGHLIGHT_ELEMENT)
+                .after(After.HIGHLIGHT_ELEMENT)
+                .build();
+
+        TYPEABLE.type("test").using(custom).perform(engine);
+
+        assertTrue(calls.contains("type"), "Core type must execute");
+        assertTrue(calls.contains("highlight"), "Custom profile hooks must run");
+        assertTrue(calls.indexOf("highlight") < calls.indexOf("type"),
+                "Custom before-hook must precede the type action");
+        assertTrue(calls.lastIndexOf("highlight") > calls.indexOf("type"),
+                "Custom after-hook must follow the type action");
     }
 
     private static Object defaultFor(Class<?> type) {
