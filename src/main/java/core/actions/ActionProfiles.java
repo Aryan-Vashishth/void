@@ -1,5 +1,6 @@
 package core.actions;
 
+import core.interactions.hooks.Before;
 import core.logging.CustomLogger;
 import core.utils.ConfigLoader;
 
@@ -9,6 +10,11 @@ import core.utils.ConfigLoader;
 final class ActionProfiles {
 
     static final String DEFAULT_PROFILE_KEY = "void.profile.default";
+
+    /** Generic safe profile: wait for element visible. No capability dispatch. */
+    static final ActionProfile DEFAULT_SAFE = ActionProfile.builder()
+            .before(Before.WAIT_FOR_ELEMENT_VISIBLE)
+            .build();
 
     private ActionProfiles() {}
 

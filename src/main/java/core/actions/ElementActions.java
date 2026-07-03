@@ -3,9 +3,6 @@ package core.actions;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import elements.api.Element;
-import elements.api.capability.Clickable;
-import elements.api.capability.Selectable;
-import elements.api.capability.Typeable;
 import elements.meta.ElementRole;
 
 import java.util.Objects;
@@ -36,17 +33,18 @@ public final class ElementActions {
      */
     public static Action of(Element element, ElementRole role,
                             BiConsumer<UIEngine, LocatorDescriptor> op) {
-        Action base = new ElementBoundAction(element, role, op, capabilityFor(element, role));
+        ActionCapability capability = capabilityFor(element, role);
+        ActionProfile safeProfile = element instanceof ActionCapabilityProvider p
+                ? p.safeProfile()
+                : ActionProfiles.DEFAULT_SAFE;
+        Action base = new ElementBoundAction(element, role, op, capability, safeProfile);
         return ActionProfiles.applyConfiguredDefault(base);
     }
 
     private static ActionCapability capabilityFor(Element element, ElementRole role) {
-        if (element instanceof Selectable) return ActionCapability.SELECTABLE;
-        if (element instanceof Typeable) return ActionCapability.TYPEABLE;
-        if (element instanceof Clickable) return ActionCapability.CLICKABLE;
-
-        if (role == ElementRole.INPUT) return ActionCapability.TYPEABLE;
-        if (role == ElementRole.LIST) return ActionCapability.SELECTABLE;
+        if (element instanceof ActionCapabilityProvider p) return p.capability();
+        if (role == ElementRole.INPUT)   return ActionCapability.TYPEABLE;
+        if (role == ElementRole.LIST)    return ActionCapability.SELECTABLE;
         if (role == ElementRole.TRIGGER) return ActionCapability.CLICKABLE;
         return ActionCapability.UNKNOWN;
     }
@@ -56,15 +54,18 @@ public final class ElementActions {
         private final ElementRole role;
         private final BiConsumer<UIEngine, LocatorDescriptor> op;
         private final ActionCapability capability;
+        private final ActionProfile safeProfile;
 
         private ElementBoundAction(Element element,
                                    ElementRole role,
                                    BiConsumer<UIEngine, LocatorDescriptor> op,
-                                   ActionCapability capability) {
+                                   ActionCapability capability,
+                                   ActionProfile safeProfile) {
             this.element = Objects.requireNonNull(element, "element must not be null");
             this.role = Objects.requireNonNull(role, "role must not be null");
             this.op = Objects.requireNonNull(op, "op must not be null");
             this.capability = capability == null ? ActionCapability.UNKNOWN : capability;
+            this.safeProfile = safeProfile != null ? safeProfile : ActionProfiles.DEFAULT_SAFE;
         }
 
         @Override
@@ -80,6 +81,11 @@ public final class ElementActions {
         @Override
         public ActionCapability capability() {
             return capability;
+        }
+
+        @Override
+        public Action safely() {
+            return using(this.safeProfile);
         }
 
         @Override
