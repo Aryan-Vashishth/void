@@ -3,8 +3,8 @@
 VOID's hook system allows you to compose reusable pre- and post-action behaviors around every UI interaction. This guide covers the hook model, built-in hook constants, and patterns for writing custom hooks.
 
 > **Note:** Hooks are available on **both** execution paths:
-> - **Action/Flow/FlowExecutor (modern):** Use directional fluent APIs on any
->   element-bound action: `element.click().before(...).after(...)`.
+> - **Action/Flow/FlowExecutor (modern):** Use `element.click().safely()` (profile-based, preferred)
+>   or the directional fluent API `element.click().before(...).after(...)` for manual control.
 > - **Interactions (legacy):** Pass hook lists to `Interactions` method overloads.
 >
 > UIEngine handles waits, scrolling, and retries internally regardless of path.
@@ -66,7 +66,7 @@ If a before hook fails (throws), the core action is **not** executed. If the cor
 
 | Path | Hooks Used? | Wait/Scroll/Retry |
 |------|-------------|-------------------|
-| **Action/Flow/FlowExecutor** | Optional — via `.before(...).after(...)` | Built into UIEngine |
+| **Action/Flow/FlowExecutor** | Optional — via `.safely()` (profile) or `.before(...).after(...)` (manual) | Built into UIEngine |
 | **Interactions (legacy)** | Yes — Before/After hooks compose pre/post behavior | Hooks + UIEngine |
 
 ---
@@ -412,16 +412,30 @@ public static final ActionHandler WAIT_FOR_PANEL = (engine, descriptor) -> {
 
 ### 5. Prefer Action/Flow/FlowExecutor for New Code
 
-For new test code, prefer the Action/Flow/FlowExecutor pipeline. When you need app-specific hooks, use the fluent `.before(...).after(...)` API:
+For new test code, prefer the Action/Flow/FlowExecutor pipeline with **profiles** as the primary hook mechanism. Profiles apply capability-aware hooks with no manual wiring:
 
 ```java
-// ✅ Preferred — no hooks needed, UIEngine handles everything
+// ✅ Preferred — safely() picks the right hooks automatically by capability
 executor.run(Flow.of(
-    MyPage.USERNAME.type("admin"),
-    MyPage.SUBMIT.click()
+    MyPage.USERNAME.type("admin").safely(),
+    MyPage.SUBMIT.click().safely()
 ));
 
-// ✅ Modern hooks — fluent before/after on Action
+// ✅ Profile + extra inline hook for app-specific logic
+executor.run(
+    MyPage.SUBMIT.click()
+        .safely()
+        .after((eng, desc) -> eng.waitForVisible(eng.resolve(ResultPage.BANNER, TEXT), Duration.ofSeconds(5)))
+);
+
+// ✅ Custom profile via builder — reusable across tests
+ActionProfile myProfile = ActionProfile.builder()
+    .before(Before.WAIT_FOR_ANGULAR_LOADER)
+    .after(After.HIGHLIGHT_ELEMENT)
+    .build();
+executor.run(MyPage.SUBMIT.click().using(myProfile));
+
+// ✅ Manual hooks — directional fluent API for precise control
 executor.run(
     MyPage.SUBMIT.click()
         .before(Before.WAIT_FOR_ANGULAR_LOADER)
