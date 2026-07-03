@@ -12,18 +12,27 @@ import java.util.Objects;
 /**
  * Internal action wrapper that stores composable before/after hooks.
  */
-final class HookChainAction implements Action {
+final class HookChainAction implements Action, ActionLabeled {
 
     private final Action delegate;
     private final List<ActionHandler> before;
     private final List<ActionHandler> after;
+    @Nullable private final String profileName;
 
     HookChainAction(Action delegate,
                     @Nullable List<ActionHandler> before,
                     @Nullable List<ActionHandler> after) {
-        this.delegate = Objects.requireNonNull(delegate, "delegate action must not be null");
-        this.before = normalize(before);
-        this.after = normalize(after);
+        this(delegate, before, after, null);
+    }
+
+    private HookChainAction(Action delegate,
+                            @Nullable List<ActionHandler> before,
+                            @Nullable List<ActionHandler> after,
+                            @Nullable String profileName) {
+        this.delegate    = Objects.requireNonNull(delegate, "delegate action must not be null");
+        this.before      = normalize(before);
+        this.after       = normalize(after);
+        this.profileName = profileName;
     }
 
     HookChainAction withAdditionalHooks(@Nullable List<ActionHandler> additionalBefore,
@@ -31,14 +40,36 @@ final class HookChainAction implements Action {
         return new HookChainAction(
                 delegate,
                 concat(before, additionalBefore),
-                concat(after, additionalAfter)
+                concat(after, additionalAfter),
+                profileName
         );
+    }
+
+    HookChainAction withProfileName(String name) {
+        return new HookChainAction(delegate, before, after, name);
     }
 
     @Override
     public void perform(UIEngine engine) {
         LocatorDescriptor descriptor = delegate.resolve(engine);
-        new HookedAction(delegate, descriptor, before, after).perform(engine);
+        new HookedAction(delegate, descriptor, before, after, profileName).perform(engine);
+    }
+
+    @Override
+    public String elementLabel() {
+        if (delegate instanceof ActionLabeled l) return l.elementLabel();
+        return "ACTION";
+    }
+
+    @Override
+    public String operationLabel() {
+        if (delegate instanceof ActionLabeled l) return l.operationLabel();
+        return switch (capability()) {
+            case CLICKABLE -> "click";
+            case TYPEABLE  -> "type";
+            case SELECTABLE -> "select";
+            case UNKNOWN   -> "perform";
+        };
     }
 
     @Override

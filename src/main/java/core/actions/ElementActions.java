@@ -51,7 +51,7 @@ public final class ElementActions {
         return ActionCapability.UNKNOWN;
     }
 
-    private static final class ElementBoundAction implements Action {
+    private static final class ElementBoundAction implements Action, ActionLabeled {
         private final Element element;
         private final ElementRole role;
         private final BiConsumer<UIEngine, LocatorDescriptor> op;
@@ -80,6 +80,22 @@ public final class ElementActions {
         @Override
         public ActionCapability capability() {
             return capability;
+        }
+
+        @Override
+        public String elementLabel() {
+            if (element instanceof Enum<?> e) return e.name();
+            return element.getClass().getSimpleName();
+        }
+
+        @Override
+        public String operationLabel() {
+            return switch (capability) {
+                case CLICKABLE  -> "click";
+                case TYPEABLE   -> "type";
+                case SELECTABLE -> "select";
+                case UNKNOWN    -> "perform";
+            };
         }
     }
 }

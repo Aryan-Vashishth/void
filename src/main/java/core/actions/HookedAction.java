@@ -1,11 +1,15 @@
 package core.actions;
 
+import core.actions.trace.ActionTrace;
+import core.actions.trace.ActionTraceLogger;
+import core.actions.trace.TraceStatus;
 import core.annotations.Internal;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import core.interactions.hooks.ActionHandler;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,10 +44,29 @@ import java.util.Objects;
 @Deprecated(forRemoval = true, since = "2.0")
 public class HookedAction implements Action {
 
+    private static final ThreadLocal<ActionTrace> LAST_TRACE = new ThreadLocal<>();
+
     private final Action delegate;
     private final LocatorDescriptor descriptor;
     private final List<ActionHandler> before;
     private final List<ActionHandler> after;
+    @Nullable private final String profileName;
+
+    /**
+     * Package-private constructor used by {@link HookChainAction} — includes profile name
+     * for trace output.
+     */
+    HookedAction(Action delegate,
+                 LocatorDescriptor descriptor,
+                 @Nullable List<ActionHandler> before,
+                 @Nullable List<ActionHandler> after,
+                 @Nullable String profileName) {
+        this.delegate    = Objects.requireNonNull(delegate, "delegate action must not be null");
+        this.descriptor  = descriptor;
+        this.before      = before == null ? List.of() : before;
+        this.after       = after  == null ? List.of() : after;
+        this.profileName = profileName;
+    }
 
     /**
      * @param delegate   the core action to execute (must not be null)
@@ -60,27 +83,101 @@ public class HookedAction implements Action {
                         LocatorDescriptor descriptor,
                         @Nullable List<ActionHandler> before,
                         @Nullable List<ActionHandler> after) {
-        this.delegate   = Objects.requireNonNull(delegate, "delegate action must not be null");
-        this.descriptor = descriptor; // may be null only in legacy bridging
-        this.before     = before == null ? List.of() : before;
-        this.after      = after  == null ? List.of() : after;
+        this(delegate, descriptor, before, after, null);
     }
 
     @Override
     public void perform(UIEngine engine) {
-        executeHooks(before, engine, descriptor);
-        delegate.perform(engine);
-        executeHooks(after, engine, descriptor);
+        performAndTrace(engine);
     }
 
-    private void executeHooks(List<ActionHandler> hooks,
-                              UIEngine engine,
-                              LocatorDescriptor descriptor) {
-        for (ActionHandler hook : hooks) {
-            if (hook != null) {
-                hook.execute(engine, descriptor);
+    /**
+     * Executes the full hook pipeline and returns a trace of the execution.
+     * Package-private — exposed for unit testing only.
+     */
+    ActionTrace performAndTrace(UIEngine engine) {
+        long start = System.currentTimeMillis();
+        List<String> ranBefore = new ArrayList<>();
+        List<String> ranAfter  = new ArrayList<>();
+        TraceStatus  status    = TraceStatus.SUCCESS;
+        Throwable    failure   = null;
+
+        for (ActionHandler hook : before) {
+            if (hook == null) continue;
+            ranBefore.add(ActionTraceLogger.nameOf(hook));
+            if (failure == null) {
+                try {
+                    hook.execute(engine, descriptor);
+                } catch (RuntimeException | Error t) {
+                    status  = TraceStatus.HOOK_FAILED;
+                    failure = t;
+                }
             }
         }
+
+        if (failure == null) {
+            try {
+                delegate.perform(engine);
+            } catch (RuntimeException | Error t) {
+                status  = TraceStatus.FAILED;
+                failure = t;
+            }
+        }
+
+        if (failure == null) {
+            for (ActionHandler hook : after) {
+                if (hook == null) continue;
+                ranAfter.add(ActionTraceLogger.nameOf(hook));
+                if (failure == null) {
+                    try {
+                        hook.execute(engine, descriptor);
+                    } catch (RuntimeException | Error t) {
+                        status  = TraceStatus.HOOK_FAILED;
+                        failure = t;
+                    }
+                }
+            }
+        }
+
+        long elapsed = System.currentTimeMillis() - start;
+        ActionTrace trace = new ActionTrace(
+                elementLabel(), operationLabel(),
+                profileName != null ? profileName : "custom",
+                ranBefore, ranAfter,
+                elapsed, status, failure);
+
+        LAST_TRACE.set(trace);
+        ActionTraceLogger.emit(trace);
+
+        if (failure != null) {
+            sneakyThrow(failure);
+        }
+        return trace;
+    }
+
+    /** Returns the most-recently emitted trace on this thread (for testing). */
+    static ActionTrace lastTrace() {
+        return LAST_TRACE.get();
+    }
+
+    /** Clears the thread-local trace (call in @BeforeMethod / @AfterMethod). */
+    static void clearLastTrace() {
+        LAST_TRACE.remove();
+    }
+
+    private String elementLabel() {
+        if (delegate instanceof ActionLabeled l) return l.elementLabel();
+        return descriptor != null ? descriptor.value() : "ACTION";
+    }
+
+    private String operationLabel() {
+        if (delegate instanceof ActionLabeled l) return l.operationLabel();
+        return "perform";
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void sneakyThrow(Throwable t) throws T {
+        throw (T) t;
     }
 
     // ── Deferred-resolution factory (deprecated) ────────────────────────────
