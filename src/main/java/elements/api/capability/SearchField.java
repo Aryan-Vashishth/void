@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
 import elements.meta.ElementRole;
 
 /**
@@ -50,6 +51,9 @@ public interface SearchField extends Typeable, Clickable {
         if (btn != null && !btn.isBlank() && !btn.equals(input)) roles.put(ElementRole.SEARCH_BUTTON, btn);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.SEARCH_FIELD; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

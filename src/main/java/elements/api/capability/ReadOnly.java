@@ -1,6 +1,8 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
 import core.actions.ElementActions;
 import elements.api.Element;
 import elements.meta.ElementRole;
@@ -18,7 +20,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface ReadOnly extends Element {
+public interface ReadOnly extends Element, ActionCapabilityProvider {
 
     String getTextLocator();
 
@@ -38,6 +40,9 @@ public interface ReadOnly extends Element {
         if (text != null && !text.isBlank()) roles.put(ElementRole.TEXT, text);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.READ_ONLY; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

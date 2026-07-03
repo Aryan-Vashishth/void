@@ -1,5 +1,7 @@
 package elements.api.capability;
 
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -16,7 +18,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Listable extends Element {
+public interface Listable extends Element, ActionCapabilityProvider {
 
     String getListLocator();
 
@@ -35,6 +37,9 @@ public interface Listable extends Element {
         if (list != null && !list.isBlank()) roles.put(ElementRole.LIST, list);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.LISTABLE; }
 
 }
 

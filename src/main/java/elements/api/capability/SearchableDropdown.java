@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
 import elements.meta.ElementRole;
 
 /**
@@ -69,6 +70,9 @@ public interface SearchableDropdown extends Selectable, Searchable {
         if (list != null && !list.isBlank() && !list.equals(trigger) && !list.equals(input) && !list.equals(button)) roles.put(ElementRole.SEARCH_RESULT, list);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.SEARCHABLE_DROPDOWN; }
 
     // ── Action emission ─────────────────────────────────────────────────
 
