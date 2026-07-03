@@ -2,6 +2,9 @@ package elements.api.capability;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
+import core.actions.ActionProfile;
+import core.interactions.hooks.After;
+import core.interactions.hooks.Before;
 import elements.meta.ElementRole;
 
 /**
@@ -73,6 +76,18 @@ public interface SearchableDropdown extends Selectable, Searchable {
 
     @Override
     default ActionCapability capability() { return ActionCapability.SEARCHABLE_DROPDOWN; }
+
+    // Forced override: both Selectable and Searchable declare safeProfile(). Primary
+    // interaction is selecting from a dropdown, so Selectable behavior is used.
+    ActionProfile SEARCHABLE_DROPDOWN_SAFE_PROFILE = ActionProfile.builder()
+            .before(Before.WAIT_FOR_ELEMENT_VISIBLE,
+                    Before.WAIT_FOR_ELEMENT_CLICKABLE,
+                    Before.WAIT_FOR_ANGULAR_LOADER)
+            .after(After.HIGHLIGHT_ELEMENT)
+            .build();
+
+    @Override
+    default ActionProfile safeProfile() { return SEARCHABLE_DROPDOWN_SAFE_PROFILE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 
