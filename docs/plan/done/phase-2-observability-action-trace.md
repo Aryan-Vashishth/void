@@ -1,6 +1,6 @@
 # Phase 2 — Observability First (ActionTrace)
 
-**Status:** Ongoing  
+**Status:** Complete  
 **Architecture Version:** 2.3  
 **Branch:** `feature/action-package-refactor`  
 **Risk:** Low — instrumentation only, no behavioral changes
@@ -114,31 +114,31 @@ Modified:
 ## Checklist
 
 ### Data Model
-- [ ] Create `ActionTrace` with all fields above.
-- [ ] Create `TraceStatus` enum (SUCCESS, FAILED, HOOK_FAILED).
-- [ ] Create `ActionTraceLogger` — responsible for emitting formatted log output.
+- [x] Create `ActionTrace` with all fields above.
+- [x] Create `TraceStatus` enum (SUCCESS, FAILED, HOOK_FAILED).
+- [x] Create `ActionTraceLogger` — responsible for emitting formatted log output.
 
 ### Instrumentation
-- [ ] Record start time before first before-hook.
-- [ ] Record which hooks were executed in order (their class/field name if possible).
-- [ ] Record action execution success or failure.
-- [ ] Record after-hook execution success or failure.
-- [ ] Record total elapsed time.
+- [x] Record start time before first before-hook.
+- [x] Record which hooks were executed in order (their class/field name if possible).
+- [x] Record action execution success or failure.
+- [x] Record after-hook execution success or failure.
+- [x] Record total elapsed time.
 
 ### Output
-- [ ] Emit trace only when debug logging is active (use `CustomLogger.debug`).
-- [ ] Format output with clear section headers (see example above).
-- [ ] Do not emit trace in `raw()` mode (intentionally silent).
+- [x] Emit trace only when debug logging is active (use `CustomLogger.debug`).
+- [x] Format output with clear section headers (see example above).
+- [x] Do not emit trace in `raw()` mode (intentionally silent).
 
 ### Tests
-- [ ] Unit test: trace records correct hook order for `safely()` on click.
-- [ ] Unit test: trace records `HOOK_FAILED` status when before hook throws.
-- [ ] Unit test: trace records `FAILED` status when action itself throws.
-- [ ] Unit test: trace is not emitted for `raw()`.
+- [x] Unit test: trace records correct hook order for `safely()` on click.
+- [x] Unit test: trace records `HOOK_FAILED` status when before hook throws.
+- [x] Unit test: trace records `FAILED` status when action itself throws.
+- [x] Unit test: trace is not emitted for `raw()`.
 
 ### Integration
-- [ ] Verify trace output appears correctly in `VoidDemo` debug run.
-- [ ] Verify trace does not affect test results (observability only).
+- [x] Verify trace output appears correctly in `VoidDemo` debug run.
+- [x] Verify trace does not affect test results (observability only).
 
 ---
 

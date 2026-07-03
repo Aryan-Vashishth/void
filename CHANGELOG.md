@@ -13,6 +13,12 @@
   - `Profile.builder()` / `ActionProfile.builder()` — fluent builder for custom profiles
   - `Profiles.FAST`, `Profiles.VISUAL`, `Profiles.RELIABLE` — additional built-in presets
 
+- **Action execution trace — Phase 2 (observability)**
+  - `core.actions.trace.ActionTrace` — immutable record of a single action execution (element, operation, profile, hooks, timing, status, failure)
+  - `core.actions.trace.TraceStatus` — outcome enum: `SUCCESS`, `FAILED`, `HOOK_FAILED`
+  - `core.actions.trace.ActionTraceLogger` — formats and emits trace output at DEBUG level; resolves named `Before`/`After` constants via reflection
+  - `HookedAction` now instruments every execution: records hook order, distinguishes `HOOK_FAILED` from `FAILED`, captures elapsed time, emits formatted trace block
+
 - **`VOID` session façade — ADR-011**
   - `VOID.navigateTo(String url)` — navigate without touching the engine directly
   - `VOID.getCurrentUrl()` — read URL from the session façade
