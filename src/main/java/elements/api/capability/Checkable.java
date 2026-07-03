@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
 import core.actions.ElementActions;
 import elements.meta.ElementRole;
 
@@ -18,6 +19,9 @@ import elements.meta.ElementRole;
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
 public interface Checkable extends Clickable {
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.CHECKABLE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

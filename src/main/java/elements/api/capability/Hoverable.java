@@ -1,6 +1,8 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
 import core.actions.ElementActions;
 import elements.meta.ElementRole;
 
@@ -17,7 +19,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Hoverable extends ReadOnly {
+public interface Hoverable extends ReadOnly, ActionCapabilityProvider {
 
     String getToolTipContentLocator();
 
@@ -33,6 +35,9 @@ public interface Hoverable extends ReadOnly {
         if (tip != null && !tip.isBlank() && !roles.containsValue(tip)) roles.put(ElementRole.TOOLTIP_CONTENT, tip);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.HOVERABLE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 
