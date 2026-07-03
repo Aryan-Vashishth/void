@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
 import core.actions.ElementActions;
 import elements.meta.ElementRole;
 
@@ -55,6 +56,9 @@ public interface Selectable extends Clickable, Listable {
         if (list != null && !list.isBlank() && !list.equals(trigger)) roles.put(ElementRole.LIST, list);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.SELECTABLE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

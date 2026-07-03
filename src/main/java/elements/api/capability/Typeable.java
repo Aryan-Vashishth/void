@@ -1,6 +1,8 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
 import core.actions.ElementActions;
 import elements.api.Element;
 import elements.meta.ElementRole;
@@ -19,7 +21,7 @@ import elements.meta.ElementRole;
  * <p>Emits deferred {@link Action} objects for type, clear, append, and typeAndPress.
  * Contains NO execution logic. Elements emit Action (intent), engine executes.</p>
  */
-public interface Typeable extends Element {
+public interface Typeable extends Element, ActionCapabilityProvider {
 
     String getInputLocator();
 
@@ -39,6 +41,9 @@ public interface Typeable extends Element {
         if (input != null && !input.isBlank()) roles.put(ElementRole.INPUT, input);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.TYPEABLE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

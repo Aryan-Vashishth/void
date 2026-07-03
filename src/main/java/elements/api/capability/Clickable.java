@@ -1,6 +1,8 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
 import core.actions.ElementActions;
 import elements.api.Element;
 import elements.meta.ElementRole;
@@ -22,7 +24,7 @@ import elements.meta.ElementRole;
  * <p>Produces deferred {@link Action} objects via {@link #click()}.
  * Resolution happens <b>inside</b> the lambda — never eagerly.</p>
  */
-public interface Clickable extends Element {
+public interface Clickable extends Element, ActionCapabilityProvider {
 
     /** @return property key for the clickable element's locator template. */
     String getTriggerLocator();
@@ -43,6 +45,9 @@ public interface Clickable extends Element {
         if (trigger != null && !trigger.isBlank()) roles.put(ElementRole.TRIGGER, trigger);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.CLICKABLE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 
