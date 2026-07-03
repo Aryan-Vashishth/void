@@ -13,6 +13,19 @@
   - `Profile.builder()` / `ActionProfile.builder()` — fluent builder for custom profiles
   - `Profiles.FAST`, `Profiles.VISUAL`, `Profiles.RELIABLE` — additional built-in presets
 
+- **Capability-driven hook selection — Phase 4**
+  - `ActionCapabilityProvider.safeProfile()` — new default method; returns `ActionProfiles.DEFAULT_SAFE` unless overridden; capability interfaces declare their own safe hook bundle
+  - `ActionProfiles.DEFAULT_SAFE` — shared immutable `ActionProfile` (wait-for-visible before, no after); the switch-free default for capabilities that do not need custom safe hooks
+  - `Clickable.CLICKABLE_SAFE_PROFILE` — `[WAIT_FOR_ELEMENT_CLICKABLE]` before, `[WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]` after
+  - `Typeable.TYPEABLE_SAFE_PROFILE` — `[CLEAR_FIELD, WAIT_FOR_ELEMENT_VISIBLE]` before, `[HIGHLIGHT_ELEMENT]` after
+  - `Selectable.SELECTABLE_SAFE_PROFILE` — `[WAIT_FOR_ELEMENT_VISIBLE, WAIT_FOR_ELEMENT_CLICKABLE, WAIT_FOR_ANGULAR_LOADER]` before, `[HIGHLIGHT_ELEMENT]` after
+  - `SearchField.SEARCH_FIELD_SAFE_PROFILE` — forced diamond override; Typeable behavior
+  - `SearchableDropdown.SEARCHABLE_DROPDOWN_SAFE_PROFILE` — forced diamond override; Selectable behavior
+  - `ElementBoundAction.safely()` — now overrides `Action.safely()` to call `using(this.safeProfile)` directly; no longer reaches `Profiles.SAFE` for element-bound actions
+  - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
+  - `Checkable.safeProfile()` inherits from `Clickable` — no override required; correct by inheritance
+  - Open/Closed guarantee: adding a new capability with custom safe hooks requires zero changes to any existing framework file
+
 - **Capability self-description — Phase 3**
   - `core.actions.ActionCapabilityProvider` — new interface; capability interfaces implement it to self-describe without a registry
   - `ActionCapability` enum expanded from 4 to 15 values: added HOVERABLE, CHECKABLE, UPLOADABLE, SEARCHABLE, SEARCH_FIELD, SEARCHABLE_DROPDOWN, READ_ONLY, TABLE, EDITABLE_TABLE, LISTABLE, MULTI_SELECTABLE alongside the existing CLICKABLE, TYPEABLE, SELECTABLE, UNKNOWN

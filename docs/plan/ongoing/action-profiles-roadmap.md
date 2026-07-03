@@ -148,14 +148,16 @@ interface ActionCapabilityProvider {
 ### Direction
 
 - Fix `ElementActions.capabilityFor()` to delegate to `ActionCapabilityProvider` (all 14 capabilities now report accurate metadata).
-- Add `safeProfile()` to `ActionCapabilityProvider` — each capability declares its own safe-execution profile.
-- `ElementBoundAction.safely()` uses the capability's declared profile directly, bypassing the central switch.
-- `Profiles.SAFE` is preserved as the fallback for lambda actions and `.using(Profiles.SAFE)` callers.
+- Introduce `ActionProfiles` with `DEFAULT_SAFE` — a shared, immutable profile with no capability-dispatch switch.
+- Add `safeProfile()` to `ActionCapabilityProvider` returning `ActionProfiles.DEFAULT_SAFE` (no switch in the default path).
+- `ElementBoundAction.safely()` uses the capability's declared profile directly.
+- `Profiles.SAFE` is preserved for `.using(Profiles.SAFE)` callers; its switch is the compatibility path, not the primary path.
 
 ### Checklist
 
+- [ ] Create `ActionProfiles` with `DEFAULT_SAFE` constant.
 - [ ] Fix `capabilityFor()` — delegate to `ActionCapabilityProvider.capability()`.
-- [ ] Add `safeProfile()` default to `ActionCapabilityProvider`.
+- [ ] Add `safeProfile()` default to `ActionCapabilityProvider` returning `ActionProfiles.DEFAULT_SAFE`.
 - [ ] Override `safeProfile()` in `Clickable`, `Typeable`, `Selectable`, `SearchField`, `SearchableDropdown`.
 - [ ] Wire `safeProfile` into `ElementBoundAction` and override `safely()`.
 - [ ] Verify no new central dispatcher, resolver, or strategy class is created.
@@ -164,6 +166,7 @@ interface ActionCapabilityProvider {
 
 - Adding a new capability with custom safe hooks requires no changes to any existing framework file.
 - `ElementActions.capabilityFor()` contains no `instanceof` checks.
+- `ElementBoundAction.safely()` reaches no switch for element-bound actions.
 
 ---
 
