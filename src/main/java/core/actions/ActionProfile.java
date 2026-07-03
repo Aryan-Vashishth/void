@@ -12,6 +12,16 @@ import java.util.List;
 public interface ActionProfile {
 
     /**
+     * Short display name for this profile, used in trace output.
+     *
+     * <p>Override in named profiles to return a stable identifier (e.g. {@code "SAFE"}).
+     * Defaults to {@code "custom"} for builder-created or anonymous profiles.</p>
+     */
+    default String name() {
+        return "custom";
+    }
+
+    /**
      * Baseline before-hooks for this profile.
      */
     default List<BeforeActionHandler> before() {

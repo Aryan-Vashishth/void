@@ -15,9 +15,13 @@ public final class Profiles {
 
     private Profiles() {}
 
-    public static final ActionProfile RAW = ActionProfile.builder().build();
+    public static final ActionProfile RAW = new ActionProfile() {
+        @Override public String name() { return "RAW"; }
+    };
 
     public static final ActionProfile DEBUG = new ActionProfile() {
+        @Override public String name() { return "DEBUG"; }
+
         @Override
         public List<BeforeActionHandler> before() {
             return List.of(Before.LOG_INTENT, Before.HIGHLIGHT_ELEMENT);
@@ -30,6 +34,7 @@ public final class Profiles {
     };
 
     public static final ActionProfile SAFE = new ActionProfile() {
+        @Override public String name() { return "SAFE"; }
         @Override
         public List<BeforeActionHandler> before(Action action) {
             return switch (action.capability()) {
@@ -53,18 +58,30 @@ public final class Profiles {
     };
 
     public static final ActionProfile FAST = new ActionProfile() {
+        @Override public String name() { return "FAST"; }
+
         @Override
         public List<AfterActionHandler> after() {
             return List.of(After.DO_NOTHING);
         }
     };
 
-    public static final ActionProfile VISUAL = ActionProfile.builder()
-            .before(Before.HIGHLIGHT_ELEMENT)
-            .after(After.HIGHLIGHT_ELEMENT)
-            .build();
+    public static final ActionProfile VISUAL = new ActionProfile() {
+        @Override public String name() { return "VISUAL"; }
+
+        @Override
+        public List<BeforeActionHandler> before() {
+            return List.of(Before.HIGHLIGHT_ELEMENT);
+        }
+
+        @Override
+        public List<AfterActionHandler> after() {
+            return List.of(After.HIGHLIGHT_ELEMENT);
+        }
+    };
 
     public static final ActionProfile RELIABLE = new ActionProfile() {
+        @Override public String name() { return "RELIABLE"; }
         @Override
         public List<BeforeActionHandler> before(Action action) {
             return switch (action.capability()) {

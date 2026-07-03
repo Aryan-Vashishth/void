@@ -136,6 +136,9 @@ public interface Action {
         if (afterHooks != null && !afterHooks.isEmpty()) {
             profiled = profiled.after(afterHooks.toArray(new AfterActionHandler[0]));
         }
+        if (profiled instanceof HookChainAction chain) {
+            profiled = chain.withProfileName(profile.name());
+        }
         return profiled;
     }
 
