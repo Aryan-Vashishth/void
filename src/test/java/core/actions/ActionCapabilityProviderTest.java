@@ -282,6 +282,7 @@ public class ActionCapabilityProviderTest {
     private static Listable stubListable() {
         return new Listable() {
             @Override public String getListLocator() { return "lst"; }
+            @Override public String getPrimaryLocator() { return "lst"; }
             @Override public int getIndex() { return 0; }
             @Override public String getExternalFileName() { return "stub.json"; }
             @Override public Object[] getArgs() { return new Object[0]; }
