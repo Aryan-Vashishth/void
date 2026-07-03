@@ -65,10 +65,10 @@ final class HookChainAction implements Action, ActionLabeled {
     public String operationLabel() {
         if (delegate instanceof ActionLabeled l) return l.operationLabel();
         return switch (capability()) {
-            case CLICKABLE -> "click";
-            case TYPEABLE  -> "type";
+            case CLICKABLE  -> "click";
+            case TYPEABLE   -> "type";
             case SELECTABLE -> "select";
-            case UNKNOWN   -> "perform";
+            default         -> "perform";
         };
     }
 

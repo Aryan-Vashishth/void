@@ -44,7 +44,7 @@ public final class Profiles {
                         Before.WAIT_FOR_ELEMENT_CLICKABLE,
                         Before.WAIT_FOR_ANGULAR_LOADER);
                 case CLICKABLE -> List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE);
-                case UNKNOWN -> List.of(Before.WAIT_FOR_ELEMENT_VISIBLE);
+                default -> List.of(Before.WAIT_FOR_ELEMENT_VISIBLE);
             };
         }
 
@@ -52,7 +52,7 @@ public final class Profiles {
         public List<AfterActionHandler> after(Action action) {
             return switch (action.capability()) {
                 case CLICKABLE -> List.of(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT);
-                case TYPEABLE, SELECTABLE, UNKNOWN -> List.of(After.HIGHLIGHT_ELEMENT);
+                default -> List.of(After.HIGHLIGHT_ELEMENT);
             };
         }
     };
@@ -96,7 +96,7 @@ public final class Profiles {
                 case CLICKABLE -> List.of(
                         Before.WAIT_FOR_ANGULAR_LOADER,
                         Before.WAIT_FOR_ELEMENT_CLICKABLE);
-                case UNKNOWN -> List.of(Before.WAIT_FOR_ELEMENT_VISIBLE);
+                default -> List.of(Before.WAIT_FOR_ELEMENT_VISIBLE);
             };
         }
 

@@ -94,7 +94,7 @@ public final class ElementActions {
                 case CLICKABLE  -> "click";
                 case TYPEABLE   -> "type";
                 case SELECTABLE -> "select";
-                case UNKNOWN    -> "perform";
+                default         -> "perform";
             };
         }
     }
