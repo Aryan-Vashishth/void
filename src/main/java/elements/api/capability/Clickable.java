@@ -1,5 +1,6 @@
 package elements.api.capability;
 
+import core.actions.Action;
 import core.actions.ActionCapability;
 import core.actions.ActionCapabilityProvider;
 import core.actions.ClickAction;

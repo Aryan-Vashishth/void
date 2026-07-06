@@ -69,24 +69,21 @@ public class HookedAction implements Action {
     }
 
     /**
-     * @param delegate   the core action to execute (must not be null)
-     * @param descriptor the locator descriptor for the target element;
-     *                   non-null in Action/Flow/FlowExecutor pipeline,
-     *                   may be null only in legacy bridging
-     * @param before     before-hooks to run (null = none)
-     * @param after      after-hooks to run (null = none)
-     * @deprecated Internal framework constructor.
-     *             Prefer {@code action.before(...).after(...)}.
+     * Test factory — creates a HookedAction for unit testing.
+     * Internal testing API.
+     *
+     * @deprecated Internal testing API. Do not use in production code.
      */
-    @Deprecated(forRemoval = true, since = "2.0")
-    public HookedAction(Action delegate,
-                        LocatorDescriptor descriptor,
-                        @Nullable List<ActionHandler> before,
-                        @Nullable List<ActionHandler> after) {
-        this(delegate, descriptor, before, after, null);
+    @Deprecated(since = "2.0", forRemoval = true)
+    public static HookedAction forTesting(Action delegate,
+                                          LocatorDescriptor descriptor,
+                                          @Nullable List<ActionHandler> before,
+                                          @Nullable List<ActionHandler> after) {
+        return new HookedAction(delegate, descriptor, before, after, null);
     }
 
-    @Override
+
+
     public void perform(UIEngine engine) {
         performAndTrace(engine);
     }
@@ -178,27 +175,5 @@ public class HookedAction implements Action {
     @SuppressWarnings("unchecked")
     private static <T extends Throwable> void sneakyThrow(Throwable t) throws T {
         throw (T) t;
-    }
-
-    // ── Deferred-resolution factory (deprecated) ────────────────────────────
-
-    /**
-     * @deprecated Use fluent directional hooks instead:
-     *             {@code element.click().before(...).after(...)}
-     */
-    @Deprecated(forRemoval = true)
-    @Internal
-    public static Action wrap(Action delegate,
-                              elements.api.Element element,
-                              elements.meta.ElementRole role,
-                              @Nullable List<ActionHandler> before,
-                              @Nullable List<ActionHandler> after) {
-        Objects.requireNonNull(delegate, "delegate must not be null");
-        Objects.requireNonNull(element, "element must not be null");
-        Objects.requireNonNull(role, "role must not be null");
-        return engine -> {
-            LocatorDescriptor descriptor = engine.resolve(element, role);
-            new HookedAction(delegate, descriptor, before, after).perform(engine);
-        };
     }
 }
