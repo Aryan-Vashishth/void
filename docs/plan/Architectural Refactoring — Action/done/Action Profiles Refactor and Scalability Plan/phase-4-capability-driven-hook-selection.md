@@ -1,9 +1,15 @@
 # Phase 4 — Capability-Driven Hook Selection
 
-**Status:** Done  
+**Status:** Done (hook-selection design superseded by Phase 5 SoC correction)  
 **Architecture Version:** 2.3  
 **Branch:** `feature/action-package-refactor`  
 **Risk:** Low — no API removal; `safely()` behavior is identical for all existing capabilities
+
+> **Note:** Part B of this phase (capability-declared safe profiles via `safeProfile()` on
+> `ActionCapabilityProvider` and `*_SAFE_PROFILE` constants on capability interfaces) was
+> identified as a Separation of Concerns violation and replaced by Phase 5. The capability
+> resolution fix (Part A) and `ActionProfiles.DEFAULT_SAFE` constant remain. See
+> `phase-5-execution-policy-action-layer.md` for the corrected design.
 
 ---
 

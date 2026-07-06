@@ -14,17 +14,19 @@
   - `Profiles.FAST`, `Profiles.VISUAL`, `Profiles.RELIABLE` — additional built-in presets
 
 - **Capability-driven hook selection — Phase 4**
-  - `ActionCapabilityProvider.safeProfile()` — new default method; returns `ActionProfiles.DEFAULT_SAFE` unless overridden; capability interfaces declare their own safe hook bundle
-  - `ActionProfiles.DEFAULT_SAFE` — shared immutable `ActionProfile` (wait-for-visible before, no after); the switch-free default for capabilities that do not need custom safe hooks
-  - `Clickable.CLICKABLE_SAFE_PROFILE` — `[WAIT_FOR_ELEMENT_CLICKABLE]` before, `[WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]` after
-  - `Typeable.TYPEABLE_SAFE_PROFILE` — `[CLEAR_FIELD, WAIT_FOR_ELEMENT_VISIBLE]` before, `[HIGHLIGHT_ELEMENT]` after
-  - `Selectable.SELECTABLE_SAFE_PROFILE` — `[WAIT_FOR_ELEMENT_VISIBLE, WAIT_FOR_ELEMENT_CLICKABLE, WAIT_FOR_ANGULAR_LOADER]` before, `[HIGHLIGHT_ELEMENT]` after
-  - `SearchField.SEARCH_FIELD_SAFE_PROFILE` — forced diamond override; Typeable behavior
-  - `SearchableDropdown.SEARCHABLE_DROPDOWN_SAFE_PROFILE` — forced diamond override; Selectable behavior
-  - `ElementBoundAction.safely()` — now overrides `Action.safely()` to call `using(this.safeProfile)` directly; no longer reaches `Profiles.SAFE` for element-bound actions
+  - `ActionProfiles.DEFAULT_SAFE` — shared immutable `ActionProfile` (wait-for-visible before, no after); the switch-free fallback for capabilities without a specific safe profile
   - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
-  - `Checkable.safeProfile()` inherits from `Clickable` — no override required; correct by inheritance
-  - Open/Closed guarantee: adding a new capability with custom safe hooks requires zero changes to any existing framework file
+  - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
+
+- **Execution policy moved to action layer — Phase 5 (SoC correction)**
+  - `ActionProfiles.safeProfileFor(ActionCapability)` — package-private static method; maps each capability to its safe profile constant; execution policy lives in `core.actions`, not in capability interfaces
+  - `ActionProfiles.CLICKABLE_SAFE` — `[WAIT_FOR_ELEMENT_CLICKABLE]` before, `[WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]` after
+  - `ActionProfiles.TYPEABLE_SAFE` — `[CLEAR_FIELD, WAIT_FOR_ELEMENT_VISIBLE]` before, `[HIGHLIGHT_ELEMENT]` after
+  - `ActionProfiles.SELECTABLE_SAFE` — `[WAIT_FOR_ELEMENT_VISIBLE, WAIT_FOR_ELEMENT_CLICKABLE, WAIT_FOR_ANGULAR_LOADER]` before, `[HIGHLIGHT_ELEMENT]` after
+  - `ElementAction.safely()` calls `using(defaultSafeProfile())`; `defaultSafeProfile()` is a protected template method that returns `ActionProfiles.safeProfileFor(capability)` by default; subclasses override only when safe behavior differs (e.g. `DoubleClickAction`)
+  - `ActionCapabilityProvider` reduced to a single-method interface — `capability()` only; execution policy is not a capability concern
+  - `Clickable`, `Typeable`, `Selectable`, `SearchField`, `SearchableDropdown` no longer contain `ActionProfile` constants or `safeProfile()` overrides; capability interfaces are pure structural contracts
+  - Open/Closed at the action level: a new action type with different safe hooks overrides `defaultSafeProfile()` without touching capability interfaces or framework files
 
 - **Capability self-description — Phase 3**
   - `core.actions.ActionCapabilityProvider` — new interface; capability interfaces implement it to self-describe without a registry
