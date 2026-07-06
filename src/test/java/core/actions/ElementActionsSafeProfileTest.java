@@ -19,74 +19,36 @@ import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 
 /**
- * Verifies Phase 4 — Capability-Driven Hook Selection.
+ * Verifies the Phase 5 SoC correction — execution policy lives in the action layer,
+ * not on capability interfaces.
  *
- * <p>Covers: {@code safeProfile()} identity, hook content, capability resolution
- * through {@link ElementActions#of}, {@link Action#safely()} override wiring,
- * and backward compatibility with {@link Profiles#SAFE}.</p>
+ * <p>Covers: {@link ActionProfiles#safeProfileFor} hook content, capability resolution
+ * through {@link ElementActions#of}, {@link ElementAction#safely()} dispatch, and
+ * backward compatibility with {@link Profiles#SAFE}.</p>
  */
 public class ElementActionsSafeProfileTest {
 
-    // ── safeProfile identity ──────────────────────────────────────────────
+    // ── ActionProfiles.safeProfileFor hook content ────────────────────────
+    // Policy lives in core.actions (action layer). Capability interfaces have
+    // no ActionProfile or hook imports.
 
     @Test
-    public void clickable_safeProfile_returnsClickableSafeProfileConstant() {
-        assertSame(stubClickable().safeProfile(), Clickable.CLICKABLE_SAFE_PROFILE);
-    }
-
-    @Test
-    public void typeable_safeProfile_returnsTypeableSafeProfileConstant() {
-        assertSame(stubTypeable().safeProfile(), Typeable.TYPEABLE_SAFE_PROFILE);
-    }
-
-    @Test
-    public void selectable_safeProfile_returnsSelectableSafeProfileConstant() {
-        assertSame(stubSelectable().safeProfile(), Selectable.SELECTABLE_SAFE_PROFILE);
-    }
-
-    @Test
-    public void searchField_safeProfile_returnsSearchFieldConstant_notTypeableOrClickable() {
-        // Forced diamond override: SearchField extends both Typeable and Clickable.
-        assertSame(stubSearchField().safeProfile(), SearchField.SEARCH_FIELD_SAFE_PROFILE);
-    }
-
-    @Test
-    public void searchableDropdown_safeProfile_returnsSearchableDropdownConstant_notSelectableOrSearchable() {
-        // Forced diamond override: SearchableDropdown extends Selectable and Searchable.
-        assertSame(stubSearchableDropdown().safeProfile(), SearchableDropdown.SEARCHABLE_DROPDOWN_SAFE_PROFILE);
-    }
-
-    @Test
-    public void checkable_safeProfile_inheritsClickableSafeProfile() {
-        // Checkable extends Clickable without overriding safeProfile — inherits Clickable's constant.
-        assertSame(stubCheckable().safeProfile(), Clickable.CLICKABLE_SAFE_PROFILE);
-    }
-
-    @Test
-    public void hoverable_safeProfile_fallsBackToDefaultSafe() {
-        // Hoverable has no safeProfile override — falls back to ActionCapabilityProvider default.
-        assertSame(stubHoverable().safeProfile(), ActionProfiles.DEFAULT_SAFE);
-    }
-
-    // ── safeProfile hook content ──────────────────────────────────────────
-
-    @Test
-    public void clickableSafeProfile_hasWaitForClickableBefore_andAngularLoaderHighlightAfter() {
-        ActionProfile p = Clickable.CLICKABLE_SAFE_PROFILE;
+    public void safeProfileFor_clickable_hasWaitForClickableAndAngularLoaderHooks() {
+        ActionProfile p = ActionProfiles.safeProfileFor(ActionCapability.CLICKABLE);
         assertEquals(p.before(), List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE));
         assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void typeableSafeProfile_hasClearFieldAndWaitVisibleBefore_andHighlightAfter() {
-        ActionProfile p = Typeable.TYPEABLE_SAFE_PROFILE;
+    public void safeProfileFor_typeable_hasClearFieldAndWaitVisibleAndHighlight() {
+        ActionProfile p = ActionProfiles.safeProfileFor(ActionCapability.TYPEABLE);
         assertEquals(p.before(), List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE));
         assertEquals(p.after(), List.of(After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void selectableSafeProfile_hasThreeBeforeHooks_andHighlightAfter() {
-        ActionProfile p = Selectable.SELECTABLE_SAFE_PROFILE;
+    public void safeProfileFor_selectable_hasThreeBeforeHooksAndHighlight() {
+        ActionProfile p = ActionProfiles.safeProfileFor(ActionCapability.SELECTABLE);
         assertEquals(p.before(), List.of(
                 Before.WAIT_FOR_ELEMENT_VISIBLE,
                 Before.WAIT_FOR_ELEMENT_CLICKABLE,
@@ -95,7 +57,38 @@ public class ElementActionsSafeProfileTest {
     }
 
     @Test
-    public void defaultSafeProfile_hasWaitForVisibleBefore_andNoAfterHooks() {
+    public void safeProfileFor_checkable_returnsSameProfileAsClickable() {
+        // CHECKABLE shares CLICKABLE_SAFE — same interaction model.
+        assertSame(ActionProfiles.safeProfileFor(ActionCapability.CHECKABLE),
+                   ActionProfiles.safeProfileFor(ActionCapability.CLICKABLE));
+    }
+
+    @Test
+    public void safeProfileFor_searchField_returnsSameProfileAsTypeable() {
+        assertSame(ActionProfiles.safeProfileFor(ActionCapability.SEARCH_FIELD),
+                   ActionProfiles.safeProfileFor(ActionCapability.TYPEABLE));
+    }
+
+    @Test
+    public void safeProfileFor_searchableDropdown_returnsSameProfileAsSelectable() {
+        assertSame(ActionProfiles.safeProfileFor(ActionCapability.SEARCHABLE_DROPDOWN),
+                   ActionProfiles.safeProfileFor(ActionCapability.SELECTABLE));
+    }
+
+    @Test
+    public void safeProfileFor_hoverable_returnsDefaultSafe() {
+        assertSame(ActionProfiles.safeProfileFor(ActionCapability.HOVERABLE),
+                   ActionProfiles.DEFAULT_SAFE);
+    }
+
+    @Test
+    public void safeProfileFor_unknown_returnsDefaultSafe() {
+        assertSame(ActionProfiles.safeProfileFor(ActionCapability.UNKNOWN),
+                   ActionProfiles.DEFAULT_SAFE);
+    }
+
+    @Test
+    public void defaultSafe_hasWaitForVisibleBefore_andNoAfterHooks() {
         assertEquals(ActionProfiles.DEFAULT_SAFE.before(), List.of(Before.WAIT_FOR_ELEMENT_VISIBLE));
         assertEquals(ActionProfiles.DEFAULT_SAFE.after(), List.of());
     }
@@ -122,66 +115,69 @@ public class ElementActionsSafeProfileTest {
 
     @Test
     public void elementActionsOf_hoverable_resolvesHoverableCapability_notUnknown() {
-        // Before Phase 4, capabilityFor() had no branch for Hoverable and returned UNKNOWN.
-        // After Phase 4, Hoverable implements ActionCapabilityProvider — returns HOVERABLE.
+        // Phase 4 fix: capabilityFor() delegates to ActionCapabilityProvider first.
         Action action = ElementActions.of(stubHoverable(), ElementRole.TRIGGER, (e, d) -> {});
         assertEquals(action.capability(), ActionCapability.HOVERABLE);
     }
 
-    // ── safely() override wiring ──────────────────────────────────────────
+    // ── ElementAction.safely() dispatch via defaultSafeProfile() ──────────
 
     @Test
-    public void clickable_safely_returnsWrappedAction_andPreservesCapability() {
+    public void clickable_safely_appliesClickableSafeHooks() {
         Action action = ElementActions.of(stubClickable(), ElementRole.TRIGGER, (e, d) -> {});
         Action safe = action.safely();
-        // Hooks were applied — safely() must return a HookChainAction, not the raw base.
+        // safely() calls using(defaultSafeProfile()) which resolves CLICKABLE_SAFE.
         assertNotSame(safe, action);
-        // HookChainAction delegates capability() to the wrapped ElementBoundAction.
         assertEquals(safe.capability(), ActionCapability.CLICKABLE);
     }
 
     @Test
-    public void typeable_safely_returnsWrappedAction_andPreservesCapability() {
+    public void typeable_safely_appliesTypeableSafeHooks() {
         Action action = ElementActions.of(stubTypeable(), ElementRole.INPUT, (e, d) -> {});
         Action safe = action.safely();
         assertNotSame(safe, action);
         assertEquals(safe.capability(), ActionCapability.TYPEABLE);
     }
 
-    // ── Backward compatibility: Profiles.SAFE still matches safeProfile ───
+    @Test
+    public void hoverable_safely_appliesDefaultSafeHooks_notProfilesSafeSwitch() {
+        // Hoverable → HOVERABLE capability → ActionProfiles.DEFAULT_SAFE.
+        // DEFAULT_SAFE has non-empty before hooks, so safely() wraps the action.
+        Action action = ElementActions.of(stubHoverable(), ElementRole.TRIGGER, (e, d) -> {});
+        Action safe = action.safely();
+        assertNotSame(safe, action);
+    }
+
+    // ── Backward compatibility: Profiles.SAFE hooks match ActionProfiles ──
 
     @Test
-    public void clickable_profilesSafe_hooksMatchClickableSafeProfile() {
-        // Profiles.SAFE dispatches on capability() == CLICKABLE.
-        // The resulting hooks must be equal to CLICKABLE_SAFE_PROFILE — backward compat for
-        // callers using .using(Profiles.SAFE) rather than .safely().
-        Clickable element = stubClickable();
-        Action action = ElementActions.of(element, ElementRole.TRIGGER, (e, d) -> {});
-        assertEquals(Profiles.SAFE.before(action), element.safeProfile().before());
-        assertEquals(Profiles.SAFE.after(action), element.safeProfile().after());
+    public void clickable_profilesSafe_hooksMatchActionProfiles_clickable() {
+        Action action = ElementActions.of(stubClickable(), ElementRole.TRIGGER, (e, d) -> {});
+        ActionProfile safeProfile = ActionProfiles.safeProfileFor(action.capability());
+        assertEquals(Profiles.SAFE.before(action), safeProfile.before());
+        assertEquals(Profiles.SAFE.after(action), safeProfile.after());
     }
 
     @Test
-    public void typeable_profilesSafe_hooksMatchTypeableSafeProfile() {
-        Typeable element = stubTypeable();
-        Action action = ElementActions.of(element, ElementRole.INPUT, (e, d) -> {});
-        assertEquals(Profiles.SAFE.before(action), element.safeProfile().before());
-        assertEquals(Profiles.SAFE.after(action), element.safeProfile().after());
+    public void typeable_profilesSafe_hooksMatchActionProfiles_typeable() {
+        Action action = ElementActions.of(stubTypeable(), ElementRole.INPUT, (e, d) -> {});
+        ActionProfile safeProfile = ActionProfiles.safeProfileFor(action.capability());
+        assertEquals(Profiles.SAFE.before(action), safeProfile.before());
+        assertEquals(Profiles.SAFE.after(action), safeProfile.after());
     }
 
     @Test
-    public void selectable_profilesSafe_hooksMatchSelectableSafeProfile() {
-        Selectable element = stubSelectable();
-        Action action = ElementActions.of(element, ElementRole.TRIGGER, (e, d) -> {});
-        assertEquals(Profiles.SAFE.before(action), element.safeProfile().before());
-        assertEquals(Profiles.SAFE.after(action), element.safeProfile().after());
+    public void selectable_profilesSafe_hooksMatchActionProfiles_selectable() {
+        Action action = ElementActions.of(stubSelectable(), ElementRole.TRIGGER, (e, d) -> {});
+        ActionProfile safeProfile = ActionProfiles.safeProfileFor(action.capability());
+        assertEquals(Profiles.SAFE.before(action), safeProfile.before());
+        assertEquals(Profiles.SAFE.after(action), safeProfile.after());
     }
 
     @Test
-    public void lambdaAction_safely_usesProfilesSafe_capabilityIsUnknown() {
-        // A raw lambda (not via ElementActions.of) is not an ElementBoundAction.
-        // Action.safely() default calls Profiles.SAFE, not the capability-specific safeProfile.
-        // Profiles.SAFE default branch matches DEFAULT_SAFE for UNKNOWN capability.
+    public void lambdaAction_capability_isUnknown_andSafelyUsesProfilesSafe() {
+        // Lambda actions (not from ElementActions.of) don't extend ElementAction.
+        // Action.safely() default still calls using(Profiles.SAFE).
         Action lambda = engine -> {};
         assertEquals(lambda.capability(), ActionCapability.UNKNOWN);
         assertEquals(Profiles.SAFE.before(lambda), ActionProfiles.DEFAULT_SAFE.before());
