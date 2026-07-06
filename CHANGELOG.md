@@ -18,6 +18,17 @@
   - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
   - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
 
+- **Capability-based profile dispatch eliminated — Phase 17**
+  - `Profiles.SAFE` removed — had `before(Action)` and `after(Action)` switches on `action.capability()`
+  - `Profiles.RELIABLE` removed — had `before(Action)` switch on `action.capability()`
+  - `Profiles.fromName("SAFE")` and `fromName("RELIABLE")` fall back to `RAW`
+  - `ActionProfiles.reliableProfileFor(ActionCapability)` added — mirrors `safeProfileFor`; four capability-specific reliable profile constants: `DEFAULT_RELIABLE`, `CLICKABLE_RELIABLE`, `TYPEABLE_RELIABLE`, `SELECTABLE_RELIABLE`
+  - `ElementAction.reliable()` now calls `using(defaultReliableProfile())` — polymorphic, same pattern as `safely()`
+  - `ElementAction.defaultReliableProfile()` calls `ActionProfiles.reliableProfileFor(capability)` — no static Profiles reference
+  - `Action.safely()` default updated to `using(ActionProfiles.DEFAULT_SAFE)` — applies wait-for-visible for plain lambda actions
+  - `Profiles` now contains only action-independent presets: `RAW`, `DEBUG`, `FAST`, `VISUAL`
+  - Profile resolution is 100% polymorphic: no `switch(action.capability())` outside of `ActionProfiles` dispatch methods
+
 - **Execution policy deleted from capability interfaces — Phase 16**
   - Re-audit post Phase 14/15 confirms zero execution policy in `elements/api/capability`: no `safeProfile()`, no `reliableProfile()`, no `*_SAFE_PROFILE` constants
   - `ActionCapabilityProvider` contains only `capability()` — pure metadata interface
