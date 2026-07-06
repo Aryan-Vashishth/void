@@ -7,10 +7,30 @@
 
 ---
 
+## Core Distinction: Dispatch vs Lookup
+
+The earlier refactor phases (13–17) removed `ActionCapability` from execution paths because it was being used to infer behavior — "if capability is CLICKABLE, apply these hooks." That is runtime dispatch. It was the right thing to remove.
+
+ElementRole is different in kind. It is used to identify data:
+
+```java
+engine.resolve(element, ElementRole.INPUT);
+```
+
+This is no different from:
+
+```java
+map.get(Key.INPUT);
+```
+
+No behavior changes. No execution path is selected. The caller is simply naming which locator it wants from an element that may expose several. ElementRole answers *which locator* — not *which code should execute*. Those are fundamentally different architectural concerns.
+
+---
+
 ## Audit Questions
 
 1. Is ElementRole still required by the public API?
-2. Do action subclasses need to be told their role, or can it be inferred?
+2. Do action subclasses need to declare their role, or can it be inferred?
 3. Are composite actions using ElementRole correctly?
 4. Is there redundancy or misuse anywhere?
 
@@ -20,7 +40,7 @@
 
 ### 1. ElementRole is a public API contract
 
-ElementRole appears as a required parameter in four independent public interfaces:
+ElementRole appears as a required parameter in five independent public contracts:
 
 | Contract | Signature |
 |----------|-----------|
@@ -30,11 +50,11 @@ ElementRole appears as a required parameter in four independent public interface
 | `Element.getAllLocatorRoles()` | Returns `Map<ElementRole, String>` |
 | `Via.descriptor()` | `descriptor(Element, ElementRole, Object...)` |
 
-Removing or replacing ElementRole would require binary-breaking changes to all of the above and every Element implementation in the codebase. It is not an internal detail — it is the type-safe locator key exposed across the entire framework surface.
+Removing or replacing ElementRole would require binary-breaking changes to all of the above and every Element implementation in the codebase. It is not an internal detail — it is the type-safe locator key at the center of the resolution pipeline.
 
-### 2. Action subclasses correctly hardcode their role
+### 2. Each action declares the locator role it operates on
 
-All 16 concrete action subclasses declare their role at construction time, not at runtime. The role is a compile-time constant that names which locator key the action targets:
+All 16 concrete action subclasses define their role at construction time as a compile-time invariant. This is not arbitrary coupling — it is a statement of which part of the element the action targets:
 
 | Action | Role | Locator semantic |
 |--------|------|-----------------|
@@ -55,23 +75,78 @@ All 16 concrete action subclasses declare their role at construction time, not a
 | `SelectAction` | `TRIGGER` (primary) | composite — see §3 |
 | `SearchAndSelectAction` | `TRIGGER` (primary) | composite — see §3 |
 
-This is correct. Each action's role is a stated invariant, not a dispatch decision — the role documents which locator the action resolves, eliminating ambiguity for callers and future maintainers.
+`ClickAction` does not hardcode `TRIGGER` as an arbitrary constant. It defines that it operates on the trigger locator. That is what the role represents — a semantic identifier for a part of an element's structure.
 
-### 3. Composite actions use ElementRole as named keys
+Consider a login component:
+
+```
+LoginComponent
+  USERNAME      → exposes INPUT
+  PASSWORD      → exposes INPUT
+  LOGIN_BUTTON  → exposes TRIGGER
+  ERROR_MESSAGE → exposes TEXT
+```
+
+These are not implementation details — they are semantics. They answer *which locator do you want?*, not *which code should execute?* That is exactly what a role should represent.
+
+### 3. Composite actions justify ElementRole even more
 
 `SelectAction` and `SearchAndSelectAction` resolve multiple locators inside `execute()`:
 
-**SelectAction:** resolves `TRIGGER` (open dropdown) then `LIST` (select option)  
-**SearchAndSelectAction:** resolves `TRIGGER` (open) → `SEARCH_INPUT` (type term) → `SEARCH_RESULT` (pick result)
+**SelectAction:** `TRIGGER` (open dropdown) → `LIST` (select option)  
+**SearchAndSelectAction:** `TRIGGER` (open) → `SEARCH_INPUT` (type term) → `SEARCH_RESULT` (pick result)
 
-Each call to `engine.resolve(element, ElementRole.X)` is a named lookup — equivalent to a typed map key. This is the correct usage pattern. There is no dispatch here; the roles are used to fetch specific locators, not to branch execution paths.
+Without ElementRole, the alternatives are worse:
 
-### 4. No redundancy or misuse found
+- Dedicated engine methods: `resolveTrigger()`, `resolveSearchInput()`, `resolveSearchResult()` — the engine interface grows unboundedly
+- String keys: `resolve(element, "trigger")` — compile-time safety is gone
+
+Each call to `engine.resolve(element, ElementRole.X)` is a named lookup. There is no dispatch — the roles are used to fetch specific locators, not to select execution paths.
+
+### 4. Engine portability is preserved
+
+The engine receives the same semantic request regardless of technology:
+
+```java
+resolve(element, TRIGGER)
+```
+
+Whether the engine underneath uses XPath, CSS, ARIA, or any future locator strategy, the caller expresses what it needs. The engine decides how to satisfy it. This is correct separation of concerns.
+
+### 5. No redundancy or misuse found
 
 - `getAllLocatorRoles()` on capability interfaces returns only the roles that interface exposes — no excess values
-- `Interactions.java` calls `resolveDescriptor(element, ElementRole.X)` directly for 10+ operations — consistent with the contract
-- `EnumLocatorScanner` iterates `getAllLocatorRoles()` to build JSON from element enums — ElementRole is the key schema
+- `Interactions.java` calls `resolveDescriptor(element, ElementRole.X)` directly — consistent with the contract
+- `EnumLocatorScanner` iterates `getAllLocatorRoles()` to build JSON — ElementRole is the key schema
 - No action class uses ElementRole in a `switch` to branch execution logic
+
+---
+
+## Architectural Layer Placement
+
+ElementRole belongs to the element model, not the action model:
+
+```
+Element
+  ├── ElementRole        ← which part is being addressed
+  ├── Locator map        ← where that part lives
+  └── Metadata           ← element-level context
+
+Action
+  ├── ActionProfile      ← how it executes
+  ├── Hooks              ← surrounding behavior
+  └── Execution          ← what it does
+```
+
+Actions describe *what happens*. Elements describe *where it happens*. ElementRole is the bridge — it lets an action name a part of an element without knowing how the element is implemented. The two layers should not merge.
+
+---
+
+## Future Consideration: Enum Size
+
+The enum currently has 24 constants. This is appropriate as long as each constant represents a universal locator semantic — something any engine or UI technology could reasonably understand.
+
+Watch for drift if application-specific roles begin to appear (e.g., `CHECKOUT_CONFIRM_BUTTON`, `PROFILE_AVATAR`). Those would indicate the enum is being used as an application-level registry rather than a framework-level semantic type. Based on the current audit, no such drift is present.
 
 ---
 
@@ -80,13 +155,14 @@ Each call to `engine.resolve(element, ElementRole.X)` is a named lookup — equi
 | Question | Finding |
 |----------|---------|
 | Still required by public API? | **Yes** — UIEngine, LocatorResolver, Element, Via all require it |
-| Can role be inferred instead of stated? | **No** — the element exposes multiple roles; the action must name which one it targets |
+| Can role be inferred instead of declared? | **No** — the element exposes multiple roles; the action must name which one it targets |
 | Composite action usage correct? | **Yes** — named locator key, not execution dispatch |
 | Any redundancy or misuse? | **None found** |
+| Engine-agnostic? | **Yes** — the engine receives a semantic request and decides how to fulfill it |
 
 **Decision: Keep ElementRole unchanged.**
 
-ElementRole is a fundamental semantic type that provides type-safe access to role-specific locators across the framework. Replacing it with strings or positional arguments would remove the only compile-time guarantee that a requested locator role is valid. No action is required.
+ElementRole is a semantic identifier, not a behavior dispatcher. It names parts of an element rather than selecting execution paths — the same architectural distinction that drove the removal of capability-based dispatch in Phases 13–17. Keeping it is consistent with that direction.
 
 ---
 
