@@ -8,8 +8,8 @@ import core.utils.ConfigLoader;
 /**
  * Internal helper for applying config-driven default action profiles.
  *
- * <p>Also owns capability-specific safe profile constants. These live here —
- * in the action layer — because safe-execution policy is an execution concern,
+ * <p>Owns capability-specific safe and reliable profile constants. These live here —
+ * in the action layer — because execution policy is an execution concern,
  * not a capability concern. Capability interfaces must not reference these constants.</p>
  */
 final class ActionProfiles {
@@ -53,6 +53,45 @@ final class ActionProfiles {
             case TYPEABLE, SEARCH_FIELD, SEARCHABLE -> TYPEABLE_SAFE;
             case SELECTABLE, SEARCHABLE_DROPDOWN, MULTI_SELECTABLE -> SELECTABLE_SAFE;
             default -> DEFAULT_SAFE;
+        };
+    }
+
+    // ── Capability-specific reliable profiles ─────────────────────────────
+    // Reliable execution adds loader waits before and after. Per-capability
+    // before-hooks vary; after-hooks are uniform across all capabilities.
+
+    static final ActionProfile DEFAULT_RELIABLE = ActionProfile.builder()
+            .before(Before.WAIT_FOR_ELEMENT_VISIBLE)
+            .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
+            .build();
+
+    static final ActionProfile CLICKABLE_RELIABLE = ActionProfile.builder()
+            .before(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_CLICKABLE)
+            .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
+            .build();
+
+    static final ActionProfile TYPEABLE_RELIABLE = ActionProfile.builder()
+            .before(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.CLEAR_FIELD)
+            .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
+            .build();
+
+    static final ActionProfile SELECTABLE_RELIABLE = ActionProfile.builder()
+            .before(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.WAIT_FOR_ELEMENT_CLICKABLE)
+            .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
+            .build();
+
+    /**
+     * Returns the reliable profile for the given capability.
+     *
+     * <p>Called by {@link ElementAction#defaultReliableProfile()} at action-creation time.
+     * Adding a new capability with custom reliable hooks requires updating this method only.</p>
+     */
+    static ActionProfile reliableProfileFor(ActionCapability capability) {
+        return switch (capability) {
+            case CLICKABLE, CHECKABLE -> CLICKABLE_RELIABLE;
+            case TYPEABLE, SEARCH_FIELD, SEARCHABLE -> TYPEABLE_RELIABLE;
+            case SELECTABLE, SEARCHABLE_DROPDOWN, MULTI_SELECTABLE -> SELECTABLE_RELIABLE;
+            default -> DEFAULT_RELIABLE;
         };
     }
 
