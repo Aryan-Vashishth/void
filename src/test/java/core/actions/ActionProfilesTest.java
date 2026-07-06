@@ -7,7 +7,6 @@ import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import core.utils.ConfigLoader;
 import elements.api.capability.Clickable;
-import elements.api.capability.Selectable;
 import elements.api.capability.Typeable;
 import elements.meta.ElementRole;
 import org.testng.annotations.AfterMethod;
@@ -21,6 +20,7 @@ import java.util.Properties;
 
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 public class ActionProfilesTest {
@@ -50,50 +50,9 @@ public class ActionProfilesTest {
         public Object[] getArgs() { return new Object[0]; }
     };
 
-    private static final Selectable SELECTABLE = new Selectable() {
-        @Override
-        public String getTriggerLocator() { return "TRIGGER_KEY"; }
-
-        @Override
-        public String getListLocator() { return "LIST_KEY"; }
-
-        @Override
-        public String getExternalFileName() { return "stub.json"; }
-
-        @Override
-        public Object[] getArgs() { return new Object[0]; }
-    };
-
     @AfterMethod
     public void clearActiveConfig() {
         ConfigLoader.setActive(new Properties());
-    }
-
-    @Test
-    public void safeProfile_clickable_expandsExpectedHooks() {
-        Action action = ElementActions.of(CLICKABLE, ElementRole.TRIGGER, (engine, d) -> {});
-
-        assertEquals(Profiles.SAFE.before(action), List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE));
-        assertEquals(Profiles.SAFE.after(action), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT));
-    }
-
-    @Test
-    public void safeProfile_typeable_expandsExpectedHooks() {
-        Action action = ElementActions.of(TYPEABLE, ElementRole.INPUT, (engine, d) -> {});
-
-        assertEquals(Profiles.SAFE.before(action), List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE));
-        assertEquals(Profiles.SAFE.after(action), List.of(After.HIGHLIGHT_ELEMENT));
-    }
-
-    @Test
-    public void safeProfile_selectable_expandsExpectedHooks() {
-        Action action = ElementActions.of(SELECTABLE, ElementRole.TRIGGER, (engine, d) -> {});
-
-        assertEquals(Profiles.SAFE.before(action), List.of(
-                Before.WAIT_FOR_ELEMENT_VISIBLE,
-                Before.WAIT_FOR_ELEMENT_CLICKABLE,
-                Before.WAIT_FOR_ANGULAR_LOADER));
-        assertEquals(Profiles.SAFE.after(action), List.of(After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
@@ -119,20 +78,28 @@ public class ActionProfilesTest {
     }
 
     @Test
-    public void configuredDefaultProfile_isAppliedToNewActions() {
+    public void configuredDefaultProfile_debug_isAppliedToElementActionsOf() {
         Properties props = new Properties();
-        props.setProperty(ActionProfiles.DEFAULT_PROFILE_KEY, "SAFE");
+        props.setProperty(ActionProfiles.DEFAULT_PROFILE_KEY, "DEBUG");
         ConfigLoader.setActive(props);
 
         List<String> calls = new ArrayList<>();
         UIEngine engine = buildEngine(calls);
 
-        CLICKABLE.click().perform(engine);
+        ElementActions.of(CLICKABLE, ElementRole.TRIGGER, (e, d) -> e.click(d)).perform(engine);
 
-        assertTrue(calls.contains("waitForClickable"), "Configured SAFE profile should add waitForClickable");
         assertTrue(calls.contains("click"), "Core click should still execute");
-        assertTrue(calls.contains("waitForAbsence"), "Configured SAFE profile should add angular wait after click");
-        assertTrue(calls.contains("highlight"), "Configured SAFE profile should add highlight after click");
+        assertTrue(calls.contains("highlight"), "Configured DEBUG profile should add highlight hooks");
+    }
+
+    @Test
+    public void fromName_safe_fallsBackToRaw() {
+        assertSame(Profiles.fromName("SAFE"), Profiles.RAW);
+    }
+
+    @Test
+    public void fromName_reliable_fallsBackToRaw() {
+        assertSame(Profiles.fromName("RELIABLE"), Profiles.RAW);
     }
 
     private UIEngine buildEngine(List<String> calls) {

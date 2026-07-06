@@ -98,9 +98,14 @@ public interface Action {
 
     /**
      * Applies the framework's SAFE profile to this action.
+     *
+     * <p>For {@link ElementAction} subclasses, this is overridden to use the
+     * polymorphic {@code defaultSafeProfile()} path. This default applies
+     * {@link ActionProfiles#DEFAULT_SAFE} (wait-for-visible) as a minimal guard
+     * for plain lambda actions that do not extend {@code ElementAction}.</p>
      */
     default Action safely() {
-        return using(Profiles.SAFE);
+        return using(ActionProfiles.DEFAULT_SAFE);
     }
 
     /**
@@ -149,6 +154,7 @@ public interface Action {
         return ActionCapability.UNKNOWN;
     }
 
+
     /**
      * Wraps this action with before/after hooks, returning a new {@link Action}.
      *
@@ -168,7 +174,7 @@ public interface Action {
      * @deprecated Prefer fluent directional APIs:
      *             {@code action.before(...).after(...)}
      */
-    @Deprecated(forRemoval = true, since = "2.0")
+    @Deprecated(forRemoval = false, since = "2.0")
     default Action withHooks(@Nullable List<ActionHandler> before,
                              @Nullable List<ActionHandler> after) {
         if (this instanceof HookChainAction chain) {

@@ -148,39 +148,50 @@ public class ElementActionsSafeProfileTest {
         assertNotSame(safe, action);
     }
 
-    // ── Backward compatibility: Profiles.SAFE hooks match ActionProfiles ──
+    // ── ActionProfiles.reliableProfileFor hook content ───────────────────
 
     @Test
-    public void clickable_profilesSafe_hooksMatchActionProfiles_clickable() {
-        Action action = ElementActions.of(stubClickable(), ElementRole.TRIGGER, (e, d) -> {});
-        ActionProfile safeProfile = ActionProfiles.safeProfileFor(action.capability());
-        assertEquals(Profiles.SAFE.before(action), safeProfile.before());
-        assertEquals(Profiles.SAFE.after(action), safeProfile.after());
+    public void reliableProfileFor_clickable_hasAngularLoaderAndWaitClickable() {
+        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.CLICKABLE);
+        assertEquals(p.before(), List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_CLICKABLE));
+        assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void typeable_profilesSafe_hooksMatchActionProfiles_typeable() {
-        Action action = ElementActions.of(stubTypeable(), ElementRole.INPUT, (e, d) -> {});
-        ActionProfile safeProfile = ActionProfiles.safeProfileFor(action.capability());
-        assertEquals(Profiles.SAFE.before(action), safeProfile.before());
-        assertEquals(Profiles.SAFE.after(action), safeProfile.after());
+    public void reliableProfileFor_typeable_hasAngularLoaderWaitAndClearField() {
+        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.TYPEABLE);
+        assertEquals(p.before(), List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.CLEAR_FIELD));
+        assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void selectable_profilesSafe_hooksMatchActionProfiles_selectable() {
-        Action action = ElementActions.of(stubSelectable(), ElementRole.TRIGGER, (e, d) -> {});
-        ActionProfile safeProfile = ActionProfiles.safeProfileFor(action.capability());
-        assertEquals(Profiles.SAFE.before(action), safeProfile.before());
-        assertEquals(Profiles.SAFE.after(action), safeProfile.after());
+    public void reliableProfileFor_selectable_hasThreeBeforeHooksAndFullAfter() {
+        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.SELECTABLE);
+        assertEquals(p.before(), List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.WAIT_FOR_ELEMENT_CLICKABLE));
+        assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void lambdaAction_capability_isUnknown_andSafelyUsesProfilesSafe() {
-        // Lambda actions (not from ElementActions.of) don't extend ElementAction.
-        // Action.safely() default still calls using(Profiles.SAFE).
+    public void reliableProfileFor_checkable_returnsSameProfileAsClickable() {
+        assertSame(ActionProfiles.reliableProfileFor(ActionCapability.CHECKABLE),
+                   ActionProfiles.reliableProfileFor(ActionCapability.CLICKABLE));
+    }
+
+    @Test
+    public void reliableProfileFor_default_hasWaitVisibleBeforeAndFullAfter() {
+        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.HOVERABLE);
+        assertEquals(p.before(), List.of(Before.WAIT_FOR_ELEMENT_VISIBLE));
+        assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
+    }
+
+    @Test
+    public void lambdaAction_capability_isUnknown_andSafelyUsesDefaultSafe() {
+        // Lambda actions (engine -> {}) don't extend ElementAction.
+        // Action.safely() default uses ActionProfiles.DEFAULT_SAFE.
         Action lambda = engine -> {};
         assertEquals(lambda.capability(), ActionCapability.UNKNOWN);
-        assertEquals(Profiles.SAFE.before(lambda), ActionProfiles.DEFAULT_SAFE.before());
+        Action safe = lambda.safely();
+        assertNotSame(safe, lambda);
     }
 
     // ── Stubs ─────────────────────────────────────────────────────────────

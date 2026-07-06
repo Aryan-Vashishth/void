@@ -10,6 +10,12 @@ import java.util.Locale;
 
 /**
  * Built-in action profile presets.
+ *
+ * <p>Only action-independent presets live here — profiles whose hook lists are the same
+ * regardless of which action they are applied to. Profiles that were capability-dependent
+ * ({@code SAFE}, {@code RELIABLE}) were removed in Phase 17. Their per-action behavior
+ * now lives in {@link ActionProfiles} and is resolved polymorphically via
+ * {@link ElementAction#defaultSafeProfile()} and {@link ElementAction#defaultReliableProfile()}.</p>
  */
 public final class Profiles {
 
@@ -30,30 +36,6 @@ public final class Profiles {
         @Override
         public List<AfterActionHandler> after() {
             return List.of(After.HIGHLIGHT_ELEMENT);
-        }
-    };
-
-    public static final ActionProfile SAFE = new ActionProfile() {
-        @Override public String name() { return "SAFE"; }
-        @Override
-        public List<BeforeActionHandler> before(Action action) {
-            return switch (action.capability()) {
-                case TYPEABLE -> List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE);
-                case SELECTABLE -> List.of(
-                        Before.WAIT_FOR_ELEMENT_VISIBLE,
-                        Before.WAIT_FOR_ELEMENT_CLICKABLE,
-                        Before.WAIT_FOR_ANGULAR_LOADER);
-                case CLICKABLE -> List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE);
-                default -> List.of(Before.WAIT_FOR_ELEMENT_VISIBLE);
-            };
-        }
-
-        @Override
-        public List<AfterActionHandler> after(Action action) {
-            return switch (action.capability()) {
-                case CLICKABLE -> List.of(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT);
-                default -> List.of(After.HIGHLIGHT_ELEMENT);
-            };
         }
     };
 
@@ -80,49 +62,17 @@ public final class Profiles {
         }
     };
 
-    public static final ActionProfile RELIABLE = new ActionProfile() {
-        @Override public String name() { return "RELIABLE"; }
-        @Override
-        public List<BeforeActionHandler> before(Action action) {
-            return switch (action.capability()) {
-                case TYPEABLE -> List.of(
-                        Before.WAIT_FOR_ANGULAR_LOADER,
-                        Before.WAIT_FOR_ELEMENT_VISIBLE,
-                        Before.CLEAR_FIELD);
-                case SELECTABLE -> List.of(
-                        Before.WAIT_FOR_ANGULAR_LOADER,
-                        Before.WAIT_FOR_ELEMENT_VISIBLE,
-                        Before.WAIT_FOR_ELEMENT_CLICKABLE);
-                case CLICKABLE -> List.of(
-                        Before.WAIT_FOR_ANGULAR_LOADER,
-                        Before.WAIT_FOR_ELEMENT_CLICKABLE);
-                default -> List.of(Before.WAIT_FOR_ELEMENT_VISIBLE);
-            };
-        }
-
-        @Override
-        public List<AfterActionHandler> after(Action action) {
-            return List.of(
-                    After.WAIT_FOR_ANGULAR_LOADER,
-                    After.WAIT_FOR_SPIN_SPINNER_LOADER,
-                    After.HIGHLIGHT_ELEMENT);
-        }
-    };
-
     public static ActionProfile fromName(String name) {
         if (name == null || name.isBlank()) {
             return RAW;
         }
 
         return switch (name.trim().toUpperCase(Locale.ROOT)) {
-            case "SAFE" -> SAFE;
-            case "DEBUG" -> DEBUG;
-            case "FAST" -> FAST;
+            case "DEBUG"  -> DEBUG;
+            case "FAST"   -> FAST;
             case "VISUAL" -> VISUAL;
-            case "RELIABLE" -> RELIABLE;
-            case "RAW" -> RAW;
-            default -> RAW;
+            case "RAW"    -> RAW;
+            default       -> RAW;
         };
     }
 }
-
