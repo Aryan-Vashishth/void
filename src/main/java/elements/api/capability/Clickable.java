@@ -1,9 +1,8 @@
 package elements.api.capability;
 
-import core.actions.Action;
 import core.actions.ActionCapability;
 import core.actions.ActionCapabilityProvider;
-import core.actions.ElementActions;
+import core.actions.ClickAction;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -51,9 +50,8 @@ public interface Clickable extends Element, ActionCapabilityProvider {
 
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Deferred click action. Locator resolved at execution time by the engine. */
-    default Action click() {
-        return ElementActions.of(this, ElementRole.TRIGGER,
-                (engine, d) -> engine.click(d));
+    /** Emits a {@link ClickAction} targeting this element's TRIGGER locator. */
+    default ClickAction click() {
+        return new ClickAction(this);
     }
 }
