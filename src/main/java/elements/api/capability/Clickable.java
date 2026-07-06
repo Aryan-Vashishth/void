@@ -3,10 +3,7 @@ package elements.api.capability;
 import core.actions.Action;
 import core.actions.ActionCapability;
 import core.actions.ActionCapabilityProvider;
-import core.actions.ActionProfile;
 import core.actions.ElementActions;
-import core.interactions.hooks.After;
-import core.interactions.hooks.Before;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -51,14 +48,6 @@ public interface Clickable extends Element, ActionCapabilityProvider {
 
     @Override
     default ActionCapability capability() { return ActionCapability.CLICKABLE; }
-
-    ActionProfile CLICKABLE_SAFE_PROFILE = ActionProfile.builder()
-            .before(Before.WAIT_FOR_ELEMENT_CLICKABLE)
-            .after(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT)
-            .build();
-
-    @Override
-    default ActionProfile safeProfile() { return CLICKABLE_SAFE_PROFILE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

@@ -2,9 +2,6 @@ package elements.api.capability;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
-import core.actions.ActionProfile;
-import core.interactions.hooks.After;
-import core.interactions.hooks.Before;
 import elements.meta.ElementRole;
 
 /**
@@ -57,16 +54,6 @@ public interface SearchField extends Typeable, Clickable {
 
     @Override
     default ActionCapability capability() { return ActionCapability.SEARCH_FIELD; }
-
-    // Forced override: both Typeable and Clickable declare safeProfile(). Primary
-    // interaction is typing into the search input, so Typeable behavior is used.
-    ActionProfile SEARCH_FIELD_SAFE_PROFILE = ActionProfile.builder()
-            .before(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE)
-            .after(After.HIGHLIGHT_ELEMENT)
-            .build();
-
-    @Override
-    default ActionProfile safeProfile() { return SEARCH_FIELD_SAFE_PROFILE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

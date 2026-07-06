@@ -14,30 +14,41 @@ import java.util.function.BiConsumer;
  *
  * <p>This class is an implementation detail — not part of the public DSL.
  * Capability interfaces use it to emit actions; users interact with {@link Action} only.</p>
+ *
+ * <p>As of Phase 13, creates anonymous subclasses of {@link ElementAction} that implement
+ * the Template Method pattern and own the action lifecycle.</p>
  */
 public final class ElementActions {
 
     private ElementActions() {}
 
     /**
-     * Creates an {@link Action} bound to an element and role.
+     * Creates an {@link ElementAction} bound to an element and role.
      *
      * <p>The returned action resolves its {@link LocatorDescriptor} at execution time
      * via {@link UIEngine#resolve}, and exposes it through {@link Action#resolve}
      * so that {@link Action#withHooks} can pass it to hooks.</p>
      *
+     * <p>Implements the Template Method pattern: {@code perform()} calls
+     * {@link ElementAction#resolve} then delegates to the user's lambda operation.</p>
+     *
      * @param element the element this action targets
      * @param role    the locator role to resolve (INPUT, TRIGGER, TEXT, etc.)
      * @param op      the action logic — receives engine and resolved descriptor
-     * @return an Action that supports both perform() and resolve()
+     * @return an ElementAction that supports both perform() and resolve()
      */
     public static Action of(Element element, ElementRole role,
                             BiConsumer<UIEngine, LocatorDescriptor> op) {
         ActionCapability capability = capabilityFor(element, role);
-        ActionProfile safeProfile = element instanceof ActionCapabilityProvider p
-                ? p.safeProfile()
-                : ActionProfiles.DEFAULT_SAFE;
-        Action base = new ElementBoundAction(element, role, op, capability, safeProfile);
+
+        // Create anonymous subclass of ElementAction
+        Action base = new ElementAction(element, role, capability) {
+            @Override
+            protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
+                op.accept(engine, descriptor);
+            }
+        };
+
         return ActionProfiles.applyConfiguredDefault(base);
     }
 
@@ -47,62 +58,6 @@ public final class ElementActions {
         if (role == ElementRole.LIST)    return ActionCapability.SELECTABLE;
         if (role == ElementRole.TRIGGER) return ActionCapability.CLICKABLE;
         return ActionCapability.UNKNOWN;
-    }
-
-    private static final class ElementBoundAction implements Action, ActionLabeled {
-        private final Element element;
-        private final ElementRole role;
-        private final BiConsumer<UIEngine, LocatorDescriptor> op;
-        private final ActionCapability capability;
-        private final ActionProfile safeProfile;
-
-        private ElementBoundAction(Element element,
-                                   ElementRole role,
-                                   BiConsumer<UIEngine, LocatorDescriptor> op,
-                                   ActionCapability capability,
-                                   ActionProfile safeProfile) {
-            this.element = Objects.requireNonNull(element, "element must not be null");
-            this.role = Objects.requireNonNull(role, "role must not be null");
-            this.op = Objects.requireNonNull(op, "op must not be null");
-            this.capability = capability == null ? ActionCapability.UNKNOWN : capability;
-            this.safeProfile = safeProfile != null ? safeProfile : ActionProfiles.DEFAULT_SAFE;
-        }
-
-        @Override
-        public void perform(UIEngine engine) {
-            op.accept(engine, resolve(engine));
-        }
-
-        @Override
-        public LocatorDescriptor resolve(UIEngine engine) {
-            return engine.resolve(element, role);
-        }
-
-        @Override
-        public ActionCapability capability() {
-            return capability;
-        }
-
-        @Override
-        public Action safely() {
-            return using(this.safeProfile);
-        }
-
-        @Override
-        public String elementLabel() {
-            if (element instanceof Enum<?> e) return e.name();
-            return element.getClass().getSimpleName();
-        }
-
-        @Override
-        public String operationLabel() {
-            return switch (capability) {
-                case CLICKABLE  -> "click";
-                case TYPEABLE   -> "type";
-                case SELECTABLE -> "select";
-                default         -> "perform";
-            };
-        }
     }
 }
 

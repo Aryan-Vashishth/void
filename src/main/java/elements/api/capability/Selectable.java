@@ -2,10 +2,7 @@ package elements.api.capability;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
-import core.actions.ActionProfile;
 import core.actions.ElementActions;
-import core.interactions.hooks.After;
-import core.interactions.hooks.Before;
 import elements.meta.ElementRole;
 
 import java.time.Duration;
@@ -62,16 +59,6 @@ public interface Selectable extends Clickable, Listable {
 
     @Override
     default ActionCapability capability() { return ActionCapability.SELECTABLE; }
-
-    ActionProfile SELECTABLE_SAFE_PROFILE = ActionProfile.builder()
-            .before(Before.WAIT_FOR_ELEMENT_VISIBLE,
-                    Before.WAIT_FOR_ELEMENT_CLICKABLE,
-                    Before.WAIT_FOR_ANGULAR_LOADER)
-            .after(After.HIGHLIGHT_ELEMENT)
-            .build();
-
-    @Override
-    default ActionProfile safeProfile() { return SELECTABLE_SAFE_PROFILE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 
