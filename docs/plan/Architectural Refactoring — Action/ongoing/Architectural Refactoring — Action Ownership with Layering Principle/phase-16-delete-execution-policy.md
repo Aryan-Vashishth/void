@@ -1,16 +1,22 @@
 # Phase 16 — Delete Execution Policy from Capabilities
 
-**Status:** Done (implemented as part of Phase 5 SoC correction, `feature/action-package-refactor`)  
+**Status:** Partially Done  
 **Architecture Version:** 2.4  
 **Branch:** `feature/action-package-refactor`  
-**Risk:** Medium — removes methods from public interface
+**Risk:** Medium — removes methods from public interface  
+**Depends on:** Phase 14, Phase 15
 
-> All execution policy was removed from capability interfaces in the Phase 5 SoC correction
-> on `feature/action-package-refactor`. `ActionCapabilityProvider` is now a single-method
-> interface (`capability()` only). `Clickable`, `Typeable`, `Selectable`, `SearchField`,
-> and `SearchableDropdown` no longer contain `ActionProfile` constants or `safeProfile()`
-> overrides. The execution policy now lives in `ActionProfiles.safeProfileFor()` and the
-> `ElementAction.defaultSafeProfile()` template method. This phase is complete.
+> **Partial progress (Phase 5 SoC correction):** `ActionCapabilityProvider.safeProfile()` was
+> removed — the interface now contains only `capability()`. The five capability interfaces that
+> Phase 4 had polluted (`Clickable`, `Typeable`, `Selectable`, `SearchField`,
+> `SearchableDropdown`) were cleaned of `*_SAFE_PROFILE` constants and `safeProfile()`
+> overrides.
+>
+> **Remaining work:** This phase still depends on Phase 14 (concrete action subclasses) and
+> Phase 15 (capability interfaces returning concrete action types). Once those phases
+> introduce new patterns, all capability interfaces must be re-audited to confirm no
+> execution policy has crept back in, and the exit criteria below must be re-verified
+> against the updated codebase.
 
 ---
 
