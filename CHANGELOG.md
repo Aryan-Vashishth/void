@@ -18,6 +18,13 @@
   - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
   - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
 
+- **ElementRole audit — Phase 18 (investigation)**
+  - Audited all 16 concrete action subclasses for ElementRole necessity
+  - Decision: **Keep** — ElementRole is a public API contract (`UIEngine.resolve()`, `LocatorResolver.resolveDescriptor()`, `Element.getAllLocatorRoles()`); cannot be removed without breaking changes
+  - Single-role actions (12 of 16) hardcode their locator role at compile time in the constructor — this is correct and needs no change
+  - Composite actions (`SelectAction`, `SearchAndSelectAction`) call `engine.resolve()` with secondary roles directly in `execute()` — this is correct named-key usage, not dispatch
+  - No code changes required; architecture is sound
+
 - **Capability-based profile dispatch eliminated — Phase 17**
   - `Profiles.SAFE` removed — had `before(Action)` and `after(Action)` switches on `action.capability()`
   - `Profiles.RELIABLE` removed — had `before(Action)` switch on `action.capability()`

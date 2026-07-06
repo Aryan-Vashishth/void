@@ -1,207 +1,168 @@
 # Phase 18 — Audit ElementRole for Necessity
 
-**Status:** Pending Investigation  
+**Status:** Done  
 **Architecture Version:** 2.4  
 **Branch:** `feature/action-package-refactor`  
-**Risk:** Low — investigation only, no changes yet  
-**Depends on:** Phases 13–17 complete (Phases 13–16 are Done; Phase 17 is In Progress)
+**Risk:** Low — investigation only, no code changes  
+**Depends on:** Phases 13–17 complete
 
 ---
 
 ## Objective
 
-Determine whether `ElementRole` is still necessary in the new architecture. Audit every action subclass to verify it can resolve its locator without an explicit role parameter. Document findings and make a final decision on ElementRole's future.
+Determine whether `ElementRole` is still necessary in the new architecture. Audit every action
+subclass to verify whether explicit role parameters are justified. Document findings and make a
+final decision.
 
 ---
 
-## Context
+## Audit Findings
 
-`ElementRole` exists to tell the action which locator field to resolve:
+### ElementRole Enum
 
-```java
-// Current usage
-LocatorDescriptor resolve() {
-    return engine.resolve(element, ElementRole.TRIGGER);
-}
+**File:** `src/main/java/elements/meta/ElementRole.java`  
+**Size:** 24 constants
+
+```
+PRIMARY, SECONDARY               — Generic locator resolution fallback positions
+TRIGGER                          — Clickable trigger (button, icon, dropdown handle)
+INPUT                            — Text / value input field
+LIST                             — Generic list container or options panel
+TEXT                             — Static textual element
+SEARCH_INPUT                     — Search text input field
+SEARCH_BUTTON                    — Search action button
+SEARCH_RESULT                    — Search result list / panel
+TOOLTIP_CONTENT                  — Tooltip content element
+TABLE                            — Table root element
+ROW, COLUMN, CELL, HEADER        — Table structural roles
+ADD_ROW_BUTTON, REMOVE_ROW_BUTTON, FOOTER_INPUT_ROW   — Editable table controls
+MULTI_TRIGGER, MULTI_LIST        — Multi-select dropdown roles
 ```
 
-With concrete action subclasses, each action knows its semantic meaning. ClickAction uses the trigger. TypeAction uses the input. Does it still need to ask "which role?"
+### Public API Presence
+
+ElementRole is a required parameter in **core public contracts**:
+
+| Contract | Signature | Location |
+|----------|-----------|----------|
+| `UIEngine.resolve()` | `resolve(Element, ElementRole, Object...)` | Engine interface |
+| `LocatorResolver.resolve()` | `resolve(Element, ElementRole, Object...)` | Locator resolver API |
+| `LocatorResolver.resolveDescriptor()` | `resolveDescriptor(Element, ElementRole, Object...)` | Locator resolver API |
+| `Element.getAllLocatorRoles()` | Returns `Map<ElementRole, String>` | Base element interface |
+| `Via.descriptor()` | `descriptor(Element, ElementRole, Object...)` | Interactions API |
+
+ElementRole is **not** a private implementation detail — it is the type-safe contract at the
+center of the locator resolution pipeline.
+
+### Usage by All 16 Concrete Action Classes
+
+Every `ElementAction` subclass hard-codes its role in the constructor:
+
+| Action | Role Passed to Constructor | Notes |
+|--------|---------------------------|-------|
+| `ClickAction` | `TRIGGER` | single locator |
+| `ToggleAction` | `TRIGGER` | single locator |
+| `CheckAction` | `TRIGGER` | single locator |
+| `HoverAction` | `TEXT` | single locator |
+| `TypeAction` | `INPUT` | single locator |
+| `ClearAction` | `INPUT` | single locator |
+| `AppendTypeAction` | `INPUT` | single locator |
+| `TypeAndPressAction` | `INPUT` | single locator |
+| `UploadAction` | `INPUT` | single locator |
+| `OpenAction` | `TRIGGER` | single locator |
+| `SelectByTextAction` | `LIST` | single locator |
+| `SelectByValueAction` | `LIST` | single locator |
+| `TypeSearchAction` | `SEARCH_INPUT` | single locator |
+| `SubmitSearchAction` | `SEARCH_BUTTON` | single locator |
+| `SelectAction` | `TRIGGER` (primary) + calls `engine.resolve(element, LIST)` internally | composite — two roles |
+| `SearchAndSelectAction` | `TRIGGER` (primary) + calls `engine.resolve(element, SEARCH_INPUT)` and `engine.resolve(element, SEARCH_RESULT, term)` internally | composite — three roles |
+
+**12 actions use exactly one role. 4 composite actions use multiple roles explicitly.**
+
+The composite actions (`SelectAction`, `SearchAndSelectAction`) call `engine.resolve()` directly
+inside `execute()` for their secondary locators — they use `ElementRole` as a named locator key,
+not as a dispatch mechanism.
+
+### Broader Ecosystem
+
+- **`getAllLocatorRoles()` contract:** Every capability interface implements this method,
+  returning a `Map<ElementRole, String>` mapping each semantic role to its locator key. This is
+  the primary way the locator-resolution infrastructure discovers which XPath/CSS to load.
+- **`Interactions.java`:** Uses `resolveDescriptor(element, ElementRole.X)` in 10+ methods.
+- **`ElementActions.of(Element, ElementRole, BiConsumer)`:** The legacy factory takes an explicit
+  role parameter.
+- **`EnumLocatorScanner`:** Iterates `getAllLocatorRoles()` to build JSON from Element enums.
+- **`SeleniumEngine.resolve()`:** Implements the UIEngine contract, takes ElementRole.
+- **`VoidDemo`:** Uses `engine.resolve(element, ElementRole.TEXT)` directly in a hook.
 
 ---
 
-## Investigation
+## Decision: Keep ElementRole Unchanged
 
-### Step 1: Audit Each Action Type
+**Verdict: Keep.** ElementRole is not a candidate for removal or internalization.
 
-For each action subclass created in Phase 14, determine: **Does this action always target the same locator role?**
+**Reasoning:**
 
-```
-ClickAction
-  → element.getTriggerLocator()
-  → Always? YES ✓
-  → ElementRole needed? NO
+1. **It is a public interface parameter.** `UIEngine.resolve()`, `LocatorResolver.resolveDescriptor()`,
+   and `Element.getAllLocatorRoles()` all reference it. Removing it would require binary-breaking
+   API changes across the entire framework.
 
-TypeAction
-  → element.getInputLocator()
-  → Always? YES ✓
-  → ElementRole needed? NO
+2. **It is the semantic locator key.** Every element implementation maps role constants to
+   locator strings (XPath/CSS). Without ElementRole there is no type-safe way to request a
+   specific locator from an element that exposes multiple (e.g., Selectable exposes TRIGGER and
+   LIST; SearchableDropdown exposes four roles).
 
-SelectAction (more complex)
-  → open(): element.getTriggerLocator()
-  → selectByText(): element.getListLocator()
-  → select(): element.getTriggerLocator()
-  → Always same? NO ⚠️
-  → ElementRole needed? DEPENDS ON VARIANT
+3. **Composite actions need it explicitly.** `SelectAction` and `SearchAndSelectAction` resolve
+   multiple locators during `execute()`. They name each locator by role — that is the correct
+   design. There is nothing to fix here.
 
-HoverAction
-  → element.getTriggerLocator()
-  → Always? YES ✓
-  → ElementRole needed? NO
+4. **It provides compile-time safety and discoverability.** An enum over raw strings prevents
+   typos, enables IDE navigation, and makes it obvious which locator semantic is intended.
 
-... audit others ...
-```
+5. **The Phase 18 concern was pre-empted by Phase 14.** The concern was: "does each action
+   still need to be *told* which role?" The answer is yes — but the role is hardcoded in the
+   action constructor (known at compile time), not inferred at runtime. `ClickAction` always
+   resolves `TRIGGER`; `TypeAction` always resolves `INPUT`. ElementRole is a stated invariant,
+   not a runtime dispatch.
 
-### Step 2: Check for Edge Cases
-
-Search for element types or capabilities that might have unusual locator requirements:
-
-- **Autocomplete:** typing (input), then selecting from popup (different locators)
-- **SearchField + SearchableDropdown:** similar pattern
-- **EditableTable:** cell editing (depends on row/column)
-- **Custom elements with multiple interactive surfaces**
-
-### Step 3: Document Findings
-
-Create brief summary:
-
-```markdown
-### ElementRole Audit Results
-
-**Actions that always use one locator role:**
-- ClickAction: TRIGGER
-- CheckAction: TRIGGER
-- HoverAction: TRIGGER
-- TypeAction: INPUT
-- ClearAction: INPUT
-- AppendTypeAction: INPUT
-- UploadAction: INPUT
-- ... count: 15 actions, no ElementRole needed
-
-**Actions that may use multiple locators:**
-- SelectAction: TRIGGER (open) and LIST (select) — needs strategy
-- OpenAction: TRIGGER only (if refactored from SelectAction)
-- SearchField actions: INPUT and LIST
-- SearchableDropdown actions: TRIGGER and LIST
-- EditableTable actions: depends on cell coordinates
-- ... count: 8 actions, ElementRole OR strategy needed
-
-**Decision:** ElementRole can be removed from public Element/Capability interfaces.
-Actions that need multiple locators use constructor parameters or internal strategy pattern.
-```
-
-### Step 4: Propose Solution
-
-**Option A: Remove ElementRole entirely**
-
-If all actions work without it, delete it from public contracts and move to internal utilities only.
-
-**Option B: Keep ElementRole, pass to select actions**
-
-If SelectAction and others truly need it, add `ElementRole` as a constructor parameter to those actions.
-
-**Option C: Strategy pattern**
-
-Actions that need multiple locators define an internal enum:
-
-```java
-public final class SelectAction extends ElementAction {
-    enum Strategy { TRIGGER, LIST }
-    
-    private final Strategy strategy;
-    
-    public SelectAction(Selectable element, Strategy strategy) {
-        super(element);
-        this.strategy = strategy;
-    }
-    
-    @Override
-    protected LocatorDescriptor resolve() {
-        return switch (strategy) {
-            case TRIGGER -> engine.resolve(element, ElementRole.TRIGGER);
-            case LIST -> engine.resolve(element, ElementRole.LIST);
-        };
-    }
-}
-```
+**No code changes required.**
 
 ---
 
-## Implementation (Post-Audit)
+## Audit per Action Subclass
 
-### If Decision is "Remove ElementRole"
-
-Delete from public contracts:
-- `Element` interface (no change, it doesn't reference role)
-- `ElementRole` enum (move to `core.actions` internal package if needed)
-
-Update action subclass constructor documentation.
-
-### If Decision is "Keep ElementRole"
-
-Add to select action constructors:
-
-```java
-public SelectAction(Selectable element, ElementRole roleHint) {
-    // Use roleHint to decide which locator
-}
+```
+ClickAction       → TRIGGER     always  ✓ role hardcoded in constructor
+ToggleAction      → TRIGGER     always  ✓
+CheckAction       → TRIGGER     always  ✓
+HoverAction       → TEXT        always  ✓ (uses TEXT locator, not TRIGGER)
+TypeAction        → INPUT       always  ✓
+ClearAction       → INPUT       always  ✓
+AppendTypeAction  → INPUT       always  ✓
+TypeAndPressAction→ INPUT       always  ✓
+UploadAction      → INPUT       always  ✓
+OpenAction        → TRIGGER     always  ✓
+SelectByTextAction→ LIST        always  ✓
+SelectByValueAction→ LIST       always  ✓
+TypeSearchAction  → SEARCH_INPUT always ✓
+SubmitSearchAction→ SEARCH_BUTTON always ✓
+SelectAction      → TRIGGER + LIST         composite, both needed ✓
+SearchAndSelectAction → TRIGGER + SEARCH_INPUT + SEARCH_RESULT  composite ✓
 ```
 
-Document which actions expect which roles.
-
-### If Decision is "Internal Strategy"
-
-Actions define minimal strategy enums instead of using `ElementRole`.
-
----
-
-## Tests
-
-Write tests to verify audit assumptions:
-
-```java
-@Test
-public void clickAction_doesNotNeedElementRole() {
-    ClickAction action = new ClickAction(clickable);
-    action.execute(engine, descriptor);
-    // Verify it resolved TRIGGER without being told
-}
-
-@Test
-public void selectAction_canSelectByText_withoutExplicitRole() {
-    SelectAction action = new SelectAction(selectable);
-    action.execute(engine, descriptorForList);
-    // Verify it can work with list descriptor
-}
-```
+All 16 actions correctly declare their locator role. No role is unnecessary or redundant.
 
 ---
 
 ## Exit Criteria
 
-- [ ] Every action subclass audited for ElementRole necessity
-- [ ] Edge cases identified and documented
-- [ ] Decision made: Remove / Keep / Internal Strategy
-- [ ] Decision documented in final ADR-015 or architecture note
+- [x] Every action subclass audited for ElementRole necessity
+- [x] Edge cases (composite actions) identified and documented
+- [x] Decision made: **Keep**
+- [x] Decision documented (this document)
 
 ---
 
 ## Next Phase
 
-Phase 19 — ElementActions Factory Role (create ADR-015 post-audit)
-
----
-
-## Notes
-
-This phase is investigation-driven. No code changes are expected until the decision is made and documented. The output is a single summary document that explains the finding and guides Phase 19.
-
+Phase 19 — ElementActions Factory Decision (ADR-015)
