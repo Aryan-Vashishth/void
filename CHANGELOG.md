@@ -18,6 +18,25 @@
   - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
   - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
 
+- **Concrete action subclasses — Phase 14**
+  - `ClickAction(Clickable)` — `engine.click()`, TRIGGER role, CLICKABLE capability
+  - `ToggleAction(Checkable)` — unconditional click, TRIGGER, CHECKABLE
+  - `CheckAction(Checkable, boolean)` — conditional click when state differs, TRIGGER, CHECKABLE
+  - `HoverAction(Hoverable)` — `engine.hover()`, TEXT role, HOVERABLE capability
+  - `TypeAction(Typeable, String)` — `engine.type()`, INPUT role, TYPEABLE capability
+  - `ClearAction(Typeable)` — `engine.clear()`, INPUT, TYPEABLE
+  - `AppendTypeAction(Typeable, String)` — `engine.appendType()`, INPUT, TYPEABLE
+  - `TypeAndPressAction(Typeable, String, String)` — `engine.type()` then `sendKey()`, INPUT, TYPEABLE
+  - `OpenAction(Selectable)` — clicks TRIGGER only, SELECTABLE capability
+  - `SelectAction(Selectable)` — composite: click TRIGGER + `waitForOverlay` + click LIST, SELECTABLE
+  - `SelectByTextAction(Selectable, String)` — `engine.selectByVisibleText()`, LIST, SELECTABLE
+  - `SelectByValueAction(Selectable, String)` — `engine.selectByValue()`, LIST, SELECTABLE
+  - `UploadAction(Uploadable, String)` — `engine.uploadFile()`, INPUT, UPLOADABLE
+  - `TypeSearchAction(SearchField, String)` — `engine.type()`, SEARCH_INPUT, SEARCH_FIELD
+  - `SubmitSearchAction(SearchField)` — `engine.click()`, SEARCH_BUTTON, SEARCH_FIELD
+  - `SearchAndSelectAction(SearchableDropdown, String)` — composite: click TRIGGER + type SEARCH_INPUT + `waitForVisible` + click SEARCH_RESULT, SEARCHABLE_DROPDOWN
+  - All classes are `final`; profiles inherited via `ElementAction.defaultSafeProfile()` — no profile constants duplicated in subclasses
+
 - **Execution policy moved to action layer — Phase 5 (SoC correction)**
   - `ActionProfiles.safeProfileFor(ActionCapability)` — package-private static method; maps each capability to its safe profile constant; execution policy lives in `core.actions`, not in capability interfaces
   - `ActionProfiles.CLICKABLE_SAFE` — `[WAIT_FOR_ELEMENT_CLICKABLE]` before, `[WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]` after
