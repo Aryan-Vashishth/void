@@ -18,6 +18,18 @@
   - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
   - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
 
+- **Capability action emission — Phase 15**
+  - `Clickable.click()` returns `ClickAction` (was anonymous `ElementActions.of()` lambda)
+  - `Checkable.toggle()` returns `ToggleAction`; `Checkable.set(boolean)` returns `CheckAction`
+  - `Hoverable.hover()` returns `HoverAction`
+  - `Typeable.type()`, `clear()`, `append()`, `typeAndPress()` return `TypeAction`, `ClearAction`, `AppendTypeAction`, `TypeAndPressAction`
+  - `Selectable.open()`, `select()`, `selectByText()`, `selectByValue()` return `OpenAction`, `SelectAction`, `SelectByTextAction`, `SelectByValueAction`
+  - `SearchField.typeSearch()` returns `TypeSearchAction`; `submitSearch()` returns `SubmitSearchAction`
+  - `SearchableDropdown.searchAndSelect()` returns `SearchAndSelectAction`
+  - `Uploadable.upload()` returns `UploadAction` (was plain lambda)
+  - All concrete return types remain polymorphically assignable to `Action` — no call sites broken
+  - `ElementActions`, `Action`, and `java.time.Duration` imports removed from all updated capability interfaces
+
 - **Concrete action subclasses — Phase 14**
   - `ClickAction(Clickable)` — `engine.click()`, TRIGGER role, CLICKABLE capability
   - `ToggleAction(Checkable)` — unconditional click, TRIGGER, CHECKABLE
