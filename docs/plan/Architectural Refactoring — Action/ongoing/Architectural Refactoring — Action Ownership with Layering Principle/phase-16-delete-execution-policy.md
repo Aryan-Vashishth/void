@@ -1,22 +1,23 @@
 # Phase 16 — Delete Execution Policy from Capabilities
 
-**Status:** Partially Done  
+**Status:** Done  
 **Architecture Version:** 2.4  
 **Branch:** `feature/action-package-refactor`  
 **Risk:** Medium — removes methods from public interface  
-**Depends on:** Phase 14, Phase 15
+**Depends on:** Phase 14 — Done, Phase 15 — Done
 
-> **Partial progress (Phase 5 SoC correction):** `ActionCapabilityProvider.safeProfile()` was
-> removed — the interface now contains only `capability()`. The five capability interfaces that
-> Phase 4 had polluted (`Clickable`, `Typeable`, `Selectable`, `SearchField`,
-> `SearchableDropdown`) were cleaned of `*_SAFE_PROFILE` constants and `safeProfile()`
-> overrides.
+> **Completed across two phases:**
 >
-> **Remaining work:** This phase still depends on Phase 14 (concrete action subclasses) and
-> Phase 15 (capability interfaces returning concrete action types). Once those phases
-> introduce new patterns, all capability interfaces must be re-audited to confirm no
-> execution policy has crept back in, and the exit criteria below must be re-verified
-> against the updated codebase.
+> **Phase 5 (SoC correction):** `ActionCapabilityProvider.safeProfile()` was removed — the
+> interface now contains only `capability()`. The five capability interfaces that Phase 4 had
+> polluted (`Clickable`, `Typeable`, `Selectable`, `SearchField`, `SearchableDropdown`) were
+> cleaned of `*_SAFE_PROFILE` constants and `safeProfile()` overrides. Execution policy moved
+> to `ActionProfiles` (package-private) in `core.actions`.
+>
+> **Phase 16 re-audit (post Phase 14/15):** Full grep of `elements/api/capability` confirms
+> zero occurrences of `safeProfile`, `reliableProfile`, `fastProfile`, `debugProfile`,
+> `*_SAFE_PROFILE`, `*_RELIABLE_PROFILE`. Phases 14 and 15 introduced no execution policy
+> back into capability interfaces. All exit criteria verified against the updated codebase.
 
 ---
 
@@ -187,11 +188,11 @@ This may break if anything is calling deleted methods. If so, that's the point�
 
 ## Exit Criteria
 
-- [ ] ActionCapabilityProvider contains only capability() method
-- [ ] All capability interfaces have no profile constants or methods
-- [ ] No references to deleted methods remain in code
-- [ ] All tests pass
-- [ ] Compilation succeeds without errors
+- [x] ActionCapabilityProvider contains only capability() method
+- [x] All capability interfaces have no profile constants or methods
+- [x] No references to deleted methods remain in code
+- [x] All tests pass
+- [x] Compilation succeeds without errors
 
 ---
 

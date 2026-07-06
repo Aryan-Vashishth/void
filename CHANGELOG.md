@@ -18,6 +18,12 @@
   - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
   - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
 
+- **Execution policy deleted from capability interfaces — Phase 16**
+  - Re-audit post Phase 14/15 confirms zero execution policy in `elements/api/capability`: no `safeProfile()`, no `reliableProfile()`, no `*_SAFE_PROFILE` constants
+  - `ActionCapabilityProvider` contains only `capability()` — pure metadata interface
+  - All profile dispatch lives exclusively in `ActionProfiles` (package-private, `core.actions`)
+  - `ElementAction.defaultSafeProfile()` is the single hook-wiring entry point for action subclasses
+
 - **Capability action emission — Phase 15**
   - `Clickable.click()` returns `ClickAction` (was anonymous `ElementActions.of()` lambda)
   - `Checkable.toggle()` returns `ToggleAction`; `Checkable.set(boolean)` returns `CheckAction`
