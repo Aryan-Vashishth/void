@@ -1,7 +1,8 @@
 package elements.api.capability;
 
-import core.actions.Action;
 import core.actions.ActionCapability;
+import core.actions.SubmitSearchAction;
+import core.actions.TypeSearchAction;
 import elements.meta.ElementRole;
 
 /**
@@ -57,20 +58,14 @@ public interface SearchField extends Typeable, Clickable {
 
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Types into the search input field. */
-    default Action typeSearch(String text) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.SEARCH_INPUT);
-            engine.type(d, text);
-        };
+    /** Emits a {@link TypeSearchAction} targeting this element's SEARCH_INPUT locator. */
+    default TypeSearchAction typeSearch(String text) {
+        return new TypeSearchAction(this, text);
     }
 
-    /** Clicks the search/submit button. */
-    default Action submitSearch() {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.SEARCH_BUTTON);
-            engine.click(d);
-        };
+    /** Emits a {@link SubmitSearchAction} targeting this element's SEARCH_BUTTON locator. */
+    default SubmitSearchAction submitSearch() {
+        return new SubmitSearchAction(this);
     }
 }
 

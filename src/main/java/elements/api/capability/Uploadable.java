@@ -1,8 +1,8 @@
 package elements.api.capability;
 
-import core.actions.Action;
 import core.actions.ActionCapability;
 import core.actions.ActionCapabilityProvider;
+import core.actions.UploadAction;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -45,12 +45,9 @@ public interface Uploadable extends Element, ActionCapabilityProvider {
 
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Uploads a file via this input element. */
-    default Action upload(String filePath) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.INPUT);
-            engine.uploadFile(d, filePath);
-        };
+    /** Emits an {@link UploadAction} for the given file path. */
+    default UploadAction upload(String filePath) {
+        return new UploadAction(this, filePath);
     }
 }
 
