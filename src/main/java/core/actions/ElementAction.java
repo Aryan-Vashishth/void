@@ -141,12 +141,12 @@ public abstract class ElementAction implements Action, ActionLabeled {
     /**
      * Applies the RELIABLE profile to this action.
      *
-     * <p>Final — subclasses cannot override. Uses {@link Profiles#RELIABLE}.</p>
+     * <p>Final — subclasses cannot override. Uses {@link #defaultReliableProfile()}.</p>
      *
      * @return a new action with RELIABLE profile hooks
      */
     public final Action reliable() {
-        return using(Profiles.RELIABLE);
+        return using(defaultReliableProfile());
     }
 
     /**
@@ -191,14 +191,14 @@ public abstract class ElementAction implements Action, ActionLabeled {
     /**
      * Default reliable profile for this action.
      *
-     * <p>Called by {@link #reliable()}.
-     * Override in subclasses only when behavior differs from the framework default.
-     * Default implementation returns {@link Profiles#RELIABLE}.</p>
+     * <p>Called by {@link #reliable()}. Resolves the profile from {@link ActionProfiles}
+     * based on this action's capability. Override in subclasses when the action's reliable
+     * execution differs from the capability default.</p>
      *
-     * @return the reliable profile
+     * @return the reliable profile for this action's capability
      */
     protected ActionProfile defaultReliableProfile() {
-        return Profiles.RELIABLE;
+        return ActionProfiles.reliableProfileFor(capability);
     }
 
     /**

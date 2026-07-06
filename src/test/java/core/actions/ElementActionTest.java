@@ -292,7 +292,7 @@ public class ElementActionTest {
     }
 
     @Test
-    public void reliable_usesProfilesReliable() {
+    public void reliable_preservesCapability() {
         ElementAction action = new ElementAction(stubElement, ElementRole.TRIGGER,
                 ActionCapability.CLICKABLE) {
             @Override
