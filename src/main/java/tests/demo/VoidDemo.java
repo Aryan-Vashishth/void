@@ -1,19 +1,16 @@
 package tests.demo;
 
-import core.engine.LocatorDescriptor;
 import core.flow.Flow;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.runtime.VOID;
-import elements.meta.ElementRole;
+import tests.demo.hooks.DemoHooks;
 import tests.demo.pages.DemoLoginPage;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.time.Duration;
 
 import static core.logging.CustomLogger.*;
 
@@ -87,7 +84,7 @@ public class VoidDemo {
     }
 
     /**
-     * Profiled login — demonstrates {@code .safely()} as the primary hook pattern.
+     * Profiled login — demonstrates {@code .safely()} and custom project-specific after-hooks.
      *
      * <p>{@code safely()} applies a capability-aware {@code SAFE} profile:
      * correct before/after hooks are chosen automatically based on whether the
@@ -98,6 +95,17 @@ public class VoidDemo {
      *   action.safely()  →  SAFE profile resolves hooks by capability
      *       Typeable  : before [CLEAR_FIELD, WAIT_FOR_ELEMENT_VISIBLE], after [HIGHLIGHT_ELEMENT]
      *       Clickable : before [WAIT_FOR_ELEMENT_CLICKABLE],            after [WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]
+     * </pre>
+     *
+     * <h3>Building custom hooks</h3>
+     * <p>Project teams compose their own hook libraries by declaring
+     * {@code static final AfterActionHandler} constants — the same pattern used by
+     * {@link core.interactions.hooks.After}.  See {@link tests.demo.hooks.DemoHooks} for the
+     * canonical example.  Any named constant drops in wherever a lambda would work:</p>
+     * <pre>
+     *   element.click()
+     *       .safely()
+     *       .after(DemoHooks.WAIT_FOR_LOGIN_SUCCESS);
      * </pre>
      *
      * <p>For full manual control (advanced / power-user), use {@code withHooks(List, List)} directly:</p>
@@ -121,21 +129,12 @@ public class VoidDemo {
 
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD).safely(),
 
-                // safely() + extra inline after-hook for app-specific wait
+                // safely() + custom named after-hook — see DemoHooks for the implementation.
+                // Named hooks are reusable, testable, and searchable; prefer them over
+                // inline lambdas for anything beyond a one-off throwaway.
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
                         .safely()
-                        .after(
-                                // Custom inline hook: wait for success message after login click.
-                                // Hooks receive the engine as a parameter — the intended way for
-                                // hooks to perform engine-level operations without exposing the
-                                // engine to test code.
-                                (eng, desc) -> {
-                                    LocatorDescriptor successMsg = eng.resolve(
-                                            DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
-                                    eng.waitForVisible(successMsg, Duration.ofSeconds(5));
-                                    debug.log("[HOOK] Success message visible after login click.");
-                                }
-                        )
+                        .after(DemoHooks.WAIT_FOR_LOGIN_SUCCESS)
         ));
 
         info.success("Profiled flow executed successfully.");
