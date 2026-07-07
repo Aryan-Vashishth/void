@@ -210,7 +210,7 @@ void-framework/
 │   │   │   ├── ReadTextAction.java           ← Concrete: engine.getText(), TEXT role
 │   │   │   ├── ...                           ← 12 further concrete action subclasses
 │   │   │   ├── ElementActions.java           ← @Internal factory (test infrastructure only)
-│   │   │   ├── ActionProfiles.java           ← Package-private: capability → profile constants
+│   │   │   ├── ActionProfiles.java           ← Package-private: safe/reliable profile constants (referenced by each action subclass)
 │   │   │   ├── Profiles.java                 ← Action-independent presets (RAW, DEBUG, FAST, VISUAL)
 │   │   │   └── HookedAction.java             ← Pure decorator: before → action → after
 │   │   ├── adapters/
@@ -489,6 +489,7 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 - **Capabilities describe, Actions execute** — execution policy lives in actions, never in capability interfaces (ADR-013)
 - **Actions are concrete types** — `ClickAction`, `TypeAction`, etc. own their execution logic and profile defaults; no anonymous lambdas or central dispatch (ADR-014)
 - **ActionCapability is metadata** — never used to select execution paths; logging/tracing/diagnostics only
+- **Action extension is additive** — adding a new action type or `ElementRole` value requires no changes to existing classes; new subclass declares its own profile and `operationLabel()` is derived automatically
 - **Actions NEVER perform work** until executed by UIEngine via FlowExecutor
 - **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
 - **`VOID` is the primary session object** — tests navigate, run flows, and teardown through it

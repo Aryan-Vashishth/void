@@ -16,10 +16,10 @@ default Action click() {
 }
 ```
 
-The action was a runtime-constructed anonymous object. Its type was `ElementBoundAction` (an
-internal anonymous subclass of `ElementAction`). Its execution policy was looked up at runtime
-via `ActionProfiles.safeProfileFor(action.capability())`. Every action of the same capability
-type was structurally identical.
+The action was a runtime-constructed anonymous object. Its type was an anonymous subclass of
+`ElementAction`. Its execution policy was looked up at runtime via a central
+`ActionProfiles.safeProfileFor(action.capability())` dispatch method (since removed). Every
+action of the same capability type was structurally identical.
 
 The Phase 13–15 refactor introduced 17 concrete `ElementAction` subclasses — one per interaction
 type — and changed capability methods to return them directly.
@@ -43,7 +43,7 @@ Each concrete action type:
 - Declares its `ActionCapability` in the constructor
 - Overrides `execute(UIEngine, LocatorDescriptor)` with the specific engine call
 - Inherits `perform()`, `safely()`, `debug()`, `reliable()`, `raw()` from `ElementAction`
-- Overrides `defaultSafeProfile()` / `defaultReliableProfile()` only when its policy differs from the default
+- Overrides `defaultSafeProfile()` / `defaultReliableProfile()` to declare its profile directly (e.g., `ClickAction` returns `ActionProfiles.CLICKABLE_SAFE`); actions that use the base default (e.g., `HoverAction`) skip the override
 
 ---
 

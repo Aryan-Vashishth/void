@@ -64,7 +64,7 @@ core/
 | `HoverAction` | Concrete: `engine.hover()`, TEXT role, HOVERABLE capability |
 | `ReadTextAction` | Concrete: `engine.getText()`, TEXT role, READ_ONLY capability |
 | *(+ 12 more)* | `ClearAction`, `CheckAction`, `AppendTypeAction`, `TypeAndPressAction`, `UploadAction`, `OpenAction`, `SelectByTextAction`, `SelectByValueAction`, `ToggleAction`, `TypeSearchAction`, `SubmitSearchAction`, `SearchAndSelectAction` |
-| `ActionProfiles` | Package-private: maps `ActionCapability` → safe/reliable profile constants |
+| `ActionProfiles` | Package-private: owns safe/reliable profile constants (`CLICKABLE_SAFE`, `TYPEABLE_SAFE`, etc.) — referenced directly by each concrete action subclass |
 | `Profiles` | Action-independent preset profiles: RAW, DEBUG, FAST, VISUAL |
 | `ElementActions` | `@Internal` factory — custom-operation actions for test infrastructure only |
 | `HookedAction` | Decorator applying before/after hooks around a delegate Action |
@@ -84,7 +84,7 @@ core/
 - Actions never reference `WebDriver`, `WebElement`, or `By`.
 - `ActionCapability` is metadata only — never used to select execution paths.
 - Hook composition is fluent: `element.click().before(...).after(...)`
-- Extension via new action types, not via modifying `ActionProfiles` switches.
+- Extension via new action subclasses: each declares its own profile via `defaultSafeProfile()` / `defaultReliableProfile()` override; no changes to existing classes required (OCP).
 
 **Stability:** `@Beta` — API may change between releases. `ElementAction` subclasses are concrete and stable within a release.
 

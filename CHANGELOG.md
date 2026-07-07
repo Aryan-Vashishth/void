@@ -1,6 +1,13 @@
 # Changelog
 
-## [Unreleased] — 2026-07-03
+## [Unreleased] — 2026-07-07
+
+### Changed
+
+- **Open/Closed Principle applied to three action extension points**
+  - `ElementAction.operationLabel()` — capability-based `switch` replaced with class-name derivation: strips the `"Action"` suffix and lowercases the first character (`ClickAction` → `"click"`, `SearchAndSelectAction` → `"searchAndSelect"`). Anonymous subclasses (e.g., `ElementActions.of()`) return `"perform"`. Adding a new concrete action subclass requires no change to `ElementAction`.
+  - `ActionProfiles.safeProfileFor(ActionCapability)` and `reliableProfileFor(ActionCapability)` deleted — the central dispatch switches are gone. Profile ownership now lives directly in each concrete action subclass via `defaultSafeProfile()` / `defaultReliableProfile()` overrides: click-family (`ClickAction`, `ToggleAction`, `CheckAction`) → `CLICKABLE_*`; type-family (`TypeAction`, `ClearAction`, `AppendTypeAction`, `TypeAndPressAction`, `TypeSearchAction`, `SubmitSearchAction`) → `TYPEABLE_*`; select-family (`OpenAction`, `SelectAction`, `SelectByTextAction`, `SelectByValueAction`, `SearchAndSelectAction`) → `SELECTABLE_*`; read-family (`HoverAction`, `UploadAction`, `ReadTextAction`) inherit `DEFAULT_*` from the base class. Adding a new action type is fully self-contained — no changes to `ActionProfiles` or `ElementAction`.
+  - `ElementActions.capabilityFor()` — collapsed. The three role-based fallbacks (`ElementRole.INPUT → TYPEABLE`, `LIST → SELECTABLE`, `TRIGGER → CLICKABLE`) were dead code for all production elements (all implement `ActionCapabilityProvider`). Simplified to: `instanceof ActionCapabilityProvider → return p.capability()`, else return `UNKNOWN`. Adding a new `ElementRole` requires no change here.
 
 ### Added
 
@@ -41,7 +48,7 @@
   - `Profiles.SAFE` removed — had `before(Action)` and `after(Action)` switches on `action.capability()`
   - `Profiles.RELIABLE` removed — had `before(Action)` switch on `action.capability()`
   - `Profiles.fromName("SAFE")` and `fromName("RELIABLE")` fall back to `RAW`
-  - `ActionProfiles.reliableProfileFor(ActionCapability)` added — mirrors `safeProfileFor`; four capability-specific reliable profile constants: `DEFAULT_RELIABLE`, `CLICKABLE_RELIABLE`, `TYPEABLE_RELIABLE`, `SELECTABLE_RELIABLE`
+  - `ActionProfiles.reliableProfileFor(ActionCapability)` added — mirrors `safeProfileFor`; four capability-specific reliable profile constants: `DEFAULT_RELIABLE`, `CLICKABLE_RELIABLE`, `TYPEABLE_RELIABLE`, `SELECTABLE_RELIABLE` *(both dispatch methods later removed — see Changed section above)*
   - `ElementAction.reliable()` now calls `using(defaultReliableProfile())` — polymorphic, same pattern as `safely()`
   - `ElementAction.defaultReliableProfile()` calls `ActionProfiles.reliableProfileFor(capability)` — no static Profiles reference
   - `Action.safely()` default updated to `using(ActionProfiles.DEFAULT_SAFE)` — applies wait-for-visible for plain lambda actions
@@ -83,14 +90,14 @@
   - `TypeSearchAction(SearchField, String)` — `engine.type()`, SEARCH_INPUT, SEARCH_FIELD
   - `SubmitSearchAction(SearchField)` — `engine.click()`, SEARCH_BUTTON, SEARCH_FIELD
   - `SearchAndSelectAction(SearchableDropdown, String)` — composite: click TRIGGER + type SEARCH_INPUT + `waitForVisible` + click SEARCH_RESULT, SEARCHABLE_DROPDOWN
-  - All classes are `final`; profiles inherited via `ElementAction.defaultSafeProfile()` — no profile constants duplicated in subclasses
+  - All classes are `final`; profiles declared via `defaultSafeProfile()` / `defaultReliableProfile()` overrides — constants owned by `ActionProfiles` and referenced locally in each subclass (click-family → `CLICKABLE_*`, type-family → `TYPEABLE_*`, select-family → `SELECTABLE_*`)
 
 - **Execution policy moved to action layer — Phase 5 (SoC correction)**
   - `ActionProfiles.safeProfileFor(ActionCapability)` — package-private static method; maps each capability to its safe profile constant; execution policy lives in `core.actions`, not in capability interfaces
   - `ActionProfiles.CLICKABLE_SAFE` — `[WAIT_FOR_ELEMENT_CLICKABLE]` before, `[WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]` after
   - `ActionProfiles.TYPEABLE_SAFE` — `[CLEAR_FIELD, WAIT_FOR_ELEMENT_VISIBLE]` before, `[HIGHLIGHT_ELEMENT]` after
   - `ActionProfiles.SELECTABLE_SAFE` — `[WAIT_FOR_ELEMENT_VISIBLE, WAIT_FOR_ELEMENT_CLICKABLE, WAIT_FOR_ANGULAR_LOADER]` before, `[HIGHLIGHT_ELEMENT]` after
-  - `ElementAction.safely()` calls `using(defaultSafeProfile())`; `defaultSafeProfile()` is a protected template method that returns `ActionProfiles.safeProfileFor(capability)` by default; subclasses override only when safe behavior differs (e.g. `DoubleClickAction`)
+  - `ElementAction.safely()` calls `using(defaultSafeProfile())`; `defaultSafeProfile()` is a protected template method; concrete subclasses override to declare their profile directly (`ClickAction` → `ActionProfiles.CLICKABLE_SAFE`, etc.) rather than going through a central dispatch method
   - `ActionCapabilityProvider` reduced to a single-method interface — `capability()` only; execution policy is not a capability concern
   - `Clickable`, `Typeable`, `Selectable`, `SearchField`, `SearchableDropdown` no longer contain `ActionProfile` constants or `safeProfile()` overrides; capability interfaces are pure structural contracts
   - Open/Closed at the action level: a new action type with different safe hooks overrides `defaultSafeProfile()` without touching capability interfaces or framework files

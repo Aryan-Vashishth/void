@@ -43,16 +43,18 @@ These rules follow directly from the principle and must be enforced in code revi
    execution paths (e.g., "if CLICKABLE, do X; if TYPEABLE, do Y").
 
 3. **Extension via new types, not via central modification.** Adding a new interaction (e.g.,
-   `DoubleClickAction`) means creating a new `ElementAction` subclass with its own
-   `defaultSafeProfile()`. It does not mean adding a case to `ActionProfiles.safeProfileFor()`
-   unless the new type genuinely needs a new profile shape.
+   `DoubleClickAction`) means creating a new `ElementAction` subclass that overrides
+   `defaultSafeProfile()` / `defaultReliableProfile()` with its own profile reference. No
+   changes to `ActionProfiles`, `ElementAction`, or any existing class are required.
 
 4. **Actions are self-aware.** A concrete action knows its locator role, its capability, and its
    safe/reliable/debug profile defaults. It does not query a registry or central dispatcher to
    discover these.
 
-5. **Profile dispatch lives in one place.** `ActionProfiles` (package-private) owns the mapping
-   from capability to profile constants. No other class should contain such a mapping.
+5. **Profile constants live in one place; dispatch lives in each action.** `ActionProfiles`
+   (package-private) owns the profile constant definitions. Each concrete action subclass
+   references its constant directly via `defaultSafeProfile()` / `defaultReliableProfile()`
+   overrides — no central switch, no capability-keyed lookup.
 
 ---
 
@@ -68,9 +70,10 @@ Before this principle was articulated, execution policy leaked in multiple direc
 
 After applying the principle:
 
-- `ActionProfiles` owns all profile constants
-- Each `ElementAction` subclass calls `ActionProfiles.safeProfileFor(capability)` via
-  `defaultSafeProfile()` — one call, no switch in the action
+- `ActionProfiles` owns all profile constants (`CLICKABLE_SAFE`, `TYPEABLE_SAFE`, etc.)
+- Each concrete `ElementAction` subclass overrides `defaultSafeProfile()` /
+  `defaultReliableProfile()` to return its own constant directly — no capability switch,
+  no central dispatch method
 - Capability interfaces contain no profile, hook, or execution logic
 
 ---
@@ -81,4 +84,5 @@ After applying the principle:
   without touching execution infrastructure
 - Adding a new action type is local: create the class, declare the profile override if needed
 - The execution policy is visible and auditable in one package (`core.actions`)
-- `ActionCapability` remains safe to add values to — no switch needs updating elsewhere
+- `ActionCapability` remains safe to add values to — no switch anywhere needs updating
+- `ElementRole` remains safe to add values to — `ElementActions.capabilityFor()` no longer contains role-based fallbacks
