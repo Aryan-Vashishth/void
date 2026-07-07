@@ -18,6 +18,12 @@
   - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
   - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
 
+- **ElementActions factory scope settled — Phase 19 (ADR-012)**
+  - `ReadTextAction` added — 17th concrete action subclass; `ReadOnly.readText()` now returns `ReadTextAction` directly, consistent with the Phase 14/15 pattern
+  - All 16 production capability interfaces now emit typed concrete subclasses; no production code calls `ElementActions.of()`
+  - `ElementActions` marked `@Internal` — factory retained for test infrastructure (custom-operation lambdas that concrete subclasses cannot satisfy) and framework-internal edge cases
+  - ADR-012 documents the decision and audit findings (15 call sites: 1 production migrated, 14 test infrastructure retained)
+
 - **ElementRole audit — Phase 18 (investigation)**
   - Audited all 16 concrete action subclasses for ElementRole necessity
   - Decision: **Keep** — ElementRole is a public API contract (`UIEngine.resolve()`, `LocatorResolver.resolveDescriptor()`, `Element.getAllLocatorRoles()`); cannot be removed without breaking changes

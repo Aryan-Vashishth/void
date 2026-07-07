@@ -1,6 +1,6 @@
 # Phase 19 — ElementActions Factory Role (Deferred Decision)
 
-**Status:** Pending Implementation  
+**Status:** Done  
 **Architecture Version:** 2.4  
 **Branch:** `feature/action-package-refactor`  
 **Risk:** Low — investigation only, decision deferred  
@@ -10,7 +10,7 @@
 
 ## Objective
 
-Audit all remaining call sites of `ElementActions.of()` in the codebase. Determine whether the factory should be: (A) deleted, (B) kept as internal utility, or (C) moved to test-support package only. Document the decision in ADR-015.
+Audit all remaining call sites of `ElementActions.of()` in the codebase. Determine whether the factory should be: (A) deleted, (B) kept as internal utility, or (C) moved to test-support package only. Document the decision in ADR-012.
 
 ---
 
@@ -201,15 +201,31 @@ mvn test                 # Verify test infrastructure still works
 
 ---
 
+## Audit Results
+
+**15 call sites found:**
+- 1 production (`ReadOnly.readText()`) — migrated to `ReadTextAction` (Option B prerequisite)
+- 14 test infrastructure — custom-operation lambdas that cannot be replaced by concrete constructors
+
+**Decision: Option B — Keep as `@Internal`.**  
+See ADR-012 for full reasoning.
+
+**Code changes:**
+- `ReadTextAction` created — 17th concrete action subclass, consistent with Phase 14/15
+- `ReadOnly.readText()` returns `ReadTextAction` directly — no more `ElementActions.of()` in production
+- `ElementActions` annotated `@Internal`, Javadoc updated
+- `README.md` example updated to direct-constructor pattern
+- `Action.java` error message updated
+
 ## Exit Criteria
 
-- [ ] All ElementActions.of() call sites audited
-- [ ] Categorized by context (test, impl, demo, dead)
-- [ ] One of three options chosen with evidence
-- [ ] ADR-015 created documenting decision and rationale
-- [ ] Code refactored according to decision
-- [ ] All tests pass
-- [ ] Demo code compiles
+- [x] All ElementActions.of() call sites audited
+- [x] Categorized by context (test, impl, demo, dead)
+- [x] One of three options chosen with evidence
+- [x] ADR-012 created documenting decision and rationale
+- [x] Code refactored according to decision
+- [x] All tests pass
+- [x] Demo code compiles
 
 ---
 
