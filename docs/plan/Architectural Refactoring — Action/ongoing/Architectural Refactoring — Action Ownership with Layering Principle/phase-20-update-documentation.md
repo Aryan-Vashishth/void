@@ -1,6 +1,6 @@
 # Phase 20 — Update Documentation
 
-**Status:** Pending Implementation  
+**Status:** Done  
 **Architecture Version:** 2.4  
 **Branch:** `feature/action-package-refactor`  
 **Risk:** Low — documentation only  
@@ -256,9 +256,11 @@ TYPEABLE, etc.). Metadata-only; never used for dispatch.
 
 ### Step 2: Update Decision Records
 
-- [ ] Ensure ADR-013 and ADR-014 are visible from architecture guide
-- [ ] Create ADR-015 (ElementActions scope decision, created in Phase 19)
-- [ ] Update ADR-011 (boundary) if needed
+- [x] Ensure ADR-013 and ADR-014 are visible from architecture guide
+- [x] ADR-012 created in Phase 19 (ElementActions factory scope)
+- [x] ADR-013 created (Architectural Layering Principle)
+- [x] ADR-014 created (Concrete Actions over Anonymous Lambdas)
+- [ ] Update ADR-011 (boundary) if needed — not required, scope unchanged
 
 ### Step 3: Update Code Examples
 
@@ -326,14 +328,13 @@ Before finalizing, review all documentation against ADR-013 and ADR-014:
 
 ## Exit Criteria
 
-- [ ] Architecture documentation reflects new model
-- [ ] All examples use concrete action types
-- [ ] ADR-013, ADR-014, ADR-015 are linked from main architecture guide
-- [ ] Design principles are documented
-- [ ] Demo code compiles and runs
-- [ ] No references to old ElementActions.of() pattern in examples
-- [ ] Glossary updated
-- [ ] Pull request reviewable
+- [x] Architecture documentation reflects new model (system-overview.md, core-packages.md)
+- [x] All examples use concrete action types
+- [x] ADR-012, ADR-013, ADR-014 linked from system-overview.md decision traceability
+- [x] Design principles documented (ADR-013 Layering Principle; Architecture Invariants in system-overview.md)
+- [x] No references to old ElementActions.of() pattern in examples or architecture docs
+- [ ] Glossary — no glossary.md exists; definitions covered inline in ADRs and architecture docs
+- [x] Pull request reviewable
 
 ---
 

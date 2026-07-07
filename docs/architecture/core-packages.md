@@ -57,22 +57,36 @@ core/
 | Class | Role |
 |-------|------|
 | `Action` | Functional interface — a single deferred UI operation |
-| `ElementActions` | Internal factory for element-bound Actions with descriptor resolution |
+| `ElementAction` | Abstract base class (Template Method): `resolve()` → `execute()` |
+| `ClickAction` | Concrete: `engine.click()`, TRIGGER role, CLICKABLE capability |
+| `TypeAction` | Concrete: `engine.type()`, INPUT role, TYPEABLE capability |
+| `SelectAction` | Concrete composite: TRIGGER open + LIST select |
+| `HoverAction` | Concrete: `engine.hover()`, TEXT role, HOVERABLE capability |
+| `ReadTextAction` | Concrete: `engine.getText()`, TEXT role, READ_ONLY capability |
+| *(+ 12 more)* | `ClearAction`, `CheckAction`, `AppendTypeAction`, `TypeAndPressAction`, `UploadAction`, `OpenAction`, `SelectByTextAction`, `SelectByValueAction`, `ToggleAction`, `TypeSearchAction`, `SubmitSearchAction`, `SearchAndSelectAction` |
+| `ActionProfiles` | Package-private: maps `ActionCapability` → safe/reliable profile constants |
+| `Profiles` | Action-independent preset profiles: RAW, DEBUG, FAST, VISUAL |
+| `ElementActions` | `@Internal` factory — custom-operation actions for test infrastructure only |
 | `HookedAction` | Decorator applying before/after hooks around a delegate Action |
 
 **How it works:**
-1. Capability interfaces (e.g., `Clickable.click()`) emit `Action` objects (deferred lambdas).
-2. Actions are composed into `Flow` sequences.
-3. `FlowExecutor` iterates and calls `action.perform(engine)`.
-4. Locator resolution happens **inside** the perform call — never eagerly.
-5. `HookedAction` wraps an action with before/after hooks, sharing a single resolved descriptor.
+1. Capability interfaces (e.g., `Clickable.click()`) emit **typed concrete action subclasses** — `new ClickAction(this)`.
+2. Each concrete action owns its locator role, capability, and default profile (see ADR-014).
+3. Fluent profile APIs (`safely()`, `debug()`, `reliable()`) return a new wrapped action with hooks applied.
+4. Actions are composed into `Flow` sequences.
+5. `FlowExecutor` iterates and calls `action.perform(engine)`.
+6. `perform()` calls `resolve(engine)` then `execute(engine, descriptor)` — resolution is deferred to execution time.
+7. `HookedAction` wraps an action with before/after hooks, sharing a single resolved descriptor.
+
+**Layering rule (ADR-013):** Execution policy (hooks, waits, retries) lives in actions, never in capability interfaces. Capabilities describe structure; actions describe execution.
 
 **Rules:**
 - Actions never reference `WebDriver`, `WebElement`, or `By`.
-- Actions are pure intent — UIEngine handles all execution concerns.
+- `ActionCapability` is metadata only — never used to select execution paths.
 - Hook composition is fluent: `element.click().before(...).after(...)`
+- Extension via new action types, not via modifying `ActionProfiles` switches.
 
-**Stability:** `@Beta` — API may change between releases.
+**Stability:** `@Beta` — API may change between releases. `ElementAction` subclasses are concrete and stable within a release.
 
 ---
 

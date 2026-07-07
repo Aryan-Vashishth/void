@@ -30,6 +30,9 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - [009 - Action / Flow / FlowExecutor Execution Model](../decisions/accepted/009-action-flow-runner.md)
 - [010 - Hook Evolution](../decisions/accepted/010-hook-evolution.md)
 - [011 - VOID as Primary Session Façade](../decisions/accepted/011-void-facade-boundary.md)
+- [012 - ElementActions Factory Scope](../decisions/accepted/012-elementactions-factory-scope.md)
+- [013 - Architectural Layering Principle](../decisions/accepted/013-architectural-layering-principle.md)
+- [014 - Concrete Actions over Anonymous Lambdas](../decisions/accepted/014-concrete-actions-over-lambdas.md)
 
 ---
 
@@ -60,12 +63,13 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - **Fluent API:** Actions created via capability interfaces support `.before(...).after(...)` for inline hook composition.
 
 ### ⚡ Action / Flow / FlowExecutor Pipeline
-- Capability interfaces emit **deferred `Action` objects** — lambdas over `UIEngine`.
-- `ElementActions.of(element, role, op)` creates element-bound actions that support `resolve()` and fluent hook composition.
+- Capability interfaces emit **typed concrete `Action` subclasses** — `ClickAction`, `TypeAction`, `SelectAction`, etc.
+- Each concrete action type owns its execution logic and profile defaults (see ADR-014).
 - `Flow` composes multiple Actions into ordered sequences.
 - `FlowExecutor` iterates Flows and calls `action.perform(engine)` for each.
-- Locator resolution happens **inside** the Action lambda at execution time — never eagerly.
+- Locator resolution happens **inside** `perform()` at execution time — never eagerly.
 - `HookedAction` decorates an Action with before/after hooks, sharing a single resolved descriptor.
+- `ElementActions` (`@Internal`) provides a custom-operation factory for test infrastructure only (see ADR-012).
 
 ### 🧩 Capability-Based Element Model
 
@@ -198,8 +202,17 @@ void-framework/
 │   ├── core/
 │   │   ├── actions/
 │   │   │   ├── Action.java                   ← Deferred execution intent (functional interface)
-│   │   │   ├── ElementActions.java            ← Internal helper: creates resolvable Actions
-│   │   │   └── HookedAction.java              ← Pure decorator: before → action → after
+│   │   │   ├── ElementAction.java            ← Abstract base (Template Method): resolve → execute
+│   │   │   ├── ClickAction.java              ← Concrete: engine.click(), TRIGGER role
+│   │   │   ├── TypeAction.java               ← Concrete: engine.type(), INPUT role
+│   │   │   ├── SelectAction.java             ← Concrete: composite TRIGGER + LIST
+│   │   │   ├── HoverAction.java              ← Concrete: engine.hover(), TEXT role
+│   │   │   ├── ReadTextAction.java           ← Concrete: engine.getText(), TEXT role
+│   │   │   ├── ...                           ← 12 further concrete action subclasses
+│   │   │   ├── ElementActions.java           ← @Internal factory (test infrastructure only)
+│   │   │   ├── ActionProfiles.java           ← Package-private: capability → profile constants
+│   │   │   ├── Profiles.java                 ← Action-independent presets (RAW, DEBUG, FAST, VISUAL)
+│   │   │   └── HookedAction.java             ← Pure decorator: before → action → after
 │   │   ├── adapters/
 │   │   │   └── cucumber/                      ← BDD step definitions (optional)
 │   │   ├── annotations/
@@ -472,7 +485,10 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 
 ### Architecture Invariants
 
-- **Elements NEVER execute** — they emit Action (intent) only
+- **Elements NEVER execute** — they emit typed Action subclasses (intent) only
+- **Capabilities describe, Actions execute** — execution policy lives in actions, never in capability interfaces (ADR-013)
+- **Actions are concrete types** — `ClickAction`, `TypeAction`, etc. own their execution logic and profile defaults; no anonymous lambdas or central dispatch (ADR-014)
+- **ActionCapability is metadata** — never used to select execution paths; logging/tracing/diagnostics only
 - **Actions NEVER perform work** until executed by UIEngine via FlowExecutor
 - **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
 - **`VOID` is the primary session object** — tests navigate, run flows, and teardown through it
