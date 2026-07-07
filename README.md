@@ -23,9 +23,11 @@ Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
 ---
 
-## Architecture
+<!-- ## Architecture
 
-<!-- ![VOID execution pipeline](docs/images/architecture.png) -->
+![VOID execution pipeline](docs/images/architecture.png) 
+
+-->
 
 ## Run the demo
 
