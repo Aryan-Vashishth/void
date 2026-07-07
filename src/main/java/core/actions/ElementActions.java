@@ -1,5 +1,6 @@
 package core.actions;
 
+import core.annotations.Internal;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import elements.api.Element;
@@ -9,15 +10,15 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
- * Internal helper for creating element-bound {@link Action}s that support
- * descriptor resolution (enabling {@link Action#withHooks}).
+ * Internal factory for creating element-bound {@link Action}s with a custom operation lambda.
  *
  * <p>This class is an implementation detail — not part of the public DSL.
- * Capability interfaces use it to emit actions; users interact with {@link Action} only.</p>
- *
- * <p>As of Phase 13, creates anonymous subclasses of {@link ElementAction} that implement
- * the Template Method pattern and own the action lifecycle.</p>
+ * Production capability interfaces emit concrete action subclasses directly
+ * (e.g., {@code new ClickAction(this)}). This factory is retained for test
+ * infrastructure and edge cases that require a custom operation without a
+ * dedicated subclass. See ADR-012.</p>
  */
+@Internal
 public final class ElementActions {
 
     private ElementActions() {}

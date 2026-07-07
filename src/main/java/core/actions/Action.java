@@ -67,7 +67,7 @@ public interface Action {
     default LocatorDescriptor resolve(UIEngine engine) {
         throw new UnsupportedOperationException(
                 "This action does not support descriptor resolution. " +
-                "Use ElementActions.of() to create resolvable actions.");
+                "Use a concrete ElementAction subclass (e.g., ClickAction, TypeAction).");
     }
 
     /**

@@ -147,12 +147,14 @@ executor.run(action);
 
 ```java
 // How capability interfaces emit actions (framework code):
-default Action type(String text) {
-    return ElementActions.of(this, ElementRole.INPUT, (engine, descriptor) -> {
-        engine.type(descriptor, text);
-    });
+default TypeAction type(String text) {
+    return new TypeAction(this, text);
 }
 ```
+
+`ElementActions.of()` is an `@Internal` factory retained for test infrastructure and
+edge cases requiring a custom operation lambda. Production capability interfaces create
+concrete action subclasses directly (ADR-012).
 
 ---
 
