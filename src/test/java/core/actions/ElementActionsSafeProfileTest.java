@@ -19,36 +19,36 @@ import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertSame;
 
 /**
- * Verifies the Phase 5 SoC correction — execution policy lives in the action layer,
- * not on capability interfaces.
+ * Verifies that each concrete ElementAction subclass returns the correct
+ * safe and reliable profiles from {@link ElementAction#defaultSafeProfile()}
+ * and {@link ElementAction#defaultReliableProfile()}.
  *
- * <p>Covers: {@link ActionProfiles#safeProfileFor} hook content, capability resolution
- * through {@link ElementActions#of}, {@link ElementAction#safely()} dispatch, and
- * backward compatibility with {@link Profiles#SAFE}.</p>
+ * <p>Covers: profile hook content per concrete action, capability resolution
+ * through {@link ElementActions#of}, {@link ElementAction#safely()} dispatch.</p>
  */
 public class ElementActionsSafeProfileTest {
 
-    // ── ActionProfiles.safeProfileFor hook content ────────────────────────
-    // Policy lives in core.actions (action layer). Capability interfaces have
-    // no ActionProfile or hook imports.
+    // ── Profile hook content — verified through concrete action subclasses ─
+    // Profile ownership lives in each concrete action class (OCP). Adding a
+    // new action type does not require changing ActionProfiles or ElementAction.
 
     @Test
-    public void safeProfileFor_clickable_hasWaitForClickableAndAngularLoaderHooks() {
-        ActionProfile p = ActionProfiles.safeProfileFor(ActionCapability.CLICKABLE);
+    public void clickAction_defaultSafeProfile_hasWaitForClickableAndAngularLoaderHooks() {
+        ActionProfile p = new ClickAction(stubClickable()).defaultSafeProfile();
         assertEquals(p.before(), List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE));
         assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void safeProfileFor_typeable_hasClearFieldAndWaitVisibleAndHighlight() {
-        ActionProfile p = ActionProfiles.safeProfileFor(ActionCapability.TYPEABLE);
+    public void typeAction_defaultSafeProfile_hasClearFieldAndWaitVisibleAndHighlight() {
+        ActionProfile p = new TypeAction(stubTypeable(), "").defaultSafeProfile();
         assertEquals(p.before(), List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE));
         assertEquals(p.after(), List.of(After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void safeProfileFor_selectable_hasThreeBeforeHooksAndHighlight() {
-        ActionProfile p = ActionProfiles.safeProfileFor(ActionCapability.SELECTABLE);
+    public void selectAction_defaultSafeProfile_hasThreeBeforeHooksAndHighlight() {
+        ActionProfile p = new SelectAction(stubSelectable()).defaultSafeProfile();
         assertEquals(p.before(), List.of(
                 Before.WAIT_FOR_ELEMENT_VISIBLE,
                 Before.WAIT_FOR_ELEMENT_CLICKABLE,
@@ -57,33 +57,28 @@ public class ElementActionsSafeProfileTest {
     }
 
     @Test
-    public void safeProfileFor_checkable_returnsSameProfileAsClickable() {
+    public void toggleAction_defaultSafeProfile_sharesSameConstantAsClickAction() {
         // CHECKABLE shares CLICKABLE_SAFE — same interaction model.
-        assertSame(ActionProfiles.safeProfileFor(ActionCapability.CHECKABLE),
-                   ActionProfiles.safeProfileFor(ActionCapability.CLICKABLE));
+        assertSame(new ToggleAction(stubCheckable()).defaultSafeProfile(),
+                   new ClickAction(stubClickable()).defaultSafeProfile());
     }
 
     @Test
-    public void safeProfileFor_searchField_returnsSameProfileAsTypeable() {
-        assertSame(ActionProfiles.safeProfileFor(ActionCapability.SEARCH_FIELD),
-                   ActionProfiles.safeProfileFor(ActionCapability.TYPEABLE));
+    public void typeSearchAction_defaultSafeProfile_sharesSameConstantAsTypeAction() {
+        assertSame(new TypeSearchAction(stubSearchField(), "").defaultSafeProfile(),
+                   new TypeAction(stubTypeable(), "").defaultSafeProfile());
     }
 
     @Test
-    public void safeProfileFor_searchableDropdown_returnsSameProfileAsSelectable() {
-        assertSame(ActionProfiles.safeProfileFor(ActionCapability.SEARCHABLE_DROPDOWN),
-                   ActionProfiles.safeProfileFor(ActionCapability.SELECTABLE));
+    public void searchAndSelectAction_defaultSafeProfile_sharesSameConstantAsSelectAction() {
+        assertSame(new SearchAndSelectAction(stubSearchableDropdown(), "").defaultSafeProfile(),
+                   new SelectAction(stubSelectable()).defaultSafeProfile());
     }
 
     @Test
-    public void safeProfileFor_hoverable_returnsDefaultSafe() {
-        assertSame(ActionProfiles.safeProfileFor(ActionCapability.HOVERABLE),
-                   ActionProfiles.DEFAULT_SAFE);
-    }
-
-    @Test
-    public void safeProfileFor_unknown_returnsDefaultSafe() {
-        assertSame(ActionProfiles.safeProfileFor(ActionCapability.UNKNOWN),
+    public void hoverAction_defaultSafeProfile_isDefaultSafe() {
+        // HoverAction has no override — inherits DEFAULT_SAFE from ElementAction base.
+        assertSame(new HoverAction(stubHoverable()).defaultSafeProfile(),
                    ActionProfiles.DEFAULT_SAFE);
     }
 
@@ -148,38 +143,39 @@ public class ElementActionsSafeProfileTest {
         assertNotSame(safe, action);
     }
 
-    // ── ActionProfiles.reliableProfileFor hook content ───────────────────
+    // ── Reliable profile hook content ─────────────────────────────────────
 
     @Test
-    public void reliableProfileFor_clickable_hasAngularLoaderAndWaitClickable() {
-        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.CLICKABLE);
+    public void clickAction_defaultReliableProfile_hasAngularLoaderAndWaitClickable() {
+        ActionProfile p = new ClickAction(stubClickable()).defaultReliableProfile();
         assertEquals(p.before(), List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_CLICKABLE));
         assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void reliableProfileFor_typeable_hasAngularLoaderWaitAndClearField() {
-        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.TYPEABLE);
+    public void typeAction_defaultReliableProfile_hasAngularLoaderWaitAndClearField() {
+        ActionProfile p = new TypeAction(stubTypeable(), "").defaultReliableProfile();
         assertEquals(p.before(), List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.CLEAR_FIELD));
         assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void reliableProfileFor_selectable_hasThreeBeforeHooksAndFullAfter() {
-        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.SELECTABLE);
+    public void selectAction_defaultReliableProfile_hasThreeBeforeHooksAndFullAfter() {
+        ActionProfile p = new SelectAction(stubSelectable()).defaultReliableProfile();
         assertEquals(p.before(), List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.WAIT_FOR_ELEMENT_CLICKABLE));
         assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
     @Test
-    public void reliableProfileFor_checkable_returnsSameProfileAsClickable() {
-        assertSame(ActionProfiles.reliableProfileFor(ActionCapability.CHECKABLE),
-                   ActionProfiles.reliableProfileFor(ActionCapability.CLICKABLE));
+    public void toggleAction_defaultReliableProfile_sharesSameConstantAsClickAction() {
+        assertSame(new ToggleAction(stubCheckable()).defaultReliableProfile(),
+                   new ClickAction(stubClickable()).defaultReliableProfile());
     }
 
     @Test
-    public void reliableProfileFor_default_hasWaitVisibleBeforeAndFullAfter() {
-        ActionProfile p = ActionProfiles.reliableProfileFor(ActionCapability.HOVERABLE);
+    public void hoverAction_defaultReliableProfile_isDefaultReliable() {
+        // HoverAction has no override — inherits DEFAULT_RELIABLE from ElementAction base.
+        ActionProfile p = new HoverAction(stubHoverable()).defaultReliableProfile();
         assertEquals(p.before(), List.of(Before.WAIT_FOR_ELEMENT_VISIBLE));
         assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }

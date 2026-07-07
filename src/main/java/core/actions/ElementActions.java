@@ -6,7 +6,6 @@ import core.engine.UIEngine;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -40,7 +39,7 @@ public final class ElementActions {
      */
     public static Action of(Element element, ElementRole role,
                             BiConsumer<UIEngine, LocatorDescriptor> op) {
-        ActionCapability capability = capabilityFor(element, role);
+        ActionCapability capability = capabilityFor(element);
 
         // Create anonymous subclass of ElementAction
         Action base = new ElementAction(element, role, capability) {
@@ -53,11 +52,8 @@ public final class ElementActions {
         return ActionProfiles.applyConfiguredDefault(base);
     }
 
-    private static ActionCapability capabilityFor(Element element, ElementRole role) {
+    private static ActionCapability capabilityFor(Element element) {
         if (element instanceof ActionCapabilityProvider p) return p.capability();
-        if (role == ElementRole.INPUT)   return ActionCapability.TYPEABLE;
-        if (role == ElementRole.LIST)    return ActionCapability.SELECTABLE;
-        if (role == ElementRole.TRIGGER) return ActionCapability.CLICKABLE;
         return ActionCapability.UNKNOWN;
     }
 }

@@ -164,15 +164,15 @@ public abstract class ElementAction implements Action, ActionLabeled {
     /**
      * Default safe profile for this action.
      *
-     * <p>Called by {@link #safely()}. Resolves the profile from {@link ActionProfiles}
-     * based on this action's capability. Override in subclasses when the action's safe
-     * execution differs from the capability default — for example, a {@code DoubleClickAction}
-     * might use a different profile than a regular click despite both being CLICKABLE.</p>
+     * <p>Called by {@link #safely()}. Base implementation returns {@link ActionProfiles#DEFAULT_SAFE}.
+     * Concrete subclasses override this to declare their own safe profile
+     * (e.g., {@code ClickAction} returns {@link ActionProfiles#CLICKABLE_SAFE}).
+     * Adding a new action type requires no change here — override locally.</p>
      *
-     * @return the safe profile for this action's capability
+     * @return the safe profile for this action
      */
     protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.safeProfileFor(capability);
+        return ActionProfiles.DEFAULT_SAFE;
     }
 
     /**
@@ -191,14 +191,14 @@ public abstract class ElementAction implements Action, ActionLabeled {
     /**
      * Default reliable profile for this action.
      *
-     * <p>Called by {@link #reliable()}. Resolves the profile from {@link ActionProfiles}
-     * based on this action's capability. Override in subclasses when the action's reliable
-     * execution differs from the capability default.</p>
+     * <p>Called by {@link #reliable()}. Base implementation returns {@link ActionProfiles#DEFAULT_RELIABLE}.
+     * Concrete subclasses override this to declare their own reliable profile.
+     * Adding a new action type requires no change here — override locally.</p>
      *
-     * @return the reliable profile for this action's capability
+     * @return the reliable profile for this action
      */
     protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.reliableProfileFor(capability);
+        return ActionProfiles.DEFAULT_RELIABLE;
     }
 
     /**
@@ -213,18 +213,22 @@ public abstract class ElementAction implements Action, ActionLabeled {
     }
 
     /**
-     * Operation label for trace/logging output (derived from capability).
+     * Operation label for trace/logging output (derived from class name).
      *
-     * @return operation name or "perform"
+     * <p>Strips the {@code "Action"} suffix and lowercases the first character:
+     * {@code ClickAction} → {@code "click"}, {@code SearchAndSelectAction} → {@code "searchAndSelect"}.
+     * Anonymous subclasses (no simple name) return {@code "perform"}.
+     * Adding a new concrete action subclass requires no change here.</p>
+     *
+     * @return operation name derived from the concrete class name, or {@code "perform"}
      */
     @Override
     public String operationLabel() {
-        return switch (capability) {
-            case CLICKABLE  -> "click";
-            case TYPEABLE   -> "type";
-            case SELECTABLE -> "select";
-            default         -> "perform";
-        };
+        String name = getClass().getSimpleName();
+        if (name.endsWith("Action")) {
+            name = name.substring(0, name.length() - 6);
+        }
+        return name.isEmpty() ? "perform" : Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
 }
 

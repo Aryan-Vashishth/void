@@ -28,6 +28,16 @@ public final class TypeAndPressAction extends ElementAction {
     }
 
     @Override
+    protected ActionProfile defaultSafeProfile() {
+        return ActionProfiles.TYPEABLE_SAFE;
+    }
+
+    @Override
+    protected ActionProfile defaultReliableProfile() {
+        return ActionProfiles.TYPEABLE_RELIABLE;
+    }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.type(descriptor, text);
         engine.sendKey(descriptor, key);

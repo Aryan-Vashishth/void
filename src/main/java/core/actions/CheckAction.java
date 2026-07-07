@@ -29,6 +29,16 @@ public final class CheckAction extends ElementAction {
     }
 
     @Override
+    protected ActionProfile defaultSafeProfile() {
+        return ActionProfiles.CLICKABLE_SAFE;
+    }
+
+    @Override
+    protected ActionProfile defaultReliableProfile() {
+        return ActionProfiles.CLICKABLE_RELIABLE;
+    }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         if (engine.getCheckboxState(descriptor) != desiredState) {
             engine.click(descriptor);

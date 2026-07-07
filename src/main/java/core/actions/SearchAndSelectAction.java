@@ -34,6 +34,16 @@ public final class SearchAndSelectAction extends ElementAction {
     }
 
     @Override
+    protected ActionProfile defaultSafeProfile() {
+        return ActionProfiles.SELECTABLE_SAFE;
+    }
+
+    @Override
+    protected ActionProfile defaultReliableProfile() {
+        return ActionProfiles.SELECTABLE_RELIABLE;
+    }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.click(descriptor);
         engine.type(engine.resolve(element, ElementRole.SEARCH_INPUT), term);

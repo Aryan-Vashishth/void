@@ -26,6 +26,16 @@ public final class SelectByValueAction extends ElementAction {
     }
 
     @Override
+    protected ActionProfile defaultSafeProfile() {
+        return ActionProfiles.SELECTABLE_SAFE;
+    }
+
+    @Override
+    protected ActionProfile defaultReliableProfile() {
+        return ActionProfiles.SELECTABLE_RELIABLE;
+    }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.selectByValue(descriptor, value);
     }

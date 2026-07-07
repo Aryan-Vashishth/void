@@ -80,7 +80,7 @@ public class ActionTraceTest {
 
     @Test
     public void safeTypeTrace_recordsElementAndOperation() {
-        Action base = ElementActions.of(TYPEABLE, ElementRole.INPUT, (e, d) -> {});
+        Action base = new TypeAction(TYPEABLE, "");
         HookedAction hooked = new HookedAction(
                 base, STUB_DESCRIPTOR,
                 List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE),

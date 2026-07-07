@@ -8,6 +8,7 @@ import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import elements.api.Element;
 import elements.api.capability.Clickable;
+import elements.api.capability.Selectable;
 import elements.api.capability.Typeable;
 import elements.meta.ElementRole;
 import org.testng.annotations.BeforeMethod;
@@ -452,46 +453,28 @@ public class ElementActionTest {
     }
 
     @Test
-    public void operationLabel_clickable_returnsClick() {
-        ElementAction action = new ElementAction(stubElement, ElementRole.TRIGGER,
-                ActionCapability.CLICKABLE) {
-            @Override
-            protected void execute(UIEngine engine, LocatorDescriptor descriptor) {}
-        };
-
-        assertEquals(action.operationLabel(), "click");
+    public void operationLabel_clickAction_returnsClick() {
+        assertEquals(new ClickAction(stubClickable()).operationLabel(), "click");
     }
 
     @Test
-    public void operationLabel_typeable_returnsType() {
-        ElementAction action = new ElementAction(stubElement, ElementRole.INPUT,
-                ActionCapability.TYPEABLE) {
-            @Override
-            protected void execute(UIEngine engine, LocatorDescriptor descriptor) {}
-        };
-
-        assertEquals(action.operationLabel(), "type");
+    public void operationLabel_typeAction_returnsType() {
+        assertEquals(new TypeAction(stubTypeable(), "text").operationLabel(), "type");
     }
 
     @Test
-    public void operationLabel_selectable_returnsSelect() {
-        ElementAction action = new ElementAction(stubElement, ElementRole.LIST,
-                ActionCapability.SELECTABLE) {
-            @Override
-            protected void execute(UIEngine engine, LocatorDescriptor descriptor) {}
-        };
-
-        assertEquals(action.operationLabel(), "select");
+    public void operationLabel_selectAction_returnsSelect() {
+        assertEquals(new SelectAction(stubSelectable()).operationLabel(), "select");
     }
 
     @Test
-    public void operationLabel_unknown_returnsPerform() {
+    public void operationLabel_anonymousAction_returnsPerform() {
+        // Anonymous subclasses have no simple name — base class returns "perform".
         ElementAction action = new ElementAction(stubElement, ElementRole.TEXT,
                 ActionCapability.UNKNOWN) {
             @Override
             protected void execute(UIEngine engine, LocatorDescriptor descriptor) {}
         };
-
         assertEquals(action.operationLabel(), "perform");
     }
 
@@ -618,6 +601,31 @@ public class ElementActionTest {
 
     private LocatorDescriptor createStubDescriptor() {
         return new LocatorDescriptor("//button", LocatorStrategy.XPATH);
+    }
+
+    private static Clickable stubClickable() {
+        return new Clickable() {
+            @Override public String getTriggerLocator()   { return "//btn"; }
+            @Override public String getExternalFileName() { return "stub.json"; }
+            @Override public Object[] getArgs()           { return new Object[0]; }
+        };
+    }
+
+    private static Typeable stubTypeable() {
+        return new Typeable() {
+            @Override public String getInputLocator()     { return "//input"; }
+            @Override public String getExternalFileName() { return "stub.json"; }
+            @Override public Object[] getArgs()           { return new Object[0]; }
+        };
+    }
+
+    private static Selectable stubSelectable() {
+        return new Selectable() {
+            @Override public String getTriggerLocator()   { return "//trigger"; }
+            @Override public String getListLocator()      { return "//list"; }
+            @Override public String getExternalFileName() { return "stub.json"; }
+            @Override public Object[] getArgs()           { return new Object[0]; }
+        };
     }
 
     private UIEngine createStubEngine(final LocatorDescriptor descriptor) {

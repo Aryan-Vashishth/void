@@ -45,21 +45,6 @@ final class ActionProfiles {
             .after(After.HIGHLIGHT_ELEMENT)
             .build();
 
-    /**
-     * Returns the safe profile for the given capability.
-     *
-     * <p>Called by {@link ElementAction#defaultSafeProfile()} at action-creation time.
-     * Adding a new capability with custom safe hooks requires updating this method only.</p>
-     */
-    static ActionProfile safeProfileFor(ActionCapability capability) {
-        return switch (capability) {
-            case CLICKABLE, CHECKABLE -> CLICKABLE_SAFE;
-            case TYPEABLE, SEARCH_FIELD, SEARCHABLE -> TYPEABLE_SAFE;
-            case SELECTABLE, SEARCHABLE_DROPDOWN, MULTI_SELECTABLE -> SELECTABLE_SAFE;
-            default -> DEFAULT_SAFE;
-        };
-    }
-
     // ── Capability-specific reliable profiles ─────────────────────────────
     // Reliable execution adds loader waits before and after. Per-capability
     // before-hooks vary; after-hooks are uniform across all capabilities.
@@ -87,21 +72,6 @@ final class ActionProfiles {
             .before(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.WAIT_FOR_ELEMENT_CLICKABLE)
             .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
             .build();
-
-    /**
-     * Returns the reliable profile for the given capability.
-     *
-     * <p>Called by {@link ElementAction#defaultReliableProfile()} at action-creation time.
-     * Adding a new capability with custom reliable hooks requires updating this method only.</p>
-     */
-    static ActionProfile reliableProfileFor(ActionCapability capability) {
-        return switch (capability) {
-            case CLICKABLE, CHECKABLE -> CLICKABLE_RELIABLE;
-            case TYPEABLE, SEARCH_FIELD, SEARCHABLE -> TYPEABLE_RELIABLE;
-            case SELECTABLE, SEARCHABLE_DROPDOWN, MULTI_SELECTABLE -> SELECTABLE_RELIABLE;
-            default -> DEFAULT_RELIABLE;
-        };
-    }
 
     private ActionProfiles() {}
 
