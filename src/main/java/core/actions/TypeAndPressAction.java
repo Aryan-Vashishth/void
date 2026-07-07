@@ -16,7 +16,7 @@ import elements.meta.ElementRole;
  * visibility before; highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class TypeAndPressAction extends ElementAction {
+public final class TypeAndPressAction extends TypeableElementAction {
 
     private final String text;
     private final String key;
@@ -25,16 +25,6 @@ public final class TypeAndPressAction extends ElementAction {
         super(element, ElementRole.INPUT, ActionCapability.TYPEABLE);
         this.text = text;
         this.key = key;
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.TYPEABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.TYPEABLE_RELIABLE;
     }
 
     @Override

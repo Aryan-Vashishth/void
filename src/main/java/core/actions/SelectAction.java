@@ -27,20 +27,10 @@ import java.time.Duration;
  * clickability, and Angular loader before; highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class SelectAction extends ElementAction {
+public final class SelectAction extends SelectableElementAction {
 
     public SelectAction(Selectable element) {
         super(element, ElementRole.TRIGGER, ActionCapability.SELECTABLE);
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.SELECTABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.SELECTABLE_RELIABLE;
     }
 
     @Override

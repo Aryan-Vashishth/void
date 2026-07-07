@@ -16,23 +16,13 @@ import elements.meta.ElementRole;
  * visibility before; highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class AppendTypeAction extends ElementAction {
+public final class AppendTypeAction extends TypeableElementAction {
 
     private final String text;
 
     public AppendTypeAction(Typeable element, String text) {
         super(element, ElementRole.INPUT, ActionCapability.TYPEABLE);
         this.text = text;
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.TYPEABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.TYPEABLE_RELIABLE;
     }
 
     @Override

@@ -24,23 +24,13 @@ import java.time.Duration;
  * clickability, and Angular loader before; highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class SearchAndSelectAction extends ElementAction {
+public final class SearchAndSelectAction extends SelectableElementAction {
 
     private final String term;
 
     public SearchAndSelectAction(SearchableDropdown element, String term) {
         super(element, ElementRole.TRIGGER, ActionCapability.SEARCHABLE_DROPDOWN);
         this.term = term;
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.SELECTABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.SELECTABLE_RELIABLE;
     }
 
     @Override

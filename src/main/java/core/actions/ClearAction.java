@@ -16,20 +16,10 @@ import elements.meta.ElementRole;
  * visibility before; highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class ClearAction extends ElementAction {
+public final class ClearAction extends TypeableElementAction {
 
     public ClearAction(Typeable element) {
         super(element, ElementRole.INPUT, ActionCapability.TYPEABLE);
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.TYPEABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.TYPEABLE_RELIABLE;
     }
 
     @Override

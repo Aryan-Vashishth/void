@@ -16,23 +16,13 @@ import elements.meta.ElementRole;
  * clickability, and Angular loader before; highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class SelectByValueAction extends ElementAction {
+public final class SelectByValueAction extends SelectableElementAction {
 
     private final String value;
 
     public SelectByValueAction(Selectable element, String value) {
         super(element, ElementRole.LIST, ActionCapability.SELECTABLE);
         this.value = value;
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.SELECTABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.SELECTABLE_RELIABLE;
     }
 
     @Override

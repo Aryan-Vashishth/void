@@ -19,20 +19,10 @@ import elements.meta.ElementRole;
  * clickability, and Angular loader before; highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class OpenAction extends ElementAction {
+public final class OpenAction extends SelectableElementAction {
 
     public OpenAction(Selectable element) {
         super(element, ElementRole.TRIGGER, ActionCapability.SELECTABLE);
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.SELECTABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.SELECTABLE_RELIABLE;
     }
 
     @Override

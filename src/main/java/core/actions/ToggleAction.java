@@ -18,20 +18,10 @@ import elements.meta.ElementRole;
  * waits for Angular loader and highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class ToggleAction extends ElementAction {
+public final class ToggleAction extends ClickableElementAction {
 
     public ToggleAction(Checkable element) {
         super(element, ElementRole.TRIGGER, ActionCapability.CHECKABLE);
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.CLICKABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.CLICKABLE_RELIABLE;
     }
 
     @Override

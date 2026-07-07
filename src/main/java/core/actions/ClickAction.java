@@ -16,20 +16,10 @@ import elements.meta.ElementRole;
  * waits for Angular loader and highlights after.</p>
  */
 @Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
-public final class ClickAction extends ElementAction {
+public final class ClickAction extends ClickableElementAction {
 
     public ClickAction(Clickable element) {
         super(element, ElementRole.TRIGGER, ActionCapability.CLICKABLE);
-    }
-
-    @Override
-    protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.CLICKABLE_SAFE;
-    }
-
-    @Override
-    protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.CLICKABLE_RELIABLE;
     }
 
     @Override
