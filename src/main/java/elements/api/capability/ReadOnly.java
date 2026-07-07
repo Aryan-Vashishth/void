@@ -1,9 +1,8 @@
 package elements.api.capability;
 
-import core.actions.Action;
 import core.actions.ActionCapability;
 import core.actions.ActionCapabilityProvider;
-import core.actions.ElementActions;
+import core.actions.ReadTextAction;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -47,8 +46,7 @@ public interface ReadOnly extends Element, ActionCapabilityProvider {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Reads the visible text of this element. Engine handles scroll internally. */
-    default Action readText() {
-        return ElementActions.of(this, ElementRole.TEXT,
-                (engine, d) -> engine.getText(d));
+    default ReadTextAction readText() {
+        return new ReadTextAction(this);
     }
 }
