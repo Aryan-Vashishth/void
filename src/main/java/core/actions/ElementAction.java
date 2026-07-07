@@ -117,7 +117,7 @@ public abstract class ElementAction implements Action, ActionLabeled {
     /**
      * Applies the framework's SAFE profile to this action.
      *
-     * <p>Final — subclasses cannot override. Uses {@link Profiles#SAFE}.</p>
+     * <p>Final — subclasses cannot override. Uses {@link ActionProfiles#DEFAULT_SAFE}.</p>
      *
      * @return a new action with SAFE profile hooks
      */
