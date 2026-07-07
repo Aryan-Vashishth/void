@@ -59,6 +59,12 @@ public interface ActionProfile {
     final class Builder {
         private final List<BeforeActionHandler> before = new ArrayList<>();
         private final List<AfterActionHandler> after = new ArrayList<>();
+        private String name = "custom";
+
+        public Builder name(String name) {
+            this.name = (name != null && !name.isBlank()) ? name : "custom";
+            return this;
+        }
 
         public Builder before(BeforeActionHandler hook) {
             if (hook != null) {
@@ -95,7 +101,13 @@ public interface ActionProfile {
         public ActionProfile build() {
             List<BeforeActionHandler> frozenBefore = before.isEmpty() ? List.of() : List.copyOf(before);
             List<AfterActionHandler> frozenAfter = after.isEmpty() ? List.of() : List.copyOf(after);
+            String profileName = name;
             return new ActionProfile() {
+                @Override
+                public String name() {
+                    return profileName;
+                }
+
                 @Override
                 public List<BeforeActionHandler> before() {
                     return frozenBefore;

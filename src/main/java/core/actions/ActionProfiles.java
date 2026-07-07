@@ -21,20 +21,24 @@ final class ActionProfiles {
     // actions declare how they execute.
 
     static final ActionProfile DEFAULT_SAFE = ActionProfile.builder()
+            .name("SAFE")
             .before(Before.WAIT_FOR_ELEMENT_VISIBLE)
             .build();
 
     static final ActionProfile CLICKABLE_SAFE = ActionProfile.builder()
+            .name("SAFE")
             .before(Before.WAIT_FOR_ELEMENT_CLICKABLE)
             .after(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT)
             .build();
 
     static final ActionProfile TYPEABLE_SAFE = ActionProfile.builder()
+            .name("SAFE")
             .before(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE)
             .after(After.HIGHLIGHT_ELEMENT)
             .build();
 
     static final ActionProfile SELECTABLE_SAFE = ActionProfile.builder()
+            .name("SAFE")
             .before(Before.WAIT_FOR_ELEMENT_VISIBLE,
                     Before.WAIT_FOR_ELEMENT_CLICKABLE,
                     Before.WAIT_FOR_ANGULAR_LOADER)
@@ -61,21 +65,25 @@ final class ActionProfiles {
     // before-hooks vary; after-hooks are uniform across all capabilities.
 
     static final ActionProfile DEFAULT_RELIABLE = ActionProfile.builder()
+            .name("RELIABLE")
             .before(Before.WAIT_FOR_ELEMENT_VISIBLE)
             .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
             .build();
 
     static final ActionProfile CLICKABLE_RELIABLE = ActionProfile.builder()
+            .name("RELIABLE")
             .before(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_CLICKABLE)
             .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
             .build();
 
     static final ActionProfile TYPEABLE_RELIABLE = ActionProfile.builder()
+            .name("RELIABLE")
             .before(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.CLEAR_FIELD)
             .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
             .build();
 
     static final ActionProfile SELECTABLE_RELIABLE = ActionProfile.builder()
+            .name("RELIABLE")
             .before(Before.WAIT_FOR_ANGULAR_LOADER, Before.WAIT_FOR_ELEMENT_VISIBLE, Before.WAIT_FOR_ELEMENT_CLICKABLE)
             .after(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT)
             .build();
