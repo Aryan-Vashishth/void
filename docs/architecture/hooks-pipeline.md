@@ -250,61 +250,64 @@ app.interaction().clickOn(
 );
 ```
 
-### Reusable Constants
+### Reusable Named Constants (Recommended)
 
-For hooks you use repeatedly, define them as `public static final` constants:
+The recommended pattern for any hook used more than once is a **constants-holder class** — a `final` class with a private constructor and `public static final` typed constants. This mirrors how the framework's own `core.interactions.hooks.After` and `Before` classes are built, and is the pattern demonstrated by `tests.demo.hooks.DemoHooks` in this repository.
+
+Use `AfterActionHandler` or `BeforeActionHandler` as the field type (not the raw `ActionHandler` supertype) so callers can see at a glance whether a constant is a before or after hook.
 
 ```java
-public final class CustomHooks {
+package tests.your.hooks;
 
-    private CustomHooks() {}
+import core.engine.LocatorDescriptor;
+import core.interactions.hooks.AfterActionHandler;
+import core.interactions.hooks.BeforeActionHandler;
+import your.pages.SomePage;
+import elements.meta.ElementRole;
+import java.time.Duration;
+import static core.logging.CustomLogger.debug;
 
-    /** Dismiss the cookie consent banner if present. */
+public final class AppHooks {
+
+    private AppHooks() {}
+
+    /** Dismiss the cookie consent banner if present before interacting. */
     public static final BeforeActionHandler DISMISS_COOKIE_BANNER = (engine, descriptor) -> {
-        // Use engine methods for interactions
-        // Guard against null descriptor in legacy path
+        // Use engine methods — never reference WebDriver directly
+        engine.click(engine.resolve(SomePage.Overlay.COOKIE_BANNER, ElementRole.PRIMARY));
     };
 
-    /** Wait for a custom loading spinner specific to your app. */
+    /** Wait for the app's custom spinner to disappear after the action. */
     public static final AfterActionHandler WAIT_FOR_APP_SPINNER = (engine, descriptor) -> {
-        // engine-based wait logic
-    };
-
-    /** Log the descriptor being acted upon. */
-    public static final BeforeActionHandler LOG_TARGET = (engine, descriptor) -> {
-        if (descriptor != null) {
-            System.out.println("Acting on: " + descriptor);
-        }
+        engine.waitForInvisible(engine.resolve(SomePage.Overlay.SPINNER, ElementRole.PRIMARY),
+                Duration.ofSeconds(10));
+        debug.log("[HOOK] Spinner gone.");
     };
 }
 ```
 
-Usage:
+Usage — compose with built-in hooks or mix freely:
 
 ```java
-// Modern path
-executor.run(
-    MyElements.CHECKOUT_BUTTON.click()
-        .before(CustomHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE)
-        .after(CustomHooks.WAIT_FOR_APP_SPINNER)
-);
+// Modern path — fluent on Action
+MyElements.CHECKOUT_BUTTON.click()
+        .before(AppHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE)
+        .after(AppHooks.WAIT_FOR_APP_SPINNER)
 
-// Legacy path
-app.interaction().clickOn(
-    List.of(CustomHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE),
-    MyElements.CHECKOUT_BUTTON,
-    List.of(CustomHooks.WAIT_FOR_APP_SPINNER)
-);
+// Or via a safe profile first, then layer additional hooks
+MyElements.CHECKOUT_BUTTON.click()
+        .safely()
+        .after(AppHooks.WAIT_FOR_APP_SPINNER)
 ```
 
 ### Parameterized Hook Factory
 
-For hooks that need runtime parameters, use a static factory method:
+For hooks that need runtime state (a specific element, a timeout, a message), use a static factory method returning the typed handler:
 
 ```java
-public final class CustomHooks {
+public final class AppHooks {
 
-    /** Wait for a specific element (by descriptor) to disappear. */
+    /** Wait for a specific element to disappear before acting. */
     public static BeforeActionHandler waitForAbsence(Element element, ElementRole role) {
         return (engine, descriptor) -> {
             LocatorDescriptor target = engine.resolve(element, role);
@@ -312,20 +315,16 @@ public final class CustomHooks {
         };
     }
 
-    /** Log a specific message before the action. */
+    /** Log a fixed message before the action — useful for step-level tracing. */
     public static BeforeActionHandler logMessage(String message) {
-        return (engine, descriptor) -> {
-            System.out.println("[HOOK] " + message);
-        };
+        return (engine, descriptor) -> debug.log("[HOOK] " + message);
     }
 }
 
 // Usage
-executor.run(
-    MyElements.SUBMIT.click()
-        .before(CustomHooks.waitForAbsence(MyElements.LOADING, ElementRole.TEXT))
+MyElements.SUBMIT.click()
+        .before(AppHooks.waitForAbsence(MyElements.LOADING_OVERLAY, ElementRole.PRIMARY))
         .after(After.DO_NOTHING)
-);
 ```
 
 ---
