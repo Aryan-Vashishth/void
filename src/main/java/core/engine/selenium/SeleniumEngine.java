@@ -184,7 +184,11 @@ public final class SeleniumEngine implements UIEngine {
         scrollToElement(element);
         element.clear();
         element.sendKeys(text);
-        info.input("Typed: " + labelFor(locator));
+        if (isPasswordLocator(locator)) {
+            info.password(text);
+        } else {
+            info.input("Typed: " + labelFor(locator));
+        }
     }
 
     @Override
@@ -553,6 +557,18 @@ public final class SeleniumEngine implements UIEngine {
         Object[] args = locator.args();
         if (args != null && args.length > 0) return String.valueOf(args[0]);
         return locator.value();
+    }
+
+    private static boolean isPasswordLocator(LocatorDescriptor locator) {
+        String value = locator.value() != null ? locator.value().toLowerCase() : "";
+        if (value.contains("password")) return true;
+        Object[] args = locator.args();
+        if (args != null) {
+            for (Object arg : args) {
+                if (String.valueOf(arg).toLowerCase().contains("password")) return true;
+            }
+        }
+        return false;
     }
 
     private static Keys mapKey(String key) {
