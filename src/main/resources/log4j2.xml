@@ -68,12 +68,6 @@
             <AppenderRef ref="Console"/>
         </Logger>
 
-        <!-- Suppress CDP version-mismatch warnings (JUL-bridged via log4j-jul).
-             CdpVersionFinder lives under org.openqa.selenium, not org.seleniumhq. -->
-        <Logger name="org.openqa.selenium" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-        </Logger>
-
         <Logger name="io.cucumber" level="WARN" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>

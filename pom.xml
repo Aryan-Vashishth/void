@@ -79,10 +79,6 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>src/testNgXml/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
-                    <systemPropertyVariables>
-                        <!-- Route JUL (used by Selenium DevTools) through Log4j2 -->
-                        <java.util.logging.manager>org.apache.logging.log4j.jul.LogManager</java.util.logging.manager>
-                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>
@@ -144,13 +140,6 @@
             <artifactId>log4j-slf4j2-impl</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
-        <!-- Routes java.util.logging (used by Selenium DevTools) to Log4j2 -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-jul</artifactId>
-            <version>${log4j2.version}</version>
-        </dependency>
-
         <!-- ── Annotations ───────────────────────────────────── -->
         <!-- JSR-305: provides javax.annotation.Nullable / Nonnull -->
         <dependency>
