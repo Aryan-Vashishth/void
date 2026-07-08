@@ -23,12 +23,6 @@ Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
 ---
 
-<!-- ## Architecture
-
-![VOID execution pipeline](docs/images/architecture.png) 
-
--->
-
 ## Run the demo
 
 ```bash
@@ -39,14 +33,7 @@ mvn -B test -Dtest=VoidDemo
 
 Expected output:
 
-```text
-[VOID] Engine: SeleniumEngine
-[VOID] Flow start: login
-[VOID] -> type(USERNAME_INPUT, "tomsmith")
-[VOID] -> type(PASSWORD_INPUT, "******")
-[VOID] -> click(LOGIN_BUTTON)
-[VOID] Flow end: login (3 actions, 1.2s)
-```
+![VOID demo log output](docs/images/void-demo-log-example.png)
 <!--
 Sample report snapshot:
 
