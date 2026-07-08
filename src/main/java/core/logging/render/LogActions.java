@@ -45,8 +45,12 @@ public class LogActions {
     public void dropdown(String message)   { logMessage(LogIntent.INTERACTION, "DROPDOWN [v]",    message); }
     public void toggle(String message)     { logMessage(LogIntent.INTERACTION, "TOGGLE [o]",      message); }
     public void upload(String message)     { logMessage(LogIntent.INTERACTION, "UPLOAD [^]",      message); }
+    public void hover(String message)      { logMessage(LogIntent.INTERACTION, "HOVER [*]",       message); }
+    public void clear(String message)      { logMessage(LogIntent.INTERACTION, "CLEAR [-]",       message); }
+    public void key(String message)        { logMessage(LogIntent.INTERACTION, "KEY [#]",         message); }
 
     // ── NAVIGATION group ──────────────────────────────────────────────────────
+    public void navigate(String message)   { logMessage(LogIntent.NAVIGATION,  "NAVIGATE [=>]",   message); }
     public void tab(String message)        { logMessage(LogIntent.NAVIGATION,  "TAB [->]",        message); }
     public void frame(String message)      { logMessage(LogIntent.NAVIGATION,  "FRAME [{}]",      message); }
     public void breadcrumb(String message) { logMessage(LogIntent.NAVIGATION,  "BREADCRUMB [/]",  message); }

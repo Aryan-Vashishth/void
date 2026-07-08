@@ -72,7 +72,7 @@ public final class SeleniumEngine implements UIEngine {
     @Override
     public void navigateTo(String url) {
         driver.get(url);
-        debug.log("[SeleniumEngine] Navigated to: " + url);
+        info.navigate(url);
     }
 
     @Override
@@ -88,7 +88,7 @@ public final class SeleniumEngine implements UIEngine {
     @Override
     public void refresh() {
         driver.navigate().refresh();
-        debug.log("[SeleniumEngine] Page refreshed.");
+        info.navigate("Page refreshed.");
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ public final class SeleniumEngine implements UIEngine {
             WebElement element = driver.findElement(by);
             String text = safeText(element);
             element.click();
-            info.success("Clicked on: " + (text.isBlank() ? locator.toString() : text));
+            info.click("Clicked on: " + (text.isBlank() ? locator.toString() : text));
             debug.click("Clicked using Selenium click(). Locator: " + locator);
             return;
         } catch (StaleElementReferenceException staleEx) {
@@ -152,7 +152,7 @@ public final class SeleniumEngine implements UIEngine {
         try {
             WebElement element = driver.findElement(by);
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
-            info.success("Clicked on: " + safeText(element));
+            info.click("Clicked on: " + safeText(element));
             debug.success("Clicked using JavaScriptExecutor.");
             return;
         } catch (StaleElementReferenceException staleEx) {
@@ -170,7 +170,7 @@ public final class SeleniumEngine implements UIEngine {
             WebElement freshElement = new WebDriverWait(driver, defaultTimeout)
                     .until(ExpectedConditions.elementToBeClickable(by));
             freshElement.click();
-            info.success("Clicked on (re-located): " + safeText(freshElement));
+            info.click("Clicked on (re-located): " + safeText(freshElement));
         } catch (Exception retryEx) {
             error.failed("[SeleniumEngine] click() exhausted all strategies for: " + locator);
             throw new RuntimeException("click failed for: " + locator, retryEx);
@@ -184,6 +184,7 @@ public final class SeleniumEngine implements UIEngine {
         scrollToElement(element);
         element.clear();
         element.sendKeys(text);
+        info.input("Typed: " + labelFor(locator));
     }
 
     @Override
@@ -192,6 +193,7 @@ public final class SeleniumEngine implements UIEngine {
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         scrollToElement(element);
         element.sendKeys(text);
+        info.input("Appended: " + labelFor(locator));
     }
 
     @Override
@@ -199,6 +201,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         element.clear();
+        info.clear("Cleared: " + labelFor(locator));
     }
 
     @Override
@@ -207,6 +210,7 @@ public final class SeleniumEngine implements UIEngine {
         WebElement element = driver.findElement(by);
         Keys seleniumKey = mapKey(key);
         element.sendKeys(seleniumKey);
+        info.key(labelFor(locator) + " — " + key);
     }
 
     @Override
@@ -214,6 +218,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         new org.openqa.selenium.support.ui.Select(element).selectByVisibleText(text);
+        info.dropdown("Selected \"" + text + "\" in: " + labelFor(locator));
     }
 
     @Override
@@ -221,6 +226,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         new org.openqa.selenium.support.ui.Select(element).selectByValue(value);
+        info.dropdown("Selected value \"" + value + "\" in: " + labelFor(locator));
     }
 
 
@@ -397,6 +403,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = driver.findElement(by);
         element.sendKeys(filePath);
+        info.upload("Uploaded to: " + labelFor(locator));
     }
 
     @Override
@@ -422,6 +429,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = driver.findElement(by);
         new Actions(driver).moveToElement(element).perform();
+        info.hover("Hovered: " + labelFor(locator));
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -539,6 +547,12 @@ public final class SeleniumEngine implements UIEngine {
 
     private static String safeText(WebElement el) {
         try { return el.getText().trim(); } catch (Exception ignored) { return ""; }
+    }
+
+    private static String labelFor(LocatorDescriptor locator) {
+        Object[] args = locator.args();
+        if (args != null && args.length > 0) return String.valueOf(args[0]);
+        return locator.value();
     }
 
     private static Keys mapKey(String key) {
