@@ -270,6 +270,7 @@ public class LogActions {
 
     protected void logMultiline(String actionColor, String actionLabel,
                                 String message, boolean showCaller, LogIntent intent) {
+        if (!isLogLevelEnabled()) return;
         if (message == null) message = "null";
         LogConfig cfg = LogConfig.current();
         String ts         = java.time.LocalDateTime.now().format(cfg.getTsFormat());
