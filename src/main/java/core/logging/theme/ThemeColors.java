@@ -35,6 +35,7 @@ public final class ThemeColors {
     private final String interactionFg;
     private final String navigationFg;
     private final String observeFg;
+    private final String verifyFg;
     private final String dataFg;
     private final String successFg;
     private final String alertFg;
@@ -55,6 +56,7 @@ public final class ThemeColors {
         this.interactionFg = b.interactionFg;
         this.navigationFg  = b.navigationFg;
         this.observeFg     = b.observeFg;
+        this.verifyFg      = b.verifyFg;
         this.dataFg        = b.dataFg;
         this.successFg     = b.successFg;
         this.alertFg       = b.alertFg;
@@ -74,6 +76,7 @@ public final class ThemeColors {
     public String interactionFg() { return interactionFg; }
     public String navigationFg()  { return navigationFg; }
     public String observeFg()     { return observeFg; }
+    public String verifyFg()      { return verifyFg; }
     public String dataFg()        { return dataFg; }
     public String successFg()     { return successFg; }
     public String alertFg()       { return alertFg; }
@@ -102,6 +105,7 @@ public final class ThemeColors {
             case INTERACTION -> interactionFg;
             case NAVIGATION  -> navigationFg;
             case OBSERVE     -> observeFg;
+            case VERIFY      -> verifyFg;
             case DATA        -> dataFg;
             case SUCCESS     -> successFg;
             case ALERT       -> alertFg;
@@ -129,12 +133,13 @@ public final class ThemeColors {
         private String debugFg = FG_BRIGHT_WHITE + BOLD;
 
         // Intent foregrounds
-        private String interactionFg = FG_BRIGHT_WHITE  + BOLD;
-        private String navigationFg  = FG_BRIGHT_CYAN   + BOLD;
-        private String observeFg     = FG_BRIGHT_YELLOW + BOLD;
-        private String dataFg        = FG_BRIGHT_WHITE  + BOLD;
-        private String successFg     = FG_BRIGHT_GREEN  + BOLD;
-        private String alertFg       = FG_BRIGHT_RED    + BOLD;
+        private String interactionFg = FG_BRIGHT_WHITE   + BOLD;
+        private String navigationFg  = FG_BRIGHT_CYAN    + BOLD;
+        private String observeFg     = FG_BRIGHT_MAGENTA + BOLD;
+        private String verifyFg      = FG_BRIGHT_YELLOW  + BOLD;
+        private String dataFg        = FG_BRIGHT_WHITE   + BOLD;
+        private String successFg     = FG_BRIGHT_GREEN   + BOLD;
+        private String alertFg       = FG_BRIGHT_RED     + BOLD;
 
         private String callerFg = FG_BRIGHT_BLACK;
         private String reset    = RESET;
@@ -154,6 +159,7 @@ public final class ThemeColors {
         public Builder interactionFg(String fg) { this.interactionFg = fg; return this; }
         public Builder navigationFg(String fg)  { this.navigationFg  = fg; return this; }
         public Builder observeFg(String fg)     { this.observeFg     = fg; return this; }
+        public Builder verifyFg(String fg)      { this.verifyFg      = fg; return this; }
         public Builder dataFg(String fg)        { this.dataFg        = fg; return this; }
         public Builder successFg(String fg)     { this.successFg     = fg; return this; }
         public Builder alertFg(String fg)       { this.alertFg       = fg; return this; }

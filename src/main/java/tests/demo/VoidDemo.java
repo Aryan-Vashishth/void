@@ -64,7 +64,7 @@ public class VoidDemo {
         ));
         info.success("Flow executed successfully.");
 
-        info.result("Verifying redirect to /secure...");
+        info.verifying("Verifying redirect to /secure...");
         String currentUrl = app.getCurrentUrl();
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
@@ -124,7 +124,7 @@ public class VoidDemo {
         ));
         info.success("Profiled flow executed successfully.");
 
-        info.result("Verifying redirect to /secure...");
+        info.verifying("Verifying redirect to /secure...");
         String currentUrl = app.getCurrentUrl();
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);

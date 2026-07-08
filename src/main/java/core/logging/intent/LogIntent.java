@@ -15,6 +15,8 @@ public enum LogIntent {
     NAVIGATION,
     /** Observing / reading: wait, search, result. */
     OBSERVE,
+    /** Active verification step: verifying, asserting. */
+    VERIFY,
     /** Structured data: table, grid, row. */
     DATA,
     /** Positive outcome: success, complete, resolved. */

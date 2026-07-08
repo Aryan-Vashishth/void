@@ -65,6 +65,9 @@ public class LogActions {
     public void search(String message)     { logMessage(LogIntent.OBSERVE,     "SEARCHED [*]",    message); }
     public void result(String message)     { logMessage(LogIntent.OBSERVE,     "RESULT [:]",      message); }
 
+    // ── VERIFY group ──────────────────────────────────────────────────────────
+    public void verifying(String message)  { logMessage(LogIntent.VERIFY,      "VERIFY [?]",      message); }
+
     // ── DATA group ────────────────────────────────────────────────────────────
     public void table(String message)      { logMessage(LogIntent.DATA,        "TABLE [=]",       message); }
     public void grid(String message)       { logMessage(LogIntent.DATA,        "GRID [#]",        message); }
