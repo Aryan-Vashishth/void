@@ -554,6 +554,7 @@ public final class SeleniumEngine implements UIEngine {
     }
 
     private static String labelFor(LocatorDescriptor locator) {
+        if (locator.label() != null) return locator.label();
         Object[] args = locator.args();
         if (args != null && args.length > 0) return String.valueOf(args[0]);
         return locator.value();

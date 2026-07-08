@@ -147,19 +147,21 @@ public final class LocatorResolver {
             throw new IllegalStateException("Missing locator for role: " + role +
                     (e.getDisplayText() == null ? "" : (" (element=\"" + e.getDisplayText() + "\")")));
         }
-        return resolveDescriptor(e.getExternalFileName(), key, e.effectiveArgs(overrideArgs));
+        return resolveDescriptor(e.getExternalFileName(), key, e.effectiveArgs(overrideArgs))
+                .withLabel(labelOf(e));
     }
 
     /** Resolve the best-available descriptor: PRIMARY → SECONDARY → first non-blank role. */
     public LocatorDescriptor resolveDescriptorBest(Element e, Object... overrideArgs) {
-        String file = e.getExternalFileName();
+        String file  = e.getExternalFileName();
         Object[] args = e.effectiveArgs(overrideArgs);
+        String label = labelOf(e);
 
         String key = e.getPrimaryLocator();
-        if (!isBlank(key)) return resolveDescriptor(file, key, args);
+        if (!isBlank(key)) return resolveDescriptor(file, key, args).withLabel(label);
 
         key = e.getSecondaryLocator();
-        if (!isBlank(key)) return resolveDescriptor(file, key, args);
+        if (!isBlank(key)) return resolveDescriptor(file, key, args).withLabel(label);
 
         Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
         key = roles.values().stream()
@@ -167,7 +169,12 @@ public final class LocatorResolver {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
                         "No locators defined for element: " + e.getDisplayText()));
-        return resolveDescriptor(file, key, args);
+        return resolveDescriptor(file, key, args).withLabel(label);
+    }
+
+    private static String labelOf(Element element) {
+        if (!(element instanceof Enum<?> en)) return null;
+        return en.getClass().getSimpleName() + " > " + en.name();
     }
 
     // ─── Strategy inference helpers ─────────────────────────────────────────
