@@ -134,7 +134,7 @@ public final class SeleniumEngine implements UIEngine {
             WebElement element = driver.findElement(by);
             String text = safeText(element);
             element.click();
-            info.click("Clicked on: " + (text.isBlank() ? locator.toString() : text));
+            info.click(clickLabel(text, locator));
             debug.click("Clicked using Selenium click(). Locator: " + locator);
             return;
         } catch (StaleElementReferenceException staleEx) {
@@ -152,7 +152,7 @@ public final class SeleniumEngine implements UIEngine {
         try {
             WebElement element = driver.findElement(by);
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
-            info.click("Clicked on: " + safeText(element));
+            info.click(clickLabel(safeText(element), locator));
             debug.success("Clicked using JavaScriptExecutor.");
             return;
         } catch (StaleElementReferenceException staleEx) {
@@ -170,7 +170,7 @@ public final class SeleniumEngine implements UIEngine {
             WebElement freshElement = new WebDriverWait(driver, defaultTimeout)
                     .until(ExpectedConditions.elementToBeClickable(by));
             freshElement.click();
-            info.click("Clicked on (re-located): " + safeText(freshElement));
+            info.click(clickLabel(safeText(freshElement), locator));
         } catch (Exception retryEx) {
             error.failed("[SeleniumEngine] click() exhausted all strategies for: " + locator);
             throw new RuntimeException("click failed for: " + locator, retryEx);
@@ -214,7 +214,7 @@ public final class SeleniumEngine implements UIEngine {
         WebElement element = driver.findElement(by);
         Keys seleniumKey = mapKey(key);
         element.sendKeys(seleniumKey);
-        info.key(labelFor(locator) + " — " + key);
+        info.key(key + " | " + labelFor(locator));
     }
 
     @Override
@@ -222,7 +222,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         new org.openqa.selenium.support.ui.Select(element).selectByVisibleText(text);
-        info.dropdown("Selected \"" + text + "\" in: " + labelFor(locator));
+        info.dropdown("Selected: " + text + " | " + labelFor(locator));
     }
 
     @Override
@@ -230,7 +230,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         new org.openqa.selenium.support.ui.Select(element).selectByValue(value);
-        info.dropdown("Selected value \"" + value + "\" in: " + labelFor(locator));
+        info.dropdown("Selected: " + value + " | " + labelFor(locator));
     }
 
 
@@ -407,7 +407,7 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = driver.findElement(by);
         element.sendKeys(filePath);
-        info.upload("Uploaded to: " + labelFor(locator));
+        info.upload("Uploaded: " + filePath + " | " + labelFor(locator));
     }
 
     @Override
@@ -558,6 +558,13 @@ public final class SeleniumEngine implements UIEngine {
         Object[] args = locator.args();
         if (args != null && args.length > 0) return String.valueOf(args[0]);
         return locator.value();
+    }
+
+    private static String clickLabel(String visibleText, LocatorDescriptor locator) {
+        String label = labelFor(locator);
+        return (visibleText == null || visibleText.isBlank())
+                ? "Clicked: " + label
+                : "Clicked: " + visibleText + " | " + label;
     }
 
     private static boolean isPasswordLocator(LocatorDescriptor locator) {
