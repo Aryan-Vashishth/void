@@ -48,7 +48,8 @@ public class LogActions {
     public void hover(String message)      { logMessage(LogIntent.INTERACTION, "HOVER [*]",       message); }
     public void clear(String message)      { logMessage(LogIntent.INTERACTION, "CLEAR [-]",       message); }
     public void key(String message)        { logMessage(LogIntent.INTERACTION, "KEY [#]",         message); }
-    public void password(String text)      { logMessage(LogIntent.INTERACTION, "PASSWORD [**]",   mask(text)); }
+    public void password(String text)                  { logMessage(LogIntent.INTERACTION, "PASSWORD [**]",   mask(text)); }
+    public void password(String text, String label)    { logMessage(LogIntent.INTERACTION, "PASSWORD [**]",   mask(text) + " | " + label); }
 
     private static String mask(String text) {
         return text == null ? "***" : "*".repeat(text.length());

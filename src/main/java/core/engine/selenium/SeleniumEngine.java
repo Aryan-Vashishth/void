@@ -185,9 +185,9 @@ public final class SeleniumEngine implements UIEngine {
         element.clear();
         element.sendKeys(text);
         if (isPasswordLocator(locator)) {
-            info.password(text);
+            info.password(text, labelFor(locator));
         } else {
-            info.input("Typed: " + labelFor(locator));
+            info.input("Typed: " + text + " | " + labelFor(locator));
         }
     }
 
@@ -197,7 +197,7 @@ public final class SeleniumEngine implements UIEngine {
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         scrollToElement(element);
         element.sendKeys(text);
-        info.input("Appended: " + labelFor(locator));
+        info.input("Appended: " + text + " | " + labelFor(locator));
     }
 
     @Override

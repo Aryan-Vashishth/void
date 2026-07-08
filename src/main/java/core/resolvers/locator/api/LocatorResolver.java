@@ -126,6 +126,8 @@ public final class LocatorResolver {
         }
         LocatorStrategy strategy = inferStrategy(resolved);
         String value = stripPrefix(resolved);
+        debug.log("[LOCATOR] Descriptor:",
+                "Key", request.key(), "Strategy", strategy.name(), "Value", value);
         return LocatorDescriptor.of(value, strategy, request.args());
     }
 
@@ -174,7 +176,9 @@ public final class LocatorResolver {
 
     private static String labelOf(Element element) {
         if (!(element instanceof Enum<?> en)) return null;
-        return en.getClass().getSimpleName() + " > " + en.name();
+        Class<?> page = en.getClass().getDeclaringClass();
+        String prefix = page != null ? page.getSimpleName() + " > " : "";
+        return prefix + en.getClass().getSimpleName() + " > " + en.name();
     }
 
     // ─── Strategy inference helpers ─────────────────────────────────────────
