@@ -54,30 +54,18 @@ public class VoidDemo {
      */
     @Test
     public void loginWithValidCredentials() {
-        // Navigate via session façade
-        info.log("[1/3] Navigating to: " + TARGET_URL);
         app.navigateTo(TARGET_URL);
-        info.success("Page loaded. Current URL: " + app.getCurrentUrl());
 
-        // Execute login flow via session façade
-        info.log("[2/3] Executing login flow...");
-        debug.log("--> Typing username: " + VALID_USERNAME);
-        debug.log("--> Typing password: ********");
-        debug.log("--> Clicking Login button");
-
+        info.log("Executing login flow...");
         app.run(Flow.of(
                 DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
         ));
-
         info.success("Flow executed successfully.");
 
-        // Verify via session façade — engine resolves/waits internally
-        info.log("[3/3] Verifying result...");
+        info.result("Verifying redirect to /secure...");
         String currentUrl = app.getCurrentUrl();
-        debug.log("Current URL: " + currentUrl);
-
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
         info.success("LOGIN PASSED — Redirected to secure area.");
@@ -118,11 +106,9 @@ public class VoidDemo {
      */
     @Test(dependsOnMethods = "loginWithValidCredentials")
     public void loginWithHookedActions() {
-        info.log("[HOOKED 1/3] Navigating to: " + TARGET_URL);
         app.navigateTo(TARGET_URL);
 
-        info.log("[HOOKED 2/3] Executing profiled login flow...");
-
+        info.log("Executing profiled login flow...");
         app.run(Flow.of(
                 // safely() applies the SAFE profile — capability-aware hooks, no manual wiring
                 DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME).safely(),
@@ -136,10 +122,9 @@ public class VoidDemo {
                         .safely()
                         .after(DemoHooks.WAIT_FOR_LOGIN_SUCCESS)
         ));
-
         info.success("Profiled flow executed successfully.");
 
-        info.log("[HOOKED 3/3] Verifying result...");
+        info.result("Verifying redirect to /secure...");
         String currentUrl = app.getCurrentUrl();
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
