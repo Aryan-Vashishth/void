@@ -1,6 +1,6 @@
 # Phase 3 — Capability Self-Description
 
-**Status:** Ongoing  
+**Status:** Done  
 **Architecture Version:** 2.3  
 **Branch:** `feature/action-package-refactor`  
 **Risk:** Low–Medium — touches capability hierarchy
