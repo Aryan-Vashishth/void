@@ -34,13 +34,7 @@ mvn -B test -Dtest=VoidDemo
 Expected output:
 
 <img src="docs/images/void-demo-log-example.png" alt="VOID demo log output" width="700"/>
-<!--
-Sample report snapshot:
 
-![Allure sample report](docs/images/allure-report-sample.png)
-
-[View sample Allure report](docs/images/allure-report-sample.png)
--->
 ---
 
 ## TL;DR
