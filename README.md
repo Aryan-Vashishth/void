@@ -1,16 +1,17 @@
-# VOID — Versatile Object-Oriented Interactions for DOM
+# VOID — Virtual Object Interaction Domain
 
-Structured UI automation around a single execution path:
+An interaction runtime for modeling and executing interaction workflows.
+Currently configured for UI automation.
 
 **Element → Action → Flow → FlowExecutor → UIEngine**
 
-VOID is engine-agnostic (Selenium today, Playwright-ready by contract), and not a Page Object framework.
+VOID separates interaction modeling from execution.
+Elements emit actions. Actions compose flows. Flows are executed by the VOID Runtime through interchangeable engines that own waits, retries, locator resolution, synchronization, and native automation concerns.
 
-Test code does not touch WebDriver, locators, or wait logic.
+Test code describes intent.
+The runtime handles execution.
 
-Elements emit actions, actions form flows, and `FlowExecutor` runs those flows through a `UIEngine` that handles everything underneath.
-
-You describe what should happen. VOID handles how — and tells you exactly when it can’t.
+Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
 [![CI](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml)
 [![VoidDemo](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml)
@@ -22,9 +23,11 @@ You describe what should happen. VOID handles how — and tells you exactly when
 
 ---
 
-## Architecture
+<!-- ## Architecture
 
-![VOID execution pipeline](docs/images/architecture.png)
+![VOID execution pipeline](docs/images/architecture.png) 
+
+-->
 
 ## Run the demo
 
