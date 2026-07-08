@@ -33,7 +33,7 @@ mvn -B test -Dtest=VoidDemo
 
 Expected output:
 
-![VOID demo log output](docs/images/void-demo-log-example.png)
+<img src="docs/images/void-demo-log-example.png" alt="VOID demo log output" width="700"/>
 <!--
 Sample report snapshot:
 
