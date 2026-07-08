@@ -350,7 +350,8 @@ void-framework/
 │   │   └── meta/                   # ElementRole and metadata
 │   └── tests/demo/
 │       ├── VoidDemo.java           # Current Action/Flow/FlowExecutor demo
-│       └── pages/                  # Demo element enums
+│       ├── pages/                  # Demo element enums
+│       └── hooks/                  # DemoHooks — named AfterActionHandler constants
 ├── src/main/resources/
 │   └── locators/                   # External locator definitions
 └── docs/
@@ -445,13 +446,14 @@ This mirrors `src/main/java/tests/demo/VoidDemo.java`.
 |----------|-------------|
 | `docs/architecture/quick-start.md` | Getting started walkthrough |
 | `docs/architecture/system-overview.md` | Architecture and execution flow |
+| `docs/architecture/actions.md` | Action layer — full hierarchy, profiles, operationLabel, extension guide |
 | `docs/architecture/configuration-reference.md` | Config keys and behavior |
 | `docs/architecture/logging-reference.md` | Log channels, folder layout, and trace depth |
 | `docs/architecture/locator-resolution.md` | Locator roles and resolution pipeline |
 | `docs/architecture/hooks-pipeline.md` | Hook behavior and composition |
 | `docs/audits/architecture-audit-2026-05.md` | Architecture audit — coupling, leakage, engine-swap readiness |
 | `docs/audits/facade-boundary-audit-2026-05.md` | Façade boundary audit — session abstraction gaps and fixes |
-| `docs/decisions/accepted/` | Architecture Decision Records (ADR-001 → ADR-011) |
+| `docs/decisions/accepted/` | Architecture Decision Records (ADR-001 → ADR-014) |
 | `CHANGELOG.md` | Version history |
 | `CONTRIBUTING.md` | Contribution guide |
 
