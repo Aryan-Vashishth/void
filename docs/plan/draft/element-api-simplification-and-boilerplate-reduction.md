@@ -6,11 +6,11 @@
 
 This phase focuses exclusively on improving the Element API by reducing repetitive implementations, centralizing common behavior, and simplifying how page elements are defined.
 
-The primary objective is to shift repetitive framework plumbing from page definitions into the framework itself, allowing developers to focus on describing UI elements rather than implementing infrastructure code.
+The primary objective is to shift repetitive runtime plumbing from page definitions into the runtime itself, allowing developers to focus on describing UI elements rather than implementing infrastructure code.
 
 Every change follows the same principle:
 
-> *The framework already knows this information, so the user should not have to repeat it.*
+> *The runtime already knows this information, so the user should not have to repeat it.*
 
 The proposed changes aim to:
 
@@ -104,15 +104,15 @@ The nested enum structure, capability interfaces, and compile-time discoverabili
 
 Over time, the Element API has accumulated a considerable amount of repetitive implementation code.
 
-Most of this code does not describe the UI itself — it simply satisfies framework contracts.
+Most of this code does not describe the UI itself — it simply satisfies runtime contracts.
 
 As applications grow, this repetition scales proportionally.
 
 A page containing 60–100 elements may require hundreds of lines of infrastructure code that is nearly identical across every project.
 
-The framework already possesses enough information to infer much of this behavior automatically.
+The runtime already possesses enough information to infer much of this behavior automatically.
 
-This phase moves that responsibility into the framework.
+This phase moves that responsibility into the runtime.
 
 ---
 
@@ -190,7 +190,7 @@ These constructors carry no meaningful runtime state.
 
 ---
 
-## 5. Capability Interfaces Contain Framework Plumbing
+## 5. Capability Interfaces Contain Runtime Plumbing
 
 Several capability interfaces primarily forward inherited behavior.
 
@@ -224,7 +224,7 @@ LOGIN_BUTTON  →  Login Button
 The refactoring should follow these principles:
 
 - Convention over repetition.
-- Framework intelligence over developer boilerplate.
+- Runtime intelligence over developer boilerplate.
 - Strong compile-time guarantees.
 - Explicit object-oriented modeling.
 - Backward compatibility wherever practical.
@@ -250,7 +250,7 @@ USERNAME_INPUT("USERNAME_INPUT")
 USERNAME_INPUT
 ```
 
-The framework derives the locator key directly from the enum constant name.
+The runtime derives the locator key directly from the enum constant name.
 
 Example implementation:
 
@@ -658,14 +658,14 @@ After this refactoring:
 - Page-level metadata replaces repeated locator file definitions.
 - Hardcoded locator support remains fully intact.
 - Capability interfaces become significantly smaller.
-- Framework behavior becomes more centralized.
+- Runtime behavior becomes more centralized.
 - Page definitions become easier to read and maintain.
 
 ---
 
 # Expected Impact
 
-Typical page definitions should become substantially smaller because repetitive framework plumbing is eliminated.
+Typical page definitions should become substantially smaller because repetitive runtime plumbing is eliminated.
 
 The public programming model remains familiar. The amount of required implementation code is dramatically reduced for the common case while all escape hatches remain available.
 
