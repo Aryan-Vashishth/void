@@ -4,22 +4,15 @@
 
 > **For the overall architecture, design principles, terminology, and usage of VOID, refer to `README.md`.**
 
-This phase focuses exclusively on improving the Element API by reducing repetitive implementations, centralizing common behavior, and simplifying how page elements are defined.
+This phase improves the Element API and the surrounding developer workflow by establishing a principle that reaches beyond reducing boilerplate:
 
-The primary objective is to shift repetitive runtime plumbing from page definitions into the runtime itself, allowing developers to focus on describing UI elements rather than implementing infrastructure code.
+> **Developer-authored code should remain the single source of truth.**
+>
+> Whenever VOID or its tooling can deterministically derive runtime artifacts from that source, those artifacts should be generated rather than manually maintained.
 
-Every change follows the same principle:
+Developers should author **intent** — page structure, capability groupings, locator values.
 
-> *The runtime already knows this information, so the user should not have to repeat it.*
-
-The proposed changes aim to:
-
-- Reduce boilerplate across page definitions.
-- Preserve compile-time safety.
-- Maintain capability-driven element modeling.
-- Preserve existing locator resolution behavior.
-- Improve long-term maintainability.
-- Keep the public API clean and intuitive.
+VOID should generate **everything else** — locator keys, display text, argument defaults, properties templates, JSON repositories, and repository locations.
 
 ---
 
@@ -32,16 +25,17 @@ This phase does **not** aim to:
 - Change Flow or Action APIs.
 - Replace capability interfaces.
 - Remove support for hardcoded locators.
+- Introduce a new JSON generation tool (the existing JSON Migration CLI already serves this role).
 
-The focus of this phase is solely to simplify the Element API while preserving the existing programming model.
+The focus of this phase is to simplify the Element API and developer workflow while preserving the existing programming model and all advanced escape hatches.
 
 ---
 
 # Before and After
 
-The following comparison illustrates the cumulative effect of all changes in this phase.
+The following comparison shows the cumulative effect of all changes in this phase.
 
-It is placed here so the reader can evaluate any individual improvement against the concrete goal.
+It is placed here so the reader can evaluate any individual improvement against the concrete outcome.
 
 ### Before
 
@@ -79,10 +73,11 @@ public interface DemoLoginPage {
 }
 ```
 
+Paired with a manually maintained locator file at a path that each enum must declare explicitly.
+
 ### After
 
 ```java
-@LocatorFile("demo-login-elements.json")
 public interface DemoLoginPage {
 
     enum Credentials implements Typeable {
@@ -96,23 +91,60 @@ public interface DemoLoginPage {
 }
 ```
 
-The nested enum structure, capability interfaces, and compile-time discoverability are all preserved.
+Paired with a locator file at a deterministic location VOID discovers automatically.
+
+No duplicated keys. No constructors. No locator filenames. No page annotations. No runtime plumbing.
+
+The nested enum structure, capability interfaces, and compile-time discoverability are fully preserved.
 
 ---
 
 # Motivation
 
-Over time, the Element API has accumulated a considerable amount of repetitive implementation code.
+Over time, the Element API has accumulated repetitive implementation code that does not describe the UI — it satisfies runtime contracts that VOID could satisfy itself.
 
-Most of this code does not describe the UI itself — it simply satisfies runtime contracts.
+As applications grow, this repetition scales proportionally. A page containing 60–100 elements may require hundreds of lines of infrastructure code nearly identical across every project.
 
-As applications grow, this repetition scales proportionally.
+The deeper problem is not just the volume of repetition. It is that the runtime forces developers to maintain artifacts it could generate deterministically.
 
-A page containing 60–100 elements may require hundreds of lines of infrastructure code that is nearly identical across every project.
+Locator keys follow directly from enum constant names. Display text follows directly from those names. Repository locations follow directly from page names. Properties templates follow directly from enum declarations.
 
-The runtime already possesses enough information to infer much of this behavior automatically.
+None of these require human judgment. All of them create human error.
 
-This phase moves that responsibility into the runtime.
+> The purpose of automation is not to shift repetitive work to developers, but to eliminate it entirely.
+
+This phase moves that responsibility into the runtime and its tooling.
+
+---
+
+# Design Philosophy
+
+The refactoring follows these principles:
+
+- **Single source of truth.** Developer-authored code is the authoritative source. Generated artifacts derive from it, not the reverse.
+- **Generated artifacts over manually maintained artifacts.** If VOID can deterministically produce something, it should.
+- **Convention over repetition.** A consistent project layout eliminates the need to configure what can be inferred.
+- **Deterministic project structure.** Repository locations follow from page names. No path configuration is required in the common case.
+- **Runtime intelligence over developer boilerplate.** Defaults handle the common case. Overrides handle exceptions.
+- **Strong compile-time guarantees.** No runtime discovery of elements. No string-typed identifiers at call sites.
+- **Preserve escape hatches for advanced scenarios.** Every convention can be overridden. No capability is removed.
+
+---
+
+# Generated, Not Maintained
+
+The following table distinguishes what developers author from what VOID generates.
+
+| What developers author               | What VOID generates or infers                         |
+|--------------------------------------|-------------------------------------------------------|
+| Page interface                       | Repository location (from deterministic layout)       |
+| Capability enum declarations         | Properties template (all keys pre-filled)             |
+| Locator values in properties file    | JSON repository (via existing JSON Migration CLI)     |
+| Dynamic args when genuinely needed   | Locator key from enum constant name                   |
+| Custom display text when needed      | Display text from enum constant name                  |
+| Hardcoded locators when needed       | Default empty args                                    |
+
+Developers should never manually maintain anything in the right column.
 
 ---
 
@@ -120,32 +152,20 @@ This phase moves that responsibility into the runtime.
 
 ## 1. Duplicate Locator Keys
 
-Current implementation:
-
 ```java
-enum Credentials implements Typeable {
-
-    USERNAME_INPUT("USERNAME_INPUT"),
-    PASSWORD_INPUT("PASSWORD_INPUT");
-}
+USERNAME_INPUT("USERNAME_INPUT"),
+PASSWORD_INPUT("PASSWORD_INPUT");
 ```
 
-The enum constant already uniquely identifies the locator key.
+The enum constant already uniquely identifies the locator key. The string argument is pure duplication.
 
-Maintaining duplicate strings:
-
-- increases typing
-- introduces rename risks
-- creates opportunities for mistakes
-- provides no additional information
+Maintaining it introduces rename risks, spelling mistakes, and casing inconsistencies without providing any additional information.
 
 ---
 
 ## 2. Repeated Empty Arguments
 
-Most elements require no locator arguments.
-
-Yet nearly every enum implements:
+Most elements require no locator arguments. Yet nearly every enum implements:
 
 ```java
 @Override
@@ -154,11 +174,11 @@ public Object[] getArgs() {
 }
 ```
 
-This implementation is identical throughout the project.
+This implementation is identical throughout every project.
 
 ---
 
-## 3. Repeated Locator File Definitions
+## 3. Repeated Locator File Declarations
 
 Every enum repeats:
 
@@ -169,49 +189,47 @@ public String getExternalFileName() {
 }
 ```
 
-Although every element belongs to the same page and therefore shares the same locator repository.
-
-This metadata naturally belongs to the page rather than individual elements.
+Even though every element on the same page shares the same repository. This belongs to the page, not to each element individually.
 
 ---
 
 ## 4. Constructors Without Meaning
 
-Many constructors exist only to store duplicated locator keys.
-
-Example:
-
-```java
-USERNAME_INPUT("USERNAME_INPUT"),
-PASSWORD_INPUT("PASSWORD_INPUT");
-```
-
-These constructors carry no meaningful runtime state.
+Many constructors exist only to store duplicated locator keys and carry no meaningful runtime state.
 
 ---
 
-## 5. Capability Interfaces Contain Runtime Plumbing
+## 5. Manually Maintained Repository Locations
 
-Several capability interfaces primarily forward inherited behavior.
-
-Example:
+Developers currently declare locator file paths as string constants:
 
 ```java
-@Override
-default String getPrimaryLocator() {
-    return Typeable.super.getPrimaryLocator();
-}
+String LOCATOR_FILE = "demo-login-elements.json";
 ```
 
-Such methods increase maintenance cost without adding capability-specific behavior.
+This path is a derived artifact. It follows from the page name. The runtime could locate it automatically.
 
 ---
 
-## 6. Repeated Display Text Implementations
+## 6. Manually Maintained Locator Keys in Properties Files
 
-Many elements override display text even though a sensible value can be derived from the enum constant.
+Properties files are currently populated entirely by hand. Every key must be typed correctly to match the enum constant it represents.
 
-Example:
+A typo in a key produces a runtime resolution failure, not a compile-time error.
+
+Since the keys derive deterministically from enum declarations, they should be generated, not typed.
+
+---
+
+## 7. Capability Interfaces Contain Runtime Plumbing
+
+Several capability interfaces contain forwarding implementations that delegate to parent interfaces without adding capability-specific behavior. These increase maintenance cost without contributing to element modeling.
+
+---
+
+## 8. Repeated Display Text Implementations
+
+Many elements override display text even though a sensible value can be derived from the enum constant name.
 
 ```
 LOGIN_BUTTON  →  Login Button
@@ -219,16 +237,112 @@ LOGIN_BUTTON  →  Login Button
 
 ---
 
-# Design Principles
+# Deterministic Project Layout
 
-The refactoring should follow these principles:
+Rather than requiring developers to declare locator file paths, VOID should adopt a convention for where each page's repository lives.
 
-- Convention over repetition.
-- Runtime intelligence over developer boilerplate.
-- Strong compile-time guarantees.
-- Explicit object-oriented modeling.
-- Backward compatibility wherever practical.
-- Preserve readability over excessive abstraction.
+```
+pages/
+    DemoLoginPage/
+        DemoLoginPage.java
+        locators.properties
+        locators.json
+
+    DashboardPage/
+        DashboardPage.java
+        locators.properties
+        locators.json
+```
+
+The runtime discovers the repository by deriving the path from the page name.
+
+No path configuration is required. No `LOCATOR_FILE` constant. No `@LocatorFile` annotation. No `getExternalFileName()` override for the common case.
+
+Benefits:
+
+- Zero path configuration in common usage.
+- Consistent navigation — every page follows the same structure.
+- Easier onboarding — the layout is self-explanatory.
+- Reliable IDE navigation — all page assets live in one place.
+- LLM-friendly — predictable structure is far easier to generate and read correctly.
+
+`getExternalFileName()` is preserved as an advanced override mechanism for pages with shared repositories, generated repositories, or custom locations. See Part 8.
+
+---
+
+# Single Source of Truth Pipeline
+
+Enum declarations are the authoritative source of locator identity within a page.
+
+The complete pipeline from declaration to runtime execution:
+
+```
+Enum constants
+      │
+      ▼
+Generated properties template
+(all locator keys pre-filled by tooling)
+      │
+      ▼
+Developer fills locator values
+(the only manual step)
+      │
+      ▼
+Existing JSON Migration CLI
+      │
+      ▼
+Generated JSON repository
+      │
+      ▼
+Runtime
+```
+
+At no point does a developer type a locator key. The enum constant name is the key. Tooling writes it. The developer provides only the XPath or CSS value that no tool can infer.
+
+---
+
+# Developer Workflow
+
+The intended end-to-end workflow after this phase:
+
+```
+1.  Create the page interface.
+2.  Add capability enums with constants.
+3.  Run the properties template generator.
+4.  Open the generated template — all keys are already present.
+5.  Fill in the locator values (XPath, CSS, ID, etc.).
+6.  Run the existing JSON Migration CLI.
+7.  Execute tests.
+```
+
+Step 3 and step 6 are the only tool invocations. Steps 1, 2, and 5 are the only places where developer judgment is required.
+
+Everything else is generated.
+
+---
+
+# Properties as the Authoring Format
+
+Properties files are the preferred format for authoring locators because:
+
+- They are simple flat key-value structures — no nesting, no syntax complexity.
+- Humans edit them reliably.
+- LLMs generate them reliably.
+- Diffs are clean and readable — one line per locator.
+
+Properties are not a fallback or a compatibility layer. They are intentionally the best format for the task of recording locator values by hand.
+
+JSON is the canonical runtime format. Users should generally not edit JSON directly.
+
+---
+
+# JSON as the Runtime Repository
+
+JSON is the format VOID reads at runtime.
+
+It is structured and typed, which makes it well-suited for the runtime. It is not optimized for human editing.
+
+The JSON Migration CLI is the bridge between the authoring format (properties) and the runtime format (JSON). It is already implemented. This phase documents the intended workflow around it rather than introducing a replacement.
 
 ---
 
@@ -252,8 +366,6 @@ USERNAME_INPUT
 
 The runtime derives the locator key directly from the enum constant name.
 
-Example implementation:
-
 ```java
 default String getPrimaryLocator() {
     return ((Enum<?>) this).name();
@@ -262,8 +374,8 @@ default String getPrimaryLocator() {
 
 ### Benefits
 
-- Eliminates duplicated strings.
-- Safe IDE renaming — rename the constant and the lookup key follows automatically.
+- Eliminates duplicate strings.
+- Rename-safe — IDE renaming updates the lookup key automatically.
 - Prevents locator key mismatches.
 - Smaller page definitions.
 
@@ -271,7 +383,7 @@ default String getPrimaryLocator() {
 
 # Part 2 — Default Empty Arguments
 
-Provide a default implementation within `Element`.
+Provide a default implementation within `Element`:
 
 ```java
 default Object[] getArgs() {
@@ -279,9 +391,7 @@ default Object[] getArgs() {
 }
 ```
 
-Dynamic elements continue overriding the method as before.
-
-Example:
+Dynamic elements override as before:
 
 ```java
 PRODUCT_ROW.with("Laptop")
@@ -309,16 +419,9 @@ With:
 Object[] NO_ARGS = new Object[0];
 ```
 
-`EMPTY_ARGS` describes the state of the array.
+`EMPTY_ARGS` describes state. `NO_ARGS` communicates intent.
 
-`NO_ARGS` communicates the intent: this element requires no arguments.
-
-Names should reflect intent, not implementation.
-
-### Benefits
-
-- More readable at every call site.
-- Clearer meaning without requiring context.
+Names should reflect what a thing means, not what it contains.
 
 ---
 
@@ -335,13 +438,13 @@ SAVE_AS_DRAFT   →  Save As Draft
 PASSWORD        →  Password
 ```
 
-The algorithm:
+Algorithm:
 
-1. Split the constant name on underscores.
+1. Split on underscores.
 2. Capitalise only the first character of each token.
-3. Join tokens with a single space.
+3. Join with a single space.
 
-Custom labels remain supported through overrides.
+Custom labels remain fully supported through overrides:
 
 ```java
 @Override
@@ -350,150 +453,128 @@ public String getDisplayText() {
 }
 ```
 
-Documenting the transformation explicitly avoids ambiguity and ensures consistent display across all log output, reporting, and tooling.
-
-### Benefits
-
-- Better log readability.
-- Less repetitive code.
-- Consistent behavior across the project.
+Documenting the transformation rules explicitly ensures consistent display across log output, reporting, and tooling.
 
 ---
 
-# Part 5 — Page-Level Locator Metadata
+# Part 5 — Deterministic Project Layout
 
-## The Annotation Option
+Introduce a fixed convention for page directory structure.
 
-Introduce a page annotation:
+VOID discovers each page's repository by deriving the path from the page class name — no declaration required.
+
+Example layout:
+
+```
+pages/
+    DemoLoginPage/
+        DemoLoginPage.java
+        locators.properties
+        locators.json
+```
+
+Derivation:
+
+```
+DemoLoginPage  →  pages/DemoLoginPage/locators.json
+```
+
+Pages that need a different layout override `getExternalFileName()`. See Part 8.
+
+---
+
+# Part 6 — Properties Template Generation
+
+Introduce a CLI command that generates a pre-populated properties template from a page's enum declarations.
+
+Given:
 
 ```java
-@LocatorFile("demo-login-elements.json")
 public interface DemoLoginPage {
-}
-```
 
-The annotation becomes the default locator repository for all nested elements, removing the need for every enum to implement `getExternalFileName()` individually.
+    enum Credentials implements Typeable {
+        USERNAME_INPUT,
+        PASSWORD_INPUT
+    }
 
-## The Interface Option
-
-Alternatively, the page could implement a `LocatorRepositoryProvider` interface:
-
-```java
-public interface DemoLoginPage extends LocatorRepositoryProvider {
-
-    @Override
-    default String getLocatorFile() {
-        return "demo-login-elements.json";
+    enum Button implements Clickable {
+        LOGIN_BUTTON
     }
 }
 ```
 
-## Trade-off
+The generator produces:
 
-| Aspect                    | `@LocatorFile` annotation          | `LocatorRepositoryProvider` interface |
-|---------------------------|------------------------------------|---------------------------------------|
-| Syntax                    | Minimal                            | Explicit, object-oriented             |
-| Extensibility             | Limited to filename                | Can evolve to remote, YAML, DB        |
-| VOID design consistency   | Annotation-based config            | Interface-based modeling              |
-| Discoverability           | Requires annotation processor docs | IDE can navigate interface hierarchy  |
-| Dynamic sources           | Not supported                      | Supported via method override         |
+```properties
+# DemoLoginPage locators
+# Generated — do not edit keys. Fill values only.
 
-VOID has consistently favored explicit interfaces and object-oriented constructs over annotation-heavy configuration. `@LocatorFile` is appropriate when locator sources remain static JSON files permanently. If locator sources are expected to evolve, `LocatorRepositoryProvider` offers more flexibility without requiring a later migration.
+USERNAME_INPUT=
+PASSWORD_INPUT=
+LOGIN_BUTTON=
+```
 
-**This decision should be made before implementation begins.**
+Every key is already present and correctly named. The developer fills the values. Nothing else.
+
+This eliminates:
+
+- Typing locator keys by hand.
+- Spelling mistakes.
+- Casing inconsistencies.
+- Keys missing because a constant was added but the properties file was not updated.
 
 ---
 
-# Part 6 — Preserve Hardcoded Locator Support
+# Part 7 — Existing JSON Migration CLI
 
-Returning `null` from `getExternalFileName()` signals to the resolver that the locator returned by the element is already the final XPath or CSS selector.
+The JSON Migration CLI is already implemented. Its role does not change.
 
-Example:
+It consumes the filled properties file and produces the runtime JSON repository:
 
-```java
-enum DynamicElements implements Clickable {
-
-    DELETE_ROW;
-
-    @Override
-    public String getExternalFileName() {
-        return null;
-    }
-
-    @Override
-    public String getTriggerLocator() {
-        return "//tr[td='%s']//button";
-    }
-}
+```
+locators.properties  →  JSON Migration CLI  →  locators.json
 ```
 
-No external lookup should occur in this case.
+This phase documents the intended workflow and positions the CLI as the second step in the generation pipeline rather than a standalone migration utility.
 
-This behavior is an intentional feature and must be preserved.
+No new JSON generation tool is needed or proposed.
 
 ---
 
-# Part 7 — LocatorContext Abstraction
+# Part 8 — `getExternalFileName()` as an Override
 
-The resolution path currently relies on `getEnclosingClass()` to locate a page annotation.
+`getExternalFileName()` is not removed.
 
-That works for nested enums but ties the resolver conceptually to one particular structural pattern.
+Its role changes. It becomes an advanced override for cases where the deterministic layout does not apply.
 
-If someone later introduces a non-nested element:
+Override use cases:
 
-```java
-public final class LoginButtons implements Clickable {
-    // no enclosing page
-}
-```
+- Shared repositories used by multiple pages.
+- Generated repositories from external sources.
+- Plugin or integration-supplied repositories.
+- Custom project structures.
 
-the enclosing class lookup returns `null` and resolution silently falls through to the hardcoded path.
+When `getExternalFileName()` returns a non-null value, it takes precedence over the deterministic layout.
 
-Rather than hardcoding the "nested enum inside an annotated interface" assumption into the resolver, introduce a `LocatorContext` that abstracts how the resolver determines the locator source for a given element.
-
-```
-LocatorContext
-      │
-      ▼
-LocatorRepository
-      │
-      ▼
-   JSON / YAML / DB / Remote
-```
-
-Internally, the default `LocatorContext` implementation still uses `getEnclosingClass()` and reads `@LocatorFile`. But the resolver is decoupled from that mechanism — it asks `LocatorContext` for the repository, not the class hierarchy directly.
-
-This means:
-
-- The common case (nested enum + annotation) continues to work exactly as today.
-- Future structures (non-nested elements, YAML sources, remote repositories) can be supported by providing a different `LocatorContext` without touching the resolver.
-- The abstraction is thin enough to add no complexity to the common path.
+This preserves full flexibility while eliminating manual path declarations from the common case.
 
 ---
 
-# Part 8 — Locator Resolution Order
+# Part 9 — Locator Resolution Order
 
-The resolver determines the locator source using the following order:
-
-## Step 1 — Element Override
-
-```java
-element.getExternalFileName()
 ```
+Step 1 — Element override
+         element.getExternalFileName() != null
+         → use declared file directly
 
-If non-null, use that locator file directly.
+Step 2 — Deterministic layout
+         derive path from page name via LocatorContext
+         → use resolved repository
 
-## Step 2 — LocatorContext Lookup
-
-Delegate to `LocatorContext` to determine the repository.
-
-In the default implementation this inspects the enclosing class for `@LocatorFile` (or a `LocatorRepositoryProvider` implementation, depending on Part 5 decision).
-
-If a repository is found, use it.
-
-## Step 3 — Hardcoded Fallback
-
-If neither Step 1 nor Step 2 produces a source, treat the locator returned by the element as a hardcoded XPath or CSS selector.
+Step 3 — Hardcoded fallback
+         no external source found
+         → treat locator returned by the element as final XPath / CSS
+```
 
 ---
 
@@ -503,7 +584,7 @@ If neither Step 1 nor Step 2 produces a source, treat the locator returned by th
 Element
       │
       ▼
-Element override?   (getExternalFileName() != null)
+getExternalFileName() != null?
       │
  ┌────┴────┐
  │         │
@@ -511,6 +592,7 @@ Yes        No
  │         │
  ▼         ▼
 Use file   LocatorContext.resolve(element)
+           (derives path from page name)
                │
         ┌──────┴──────┐
         │             │
@@ -523,21 +605,20 @@ Use file   LocatorContext.resolve(element)
 
 ---
 
-# Part 9 — Mixed Locator Strategies
+# Part 10 — Mixed Locator Strategies
 
-Pages should be able to mix both locator strategies.
-
-Example:
+Pages can mix conventional and hardcoded locators freely.
 
 ```java
-@LocatorFile("users.json")
 public interface UsersPage {
 
+    // Resolved from deterministic layout: pages/UsersPage/locators.json
     enum Buttons implements Clickable {
         SAVE,
         CANCEL
     }
 
+    // Hardcoded — returns null to bypass external lookup
     enum Dynamic implements Clickable {
 
         DELETE_ROW;
@@ -558,13 +639,13 @@ public interface UsersPage {
 Result:
 
 ```
-SAVE        →  resolved from users.json
+SAVE        →  resolved from pages/UsersPage/locators.json
 DELETE_ROW  →  uses hardcoded XPath
 ```
 
 ---
 
-# Part 10 — Remove Constructors From Static Elements
+# Part 11 — Remove Constructors From Static Elements
 
 ### Current
 
@@ -585,54 +666,69 @@ enum Credentials {
 
 ```java
 enum Credentials implements Typeable {
-
     USERNAME_INPUT,
     PASSWORD_INPUT
 }
 ```
 
-Constructors remain only when elements genuinely require runtime metadata, such as dynamic arguments or a custom display label.
+Constructors remain only when elements genuinely require runtime metadata — dynamic arguments or an explicitly custom display label.
 
 ---
 
-# Part 11 — Simplify Capability Interfaces
+# Part 12 — Simplify Capability Interfaces
 
 Move common implementations into the base `Element` interface.
 
-Capability interfaces should primarily define:
+Capability interfaces should define:
 
 - Supported actions.
 - Locator roles.
 - Capability-specific behavior.
 - Action emission.
 
-They should no longer contain forwarding implementations whose only purpose is delegating to parent interfaces.
-
-This reduces maintenance effort while making capability interfaces easier to understand.
+They should not contain forwarding implementations that delegate to parent interfaces without adding behavior. Those increase maintenance cost and make capability interfaces harder to read.
 
 ---
 
-# Part 12 — Cache the LocatorContext Resolution
+# Part 13 — LocatorContext
 
-Reading the enclosing class and its annotations requires reflection.
+`LocatorContext` abstracts how the resolver locates the repository for a given element.
 
-The cache should store the resolved `LocatorContext` (or `LocatorRepository`), not just the filename.
+With a deterministic project layout, its responsibility is:
+
+```
+Resolve page from element
+      │
+      ▼
+Derive repository path from page name
+      │
+      ▼
+Load repository
+```
+
+The abstraction remains useful because it decouples the resolver from the specific layout convention. If the layout or repository format evolves, the resolver is unaffected.
+
+The abstraction also covers the case where `getExternalFileName()` returns a non-null value — the resolver delegates to `LocatorContext` rather than branching on this check directly.
+
+---
+
+# Part 14 — Cache the LocatorContext Resolution
+
+Repository resolution involves deriving a path from the page name and loading the result. This should happen only once per page.
+
+Cache the resolved `LocatorRepository`, not just the filename.
 
 ```java
 ConcurrentHashMap<Class<?>, LocatorRepository>
 ```
 
-Rationale: caching only the filename means additional work is still done on each resolution to construct the repository from that name. Caching the repository itself means the first lookup pays the full reflection cost, and all subsequent lookups are constant-time regardless of how the repository evolves internally.
-
-If locator repositories later become remote or computed, the cache continues to work without modification.
+Caching the repository means all subsequent lookups for elements on the same page are constant-time, regardless of how the repository is sourced internally. If repositories later become remote or computed, the cache continues to work without modification.
 
 ---
 
-# Part 13 — Preserve Nested Enum Organization
+# Part 15 — Preserve Nested Enum Organization
 
-The existing organization remains unchanged.
-
-Example:
+The existing organization is unchanged.
 
 ```java
 DemoLoginPage.Credentials.USERNAME_INPUT
@@ -640,26 +736,32 @@ DemoLoginPage.Button.LOGIN_BUTTON
 DemoLoginPage.Labels.SUCCESS_MESSAGE
 ```
 
-Benefits include:
+Benefits:
 
-- Logical grouping by capability.
-- Better IDE autocomplete.
+- Logical capability-based grouping.
+- Natural IDE autocomplete at the page level.
 - Strong compile-time discoverability.
-- Cleaner navigation.
+- Consistent navigation.
 
 ---
 
 # Expected Benefits
 
-After this refactoring:
+After this phase:
 
-- Locator keys no longer need to be duplicated.
-- Static elements require little or no implementation code.
-- Page-level metadata replaces repeated locator file definitions.
-- Hardcoded locator support remains fully intact.
-- Capability interfaces become significantly smaller.
-- Runtime behavior becomes more centralized.
-- Page definitions become easier to read and maintain.
+- Locator keys are never typed by hand — derived from enum constants.
+- Display text is never typed by hand — derived from enum constants.
+- Repository locations are never configured — derived from page names.
+- Properties templates are never typed by hand — generated from enum declarations.
+- JSON repositories are never typed by hand — generated by the existing CLI.
+- Locator values are the only manually maintained artifact.
+- Static elements require no implementation code beyond the enum declaration.
+- Capability interfaces are significantly smaller.
+- Hardcoded locator support is fully preserved.
+- Advanced escape hatches remain available at every level.
+- Project organization is deterministic and consistent across all pages.
+- Onboarding is simpler — the layout is self-explanatory.
+- LLM-assisted development is significantly more reliable — predictable structure, no hidden conventions.
 
 ---
 
@@ -667,24 +769,48 @@ After this refactoring:
 
 Typical page definitions should become substantially smaller because repetitive runtime plumbing is eliminated.
 
-The public programming model remains familiar. The amount of required implementation code is dramatically reduced for the common case while all escape hatches remain available.
+The developer workflow shortens to three steps that require judgment: define the page structure, fill in locator values, and run tests. Everything between those steps is generated.
 
 ---
 
 # Open Decisions
 
-Two decisions should be resolved before implementation begins:
+The following decisions should be resolved before implementation begins.
 
-## 1. Annotation vs. Interface for Page-Level Locator Metadata
+## 1. Deterministic Layout Convention
 
-See Part 5.
+The exact directory structure must be agreed upon before implementation.
 
-If locator sources are expected to remain static JSON files permanently, `@LocatorFile` is the cleaner API.
+Considerations:
 
-If locator sources may evolve, `LocatorRepositoryProvider` is more future-proof.
+- Root directory name (`pages/`, `src/pages/`, or project-configured).
+- Whether the convention is fixed or configurable per project.
+- How to handle pages that exist outside the conventional root.
 
-## 2. LocatorContext Scope
+## 2. Properties Template Generator — CLI Design
 
-The `LocatorContext` abstraction in Part 7 is described at a conceptual level.
+The template generator introduces a new CLI command.
 
-Before implementation, the team should agree on the exact interface contract, how it composes with the existing `LocatorResolver`, and what the default implementation is permitted to assume.
+Decisions required:
+
+- Command name and invocation style.
+- Whether it operates on a single page, a directory, or the entire project.
+- Behavior when a properties file already exists — overwrite, merge, or refuse.
+- Whether missing enum constants in an existing file are appended automatically.
+
+## 3. LocatorContext Contract
+
+The `LocatorContext` interface is described conceptually in Part 13.
+
+Before implementation, agree on:
+
+- Exact method signatures.
+- How it composes with the existing `LocatorResolver`.
+- What the default implementation is permitted to assume about the project layout.
+- Whether `LocatorContext` is injectable or resolved through a registry.
+
+## 4. Repository Abstraction Boundaries
+
+Decide how far `LocatorRepository` abstracts the underlying source.
+
+This affects whether future repository types (YAML, remote, database) can be introduced without modifying the resolver or the cache.
