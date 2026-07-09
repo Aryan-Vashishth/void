@@ -111,7 +111,7 @@ As applications grow, this repetition scales proportionally. A page containing 6
 
 The deeper problem is not just volume. It is that developers are forced to manually maintain artifacts the runtime could generate deterministically.
 
-Locator keys follow directly from enum constant names. Display text follows directly from those names. Repository locations follow directly from page types. Properties templates follow directly from enum declarations.
+Locator keys follow directly from enum constant names. Display text follows directly from those names. Repository locations follow directly from page names. Properties templates follow directly from enum declarations.
 
 None of these require human judgment. All of them create human error.
 
@@ -153,9 +153,8 @@ The refactoring follows these principles:
 - **Single source of truth.** Developer-authored code is the authoritative source. Generated artifacts derive from it, not the reverse.
 - **Generated artifacts over manually maintained artifacts.** If VOID can deterministically produce something, it should.
 - **Convention over repetition.** A consistent repository convention eliminates the need to configure what can be inferred.
-- **Deterministic structure.** Repository locations follow from page types. No path configuration is required in the common case.
-- **Framework intelligence over developer boilerplate.** Defaults handle the common case. Overrides handle exceptions.
-- **Disposable generated artifacts.** The runtime never treats generated artifacts as authoritative. They are disposable outputs that can be regenerated from the source of truth at any time.
+- **Deterministic structure.** Repository locations follow from page names. No path configuration is required in the common case.
+- **Runtime intelligence over developer boilerplate.** Defaults handle the common case. Overrides handle exceptions.
 - **Strong compile-time guarantees.** No runtime discovery of elements. No string-typed identifiers at call sites.
 - **Preserve escape hatches for advanced scenarios.** Every convention can be overridden. No capability is removed.
 
@@ -254,25 +253,23 @@ LOGIN_BUTTON  →  Login Button
 
 Rather than requiring developers to declare locator file paths, VOID adopts a convention for where each page's repository lives within the standard Maven source layout.
 
-Java source files remain in `src/main/java`. Locator resources live in `src/main/resources` under a structure that mirrors the full package path of the page type.
+Java source files remain in `src/main/java`. Locator resources live in `src/main/resources` under a mirrored structure.
 
 ```
-src/main/java/tests/demo/pages/
+src/main/java/pages/
     DemoLoginPage.java
 
-src/main/resources/tests/demo/pages/
+src/main/resources/pages/
     DemoLoginPage/
         locators.properties
         locators.json
 ```
 
-The runtime derives the resource path from the page's fully qualified type:
+The runtime derives the resource path from the page class name:
 
 ```
-tests.demo.pages.DemoLoginPage  →  tests/demo/pages/DemoLoginPage/locators.json
+DemoLoginPage  →  pages/DemoLoginPage/locators.json
 ```
-
-Deriving from the fully qualified type rather than just the class name eliminates collisions. Two pages named `LoginPage` in different packages (`admin.LoginPage`, `customer.LoginPage`) produce distinct repository paths and never conflict.
 
 No path configuration is required. No `LOCATOR_FILE` constant. No annotation. No `getExternalFileName()` override for the common case.
 
@@ -281,7 +278,6 @@ No path configuration is required. No `LOCATOR_FILE` constant. No annotation. No
 Benefits:
 
 - Zero path configuration in common usage.
-- Collision-free — repository paths are globally unique within the project.
 - Maven-compatible build layout — Java and resources stay in their respective source roots.
 - Consistent navigation — every page follows the same structure.
 - Easier onboarding — the layout is self-explanatory.
@@ -504,19 +500,17 @@ Documenting the transformation rules explicitly ensures consistent display acros
 
 Introduce a fixed convention for where page repositories live within the Maven project layout.
 
-VOID discovers each page's repository by deriving the resource path from the page's fully qualified type — no declaration required.
+VOID discovers each page's repository by deriving the resource path from the page class name — no declaration required.
 
 ```
-src/main/resources/tests/demo/pages/DemoLoginPage/locators.json
+src/main/resources/pages/DemoLoginPage/locators.json
 ```
 
 Derived from:
 
 ```
-tests.demo.pages.DemoLoginPage  →  tests/demo/pages/DemoLoginPage/locators.json
+DemoLoginPage  →  pages/DemoLoginPage/locators.json
 ```
-
-The package is included in the path so that pages with identical class names in different packages never produce the same repository path.
 
 Pages that require a different source override `getExternalFileName()`. See Part 8.
 
@@ -562,18 +556,6 @@ This eliminates:
 - Casing inconsistencies.
 - Keys missing because a constant was added but the properties file was not updated.
 
-**Regeneration behavior.**
-
-When a properties file already exists, the template generator follows these rules:
-
-- Enum constants with no corresponding key in the file → key added with an empty value.
-- Keys already present in the file → preserved exactly with their current value.
-- Keys in the file with no matching enum constant → flagged as stale (warning only; no automatic deletion).
-
-This means the generator is safe to run at any point in development. Running it after adding or renaming an enum constant adds the new key and flags the old one as stale, without touching any value the developer has already provided.
-
-Enum constants are the authoritative source of locator identity. Renaming a constant produces a new key. The old key becomes stale and can be cleaned up explicitly. Existing values are never silently discarded.
-
 ---
 
 # Part 7 — Runtime Repository Generation
@@ -617,7 +599,7 @@ Step 1 — Element override
          → use the declared path directly
 
 Step 2 — Deterministic convention
-         derive path from page type via LocatorContext
+         derive path from page name via LocatorContext
          → use the resolved repository
 
 Step 3 — Hardcoded fallback
@@ -641,7 +623,7 @@ Yes        No
  │         │
  ▼         ▼
 Use file   LocatorContext.resolve(element)
-           (derives path from page type)
+           (derives path from page name)
                │
         ┌──────┴──────┐
         │             │
@@ -749,7 +731,7 @@ With the deterministic repository convention, its responsibility is:
 Resolve page from element
       │
       ▼
-Derive repository path from page type
+Derive repository path from page name
       │
       ▼
 Load LocatorRepository
@@ -804,7 +786,7 @@ After this phase:
 
 - Locator keys are never typed by hand — derived from enum constants.
 - Display text is never typed by hand — derived from enum constants.
-- Repository locations are never configured — derived from page types via convention.
+- Repository locations are never configured — derived from page names via convention.
 - Properties templates are never typed by hand — generated from enum declarations.
 - JSON repositories are never typed by hand — generated by Runtime Repository Generation.
 - Locator values are the only manually maintained artifact.
@@ -868,16 +850,3 @@ Before implementation, agree on:
 Decide how far `LocatorRepository` abstracts the underlying source.
 
 This affects whether future repository types can be introduced at the `LocatorRepository` level without modifying the resolver, the cache, or the runtime.
-
-## 5. Regeneration Strategy
-
-When the template generator runs against an existing properties file, the exact merge behavior requires explicit agreement.
-
-Decisions required:
-
-- Whether the generator overwrites the file completely, merges with existing values, or refuses if the file already exists.
-- Whether inline comments in the properties file are preserved during regeneration.
-- Whether stale keys (present in the file but with no matching enum constant) are automatically removed, flagged with a warning, or silently retained.
-- Whether a dry-run mode is provided to preview what would change before applying it.
-
-The recommended default is merge-with-preserve: add new keys, retain existing values, flag stale keys as warnings. This makes the generator safe to invoke at any point in development without risk of data loss. Automatic deletion of stale keys should require an explicit flag.
