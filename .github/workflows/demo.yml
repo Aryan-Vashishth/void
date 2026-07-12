@@ -82,7 +82,7 @@ jobs:
             -Dsurefire.suiteXmlFiles=src/testNgXml/void-demo.xml \
             -Dbrowser=${{ github.event.inputs.browser || 'chrome' }} \
             -Dheadless=true \
-            -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu \
+            -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080 \
             -Dmaximize=false \
             -DchromeBinary="${{ steps.setup-chrome.outputs.chrome-path }}" \
             -Dvoid.rootLogLevel=INFO
