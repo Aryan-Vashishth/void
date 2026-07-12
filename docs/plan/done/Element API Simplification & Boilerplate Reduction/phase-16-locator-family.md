@@ -1,8 +1,10 @@
 # Phase 16 — LocatorFamily
 
-**Status:** Pending  
+**Status:** Complete  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** Medium — new interface + key naming convention different from static elements; must integrate with resolution order
+
+**Implementation note:** Java only allows a default method to satisfy an abstract method from another interface when both are in the same hierarchy. Because `LocatorFamily extends Element` but does NOT extend capability interfaces (`Clickable`, `Typeable`, etc.), the capability-specific abstract methods (`getTriggerLocator()`, `getInputLocator()`, etc.) must be provided by the implementing enum as one-liners returning `getPrimaryLocator()`. Phase 12 will eliminate this requirement.
 
 ---
 
