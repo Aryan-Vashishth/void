@@ -1,6 +1,6 @@
 # Phase 8 — `getExternalFileName()` as an Override
 
-**Status:** Pending  
+**Status:** Complete  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** Medium — changes the semantic role of an existing method; must not break any current usage
 
@@ -39,40 +39,30 @@ Override use cases:
 
 ---
 
-## Change
+## Change (as implemented — diverges from original spec)
 
-Provide a default implementation in `Element` (or the appropriate base interface):
+The original spec proposed `return null` and deferring convention-based resolution to Phase 9.
+The implemented default instead encodes the convention directly, probing the classpath in
+priority order: `.json` first (under `locators/json/`), then `.properties` (under
+`locators/properties/`), falling back to `.json` if no file is found.
 
 ```java
 default String getExternalFileName() {
-    return null;
+    Enum<?> e = (Enum<?>) this;
+    Class<?> enumClass = e.getDeclaringClass();
+    Class<?> pageClass = enumClass.getEnclosingClass();
+    Class<?> target = pageClass != null ? pageClass : enumClass;
+    return resolveLocatorFileName(target.getSimpleName());
 }
+
+// private static — candidates kept internal, not yet configurable
 ```
 
-When the override returns `null`, the resolution order (Phase 9) falls through to the convention.
+The priority list is internal to a `private static` method inside `Element` (interface fields
+are implicitly public, so the list cannot be a field and remain internal). Adding a new format
+requires one entry in the candidates array plus a matching `LocatorSource` registration.
 
-Elements that need a custom path continue to override as before:
-
-```java
-@Override
-public String getExternalFileName() {
-    return "shared/common-elements.json";
-}
-```
-
-Elements that use hardcoded locators and want to bypass external lookup override to return `null` explicitly:
-
-```java
-@Override
-public String getExternalFileName() {
-    return null;
-}
-
-@Override
-public String getTriggerLocator() {
-    return "//tr[td='%s']//button";
-}
-```
+Explicit overrides on existing elements continue to take precedence unchanged.
 
 ---
 

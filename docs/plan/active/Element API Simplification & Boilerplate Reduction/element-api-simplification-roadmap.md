@@ -43,17 +43,17 @@ Resolve before the relevant phases begin.
 | 5 | Deterministic locator repository convention | High | Pending |
 | 6 | Properties template generator (new CLI command) | Low | Pending |
 | 7 | Runtime repository generation (existing CLI repositioned) | Low | Pending |
-| 8 | `getExternalFileName()` as advanced override | Medium | Pending |
+| 8 | `getExternalFileName()` as advanced override | Medium | Complete |
 | 9 | Locator resolution order | High | Pending |
 | 10 | Mixed locator strategies | Medium | Pending |
-| 11 | Remove constructors from static elements | Low | Pending |
+| 11 | Remove constructors from static elements | Low | Partial |
 | 12 | Simplify capability interfaces | Medium | Pending |
 | 13 | `LocatorContext` abstraction (new) | High | Pending |
 | 14 | Cache `LocatorContext` resolution | Medium | Pending |
 | 15 | Preserve nested enum organization | Low | Pending |
-| 16 | `LocatorFamily` — shared template, auto arg from constant name | Medium | Pending |
-| 17 | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Pending |
-| 18 | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Pending |
+| 16 | `LocatorFamily` — shared template, auto arg from constant name | Medium | Complete |
+| 17 | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Complete |
+| 18 | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Complete |
 
 ---
 

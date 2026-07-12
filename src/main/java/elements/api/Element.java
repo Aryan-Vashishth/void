@@ -25,9 +25,39 @@ import javax.annotation.Nullable;
  * </p>
  */
 public interface Element {
-    /** @return properties file name containing locator key/value pairs, or null if none. */
+    /**
+     * Returns the bare file name (no path prefix) of the external locator resource for this element,
+     * or {@code null} if the locator is hardcoded.
+     *
+     * <p>Default: derives the base name from the enclosing page interface (or the enum class itself
+     * for top-level enums), then probes candidate suffixes in priority order (.json, .properties, …),
+     * returning the first file that exists on the classpath. Falls back to {@code .json} if none found.
+     * Override to supply a fixed file name.</p>
+     */
     @Nullable
-    String getExternalFileName();
+    default String getExternalFileName() {
+        Enum<?> e = (Enum<?>) this;
+        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        Class<?> target = pageClass != null ? pageClass : enumClass;
+        return resolveLocatorFileName(target.getSimpleName());
+    }
+
+    private static String resolveLocatorFileName(String baseName) {
+        // Priority-ordered [suffix, classpath-base] pairs — internal, not yet configurable.
+        // To add a new format (e.g. YAML): append { ".yaml", "locators/yaml/" } here
+        // and register a matching LocatorSource in LocatorSourceRegistry.
+        String[][] candidates = {
+            { ".json",       "locators/json/"       },
+            { ".properties", "locators/properties/" }
+        };
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        for (String[] c : candidates) {
+            String fileName = baseName + c[0];
+            if (cl.getResource(c[1] + fileName) != null) return fileName;
+        }
+        return baseName + candidates[0][0];
+    }
 
     /**
      * Returns the namespaced locator key for this element.

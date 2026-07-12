@@ -10,9 +10,6 @@ import elements.api.capability.Typeable;
  */
 public interface DemoLoginPage {
 
-    /** Shared JSON locator file for all enums in this interface. */
-    String LOCATOR_FILE = "demo-login-elements.json";
-
     // --- Text fields use Typeable (role: INPUT) ---
     enum Credentials implements Typeable {
         USERNAME_INPUT("USERNAME_INPUT"),
@@ -21,8 +18,7 @@ public interface DemoLoginPage {
         private final String key;
         Credentials(String k) { this.key = k; }
 
-        @Override public String getInputLocator()     { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
+        @Override public String getInputLocator() { return key; }
     }
 
     // --- Buttons use Clickable (role: TRIGGER) ---
@@ -33,9 +29,8 @@ public interface DemoLoginPage {
         private final String label;
         Button(String k, String l) { this.key = k; this.label = l; }
 
-        @Override public String getTriggerLocator()   { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[]{label}; }
+        @Override public String getTriggerLocator() { return key; }
+        @Override public Object[] getArgs()         { return new Object[]{label}; }
     }
 
     // --- Labels use ReadOnly (role: TEXT) ---
@@ -45,8 +40,7 @@ public interface DemoLoginPage {
         private final String key;
         Labels(String k) { this.key = k; }
 
-        @Override public String getTextLocator()      { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
+        @Override public String getTextLocator() { return key; }
     }
 }
 
