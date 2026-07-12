@@ -818,6 +818,184 @@ Benefits:
 
 ---
 
+# Part 16 — Locator Families
+
+Not every enum constant represents a unique locator. Many logical elements share a single locator template and differ only by their runtime argument — the text or identifier that identifies a specific instance at runtime.
+
+For these elements, maintaining one properties key per constant is wasteful. The constant name already carries the semantic value; the locator template is shared.
+
+`LocatorFamily` addresses this directly.
+
+## Marker Interface
+
+```java
+public interface LocatorFamily extends Element {}
+```
+
+An enum that implements `LocatorFamily` declares that all its constants share a single locator template.
+
+```java
+public interface AdminHome {
+
+    enum Tiles implements Clickable, LocatorFamily {
+        AUDIT_INFO,
+        MANAGE_USERS,
+        MANAGE_DOCS,
+        MANAGE_VENDORS
+    }
+}
+```
+
+## Key Format
+
+The repository key for a locator family is derived from the page type and the enum type — without the constant name.
+
+```
+AdminHome.Tiles=
+```
+
+The developer supplies one locator template that applies to all constants in the enum:
+
+```properties
+AdminHome.Tiles=//button[preceding-sibling::p[normalize-space(.)='%s']]
+```
+
+## Automatic Runtime Arguments
+
+VOID derives the runtime argument from the enum constant name using the same word-transform algorithm as `getDisplayText()` (Part 4):
+
+```
+MANAGE_USERS  →  "Manage Users"  →  Object[]{"Manage Users"}
+```
+
+At the call site:
+
+```java
+AdminHome.Tiles.MANAGE_USERS.click();
+```
+
+VOID internally resolves:
+
+```xpath
+//button[preceding-sibling::p[normalize-space(.)='Manage Users']]
+```
+
+The developer never implements `getArgs()` for family constants.
+
+## Automatic Argument Boundary
+
+Automatic argument derivation applies only when VOID can deterministically produce the full argument list — that is, when the locator template contains exactly one `%s` token whose value maps to the constant's semantic label.
+
+Multi-argument templates are not automatically resolved:
+
+```properties
+Products.TableActions=//tr[td='%s']//button[@title='%s']
+```
+
+These continue to use explicit runtime arguments:
+
+```java
+Products.TableActions.DELETE.with("Laptop", "Delete");
+```
+
+---
+
+# Part 17 — Advanced Locator Families
+
+Some locator families require semantic values that cannot be derived automatically — acronyms, symbols, punctuation, or domain-specific UI labels.
+
+`AdvancedLocatorFamily` extends `LocatorFamily`. Constants that need a custom semantic value carry it in a constructor. Constants without a constructor continue to use automatic derivation.
+
+```java
+public interface VendorPage {
+
+    enum Filters implements Clickable, AdvancedLocatorFamily {
+
+        COUNTRY,
+
+        HQ_STATE_PROVINCE("HQ State/Province"),
+
+        SAVE_AND_CONTINUE("Save & Continue"),
+
+        CRM("CRM");
+    }
+}
+```
+
+Generated properties remain:
+
+```properties
+VendorPage.Filters=
+```
+
+Only exceptional values require explicit metadata. Everything else continues to be generated automatically.
+
+---
+
+# Part 18 — Switch Locator Families
+
+For projects that prefer a centralised semantic mapping over per-constant constructors, `SwitchLocatorFamily` provides a switch-based alternative.
+
+```java
+public interface VendorPage {
+
+    enum Filters implements Clickable, SwitchLocatorFamily {
+        COUNTRY,
+        PROGRAM_NAME,
+        HQ_STATE_PROVINCE,
+        SAVE_AND_CONTINUE,
+        CRM
+    }
+}
+```
+
+Because `SwitchLocatorFamily` declares `getSemanticValue()` as an abstract method, the IDE immediately reports that the class must implement it. Using IntelliJ's **Implement Methods** quick fix generates an exhaustive switch:
+
+```java
+@Override
+public String getSemanticValue() {
+    return switch (this) {
+        case COUNTRY -> throw new UnsupportedOperationException();
+        case PROGRAM_NAME -> throw new UnsupportedOperationException();
+        case HQ_STATE_PROVINCE -> throw new UnsupportedOperationException();
+        case SAVE_AND_CONTINUE -> throw new UnsupportedOperationException();
+        case CRM -> throw new UnsupportedOperationException();
+    };
+}
+```
+
+The developer replaces only the required mappings. Whenever a new constant is added, the compiler reports an incomplete switch and IntelliJ's **Add missing branches** quick fix updates it automatically.
+
+Generated properties remain:
+
+```properties
+VendorPage.Filters=
+```
+
+## Runtime Argument Rules
+
+All three family interfaces share the same runtime behavior. They differ only in how semantic values are authored.
+
+| Interface | Semantic value source |
+|---|---|
+| `LocatorFamily` | Word-transform of constant name (automatic) |
+| `AdvancedLocatorFamily` | Constructor value, or word-transform if no constructor |
+| `SwitchLocatorFamily` | Return value of `getSemanticValue()` |
+
+## Recommended Progression
+
+```
+Static Elements
+      ↓
+LocatorFamily          (most common)
+      ↓
+AdvancedLocatorFamily  (when some labels cannot be derived)
+      ↓
+SwitchLocatorFamily    (rare — prefer centralised mapping + exhaustive switch)
+```
+
+---
+
 # Expected Benefits
 
 After this phase:

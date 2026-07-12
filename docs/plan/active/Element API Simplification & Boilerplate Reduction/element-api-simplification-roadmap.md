@@ -51,13 +51,20 @@ Resolve before the relevant phases begin.
 | 13 | `LocatorContext` abstraction (new) | High | Pending |
 | 14 | Cache `LocatorContext` resolution | Medium | Pending |
 | 15 | Preserve nested enum organization | Low | Pending |
+| 16 | `LocatorFamily` — shared template, auto arg from constant name | Medium | Pending |
+| 17 | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Pending |
+| 18 | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Pending |
 
 ---
 
 ## Recommended Order
 
-**Phases 1–4** are purely additive defaults — safe to implement first, in any order.  
-They unlock **Phase 11** (constructor removal) once all four defaults are in place.
+**Phases 1–4** are purely additive defaults — safe to implement first, in any order.
+
+**Phases 16–18** (Locator Families) build on Phase 4's display-text transform algorithm and must come before Phase 11.  
+Implement in sequence: 16 → 17 → 18.
+
+**Phase 11** (constructor removal) now depends on Phases 1–4 AND Phases 16–17 being complete, because `AdvancedLocatorFamily` is the only permitted home for constructors after cleanup.
 
 **Phases 5, 8, 9** form the locator resolution chain — implement in that sequence.  
 Resolve Open Decision 1 before Phase 5.
