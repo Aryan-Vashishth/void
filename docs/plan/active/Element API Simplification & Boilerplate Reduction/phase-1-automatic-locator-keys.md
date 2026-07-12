@@ -1,6 +1,6 @@
 # Phase 1 — Automatic Locator Keys
 
-**Status:** Pending  
+**Status:** Complete  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** Low — additive default; no existing behavior removed
 

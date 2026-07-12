@@ -29,8 +29,15 @@ public interface Element {
     @Nullable
     String getExternalFileName();
 
-    /** @return primary locator key (e.g. for By.xpath lookup). Must not be blank for actionable elements. */
-    String getPrimaryLocator();
+    /**
+     * Returns the primary locator key for this element.
+     * <p>The default derives the key from the enum constant name, eliminating
+     * duplicate string arguments in enum constructors. Capability interfaces and
+     * elements with custom keys override this as needed.</p>
+     */
+    default String getPrimaryLocator() {
+        return ((Enum<?>) this).name();
+    }
 
     /** @return secondary fallback locator key, or null if not applicable. */
     default String getSecondaryLocator(){ return null; }

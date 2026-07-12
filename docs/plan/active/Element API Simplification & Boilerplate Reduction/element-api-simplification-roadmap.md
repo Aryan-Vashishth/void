@@ -36,7 +36,7 @@ Resolve before the relevant phases begin.
 
 | Phase | Description | Risk | Status |
 |-------|-------------|------|--------|
-| 1 | Automatic locator keys — `name()` as default `getPrimaryLocator()` | Low | Pending |
+| 1 | Automatic locator keys — `name()` as default `getPrimaryLocator()` | Low | Complete |
 | 2 | Default empty args — `NO_ARGS` default in `Element` | Low | Pending |
 | 3 | Rename `EMPTY_ARGS` → `NO_ARGS` | Medium | Pending |
 | 4 | Automatic display text — derive from enum constant name | Low | Pending |
