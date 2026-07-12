@@ -1,6 +1,6 @@
 # Phase 17 — AdvancedLocatorFamily
 
-**Status:** Pending  
+**Status:** Complete  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** Low — additive extension of Phase 16; no existing behavior changed
 
