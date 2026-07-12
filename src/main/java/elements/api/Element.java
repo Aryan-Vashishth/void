@@ -63,10 +63,21 @@ public interface Element {
         return (overrides != null && overrides.length > 0) ? overrides : getArgs();
     }
 
-    /** @return human friendly label for logs; default uses first arg or empty string. */
+    /**
+     * Returns a human-readable label derived from the enum constant name.
+     * <p>Transformation: {@code SAVE_AS_DRAFT} → {@code Save As Draft}.
+     * Tokens are split on underscores; each token is capitalised with the rest lowercased.
+     * Capability interfaces override this to incorporate dynamic args when present.</p>
+     */
     default String getDisplayText() {
-        Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : "";
+        String[] tokens = ((Enum<?>) this).name().split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String token : tokens) {
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(token.charAt(0)));
+            if (token.length() > 1) sb.append(token.substring(1).toLowerCase());
+        }
+        return sb.toString();
     }
 
     /**

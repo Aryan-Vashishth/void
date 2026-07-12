@@ -86,6 +86,30 @@ public class ElementInterfaceDefaultsTest {
         assertEquals(DynamicElement.PRODUCT_ROW.getArgs(), new Object[]{"Laptop"});
     }
 
+    // ---------- Element.getDisplayText ----------
+
+    @Test
+    public void getDisplayText_singleToken_capitalisesWord() {
+        assertEquals(StubElement.USERNAME_INPUT.getDisplayText(), "Username Input");
+    }
+
+    @Test
+    public void getDisplayText_twoTokens_capitalisesEachWord() {
+        assertEquals(StubElement.LOGIN_BUTTON.getDisplayText(), "Login Button");
+    }
+
+    @Test
+    public void getDisplayText_threeTokens_capitalisesEachWord() {
+        assertEquals(StubElement.SAVE_AS_DRAFT.getDisplayText(), "Save As Draft");
+    }
+
+    @Test
+    public void getDisplayText_noOverride_usesEnumName_ignoresArgs() {
+        // DynamicElement has args but no getDisplayText() override:
+        // the Element default derives from enum name, not args.
+        assertEquals(DynamicElement.PRODUCT_ROW.getDisplayText(), "Product Row");
+    }
+
     // ---------- Element.effectiveArgs ----------
 
     @Test

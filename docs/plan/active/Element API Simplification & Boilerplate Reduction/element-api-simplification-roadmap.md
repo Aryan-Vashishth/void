@@ -39,7 +39,7 @@ Resolve before the relevant phases begin.
 | 1 | Automatic locator keys — `name()` as default `getPrimaryLocator()` | Low | Complete |
 | 2 | Default empty args — `NO_ARGS` default in `Element` | Low | Complete |
 | 3 | Rename `EMPTY_ARGS` → `NO_ARGS` | Medium | Complete |
-| 4 | Automatic display text — derive from enum constant name | Low | Pending |
+| 4 | Automatic display text — derive from enum constant name | Low | Complete |
 | 5 | Deterministic locator repository convention | High | Pending |
 | 6 | Properties template generator (new CLI command) | Low | Pending |
 | 7 | Runtime repository generation (existing CLI repositioned) | Low | Pending |
