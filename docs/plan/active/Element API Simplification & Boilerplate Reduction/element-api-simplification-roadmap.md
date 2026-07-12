@@ -45,7 +45,7 @@ Resolve before the relevant phases begin.
 | 7 | Runtime repository generation (existing CLI repositioned) | Low | Pending |
 | 8 | `getExternalFileName()` as advanced override | Medium | Complete |
 | 9 | Locator resolution order | High | Complete |
-| 10 | Mixed locator strategies | Medium | Pending |
+| 10 | Mixed locator strategies | Medium | Complete |
 | 11 | Remove constructors from static elements | Low | Partial |
 | 12 | Simplify capability interfaces | Medium | Complete |
 | 13 | `LocatorContext` abstraction (new) | High | Pending |
