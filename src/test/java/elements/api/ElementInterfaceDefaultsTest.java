@@ -10,14 +10,21 @@ import static org.testng.Assert.*;
  */
 public class ElementInterfaceDefaultsTest {
 
-    /** Minimal enum for testing the {@code getPrimaryLocator()} default. */
+    /** Minimal enum for testing {@code getPrimaryLocator()} and {@code getArgs()} defaults. */
     private enum StubElement implements Element {
         USERNAME_INPUT,
         LOGIN_BUTTON,
         SAVE_AS_DRAFT;
 
         @Override public String getExternalFileName() { return null; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
+    }
+
+    /** Enum that overrides {@code getArgs()} to verify explicit overrides still take precedence. */
+    private enum DynamicElement implements Element {
+        PRODUCT_ROW;
+
+        @Override public String getExternalFileName() { return null; }
+        @Override public Object[] getArgs()           { return new Object[]{"Laptop"}; }
     }
 
     private static Element elementWithArgs(Object... args) {
@@ -60,6 +67,23 @@ public class ElementInterfaceDefaultsTest {
             @Override public String getExternalFileName() { return null; }
             @Override public Object[] getArgs()           { return args; }
         };
+    }
+
+    // ---------- Element.getArgs ----------
+
+    @Test
+    public void getArgs_noOverride_returnsNoArgs() {
+        assertSame(StubElement.USERNAME_INPUT.getArgs(), Element.NO_ARGS);
+    }
+
+    @Test
+    public void getArgs_noOverride_returnsEmptyArray() {
+        assertEquals(StubElement.LOGIN_BUTTON.getArgs().length, 0);
+    }
+
+    @Test
+    public void getArgs_explicitOverride_returnsOwnArray() {
+        assertEquals(DynamicElement.PRODUCT_ROW.getArgs(), new Object[]{"Laptop"});
     }
 
     // ---------- Element.effectiveArgs ----------

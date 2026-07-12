@@ -48,8 +48,11 @@ public interface Element {
     /** @return secondary fallback locator key, or null if not applicable. */
     default String getSecondaryLocator(){ return null; }
 
+    /** Shared empty-args constant — signals that this element requires no locator arguments. */
+    Object[] NO_ARGS = new Object[0];
+
     /** @return dynamic arguments used to format locator templates containing %s tokens. */
-    Object[] getArgs();
+    default Object[] getArgs() { return NO_ARGS; }
 
     /**
      * Returns {@code overrides} when it is non-null and non-empty; otherwise returns {@link #getArgs()}.
