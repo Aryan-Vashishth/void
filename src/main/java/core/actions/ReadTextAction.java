@@ -14,7 +14,7 @@ import elements.meta.ElementRole;
  *
  * <p>Safe profile: {@link ActionProfiles#DEFAULT_SAFE} — waits for element visibility before.</p>
  */
-@Beta(since = "2.4", note = "Phase 19 — concrete action subclass for ReadOnly")
+@Beta(since = "0.2", note = "Phase 19 — concrete action subclass for ReadOnly")
 public final class ReadTextAction extends ElementAction {
 
     public ReadTextAction(ReadOnly element) {

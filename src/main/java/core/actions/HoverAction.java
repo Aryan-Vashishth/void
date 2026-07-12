@@ -14,7 +14,7 @@ import elements.meta.ElementRole;
  *
  * <p>Safe profile: {@link ActionProfiles#DEFAULT_SAFE} — waits for element visibility before.</p>
  */
-@Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
+@Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
 public final class HoverAction extends ElementAction {
 
     public HoverAction(Hoverable element) {

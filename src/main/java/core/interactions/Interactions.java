@@ -46,7 +46,7 @@ import static core.logging.CustomLogger.*;
  * @see core.executor.FlowExecutor
  * @see UIEngine
  */
-@Deprecated(since = "2.0", forRemoval = false)
+@Deprecated(since = "0.1", forRemoval = false)
 public class Interactions {
 
     private static final Duration OVERLAY_TIMEOUT = Duration.ofSeconds(5);

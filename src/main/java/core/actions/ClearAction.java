@@ -15,7 +15,7 @@ import elements.meta.ElementRole;
  * <p>Safe profile: {@link ActionProfiles#TYPEABLE_SAFE} — clears field and waits for
  * visibility before; highlights after.</p>
  */
-@Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
+@Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
 public final class ClearAction extends TypeableElementAction {
 
     public ClearAction(Typeable element) {

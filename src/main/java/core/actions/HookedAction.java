@@ -41,7 +41,7 @@ import java.util.Objects;
  * @see ActionHandler
  */
 @Internal
-@Deprecated(forRemoval = true, since = "2.0")
+@Deprecated(forRemoval = true, since = "0.2")
 public class HookedAction implements Action {
 
     private static final ThreadLocal<ActionTrace> LAST_TRACE = new ThreadLocal<>();
@@ -74,7 +74,7 @@ public class HookedAction implements Action {
      *
      * @deprecated Internal testing API. Do not use in production code.
      */
-    @Deprecated(since = "2.0", forRemoval = true)
+    @Deprecated(since = "0.2", forRemoval = true)
     public static HookedAction forTesting(Action delegate,
                                           LocatorDescriptor descriptor,
                                           @Nullable List<ActionHandler> before,

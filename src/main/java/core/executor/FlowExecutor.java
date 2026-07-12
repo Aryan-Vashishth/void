@@ -22,7 +22,7 @@ import core.flow.Flow;
  * {@link core.runtime.VOID#run(Flow)} and {@link core.runtime.VOID#run(Action)} instead,
  * which delegate to the session's internal executor.</p>
  */
-@Beta(since = "2.0", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
+@Beta(since = "0.1", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
 public class FlowExecutor {
 
     private final UIEngine engine;

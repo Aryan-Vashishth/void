@@ -23,7 +23,7 @@ import java.time.Duration;
  * <p>Safe profile: {@link ActionProfiles#SELECTABLE_SAFE} — waits for visibility,
  * clickability, and Angular loader before; highlights after.</p>
  */
-@Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
+@Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
 public final class SearchAndSelectAction extends SelectableElementAction {
 
     private final String term;

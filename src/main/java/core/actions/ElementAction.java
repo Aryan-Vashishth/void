@@ -42,7 +42,7 @@ import java.util.Objects;
  *   }
  * </pre>
  */
-@Beta(since = "2.4", note = "Phase 13 refactor — ElementAction ownership model")
+@Beta(since = "0.2", note = "Phase 13 refactor — ElementAction ownership model")
 public abstract class ElementAction implements Action, ActionLabeled {
 
     protected final Element element;

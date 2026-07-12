@@ -42,7 +42,7 @@ import java.util.Objects;
  *   <li>Action = deferred execution intent. Engine = smart executor.</li>
  * </ul>
  */
-@Beta(since = "2.0", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
+@Beta(since = "0.1", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
 @FunctionalInterface
 public interface Action {
 
@@ -174,7 +174,7 @@ public interface Action {
      * @deprecated Prefer fluent directional APIs:
      *             {@code action.before(...).after(...)}
      */
-    @Deprecated(forRemoval = false, since = "2.0")
+    @Deprecated(forRemoval = false, since = "0.1")
     default Action withHooks(@Nullable List<ActionHandler> before,
                              @Nullable List<ActionHandler> after) {
         if (this instanceof HookChainAction chain) {

@@ -5,13 +5,13 @@ package core.actions;
  *
  * @deprecated Use {@link ActionProfile#builder()} directly.
  */
-@Deprecated(since = "2.4", forRemoval = true)
+@Deprecated(since = "0.2", forRemoval = true)
 public final class Profile {
 
     private Profile() {}
 
     /** @deprecated Use {@link ActionProfile#builder()} directly. */
-    @Deprecated(since = "2.4", forRemoval = true)
+    @Deprecated(since = "0.2", forRemoval = true)
     public static ActionProfile.Builder builder() {
         return ActionProfile.builder();
     }

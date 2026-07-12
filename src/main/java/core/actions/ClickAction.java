@@ -15,7 +15,7 @@ import elements.meta.ElementRole;
  * <p>Safe profile: {@link ActionProfiles#CLICKABLE_SAFE} — waits for clickability before,
  * waits for Angular loader and highlights after.</p>
  */
-@Beta(since = "2.4", note = "Phase 14 — concrete action subclass")
+@Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
 public final class ClickAction extends ClickableElementAction {
 
     public ClickAction(Clickable element) {
