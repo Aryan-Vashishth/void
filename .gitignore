@@ -30,3 +30,6 @@ test-output/
 
 # Internal notes
 .notes/
+
+#Claude
+.claude/
