@@ -1,0 +1,112 @@
+# Phase 11 — Remove Constructors From Static Elements
+
+**Status:** Pending  
+**Branch:** `feature/element-api-simplification`  
+**Risk:** Low — mechanical cleanup enabled by Phases 1–4; no behavior change
+
+---
+
+## Objective
+
+Simplify all static element enums by removing constructors, stored fields, and redundant method overrides that are now covered by the defaults introduced in Phases 1–4.
+
+---
+
+## Dependencies
+
+All four must be complete before this phase begins:
+
+- Phase 1 (automatic locator keys)
+- Phase 2 (default empty arguments)
+- Phase 3 (NO_ARGS rename)
+- Phase 4 (automatic display text)
+
+---
+
+## Context
+
+Before:
+
+```java
+enum Credentials implements Typeable {
+
+    USERNAME_INPUT("USERNAME_INPUT"),
+    PASSWORD_INPUT("PASSWORD_INPUT");
+
+    private final String key;
+    Credentials(String k) { this.key = k; }
+
+    @Override public String getInputLocator()     { return key; }
+    @Override public String getExternalFileName() { return LOCATOR_FILE; }
+    @Override public Object[] getArgs()           { return new Object[0]; }
+}
+```
+
+After:
+
+```java
+enum Credentials implements Typeable {
+    USERNAME_INPUT,
+    PASSWORD_INPUT
+}
+```
+
+Every removed override was mechanically derivable. No behavior changes.
+
+---
+
+## Scope
+
+Remove the following patterns wherever they appear and the defaults now cover them:
+
+- Constructor that stores only the locator key string → remove
+- `getInputLocator()` / `getTriggerLocator()` / equivalent overrides that return the stored key → remove (default `getPrimaryLocator()` covers this)
+- `getExternalFileName()` overrides that return `LOCATOR_FILE` → remove if the page is migrated to the convention in Phase 5; leave if not yet migrated
+- `getArgs()` overrides that return `new Object[0]` → remove (default covers this)
+- `getDisplayText()` overrides derivable from the constant name → remove (default covers this)
+
+Constructors and overrides that carry genuine non-derivable information must be preserved.
+
+---
+
+## Affected Files
+
+- `src/main/java/tests/demo/pages/DemoLoginPage.java` (and any other page definitions in the project)
+- Any other enum-based element definitions across the codebase
+
+---
+
+## Checklist
+
+### Analysis
+- [ ] List all element enums in the codebase
+- [ ] For each, identify which overrides are now redundant
+
+### Implementation
+- [ ] Remove redundant constructors, fields, and overrides from each enum
+- [ ] Confirm each simplified enum still compiles and resolves correctly
+- [ ] Preserve any override that is not derivable (custom display text, dynamic args, custom file path)
+
+### Tests
+- [ ] Regression: all simplified elements resolve to the same locators as before
+- [ ] Regression: `mvn test` passes with no failures
+
+---
+
+## Exit Criteria
+
+- All static element enums use the minimal declaration form
+- No redundant constructors, fields, or overrides remain in static elements
+- All tests pass
+
+---
+
+## What NOT to Do
+
+- Do not remove overrides that carry genuinely custom information
+- Do not remove `getExternalFileName()` overrides from elements on pages not yet migrated to the convention
+- Do not change dynamic elements that use `.with(...)` or non-empty args
+
+---
+
+*MIT License Copyright (c) 2025-2026 VOID Project*

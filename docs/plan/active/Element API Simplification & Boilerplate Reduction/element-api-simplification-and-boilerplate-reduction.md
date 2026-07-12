@@ -158,6 +158,7 @@ The refactoring follows these principles:
 - **Disposable generated artifacts.** The runtime never treats generated artifacts as authoritative. They are disposable outputs that can be regenerated from the source of truth at any time.
 - **Strong compile-time guarantees.** No runtime discovery of elements. No string-typed identifiers at call sites.
 - **Preserve escape hatches for advanced scenarios.** Every convention can be overridden. No capability is removed.
+- **Preserve readability over abstraction.** Defaults should reduce code, not require understanding a new abstraction to use an element.
 
 ---
 
@@ -820,7 +821,7 @@ After this phase:
 
 # Expected Impact
 
-Typical page definitions should become substantially smaller because repetitive runtime plumbing is eliminated.
+Typical page definitions should shrink by **60–80%** because repetitive runtime plumbing is eliminated.
 
 The developer workflow shortens to three steps that require judgment: define the page structure, fill in locator values, and run tests. Everything between those steps is generated.
 
