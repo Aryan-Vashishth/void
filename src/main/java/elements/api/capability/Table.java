@@ -1,5 +1,7 @@
 package elements.api.capability;
 
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -16,7 +18,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Table extends Element {
+public interface Table extends Element, ActionCapabilityProvider {
 
     String getTableLocator();
 
@@ -36,6 +38,9 @@ public interface Table extends Element {
         Object[] args = getArgs();
         return args.length > 0 ? args[0].toString() : getTableLocator();
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.TABLE; }
 
     @Override
     default java.util.Map<ElementRole, String> getAllLocatorRoles() {

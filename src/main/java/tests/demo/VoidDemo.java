@@ -1,22 +1,16 @@
 package tests.demo;
 
-import core.engine.LocatorDescriptor;
 import core.flow.Flow;
-import core.interactions.hooks.After;
-import core.interactions.hooks.Before;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.runtime.VOID;
-import elements.meta.ElementRole;
+import tests.demo.hooks.DemoHooks;
 import tests.demo.pages.DemoLoginPage;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.time.Duration;
-import java.util.List;
 
 import static core.logging.CustomLogger.*;
 
@@ -60,90 +54,77 @@ public class VoidDemo {
      */
     @Test
     public void loginWithValidCredentials() {
-        // Navigate via session façade
-        info.log("[1/3] Navigating to: " + TARGET_URL);
         app.navigateTo(TARGET_URL);
-        info.success("Page loaded. Current URL: " + app.getCurrentUrl());
 
-        // Execute login flow via session façade
-        info.log("[2/3] Executing login flow...");
-        debug.log("--> Typing username: " + VALID_USERNAME);
-        debug.log("--> Typing password: ********");
-        debug.log("--> Clicking Login button");
-
+        info.log("Executing login flow...");
         app.run(Flow.of(
                 DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
                 DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
         ));
-
         info.success("Flow executed successfully.");
 
-        // Verify via session façade — engine resolves/waits internally
-        info.log("[3/3] Verifying result...");
+        info.verifying("Verifying redirect to /secure...");
         String currentUrl = app.getCurrentUrl();
-        debug.log("Current URL: " + currentUrl);
-
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
         info.success("LOGIN PASSED — Redirected to secure area.");
     }
 
     /**
-     * Hooked login — demonstrates the fluent {@code .before(...).after(...)} API.
+     * Profiled login — demonstrates {@code .safely()} and custom project-specific after-hooks.
      *
-     * <p>Custom hook lambdas receive a {@code UIEngine} parameter — this is the
-     * designated way for hooks to interact with the engine within the Action pipeline.
-     * Test code itself remains engine-free; only the hooks touch the engine.</p>
+     * <p>{@code safely()} applies a capability-aware {@code SAFE} profile:
+     * correct before/after hooks are chosen automatically based on whether the
+     * action is a click, type, or select — no manual hook wiring needed.</p>
      *
-     * <h3>Hook pipeline per action</h3>
+     * <h3>Profile expansion</h3>
      * <pre>
-     *   before hooks  →  action  →  after hooks
-     *       ↓                           ↓
-     *   (engine, descriptor)       (engine, descriptor)
+     *   action.safely()  →  SAFE profile resolves hooks by capability
+     *       Typeable  : before [CLEAR_FIELD, WAIT_FOR_ELEMENT_VISIBLE], after [HIGHLIGHT_ELEMENT]
+     *       Clickable : before [WAIT_FOR_ELEMENT_CLICKABLE],            after [WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]
+     * </pre>
+     *
+     * <h3>Building custom hooks</h3>
+     * <p>Project teams compose their own hook libraries by declaring
+     * {@code static final AfterActionHandler} constants — the same pattern used by
+     * {@link core.interactions.hooks.After}.  See {@link tests.demo.hooks.DemoHooks} for the
+     * canonical example.  Any named constant drops in wherever a lambda would work:</p>
+     * <pre>
+     *   element.click()
+     *       .safely()
+     *       .after(DemoHooks.WAIT_FOR_LOGIN_SUCCESS);
+     * </pre>
+     *
+     * <p>For full manual control (advanced / power-user), use {@code withHooks(List, List)} directly:</p>
+     * <pre>
+     *   element.type("text")
+     *       .withHooks(
+     *           List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE),
+     *           List.of(After.HIGHLIGHT_ELEMENT));
      * </pre>
      */
     @Test(dependsOnMethods = "loginWithValidCredentials")
     public void loginWithHookedActions() {
-        info.log("[HOOKED 1/3] Navigating to: " + TARGET_URL);
         app.navigateTo(TARGET_URL);
 
-        info.log("[HOOKED 2/3] Executing hooked login flow...");
-
+        info.log("Executing profiled login flow...");
         app.run(Flow.of(
-                DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME)
-                        .withHooks(
-                                List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-                                List.of(After.HIGHLIGHT_ELEMENT)
-                        ),
+                // safely() applies the SAFE profile — capability-aware hooks, no manual wiring
+                DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME).safely(),
 
-                DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD)
-                        .withHooks(
-                                List.of(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT),
-                                List.of(After.HIGHLIGHT_ELEMENT)
-                        ),
+                DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD).safely(),
 
+                // safely() + custom named after-hook — see DemoHooks for the implementation.
+                // Named hooks are reusable, testable, and searchable; prefer them over
+                // inline lambdas for anything beyond a one-off throwaway.
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
-                        .withHooks(
-                                List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE, Before.HIGHLIGHT_ELEMENT),
-                                List.of(
-                                        // Custom inline hook: wait for success message after login click.
-                                        // Hooks receive the engine as a parameter — this is the intended
-                                        // way for hooks to perform engine-level operations without
-                                        // exposing the engine to test code.
-                                        (eng, desc) -> {
-                                            LocatorDescriptor successMsg = eng.resolve(
-                                                    DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
-                                            eng.waitForVisible(successMsg, Duration.ofSeconds(5));
-                                            debug.log("[HOOK] Success message visible after login click.");
-                                        }
-                                )
-                        )
+                        .safely()
+                        .after(DemoHooks.WAIT_FOR_LOGIN_SUCCESS)
         ));
+        info.success("Profiled flow executed successfully.");
 
-        info.success("Hooked flow executed successfully.");
-
-        info.log("[HOOKED 3/3] Verifying result...");
+        info.verifying("Verifying redirect to /secure...");
         String currentUrl = app.getCurrentUrl();
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);

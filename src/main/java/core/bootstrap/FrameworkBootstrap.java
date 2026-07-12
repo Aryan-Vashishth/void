@@ -5,6 +5,8 @@ import core.utils.ConfigLoader;
 import core.utils.ConfigPaths;
 
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * One-time framework initialisation.
@@ -39,6 +41,10 @@ public final class FrameworkBootstrap {
      */
     public static synchronized void init() {
         if (initialized) return;
+
+        // Suppress Selenium's JUL logging (CDP version-mismatch warnings, verbose
+        // protocol messages) at source, before any driver or Selenium Manager is created.
+        Logger.getLogger("org.openqa.selenium").setLevel(Level.SEVERE);
 
         CustomLogger.debug.log("FrameworkBootstrap: starting...");
 

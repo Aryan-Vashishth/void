@@ -1,6 +1,7 @@
 package elements.api.capability;
 
 import core.actions.Action;
+import core.actions.ActionCapability;
 import elements.meta.ElementRole;
 
 /**
@@ -38,6 +39,9 @@ public interface EditableTable extends Table {
         if (footer != null && !footer.isBlank() && !roles.containsValue(footer)) roles.put(ElementRole.FOOTER_INPUT_ROW, footer);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.EDITABLE_TABLE; }
 
     // ── Action emission ─────────────────────────────────────────────────
 

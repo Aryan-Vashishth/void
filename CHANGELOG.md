@@ -1,8 +1,118 @@
 # Changelog
 
-## [Unreleased] — 2026-05-29
+## [0.2.0] — 2026-07-12
+
+### Changed
+
+- **Open/Closed Principle applied to three action extension points**
+  - `ElementAction.operationLabel()` — capability-based `switch` replaced with class-name derivation: strips the `"Action"` suffix and lowercases the first character (`ClickAction` → `"click"`, `SearchAndSelectAction` → `"searchAndSelect"`). Anonymous subclasses (e.g., `ElementActions.of()`) return `"perform"`. Adding a new concrete action subclass requires no change to `ElementAction`.
+  - `ActionProfiles.safeProfileFor(ActionCapability)` and `reliableProfileFor(ActionCapability)` deleted — the central dispatch switches are gone. Profile ownership now lives directly in each concrete action subclass via `defaultSafeProfile()` / `defaultReliableProfile()` overrides: click-family (`ClickAction`, `ToggleAction`, `CheckAction`) → `CLICKABLE_*`; type-family (`TypeAction`, `ClearAction`, `AppendTypeAction`, `TypeAndPressAction`, `TypeSearchAction`, `SubmitSearchAction`) → `TYPEABLE_*`; select-family (`OpenAction`, `SelectAction`, `SelectByTextAction`, `SelectByValueAction`, `SearchAndSelectAction`) → `SELECTABLE_*`; read-family (`HoverAction`, `UploadAction`, `ReadTextAction`) inherit `DEFAULT_*` from the base class. Adding a new action type is fully self-contained — no changes to `ActionProfiles` or `ElementAction`.
+  - `ElementActions.capabilityFor()` — collapsed. The three role-based fallbacks (`ElementRole.INPUT → TYPEABLE`, `LIST → SELECTABLE`, `TRIGGER → CLICKABLE`) were dead code for all production elements (all implement `ActionCapabilityProvider`). Simplified to: `instanceof ActionCapabilityProvider → return p.capability()`, else return `UNKNOWN`. Adding a new `ElementRole` requires no change here.
 
 ### Added
+
+- **Action profiles — Phase 1 (profile API consolidation)**
+  - `Action.safely()` — applies the SAFE profile (capability-aware hooks: before/after chosen by Clickable / Typeable / Selectable)
+  - `Action.debug()` — applies the DEBUG profile (`LOG_INTENT` + `HIGHLIGHT_ELEMENT` before, `HIGHLIGHT_ELEMENT` after)
+  - `Action.raw()` — applies the RAW profile (no hooks; bare `perform()` only)
+  - `Action.using(ActionProfile)` — applies any custom or built-in profile
+  - `ActionProfile.name()` — default `"custom"`; named presets (SAFE, DEBUG, RAW, FAST, VISUAL, RELIABLE) override with stable identifiers
+  - `Profile.builder()` / `ActionProfile.builder()` — fluent builder for custom profiles
+  - `Profiles.FAST`, `Profiles.VISUAL`, `Profiles.RELIABLE` — additional built-in presets
+
+- **Capability-driven hook selection — Phase 4**
+  - `ActionProfiles.DEFAULT_SAFE` — shared immutable `ActionProfile` (wait-for-visible before, no after); the switch-free fallback for capabilities without a specific safe profile
+  - `ElementActions.capabilityFor()` — refactored: first checks `ActionCapabilityProvider.capability()` via pattern match; all 14 capability types now report accurate metadata through the action pipeline (11 previously returned UNKNOWN)
+  - `ElementAction` — new abstract base class implementing the Template Method pattern; `perform()` is final (resolve then execute); `safely()`, `debug()`, `reliable()`, `raw()` are final fluent APIs; `execute()` is the single abstract primitive for subclasses
+
+- **Documentation updated — Phase 20**
+  - `docs/architecture/system-overview.md` — Decision Traceability extended with ADR-012/013/014; Action/Flow section updated to concrete action subclasses; project structure listing updated; Architecture Invariants updated with layering and metadata-only rules
+  - `docs/architecture/core-packages.md` — `core.actions` section rewritten: full concrete action class table, updated "How it works" steps, layering rule added
+  - ADR-013 added: Architectural Layering Principle — capabilities describe, actions execute; derived rules for code review
+  - ADR-014 added: Concrete Actions over Anonymous Lambdas — motivation, comparison table, covariant return types, consequences
+
+- **ElementActions factory scope settled — Phase 19 (ADR-012)**
+  - `ReadTextAction` added — 17th concrete action subclass; `ReadOnly.readText()` now returns `ReadTextAction` directly, consistent with the Phase 14/15 pattern
+  - All 16 production capability interfaces now emit typed concrete subclasses; no production code calls `ElementActions.of()`
+  - `ElementActions` marked `@Internal` — factory retained for test infrastructure (custom-operation lambdas that concrete subclasses cannot satisfy) and framework-internal edge cases
+  - ADR-012 documents the decision and audit findings (15 call sites: 1 production migrated, 14 test infrastructure retained)
+
+- **ElementRole audit — Phase 18 (investigation)**
+  - Audited all 16 concrete action subclasses for ElementRole necessity
+  - Decision: **Keep** — ElementRole is a public API contract (`UIEngine.resolve()`, `LocatorResolver.resolveDescriptor()`, `Element.getAllLocatorRoles()`); cannot be removed without breaking changes
+  - Single-role actions (12 of 16) hardcode their locator role at compile time in the constructor — this is correct and needs no change
+  - Composite actions (`SelectAction`, `SearchAndSelectAction`) call `engine.resolve()` with secondary roles directly in `execute()` — this is correct named-key usage, not dispatch
+  - No code changes required; architecture is sound
+
+- **Capability-based profile dispatch eliminated — Phase 17**
+  - `Profiles.SAFE` removed — had `before(Action)` and `after(Action)` switches on `action.capability()`
+  - `Profiles.RELIABLE` removed — had `before(Action)` switch on `action.capability()`
+  - `Profiles.fromName("SAFE")` and `fromName("RELIABLE")` fall back to `RAW`
+  - `ActionProfiles.reliableProfileFor(ActionCapability)` added — mirrors `safeProfileFor`; four capability-specific reliable profile constants: `DEFAULT_RELIABLE`, `CLICKABLE_RELIABLE`, `TYPEABLE_RELIABLE`, `SELECTABLE_RELIABLE` *(both dispatch methods later removed — see Changed section above)*
+  - `ElementAction.reliable()` now calls `using(defaultReliableProfile())` — polymorphic, same pattern as `safely()`
+  - `ElementAction.defaultReliableProfile()` calls `ActionProfiles.reliableProfileFor(capability)` — no static Profiles reference
+  - `Action.safely()` default updated to `using(ActionProfiles.DEFAULT_SAFE)` — applies wait-for-visible for plain lambda actions
+  - `Profiles` now contains only action-independent presets: `RAW`, `DEBUG`, `FAST`, `VISUAL`
+  - Profile resolution is 100% polymorphic: no `switch(action.capability())` outside of `ActionProfiles` dispatch methods
+
+- **Execution policy deleted from capability interfaces — Phase 16**
+  - Re-audit post Phase 14/15 confirms zero execution policy in `elements/api/capability`: no `safeProfile()`, no `reliableProfile()`, no `*_SAFE_PROFILE` constants
+  - `ActionCapabilityProvider` contains only `capability()` — pure metadata interface
+  - All profile dispatch lives exclusively in `ActionProfiles` (package-private, `core.actions`)
+  - `ElementAction.defaultSafeProfile()` is the single hook-wiring entry point for action subclasses
+
+- **Capability action emission — Phase 15**
+  - `Clickable.click()` returns `ClickAction` (was anonymous `ElementActions.of()` lambda)
+  - `Checkable.toggle()` returns `ToggleAction`; `Checkable.set(boolean)` returns `CheckAction`
+  - `Hoverable.hover()` returns `HoverAction`
+  - `Typeable.type()`, `clear()`, `append()`, `typeAndPress()` return `TypeAction`, `ClearAction`, `AppendTypeAction`, `TypeAndPressAction`
+  - `Selectable.open()`, `select()`, `selectByText()`, `selectByValue()` return `OpenAction`, `SelectAction`, `SelectByTextAction`, `SelectByValueAction`
+  - `SearchField.typeSearch()` returns `TypeSearchAction`; `submitSearch()` returns `SubmitSearchAction`
+  - `SearchableDropdown.searchAndSelect()` returns `SearchAndSelectAction`
+  - `Uploadable.upload()` returns `UploadAction` (was plain lambda)
+  - All concrete return types remain polymorphically assignable to `Action` — no call sites broken
+  - `ElementActions`, `Action`, and `java.time.Duration` imports removed from all updated capability interfaces
+
+- **Concrete action subclasses — Phase 14**
+  - `ClickAction(Clickable)` — `engine.click()`, TRIGGER role, CLICKABLE capability
+  - `ToggleAction(Checkable)` — unconditional click, TRIGGER, CHECKABLE
+  - `CheckAction(Checkable, boolean)` — conditional click when state differs, TRIGGER, CHECKABLE
+  - `HoverAction(Hoverable)` — `engine.hover()`, TEXT role, HOVERABLE capability
+  - `TypeAction(Typeable, String)` — `engine.type()`, INPUT role, TYPEABLE capability
+  - `ClearAction(Typeable)` — `engine.clear()`, INPUT, TYPEABLE
+  - `AppendTypeAction(Typeable, String)` — `engine.appendType()`, INPUT, TYPEABLE
+  - `TypeAndPressAction(Typeable, String, String)` — `engine.type()` then `sendKey()`, INPUT, TYPEABLE
+  - `OpenAction(Selectable)` — clicks TRIGGER only, SELECTABLE capability
+  - `SelectAction(Selectable)` — composite: click TRIGGER + `waitForOverlay` + click LIST, SELECTABLE
+  - `SelectByTextAction(Selectable, String)` — `engine.selectByVisibleText()`, LIST, SELECTABLE
+  - `SelectByValueAction(Selectable, String)` — `engine.selectByValue()`, LIST, SELECTABLE
+  - `UploadAction(Uploadable, String)` — `engine.uploadFile()`, INPUT, UPLOADABLE
+  - `TypeSearchAction(SearchField, String)` — `engine.type()`, SEARCH_INPUT, SEARCH_FIELD
+  - `SubmitSearchAction(SearchField)` — `engine.click()`, SEARCH_BUTTON, SEARCH_FIELD
+  - `SearchAndSelectAction(SearchableDropdown, String)` — composite: click TRIGGER + type SEARCH_INPUT + `waitForVisible` + click SEARCH_RESULT, SEARCHABLE_DROPDOWN
+  - All classes are `final`; profiles declared via `defaultSafeProfile()` / `defaultReliableProfile()` overrides — constants owned by `ActionProfiles` and referenced locally in each subclass (click-family → `CLICKABLE_*`, type-family → `TYPEABLE_*`, select-family → `SELECTABLE_*`)
+
+- **Execution policy moved to action layer — Phase 5 (SoC correction)**
+  - `ActionProfiles.safeProfileFor(ActionCapability)` — package-private static method; maps each capability to its safe profile constant; execution policy lives in `core.actions`, not in capability interfaces
+  - `ActionProfiles.CLICKABLE_SAFE` — `[WAIT_FOR_ELEMENT_CLICKABLE]` before, `[WAIT_FOR_ANGULAR_LOADER, HIGHLIGHT_ELEMENT]` after
+  - `ActionProfiles.TYPEABLE_SAFE` — `[CLEAR_FIELD, WAIT_FOR_ELEMENT_VISIBLE]` before, `[HIGHLIGHT_ELEMENT]` after
+  - `ActionProfiles.SELECTABLE_SAFE` — `[WAIT_FOR_ELEMENT_VISIBLE, WAIT_FOR_ELEMENT_CLICKABLE, WAIT_FOR_ANGULAR_LOADER]` before, `[HIGHLIGHT_ELEMENT]` after
+  - `ElementAction.safely()` calls `using(defaultSafeProfile())`; `defaultSafeProfile()` is a protected template method; concrete subclasses override to declare their profile directly (`ClickAction` → `ActionProfiles.CLICKABLE_SAFE`, etc.) rather than going through a central dispatch method
+  - `ActionCapabilityProvider` reduced to a single-method interface — `capability()` only; execution policy is not a capability concern
+  - `Clickable`, `Typeable`, `Selectable`, `SearchField`, `SearchableDropdown` no longer contain `ActionProfile` constants or `safeProfile()` overrides; capability interfaces are pure structural contracts
+  - Open/Closed at the action level: a new action type with different safe hooks overrides `defaultSafeProfile()` without touching capability interfaces or framework files
+
+- **Capability self-description — Phase 3**
+  - `core.actions.ActionCapabilityProvider` — new interface; capability interfaces implement it to self-describe without a registry
+  - `ActionCapability` enum expanded from 4 to 15 values: added HOVERABLE, CHECKABLE, UPLOADABLE, SEARCHABLE, SEARCH_FIELD, SEARCHABLE_DROPDOWN, READ_ONLY, TABLE, EDITABLE_TABLE, LISTABLE, MULTI_SELECTABLE alongside the existing CLICKABLE, TYPEABLE, SELECTABLE, UNKNOWN
+  - All 14 capability interfaces (`Clickable`, `Typeable`, `Selectable`, `Hoverable`, `Checkable`, `Uploadable`, `MultiSelectable`, `Searchable`, `SearchField`, `SearchableDropdown`, `ReadOnly`, `Table`, `EditableTable`, `Listable`) implement `ActionCapabilityProvider` and return their canonical constant
+  - No behavioral change — capability metadata is for logging, tracing, diagnostics, serialization only
+
+- **Action execution trace — Phase 2 (observability)**
+  - `core.actions.trace.ActionTrace` — immutable record of a single action execution (element, operation, profile, hooks, timing, status, failure)
+  - `core.actions.trace.TraceStatus` — outcome enum: `SUCCESS`, `FAILED`, `HOOK_FAILED`
+  - `core.actions.trace.ActionTraceLogger` — formats and emits trace output at DEBUG level; resolves named `Before`/`After` constants via reflection
+  - `HookedAction` now instruments every execution: records hook order, distinguishes `HOOK_FAILED` from `FAILED`, captures elapsed time, emits formatted trace block
 
 - **`VOID` session façade — ADR-011**
   - `VOID.navigateTo(String url)` — navigate without touching the engine directly
@@ -27,6 +137,10 @@
   - `archunit:1.3.0` added as a test-scoped dependency
 
 ### Changed
+
+- **`VoidDemo.loginWithHookedActions()`** — refactored to use `safely()` as primary pattern; inline after-hook shows how to extend a profile
+- **`core/actions/README.md`** — added Profiles section with capability expansion table and builder examples; `withHooks()` moved to Manual/Advanced
+- **`docs/architecture/hooks-pipeline.md`** — `safely()` promoted as primary modern path in overview, table, and best-practices section
 
 - **`VOID` Javadoc** — rewritten to reflect session-façade model with multi-session examples
 - **`FlowExecutor` Javadoc** — updated to prefer `VOID.run()` over direct construction
@@ -117,4 +231,3 @@ After bumping to `2.0-SNAPSHOT`:
 | `DriverFactory.createEmptyTemplate()`                            | `DriverFactory.createPropertiesTemplate(Profile.DEFAULT, true, true, false, false)`       |
 | `JsonLocatorMigrator.main(args)`                                 | `JsonMigratorCli.main(args)`                                                              |
 | `ThemeColors.theme()...build()`                                  | `ThemeColors.builder()...build()`                                                         |
-

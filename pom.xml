@@ -6,7 +6,7 @@
 
     <groupId>io.github.aryan-vashishth</groupId>
     <artifactId>void-framework</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 
     <!-- =========================================================
          Dependency Versions — update here, nowhere else
@@ -35,7 +35,7 @@
         <datafaker.version>2.4.2</datafaker.version>
 
         <!-- Architecture testing -->
-        <archunit.version>1.3.0</archunit.version>
+        <archunit.version>1.4.0</archunit.version>
 
         <!-- Plugins -->
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
@@ -134,7 +134,12 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
-
+        <!-- Routes SLF4J (pulled in transitively by Selenium) to Log4j2 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
         <!-- ── Annotations ───────────────────────────────────── -->
         <!-- JSR-305: provides javax.annotation.Nullable / Nonnull -->
         <dependency>

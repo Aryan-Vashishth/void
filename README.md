@@ -23,10 +23,6 @@ Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
 ---
 
-## Architecture
-
-![VOID execution pipeline](docs/images/architecture.png)
-
 ## Run the demo
 
 ```bash
@@ -37,21 +33,8 @@ mvn -B test -Dtest=VoidDemo
 
 Expected output:
 
-```text
-[VOID] Engine: SeleniumEngine
-[VOID] Flow start: login
-[VOID] -> type(USERNAME_INPUT, "tomsmith")
-[VOID] -> type(PASSWORD_INPUT, "******")
-[VOID] -> click(LOGIN_BUTTON)
-[VOID] Flow end: login (3 actions, 1.2s)
-```
-<!--
-Sample report snapshot:
+<img src="docs/images/void-demo-log-example.png" alt="VOID demo log output" width="700"/>
 
-![Allure sample report](docs/images/allure-report-sample.png)
-
-[View sample Allure report](docs/images/allure-report-sample.png)
--->
 ---
 
 ## TL;DR
@@ -245,17 +228,36 @@ Hooks are applied at the action layer via directional fluent APIs:
 - `Action.after(AfterActionHandler...)`
 
 Hooks wrap actions. They do not change execution — they add behavior around it.
-They operate on the same action pipeline, not outside it.
-They are part of execution, not a separate layer.
+They are part of the same pipeline, not a separate layer.
+
+### Profiles — preferred approach
+
+`.safely()` and `.reliable()` apply the correct pre-built hook set for the action's
+capability family with no manual wiring:
 
 ```java
-import core.flow.Flow;
+app.run(Flow.of(
+    DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith").safely(),
+    DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!").safely(),
+    DemoLoginPage.Button.LOGIN_BUTTON.click().safely()
+));
+```
+
+`reliable()` extends safe with loader waits before and after — use it for Angular or
+spinner-heavy pages where timing is tight.
+
+### Manual hook composition
+
+Use `.before(...)` / `.after(...)` with constants from `core.interactions.hooks.Before`
+and `After` when you need explicit control:
+
+```java
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 
 Flow login = Flow.of(
     DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith")
-        .before(Before.CLEAR_FIELD, Before.HIGHLIGHT_ELEMENT)
+        .before(Before.CLEAR_FIELD)
         .after(After.HIGHLIGHT_ELEMENT),
     DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!")
         .before(Before.CLEAR_FIELD)
@@ -266,11 +268,60 @@ Flow login = Flow.of(
 );
 ```
 
-Current codebase supports:
-- action-level hook composition via `.before(...).after(...)`
-- hook execution through the normal action/flow pipeline
+### Writing your own hook library
 
-FlowExecutor-level hooks are not implemented as a separate public API in the current codebase.
+For app-specific hooks used across multiple tests, create a constants-holder class
+following the same pattern as `core.interactions.hooks.After` and `Before`:
+
+```java
+package tests.your.hooks;
+
+import core.interactions.hooks.AfterActionHandler;
+import core.interactions.hooks.BeforeActionHandler;
+import elements.meta.ElementRole;
+import java.time.Duration;
+import static core.logging.CustomLogger.debug;
+
+public final class AppHooks {
+
+    private AppHooks() {}
+
+    /** Wait for the app's loading overlay to disappear after an action. */
+    public static final AfterActionHandler WAIT_FOR_PAGE_LOAD = (engine, descriptor) -> {
+        engine.waitForInvisible(
+                engine.resolve(AppOverlays.SPINNER, ElementRole.PRIMARY),
+                Duration.ofSeconds(15));
+        debug.log("[HOOK] Page load complete.");
+    };
+
+    /** Dismiss any visible cookie banner before interacting. */
+    public static final BeforeActionHandler DISMISS_COOKIE_BANNER = (engine, descriptor) -> {
+        engine.click(engine.resolve(AppOverlays.COOKIE_BANNER, ElementRole.PRIMARY));
+    };
+}
+```
+
+Key rules:
+- Use `AfterActionHandler` for after-hooks and `BeforeActionHandler` for before-hooks — not the raw `ActionHandler` supertype — so callers know which slot the constant belongs in.
+- Use `engine` methods only. Never reference `WebDriver` or `WebElement`.
+- One hook, one concern. Compose multiple hooks in `.after(hookA, hookB)`.
+
+Usage — layer on top of a profile or compose freely with built-in hooks:
+
+```java
+// Layer a custom after-hook on top of .safely()
+DemoLoginPage.Button.LOGIN_BUTTON.click()
+        .safely()
+        .after(AppHooks.WAIT_FOR_PAGE_LOAD)
+
+// Full manual composition
+MyPage.SUBMIT_BUTTON.click()
+        .before(AppHooks.DISMISS_COOKIE_BANNER, Before.WAIT_FOR_ELEMENT_CLICKABLE)
+        .after(AppHooks.WAIT_FOR_PAGE_LOAD, After.HIGHLIGHT_ELEMENT)
+```
+
+For a working example, see `tests/demo/hooks/DemoHooks.java`.
+Full hook reference: [`docs/architecture/hooks-pipeline.md`](docs/architecture/hooks-pipeline.md).
 
 ---
 
@@ -351,7 +402,8 @@ void-framework/
 │   │   └── meta/                   # ElementRole and metadata
 │   └── tests/demo/
 │       ├── VoidDemo.java           # Current Action/Flow/FlowExecutor demo
-│       └── pages/                  # Demo element enums
+│       ├── pages/                  # Demo element enums
+│       └── hooks/                  # DemoHooks — named AfterActionHandler constants
 ├── src/main/resources/
 │   └── locators/                   # External locator definitions
 └── docs/
@@ -446,13 +498,14 @@ This mirrors `src/main/java/tests/demo/VoidDemo.java`.
 |----------|-------------|
 | `docs/architecture/quick-start.md` | Getting started walkthrough |
 | `docs/architecture/system-overview.md` | Architecture and execution flow |
+| `docs/architecture/actions.md` | Action layer — full hierarchy, profiles, operationLabel, extension guide |
 | `docs/architecture/configuration-reference.md` | Config keys and behavior |
 | `docs/architecture/logging-reference.md` | Log channels, folder layout, and trace depth |
 | `docs/architecture/locator-resolution.md` | Locator roles and resolution pipeline |
 | `docs/architecture/hooks-pipeline.md` | Hook behavior and composition |
 | `docs/audits/architecture-audit-2026-05.md` | Architecture audit — coupling, leakage, engine-swap readiness |
 | `docs/audits/facade-boundary-audit-2026-05.md` | Façade boundary audit — session abstraction gaps and fixes |
-| `docs/decisions/accepted/` | Architecture Decision Records (ADR-001 → ADR-011) |
+| `docs/decisions/accepted/` | Architecture Decision Records (ADR-001 → ADR-014) |
 | `CHANGELOG.md` | Version history |
 | `CONTRIBUTING.md` | Contribution guide |
 

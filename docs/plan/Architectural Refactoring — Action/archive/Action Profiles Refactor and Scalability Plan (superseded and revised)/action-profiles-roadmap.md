@@ -38,6 +38,8 @@ This plan prevents accidental complexity while preserving backward compatibility
 
 ## Phase 0 - Stabilization Baseline (Done and Enforced)
 
+> Detailed doc: [`phase-0-stabilization-baseline.md`](done/phase-0-stabilization-baseline.md)
+
 **Objective:** lock a clean baseline after CI breakage so future refactors are traceable.
 
 ### Checklist
@@ -55,6 +57,8 @@ This plan prevents accidental complexity while preserving backward compatibility
 ---
 
 ## Phase 1 - Profile API Consolidation
+
+> Detailed doc: [`phase-1-profile-api-consolidation.md`](ongoing/phase-1-profile-api-consolidation.md)
 
 **Objective:** make profile APIs predictable and reduce low-level hook exposure.
 
@@ -79,6 +83,8 @@ This plan prevents accidental complexity while preserving backward compatibility
 ---
 
 ## Phase 2 - Observability First (`ActionTrace`)
+
+> Detailed doc: [`phase-2-observability-action-trace.md`](ongoing/phase-2-observability-action-trace.md)
 
 **Objective:** make execution pipeline visible before adding more behavior.
 
@@ -106,6 +112,8 @@ This plan prevents accidental complexity while preserving backward compatibility
 
 ## Phase 3 - Capability Resolution Hardening
 
+> Detailed doc: [`phase-3-capability-resolution-hardening.md`](ongoing/phase-3-capability-resolution-hardening.md)
+
 **Objective:** prevent `instanceof` branching explosion as capabilities grow.
 
 ### Direction
@@ -131,33 +139,40 @@ interface ActionCapabilityProvider {
 
 ---
 
-## Phase 4 - Hook Strategy Layer
+## Phase 4 - Capability-Driven Hook Selection
 
-**Objective:** stop hook list sprawl and preserve action-oriented API.
+> Detailed doc: [`phase-4-capability-driven-hook-selection.md`](ongoing/phase-4-capability-driven-hook-selection.md)
+
+**Objective:** complete Phase 3's self-description promise by wiring `ActionCapabilityProvider` into the action pipeline. Move hook-selection knowledge from a central switch onto the capability interface that owns it.
 
 ### Direction
 
-Encapsulate hook bundles in strategies:
-
-- `SafeClickStrategy`
-- `SafeTypeStrategy`
-- `DebugStrategy`
-- `FastStrategy`
+- Fix `ElementActions.capabilityFor()` to delegate to `ActionCapabilityProvider` (all 14 capabilities now report accurate metadata).
+- Introduce `ActionProfiles` with `DEFAULT_SAFE` — a shared, immutable profile with no capability-dispatch switch.
+- Add `safeProfile()` to `ActionCapabilityProvider` returning `ActionProfiles.DEFAULT_SAFE` (no switch in the default path).
+- `ElementBoundAction.safely()` uses the capability's declared profile directly.
+- `Profiles.SAFE` is preserved for `.using(Profiles.SAFE)` callers; its switch is the compatibility path, not the primary path.
 
 ### Checklist
 
-- [ ] Define strategy interface and mapping points.
-- [ ] Route `safely()` and `debug()` through strategy implementations.
-- [ ] Keep direct `before/after` for advanced users.
-- [ ] Add tests proving strategy expansion is correct and ordered.
+- [ ] Create `ActionProfiles` with `DEFAULT_SAFE` constant.
+- [ ] Fix `capabilityFor()` — delegate to `ActionCapabilityProvider.capability()`.
+- [ ] Add `safeProfile()` default to `ActionCapabilityProvider` returning `ActionProfiles.DEFAULT_SAFE`.
+- [ ] Override `safeProfile()` in `Clickable`, `Typeable`, `Selectable`, `SearchField`, `SearchableDropdown`.
+- [ ] Wire `safeProfile` into `ElementBoundAction` and override `safely()`.
+- [ ] Verify no new central dispatcher, resolver, or strategy class is created.
 
 ### Exit Criteria
 
-- Typical user flows do not require long hook argument lists.
+- Adding a new capability with custom safe hooks requires no changes to any existing framework file.
+- `ElementActions.capabilityFor()` contains no `instanceof` checks.
+- `ElementBoundAction.safely()` reaches no switch for element-bound actions.
 
 ---
 
 ## Phase 5 - Execution Pipeline Boundary
+
+> Detailed doc: [`phase-5-execution-pipeline-boundary.md`](ongoing/phase-5-execution-pipeline-boundary.md)
 
 **Objective:** keep `FlowExecutor` minimal while enabling retries/timeouts/metrics later.
 
@@ -182,6 +197,8 @@ FlowExecutor -> ExecutionPipeline -> Action
 
 ## Phase 6 - Engine Portability Controls
 
+> Detailed doc: [`phase-6-engine-portability-controls.md`](ongoing/phase-6-engine-portability-controls.md)
+
 **Objective:** keep Playwright and future engine support practical.
 
 ### Checklist
@@ -199,6 +216,8 @@ FlowExecutor -> ExecutionPipeline -> Action
 
 ## Phase 7 - Documentation Realignment
 
+> Detailed doc: [`phase-7-documentation-realignment.md`](ongoing/phase-7-documentation-realignment.md)
+
 **Objective:** ensure contributors learn current architecture, not legacy patterns.
 
 ### Checklist
@@ -214,7 +233,9 @@ FlowExecutor -> ExecutionPipeline -> Action
 
 ---
 
-## Phase 8 - Deprecated Code Removal (New)
+## Phase 8 - Deprecated Code Removal
+
+> Detailed doc: [`phase-8-deprecated-code-removal.md`](ongoing/phase-8-deprecated-code-removal.md)
 
 **Objective:** remove deprecated APIs safely after migration is complete.
 

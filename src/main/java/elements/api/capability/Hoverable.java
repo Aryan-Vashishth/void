@@ -1,7 +1,8 @@
 package elements.api.capability;
 
-import core.actions.Action;
-import core.actions.ElementActions;
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
+import core.actions.HoverAction;
 import elements.meta.ElementRole;
 
 /**
@@ -17,7 +18,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Hoverable extends ReadOnly {
+public interface Hoverable extends ReadOnly, ActionCapabilityProvider {
 
     String getToolTipContentLocator();
 
@@ -34,11 +35,13 @@ public interface Hoverable extends ReadOnly {
         return roles;
     }
 
+    @Override
+    default ActionCapability capability() { return ActionCapability.HOVERABLE; }
+
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Hovers over the element to trigger tooltip display. */
-    default Action hover() {
-        return ElementActions.of(this, ElementRole.TEXT,
-                (engine, d) -> engine.hover(d));
+    /** Emits a {@link HoverAction} targeting this element's TEXT locator. */
+    default HoverAction hover() {
+        return new HoverAction(this);
     }
 }

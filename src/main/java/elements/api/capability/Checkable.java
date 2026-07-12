@@ -1,7 +1,8 @@
 package elements.api.capability;
 
-import core.actions.Action;
-import core.actions.ElementActions;
+import core.actions.ActionCapability;
+import core.actions.CheckAction;
+import core.actions.ToggleAction;
 import elements.meta.ElementRole;
 
 /**
@@ -19,21 +20,18 @@ import elements.meta.ElementRole;
  */
 public interface Checkable extends Clickable {
 
+    @Override
+    default ActionCapability capability() { return ActionCapability.CHECKABLE; }
+
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Toggles the checkbox (click). */
-    default Action toggle() {
-        return ElementActions.of(this, ElementRole.TRIGGER,
-                (engine, d) -> engine.click(d));
+    /** Emits a {@link ToggleAction} — clicks the checkbox unconditionally. */
+    default ToggleAction toggle() {
+        return new ToggleAction(this);
     }
 
-    /** Sets the checkbox to the desired state. Reads current state, clicks only if needed. */
-    default Action set(boolean desiredState) {
-        return ElementActions.of(this, ElementRole.TRIGGER,
-                (engine, d) -> {
-                    if (engine.getCheckboxState(d) != desiredState) {
-                        engine.click(d);
-                    }
-                });
+    /** Emits a {@link CheckAction} — clicks only if the current state differs from {@code desiredState}. */
+    default CheckAction set(boolean desiredState) {
+        return new CheckAction(this, desiredState);
     }
 }

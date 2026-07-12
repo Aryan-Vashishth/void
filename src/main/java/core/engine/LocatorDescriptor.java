@@ -31,17 +31,18 @@ public record LocatorDescriptor(
         String value,
         LocatorStrategy strategy,
         Object[] args,
-        LocatorDescriptor parent
+        LocatorDescriptor parent,
+        String label
 ) {
 
-    /** Canonical constructor without parent (global scope). */
+    /** Canonical constructor without parent or label (global scope). */
     public LocatorDescriptor(String value, LocatorStrategy strategy, Object[] args) {
-        this(value, strategy, args, null);
+        this(value, strategy, args, null, null);
     }
 
-    /** Convenience constructor without args or parent. */
+    /** Convenience constructor without args, parent, or label. */
     public LocatorDescriptor(String value, LocatorStrategy strategy) {
-        this(value, strategy, new Object[0], null);
+        this(value, strategy, new Object[0], null, null);
     }
 
     /**
@@ -52,7 +53,18 @@ public record LocatorDescriptor(
      * @return new descriptor with parent context
      */
     public LocatorDescriptor withParent(LocatorDescriptor parent) {
-        return new LocatorDescriptor(this.value, this.strategy, this.args, parent);
+        return new LocatorDescriptor(this.value, this.strategy, this.args, parent, this.label);
+    }
+
+    /**
+     * Returns a new descriptor with a human-readable label (e.g. {@code "Credentials > USERNAME_INPUT"}).
+     * Used by the engine to log element identity instead of raw XPath/CSS strings.
+     *
+     * @param label display label
+     * @return new descriptor with label set
+     */
+    public LocatorDescriptor withLabel(String label) {
+        return new LocatorDescriptor(this.value, this.strategy, this.args, this.parent, label);
     }
 
     /** @return true if this descriptor has a parent scope */

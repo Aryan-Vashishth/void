@@ -258,7 +258,7 @@ public class VOID {
      *             Prefer composing {@code Element → Action → Flow} and executing via
      *             {@code app.run(flow)}. Will be removed in 3.0.
      */
-    @Deprecated(since = "2.1", forRemoval = true)
+    @Deprecated(since = "0.1", forRemoval = true)
     public Interactions interaction() {
         if (interactions == null) {
             interactions = new Interactions(engine);
@@ -274,7 +274,7 @@ public class VOID {
      *             engine-level abstractions rather than the raw execution context.
      *             Will be removed in 3.0.
      */
-    @Deprecated(since = "2.1", forRemoval = true)
+    @Deprecated(since = "0.1", forRemoval = true)
     protected ExecutionContext getContext() {
         return context;
     }
@@ -286,7 +286,7 @@ public class VOID {
      *             portability. Use {@link #getEngine()}{@code .getNativeDriver()}
      *             for engine-specific escape-hatch access. Will be removed in 3.0.
      */
-    @Deprecated(since = "2.1", forRemoval = true)
+    @Deprecated(since = "0.1", forRemoval = true)
     protected WebDriver getDriver() {
         return context.getDriver();
     }

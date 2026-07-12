@@ -1,7 +1,11 @@
 package elements.api.capability;
 
-import core.actions.Action;
-import core.actions.ElementActions;
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
+import core.actions.AppendTypeAction;
+import core.actions.ClearAction;
+import core.actions.TypeAction;
+import core.actions.TypeAndPressAction;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -19,7 +23,7 @@ import elements.meta.ElementRole;
  * <p>Emits deferred {@link Action} objects for type, clear, append, and typeAndPress.
  * Contains NO execution logic. Elements emit Action (intent), engine executes.</p>
  */
-public interface Typeable extends Element {
+public interface Typeable extends Element, ActionCapabilityProvider {
 
     String getInputLocator();
 
@@ -40,29 +44,28 @@ public interface Typeable extends Element {
         return roles;
     }
 
+    @Override
+    default ActionCapability capability() { return ActionCapability.TYPEABLE; }
+
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Deferred type action — clears then types. */
-    default Action type(String text) {
-        return ElementActions.of(this, ElementRole.INPUT,
-                (engine, d) -> engine.type(d, text));
+    /** Emits a {@link TypeAction} — clears the field then types the given text. */
+    default TypeAction type(String text) {
+        return new TypeAction(this, text);
     }
 
-    /** Deferred clear action. */
-    default Action clear() {
-        return ElementActions.of(this, ElementRole.INPUT,
-                (engine, d) -> engine.clear(d));
+    /** Emits a {@link ClearAction} — clears the field. */
+    default ClearAction clear() {
+        return new ClearAction(this);
     }
 
-    /** Deferred append action — types without clearing. */
-    default Action append(String text) {
-        return ElementActions.of(this, ElementRole.INPUT,
-                (engine, d) -> engine.appendType(d, text));
+    /** Emits an {@link AppendTypeAction} — types without clearing first. */
+    default AppendTypeAction append(String text) {
+        return new AppendTypeAction(this, text);
     }
 
-    /** Deferred type-and-press action — types then sends a key (e.g., "ENTER"). */
-    default Action typeAndPress(String text, String key) {
-        return ElementActions.of(this, ElementRole.INPUT,
-                (engine, d) -> { engine.type(d, text); engine.sendKey(d, key); });
+    /** Emits a {@link TypeAndPressAction} — types the text then sends {@code key} (e.g., "ENTER"). */
+    default TypeAndPressAction typeAndPress(String text, String key) {
+        return new TypeAndPressAction(this, text, key);
     }
 }

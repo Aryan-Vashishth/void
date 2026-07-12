@@ -1,10 +1,11 @@
 package elements.api.capability;
 
-import core.actions.Action;
-import core.actions.ElementActions;
+import core.actions.ActionCapability;
+import core.actions.OpenAction;
+import core.actions.SelectAction;
+import core.actions.SelectByTextAction;
+import core.actions.SelectByValueAction;
 import elements.meta.ElementRole;
-
-import java.time.Duration;
 
 /**
  * Capability interface for dropdown elements with a trigger and a list/options panel.
@@ -56,32 +57,29 @@ public interface Selectable extends Clickable, Listable {
         return roles;
     }
 
+    @Override
+    default ActionCapability capability() { return ActionCapability.SELECTABLE; }
+
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Opens the dropdown trigger. */
-    default Action open() {
-        return ElementActions.of(this, ElementRole.TRIGGER,
-                (engine, d) -> engine.click(d));
+    /** Emits an {@link OpenAction} — clicks the TRIGGER locator to reveal the options panel. */
+    default OpenAction open() {
+        return new OpenAction(this);
     }
 
-    /** Composite: opens trigger → waits for overlay → clicks option. */
-    default Action select() {
-        return ElementActions.of(this, ElementRole.TRIGGER,
-                (engine, d) -> {
-                    engine.click(d);
-                    engine.waitForOverlay(Duration.ofSeconds(5));
-                    engine.click(engine.resolve(this, ElementRole.LIST, getArgs()));
-                });
+    /** Emits a {@link SelectAction} — opens TRIGGER, waits for overlay, clicks LIST. */
+    default SelectAction select() {
+        return new SelectAction(this);
     }
 
-    default Action selectByText(String text) {
-        return ElementActions.of(this, ElementRole.LIST,
-                (engine, d) -> engine.selectByVisibleText(d, text));
+    /** Emits a {@link SelectByTextAction} — selects an option by visible text. */
+    default SelectByTextAction selectByText(String text) {
+        return new SelectByTextAction(this, text);
     }
 
-    default Action selectByValue(String value) {
-        return ElementActions.of(this, ElementRole.LIST,
-                (engine, d) -> engine.selectByValue(d, value));
+    /** Emits a {@link SelectByValueAction} — selects an option by value attribute. */
+    default SelectByValueAction selectByValue(String value) {
+        return new SelectByValueAction(this, value);
     }
 }
 

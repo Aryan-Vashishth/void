@@ -57,22 +57,41 @@ core/
 | Class | Role |
 |-------|------|
 | `Action` | Functional interface — a single deferred UI operation |
-| `ElementActions` | Internal factory for element-bound Actions with descriptor resolution |
-| `HookedAction` | Decorator applying before/after hooks around a delegate Action |
+| `ElementAction` | Abstract base (Template Method): `resolve()` → `execute()`; owns `safely()`, `reliable()`, `debug()`, `raw()`, `before()`, `after()` fluent APIs |
+| `ClickableElementAction` | Package-private abstract: provides `CLICKABLE_SAFE`/`CLICKABLE_RELIABLE` defaults for the 3 click-family classes |
+| `TypeableElementAction` | Package-private abstract: provides `TYPEABLE_SAFE`/`TYPEABLE_RELIABLE` defaults for the 6 type-family classes |
+| `SelectableElementAction` | Package-private abstract: provides `SELECTABLE_SAFE`/`SELECTABLE_RELIABLE` defaults for the 5 select-family classes |
+| `ClickAction` | Concrete: `engine.click()`, TRIGGER role, CLICKABLE capability |
+| `TypeAction` | Concrete: `engine.type()`, INPUT role, TYPEABLE capability |
+| `SelectAction` | Concrete composite: TRIGGER open + overlay wait + LIST select |
+| `HoverAction` | Concrete: `engine.hover()`, PRIMARY role, HOVERABLE capability |
+| `ReadTextAction` | Concrete: `engine.getText()`, TEXT role, READ_ONLY capability |
+| *(+ 11 more)* | `ClearAction`, `CheckAction`, `AppendTypeAction`, `TypeAndPressAction`, `UploadAction`, `OpenAction`, `SelectByTextAction`, `SelectByValueAction`, `ToggleAction`, `TypeSearchAction`, `SubmitSearchAction`, `SearchAndSelectAction` |
+| `ActionProfiles` | Package-private: 8 capability-specific safe/reliable constants (`CLICKABLE_SAFE`, `CLICKABLE_RELIABLE`, `TYPEABLE_SAFE`, `TYPEABLE_RELIABLE`, `SELECTABLE_SAFE`, `SELECTABLE_RELIABLE`, `DEFAULT_SAFE`, `DEFAULT_RELIABLE`) |
+| `Profiles` | Public presets: RAW, DEBUG, FAST, VISUAL — applied via `action.using(Profiles.X)` |
+| `ElementActions` | `@Internal` factory — custom-operation actions for test infrastructure only (ADR-012) |
+| `HookedAction` | Decorator: applies before/after hooks around a delegate `Action`, sharing a single resolved descriptor |
 
 **How it works:**
-1. Capability interfaces (e.g., `Clickable.click()`) emit `Action` objects (deferred lambdas).
-2. Actions are composed into `Flow` sequences.
-3. `FlowExecutor` iterates and calls `action.perform(engine)`.
-4. Locator resolution happens **inside** the perform call — never eagerly.
-5. `HookedAction` wraps an action with before/after hooks, sharing a single resolved descriptor.
+1. Capability interfaces (e.g., `Clickable.click()`) emit **typed concrete action subclasses** — `new ClickAction(this)`.
+2. Each concrete class extends the appropriate abstract intermediary (`ClickableElementAction`, `TypeableElementAction`, `SelectableElementAction`, or `ElementAction` directly) and implements only `execute()`.
+3. Profile defaults (`defaultSafeProfile()` / `defaultReliableProfile()`) are centralized in the intermediary — concrete classes inherit them without any boilerplate.
+4. Fluent profile APIs (`safely()`, `debug()`, `reliable()`) return a new wrapped action with hooks applied.
+5. Actions are composed into `Flow` sequences.
+6. `FlowExecutor` iterates and calls `action.perform(engine)`.
+7. `perform()` calls `resolve(engine)` then `execute(engine, descriptor)` — resolution is deferred to execution time.
+8. `HookedAction` wraps an action with before/after hooks, sharing a single resolved descriptor.
+
+**Layering rule (ADR-013):** Execution policy (hooks, waits, retries) lives in actions, never in capability interfaces. Capabilities describe structure; actions describe execution.
 
 **Rules:**
 - Actions never reference `WebDriver`, `WebElement`, or `By`.
-- Actions are pure intent — UIEngine handles all execution concerns.
+- `ActionCapability` is metadata only — never used to select execution paths.
 - Hook composition is fluent: `element.click().before(...).after(...)`
+- Extension via new action subclasses: extend the appropriate intermediary and implement `execute()`. No changes to `ActionProfiles`, existing action classes, or `ElementAction` are required (OCP).
+- For a full breakdown of the hierarchy, all 17 concrete classes, and profile content, see [Action Layer Architecture](actions.md).
 
-**Stability:** `@Beta` — API may change between releases.
+**Stability:** `@Beta` — API may change between releases. `ElementAction` subclasses are concrete and stable within a release.
 
 ---
 

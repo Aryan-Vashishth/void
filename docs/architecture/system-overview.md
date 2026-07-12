@@ -34,6 +34,9 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - [009 - Action / Flow / FlowExecutor Execution Model](../decisions/accepted/009-action-flow-runner.md)
 - [010 - Hook Evolution](../decisions/accepted/010-hook-evolution.md)
 - [011 - VOID as Primary Session Façade](../decisions/accepted/011-void-facade-boundary.md)
+- [012 - ElementActions Factory Scope](../decisions/accepted/012-elementactions-factory-scope.md)
+- [013 - Architectural Layering Principle](../decisions/accepted/013-architectural-layering-principle.md)
+- [014 - Concrete Actions over Anonymous Lambdas](../decisions/accepted/014-concrete-actions-over-lambdas.md)
 
 ---
 
@@ -64,12 +67,13 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - **Fluent API:** Actions created via capability interfaces support `.before(...).after(...)` for inline hook composition.
 
 ### ⚡ Action / Flow / FlowExecutor Pipeline
-- Capability interfaces emit **deferred `Action` objects** — lambdas over `UIEngine`.
-- `ElementActions.of(element, role, op)` creates element-bound actions that support `resolve()` and fluent hook composition.
+- Capability interfaces emit **typed concrete `Action` subclasses** — `ClickAction`, `TypeAction`, `SelectAction`, etc.
+- Each concrete action type owns its execution logic; profile defaults are centralized in the family's abstract intermediary — `ClickableElementAction`, `TypeableElementAction`, or `SelectableElementAction` — eliminating profile boilerplate across 14 concrete classes (see ADR-014).
 - `Flow` composes multiple Actions into ordered sequences.
 - `FlowExecutor` iterates Flows and calls `action.perform(engine)` for each.
-- Locator resolution happens **inside** the Action lambda at execution time — never eagerly.
+- Locator resolution happens **inside** `perform()` at execution time — never eagerly.
 - `HookedAction` decorates an Action with before/after hooks, sharing a single resolved descriptor.
+- `ElementActions` (`@Internal`) provides a custom-operation factory for test infrastructure only (see ADR-012).
 
 ### 🧩 Capability-Based Element Model
 
@@ -201,8 +205,20 @@ void-framework/
 ├── src/main/java/
 │   ├── core/
 │   │   ├── actions/
-│   │   │   ├── Action.java                   ← Deferred execution intent (functional interface)
-│   │   │   ├── ElementActions.java            ← Internal helper: creates resolvable Actions
+│   │   │   ├── Action.java                    ← Deferred execution intent (functional interface)
+│   │   │   ├── ElementAction.java             ← Abstract base (Template Method): resolve → execute
+│   │   │   ├── ClickableElementAction.java    ← Abstract (pkg-private): CLICKABLE profile defaults for 3 click-family classes
+│   │   │   ├── TypeableElementAction.java     ← Abstract (pkg-private): TYPEABLE profile defaults for 6 type-family classes
+│   │   │   ├── SelectableElementAction.java   ← Abstract (pkg-private): SELECTABLE profile defaults for 5 select-family classes
+│   │   │   ├── ClickAction.java               ← Concrete: engine.click(), TRIGGER role
+│   │   │   ├── TypeAction.java                ← Concrete: engine.type(), INPUT role
+│   │   │   ├── SelectAction.java              ← Concrete: composite TRIGGER + LIST
+│   │   │   ├── HoverAction.java               ← Concrete: engine.hover(), TEXT role
+│   │   │   ├── ReadTextAction.java            ← Concrete: engine.getText(), TEXT role
+│   │   │   ├── ...                            ← 11 further concrete action subclasses
+│   │   │   ├── ElementActions.java            ← @Internal factory (test infrastructure only)
+│   │   │   ├── ActionProfiles.java            ← Package-private: 8 capability-specific safe/reliable profile constants
+│   │   │   ├── Profiles.java                  ← Action-independent presets (RAW, DEBUG, FAST, VISUAL)
 │   │   │   └── HookedAction.java              ← Pure decorator: before → action → after
 │   │   ├── adapters/
 │   │   │   └── cucumber/                      ← BDD step definitions (optional)
@@ -476,7 +492,11 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 
 ### Architecture Invariants
 
-- **Elements NEVER execute** — they emit Action (intent) only
+- **Elements NEVER execute** — they emit typed Action subclasses (intent) only
+- **Capabilities describe, Actions execute** — execution policy lives in actions, never in capability interfaces (ADR-013)
+- **Actions are concrete types** — `ClickAction`, `TypeAction`, etc. own their execution logic and profile defaults; no anonymous lambdas or central dispatch (ADR-014)
+- **ActionCapability is metadata** — never used to select execution paths; logging/tracing/diagnostics only
+- **Action extension is additive** — adding a new action type or `ElementRole` value requires no changes to existing classes; new subclass declares its own profile and `operationLabel()` is derived automatically
 - **Actions NEVER perform work** until executed by UIEngine via FlowExecutor
 - **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
 - **`VOID` is the primary session object** — tests navigate, run flows, and teardown through it

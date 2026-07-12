@@ -25,5 +25,11 @@ cp.txt
 .DS_Store
 Thumbs.db
 
+# TestNG output
+test-output/
+
 # Internal notes
 .notes/
+
+#Claude
+.claude/

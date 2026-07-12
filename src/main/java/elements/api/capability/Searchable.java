@@ -1,5 +1,6 @@
 package elements.api.capability;
 
+import core.actions.ActionCapability;
 import elements.meta.ElementRole;
 
 /**
@@ -27,5 +28,8 @@ public interface Searchable extends SearchField {
             roles.put(ElementRole.SEARCH_RESULT, result);
         return roles;
     }
+
+    @Override
+    default ActionCapability capability() { return ActionCapability.SEARCHABLE; }
 }
 

@@ -20,7 +20,7 @@ import java.util.List;
  *   executor.run(loginFlow);
  * </pre>
  */
-@Beta(since = "2.0", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
+@Beta(since = "0.1", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
 public class Flow {
 
     private final List<Action> actions;

@@ -1,6 +1,8 @@
 package elements.api.capability;
 
-import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionCapabilityProvider;
+import core.actions.UploadAction;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -17,7 +19,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Uploadable extends Element {
+public interface Uploadable extends Element, ActionCapabilityProvider {
 
     String getInputLocator();
 
@@ -38,14 +40,14 @@ public interface Uploadable extends Element {
         return roles;
     }
 
+    @Override
+    default ActionCapability capability() { return ActionCapability.UPLOADABLE; }
+
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Uploads a file via this input element. */
-    default Action upload(String filePath) {
-        return engine -> {
-            var d = engine.resolve(this, ElementRole.INPUT);
-            engine.uploadFile(d, filePath);
-        };
+    /** Emits an {@link UploadAction} for the given file path. */
+    default UploadAction upload(String filePath) {
+        return new UploadAction(this, filePath);
     }
 }
 

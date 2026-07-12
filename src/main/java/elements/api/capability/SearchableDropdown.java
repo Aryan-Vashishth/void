@@ -1,6 +1,7 @@
 package elements.api.capability;
 
-import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.SearchAndSelectAction;
 import elements.meta.ElementRole;
 
 /**
@@ -70,17 +71,14 @@ public interface SearchableDropdown extends Selectable, Searchable {
         return roles;
     }
 
+    @Override
+    default ActionCapability capability() { return ActionCapability.SEARCHABLE_DROPDOWN; }
+
     // ── Action emission ─────────────────────────────────────────────────
 
-    /** Composite: opens trigger → types search → waits for result → clicks it. */
-    default Action searchAndSelect(String term) {
-        return engine -> {
-            engine.click(engine.resolve(this, ElementRole.TRIGGER));
-            engine.type(engine.resolve(this, ElementRole.SEARCH_INPUT), term);
-            var result = engine.resolve(this, ElementRole.SEARCH_RESULT, term);
-            engine.waitForVisible(result, java.time.Duration.ofSeconds(10));
-            engine.click(result);
-        };
+    /** Emits a {@link SearchAndSelectAction} — opens trigger, types term, waits for result, clicks it. */
+    default SearchAndSelectAction searchAndSelect(String term) {
+        return new SearchAndSelectAction(this, term);
     }
 }
 
