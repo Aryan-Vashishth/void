@@ -8,7 +8,9 @@ import elements.api.Element;
 import elements.api.capability.Checkable;
 import elements.api.capability.Clickable;
 import elements.api.capability.Hoverable;
+import elements.api.capability.ReadOnly;
 import elements.api.capability.SearchField;
+import core.actions.ReadTextAction;
 import elements.api.capability.SearchableDropdown;
 import elements.api.capability.Selectable;
 import elements.api.capability.Typeable;
@@ -57,6 +59,7 @@ public class ConcreteActionsTest {
         @Override public void waitForOverlay(Duration t)                                { ops.add("waitForOverlay"); }
         @Override public void waitForVisible(LocatorDescriptor d, Duration t)           { ops.add("waitForVisible"); }
         @Override public boolean getCheckboxState(LocatorDescriptor d)                  { return checkboxState; }
+        @Override public String getText(LocatorDescriptor d)                            { ops.add("getText"); return ""; }
 
         @Override public LocatorDescriptor resolve(Element e, ElementRole r, Object... a) { return stub(); }
         @Override public LocatorDescriptor resolve(String f, String k, Object... a)       { return stub(); }
@@ -68,7 +71,6 @@ public class ConcreteActionsTest {
         @Override public String getCurrentUrl()                                         { return ""; }
         @Override public String getTitle()                                              { return ""; }
         @Override public void refresh() {}
-        @Override public String getText(LocatorDescriptor d)                            { return ""; }
         @Override public String getAttribute(LocatorDescriptor d, String a)             { return null; }
         @Override public boolean isVisible(LocatorDescriptor d)                         { return true; }
         @Override public boolean isEnabled(LocatorDescriptor d)                         { return true; }
@@ -158,6 +160,14 @@ public class ConcreteActionsTest {
             @Override public String getSearchResultLocator() { return "sr"; }
             @Override public String getExternalFileName()    { return "stub.json"; }
             @Override public Object[] getArgs()              { return new Object[0]; }
+        };
+    }
+
+    private static ReadOnly stubReadOnly() {
+        return new ReadOnly() {
+            @Override public String getTextLocator()      { return "//span[@class='label']"; }
+            @Override public String getExternalFileName() { return "stub.json"; }
+            @Override public Object[] getArgs()           { return new Object[0]; }
         };
     }
 
@@ -443,6 +453,58 @@ public class ConcreteActionsTest {
     }
 
     // ════════════════════════════════════════════════════════════════════
+    // ReadTextAction
+    // ════════════════════════════════════════════════════════════════════
+
+    @Test
+    public void readTextAction_capability_isReadOnly() {
+        // READ_ONLY is the only capability that covers non-interactive text elements
+        assertEquals(new ReadTextAction(stubReadOnly()).capability(), ActionCapability.READ_ONLY);
+    }
+
+    @Test
+    public void readTextAction_perform_callsEngineGetText() {
+        // execute() must delegate to UIEngine.getText(), not click/type/etc.
+        RecordingEngine engine = new RecordingEngine();
+        new ReadTextAction(stubReadOnly()).perform(engine);
+        assertEquals(engine.ops, List.of("getText"));
+    }
+
+    @Test
+    public void readTextAction_safely_returnsNewInstance() {
+        ReadTextAction action = new ReadTextAction(stubReadOnly());
+        assertNotSame(action.safely(), action);
+    }
+
+    @Test
+    public void readTextAction_defaultSafeProfile_isDefaultSafe() {
+        // ReadTextAction inherits DEFAULT_SAFE — waits for visibility, no click or type hooks
+        assertSame(new ReadTextAction(stubReadOnly()).defaultSafeProfile(),
+                ActionProfiles.DEFAULT_SAFE);
+    }
+
+    @Test
+    public void readTextAction_defaultReliableProfile_isDefaultReliable() {
+        // Inherits DEFAULT_RELIABLE — adds Angular + spinner waits
+        assertSame(new ReadTextAction(stubReadOnly()).defaultReliableProfile(),
+                ActionProfiles.DEFAULT_RELIABLE);
+    }
+
+    @Test
+    public void readOnly_readText_emitsReadTextAction() {
+        // ReadOnly.readText() factory method must produce a ReadTextAction, not a generic action
+        Action action = stubReadOnly().readText();
+        assertTrue(action instanceof ReadTextAction,
+                "readText() must return a ReadTextAction; got " + action.getClass().getSimpleName());
+    }
+
+    @Test
+    public void readOnly_readText_capabilityIsReadOnly() {
+        // Emitted action must carry READ_ONLY capability for metadata/logging
+        assertEquals(stubReadOnly().readText().capability(), ActionCapability.READ_ONLY);
+    }
+
+    // ════════════════════════════════════════════════════════════════════
     // Immutability — safely() returns a new instance for all action types
     // ════════════════════════════════════════════════════════════════════
 
@@ -464,7 +526,8 @@ public class ConcreteActionsTest {
                 new UploadAction(stubUploadable(), "/f"),
                 new TypeSearchAction(stubSearchField(), "q"),
                 new SubmitSearchAction(stubSearchField()),
-                new SearchAndSelectAction(stubSearchableDropdown(), "q")
+                new SearchAndSelectAction(stubSearchableDropdown(), "q"),
+                new ReadTextAction(stubReadOnly())           // must also return new instance
         );
         for (Action action : actions) {
             assertNotSame(action.safely(), action,
