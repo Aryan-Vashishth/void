@@ -31,13 +31,16 @@ public class ElementInterfaceDefaultsTest {
     // ---------- Element.getPrimaryLocator ----------
 
     @Test
-    public void getPrimaryLocator_singleToken_returnsConstantName() {
-        assertEquals(StubElement.USERNAME_INPUT.getPrimaryLocator(), "USERNAME_INPUT");
+    public void getPrimaryLocator_nestedEnum_returnsNamespacedKey() {
+        // StubElement is nested inside ElementInterfaceDefaultsTest
+        assertEquals(StubElement.USERNAME_INPUT.getPrimaryLocator(),
+                "ElementInterfaceDefaultsTest.StubElement.USERNAME_INPUT");
     }
 
     @Test
-    public void getPrimaryLocator_multiToken_returnsConstantName() {
-        assertEquals(StubElement.LOGIN_BUTTON.getPrimaryLocator(), "LOGIN_BUTTON");
+    public void getPrimaryLocator_nestedEnum_multiTokenConstant_returnsNamespacedKey() {
+        assertEquals(StubElement.SAVE_AS_DRAFT.getPrimaryLocator(),
+                "ElementInterfaceDefaultsTest.StubElement.SAVE_AS_DRAFT");
     }
 
     @Test

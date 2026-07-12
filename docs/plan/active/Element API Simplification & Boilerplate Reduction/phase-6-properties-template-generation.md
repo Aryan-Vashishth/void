@@ -54,10 +54,12 @@ Generator produces at `src/main/resources/tests/demo/pages/DemoLoginPage/locator
 # DemoLoginPage — locators
 # Generated from enum declarations. Do not edit keys. Fill values only.
 
-USERNAME_INPUT=
-PASSWORD_INPUT=
-LOGIN_BUTTON=
+DemoLoginPage.Credentials.USERNAME_INPUT=
+DemoLoginPage.Credentials.PASSWORD_INPUT=
+DemoLoginPage.Button.LOGIN_BUTTON=
 ```
+
+Keys are namespaced as `PageName.GroupName.CONSTANT_NAME`, matching the value `getPrimaryLocator()` returns at runtime. This ensures the key in the file and the key the resolver looks up are always identical without any manual synchronization.
 
 ---
 

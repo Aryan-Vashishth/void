@@ -408,19 +408,37 @@ USERNAME_INPUT("USERNAME_INPUT")
 USERNAME_INPUT
 ```
 
-The runtime derives the locator key directly from the enum constant name.
+The runtime derives the locator key from the fully qualified element path — page name, enum group name, and constant name — joined with dots.
 
 ```java
 default String getPrimaryLocator() {
-    return ((Enum<?>) this).name();
+    Enum<?> e = (Enum<?>) this;
+    Class<?> enumClass = e.getDeclaringClass();
+    Class<?> pageClass = enumClass.getEnclosingClass();
+    if (pageClass != null) {
+        return pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + e.name();
+    }
+    return enumClass.getSimpleName() + "." + e.name();
 }
 ```
+
+Examples:
+
+```
+DemoLoginPage.Credentials.USERNAME_INPUT
+DemoLoginPage.Credentials.PASSWORD_INPUT
+DemoLoginPage.Button.LOGIN_BUTTON
+```
+
+The namespace `PageName.GroupName` is derived from the Java type hierarchy — no configuration required.
 
 ### Benefits
 
 - Eliminates duplicate strings.
 - Rename-safe — IDE renaming updates the lookup key automatically.
-- Prevents locator key mismatches.
+- Prevents key collisions across pages with same-named constants.
+- Keys are self-documenting — page and group context is visible in the properties file.
+- Improves discoverability — searching for a key in the properties file immediately reveals its origin.
 - Smaller page definitions.
 
 ---
@@ -549,12 +567,12 @@ The generator produces:
 # DemoLoginPage — locators
 # Generated from enum declarations. Do not edit keys. Fill values only.
 
-USERNAME_INPUT=
-PASSWORD_INPUT=
-LOGIN_BUTTON=
+DemoLoginPage.Credentials.USERNAME_INPUT=
+DemoLoginPage.Credentials.PASSWORD_INPUT=
+DemoLoginPage.Button.LOGIN_BUTTON=
 ```
 
-Every key is already present and correctly named. The developer fills the values. Nothing else.
+Keys are namespaced as `PageName.GroupName.CONSTANT_NAME`, derived from the Java type hierarchy. The developer fills the values. Nothing else.
 
 This eliminates:
 
@@ -562,6 +580,7 @@ This eliminates:
 - Spelling mistakes.
 - Casing inconsistencies.
 - Keys missing because a constant was added but the properties file was not updated.
+- Key collisions between pages that share the same constant name.
 
 **Regeneration behavior.**
 

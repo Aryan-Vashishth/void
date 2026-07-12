@@ -30,13 +30,19 @@ public interface Element {
     String getExternalFileName();
 
     /**
-     * Returns the primary locator key for this element.
-     * <p>The default derives the key from the enum constant name, eliminating
-     * duplicate string arguments in enum constructors. Capability interfaces and
-     * elements with custom keys override this as needed.</p>
+     * Returns the namespaced locator key for this element.
+     * <p>The default derives the key as {@code PageName.GroupName.CONSTANT_NAME} from
+     * the Java type hierarchy, matching the key format used in generated properties files.
+     * Capability interfaces and elements with custom keys override this as needed.</p>
      */
     default String getPrimaryLocator() {
-        return ((Enum<?>) this).name();
+        Enum<?> e = (Enum<?>) this;
+        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        if (pageClass != null) {
+            return pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + e.name();
+        }
+        return enumClass.getSimpleName() + "." + e.name();
     }
 
     /** @return secondary fallback locator key, or null if not applicable. */

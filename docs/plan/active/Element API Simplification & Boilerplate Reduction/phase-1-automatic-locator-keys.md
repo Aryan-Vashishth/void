@@ -27,12 +27,28 @@ The enum constant already uniquely identifies the key. The string is pure duplic
 
 ## Change
 
-Add a default implementation to `Element`:
+Add a default implementation to `Element` that derives the key from the fully qualified element path:
 
 ```java
 default String getPrimaryLocator() {
-    return ((Enum<?>) this).name();
+    Enum<?> e = (Enum<?>) this;
+    Class<?> enumClass = e.getDeclaringClass();
+    Class<?> pageClass = enumClass.getEnclosingClass();
+    if (pageClass != null) {
+        return pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + e.name();
+    }
+    return enumClass.getSimpleName() + "." + e.name();
 }
+```
+
+The namespace `PageName.GroupName` is derived from the Java type hierarchy — no configuration required.
+
+Examples:
+
+```
+DemoLoginPage.Credentials.USERNAME_INPUT
+DemoLoginPage.Credentials.PASSWORD_INPUT
+DemoLoginPage.Button.LOGIN_BUTTON
 ```
 
 Capability interfaces (`Typeable`, `Clickable`, `Selectable`, etc.) that currently override `getPrimaryLocator()` by forwarding to this default can have those overrides removed in Phase 12.
@@ -48,7 +64,7 @@ enum Credentials implements Typeable {
 }
 ```
 
-No constructor. No duplicate string. IDE rename of `USERNAME_INPUT` updates the lookup key automatically.
+No constructor. No duplicate string. IDE rename of `USERNAME_INPUT` updates the lookup key automatically. The key in the properties file (`DemoLoginPage.Credentials.USERNAME_INPUT`) updates with it.
 
 ---
 
@@ -66,7 +82,8 @@ No constructor. No duplicate string. IDE rename of `USERNAME_INPUT` updates the 
 - [ ] Verify existing elements that override `getPrimaryLocator()` are unaffected (override takes precedence)
 
 ### Tests
-- [ ] Unit test: enum constant without constructor returns its own name as the locator key
+- [ ] Unit test: nested enum constant returns namespaced key (`PageName.GroupName.CONSTANT`)
+- [ ] Unit test: top-level enum constant (no enclosing class) returns `EnumName.CONSTANT`
 - [ ] Unit test: enum constant with an explicit override still returns the overridden value
 - [ ] Regression: `mvn test` passes with no failures
 
