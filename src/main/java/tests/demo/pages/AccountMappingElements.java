@@ -51,7 +51,6 @@ public interface AccountMappingElements {
 
         @Override public String getExternalFileName() { return PROPS; }
         @Override public String getTextLocator()      { return key; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
     }
 
     // ========================================================================
@@ -117,7 +116,6 @@ public interface AccountMappingElements {
 
             @Override public String getTriggerLocator()   { return key; }
             @Override public String getExternalFileName() { return PROPS; }
-            @Override public Object[] getArgs()           { return new Object[0]; }
         }
 
         // 3d. ApplyButton Ã¢â‚¬â€ Clickable (single role: TRIGGER)
@@ -161,7 +159,6 @@ public interface AccountMappingElements {
         @Override public String getRemoveRowButtonLocator(){ return removeRow; }
         @Override public String getFooterInputRowLocator() { return footerInput; }
         @Override public String getExternalFileName()      { return PROPS; }
-        @Override public Object[] getArgs()                { return new Object[0]; }
 
         // 4a. InlineEditor Ã¢â‚¬â€ Typeable nested inside AccountTable
         enum InlineEditor implements Typeable {
@@ -205,7 +202,6 @@ public interface AccountMappingElements {
 
             @Override public String getTriggerLocator()   { return key; }
             @Override public String getExternalFileName() { return PROPS; }
-            @Override public Object[] getArgs()           { return new Object[0]; }
         }
     }
 
@@ -228,7 +224,6 @@ public interface AccountMappingElements {
             @Override public String getToolTipContentLocator() { return tooltipKey; }
             @Override public String getEndsWith()              { return endsWith; }
             @Override public String getExternalFileName()      { return PROPS; }
-            @Override public Object[] getArgs()                { return new Object[0]; }
         }
 
         // 6b. RoleSelector Ã¢â‚¬â€ MultiSelectable (2 roles: MULTI_TRIGGER, MULTI_LIST)
@@ -254,7 +249,6 @@ public interface AccountMappingElements {
 
             @Override public String getInputLocator()     { return key; }
             @Override public String getExternalFileName() { return PROPS; }
-            @Override public Object[] getArgs()           { return new Object[0]; }
         }
     }
 

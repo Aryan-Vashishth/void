@@ -23,7 +23,6 @@ public interface DemoLoginPage {
 
         @Override public String getInputLocator()     { return key; }
         @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
     }
 
     // --- Buttons use Clickable (role: TRIGGER) ---
@@ -48,7 +47,6 @@ public interface DemoLoginPage {
 
         @Override public String getTextLocator()      { return key; }
         @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
     }
 }
 
