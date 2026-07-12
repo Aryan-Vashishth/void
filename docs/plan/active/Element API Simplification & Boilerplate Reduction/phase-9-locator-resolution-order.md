@@ -1,6 +1,6 @@
 # Phase 9 — Locator Resolution Order
 
-**Status:** Pending  
+**Status:** Complete — all three steps already implemented; no resolver changes needed  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** High — changes the core runtime resolution path; must handle all three strategies correctly
 
@@ -9,6 +9,14 @@
 ## Objective
 
 Wire the three-step locator resolution order into the runtime so it correctly falls through from element override to convention to hardcoded fallback.
+
+## Implementation Note (as built)
+
+All three steps are satisfied by the existing infrastructure — no changes to LocatorResolver were needed:
+
+- **Step 1 (override):** LocatorResolver already passes `getExternalFileName()` to the source pipeline. Any non-null return (including explicit overrides like `"shared/common.json"`) routes to the matching `LocatorSource`.
+- **Step 2 (convention):** Embedded in the Phase 8 default — `getExternalFileName()` probes the classpath and derives the conventional file name automatically. There is no separate "convention path" in the resolver; the default makes Step 1 = Step 2 for normal elements.
+- **Step 3 (hardcoded):** `HardcodedLocatorSource.supports(null)` returns `true` and `readRaw` returns `request.key()` verbatim. Elements that override `getExternalFileName()` to return `null` (e.g. LocatorFamily) fall through to this path automatically.
 
 ---
 
