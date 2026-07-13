@@ -20,7 +20,8 @@ import elements.meta.ElementRole;
  */
 public interface Listable extends Element, ActionCapabilityProvider {
 
-    default String getListLocator() { return ((Enum<?>) this).name(); }
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.LIST}. */
+    default String getListLocator() { return Element.qualifiedLocatorKey(this, ElementRole.LIST); }
 
     int getIndex();
 
@@ -30,7 +31,7 @@ public interface Listable extends Element, ActionCapabilityProvider {
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getListLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

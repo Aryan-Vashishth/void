@@ -117,6 +117,22 @@ public interface Element {
     }
 
     /**
+     * Builds the fully-qualified, role-suffixed locator key for a capability element.
+     *
+     * <p>Format: {@code PageClass.EnumClass.CONSTANT.ROLE} (e.g. {@code LoginPage.Buttons.SUBMIT.TRIGGER}).
+     * Used as the default locator key by single-role capability interfaces.</p>
+     */
+    static String qualifiedLocatorKey(Element element, ElementRole role) {
+        Enum<?> e = (Enum<?>) element;
+        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        String prefix = (pageClass != null)
+            ? pageClass.getSimpleName() + "." + enumClass.getSimpleName()
+            : enumClass.getSimpleName();
+        return prefix + "." + e.name() + "." + role.name();
+    }
+
+    /**
      * Builds an ordered map of {@link ElementRole} to locator key strings.
      * Only non-blank locators are included; order reflects fallback priority.
      */

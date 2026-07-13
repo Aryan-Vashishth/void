@@ -139,11 +139,12 @@ public class JsonLocatorMigratorTest {
                 "Expected 'PASSWORD' key in Login node; found: " + loginNode.fieldNames());
     }
 
-    @Test(description = "Login.USERNAME value is the hardcoded XPath template string")
+    @Test(description = "Login.USERNAME nested INPUT role contains the hardcoded XPath template")
     public void buildResolvedJson_loginEnum_usernameValue_isHardcodedXpath() throws IOException {
         JsonNode loginNode = getLoginNode();
-        String val = loginNode.path("USERNAME").asText();
-        assertFalse(val.isBlank(), "Expected non-blank USERNAME value");
+        // Phase 19 Part B: scanner always emits { "CONSTANT": { "ROLE": "value" } }
+        String val = loginNode.path("USERNAME").path("INPUT").asText();
+        assertFalse(val.isBlank(), "Expected non-blank USERNAME.INPUT value");
         assertTrue(val.contains("input"),
                 "Expected the XPath to reference an input element; got: " + val);
     }
@@ -204,14 +205,15 @@ public class JsonLocatorMigratorTest {
                 "Expected 'SUBMIT' in LoginButton node; found: " + loginButtonNode.fieldNames());
     }
 
-    @Test(description = "LoginButton.SUBMIT contains XPath for a button element")
+    @Test(description = "LoginButton.SUBMIT nested TRIGGER role contains XPath for a button element")
     public void buildResolvedJson_loginButton_submitValue_containsButton() throws IOException {
         JsonNode root = parseJson(DemoPageElements.class);
         JsonNode loginButtonNode = findNodeAnywhere(root, "LoginButton");
         assertNotNull(loginButtonNode, "LoginButton node not found");
-        String val = loginButtonNode.path("SUBMIT").asText();
+        // Phase 19 Part B: scanner always emits { "CONSTANT": { "ROLE": "value" } }
+        String val = loginButtonNode.path("SUBMIT").path("TRIGGER").asText();
         assertTrue(val.contains("button"),
-                "Expected SUBMIT to reference a button; got: " + val);
+                "Expected SUBMIT.TRIGGER to reference a button; got: " + val);
     }
 
     // =====================================================================

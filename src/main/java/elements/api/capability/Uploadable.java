@@ -21,7 +21,8 @@ import elements.meta.ElementRole;
  */
 public interface Uploadable extends Element, ActionCapabilityProvider {
 
-    default String getInputLocator() { return ((Enum<?>) this).name(); }
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.INPUT}. */
+    default String getInputLocator() { return Element.qualifiedLocatorKey(this, ElementRole.INPUT); }
 
     @Override
     default String getPrimaryLocator() { return getInputLocator(); }
@@ -29,7 +30,7 @@ public interface Uploadable extends Element, ActionCapabilityProvider {
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getInputLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

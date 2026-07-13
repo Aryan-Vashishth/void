@@ -21,7 +21,8 @@ import elements.meta.ElementRole;
  */
 public interface ReadOnly extends Element, ActionCapabilityProvider {
 
-    default String getTextLocator() { return ((Enum<?>) this).name(); }
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TEXT}. */
+    default String getTextLocator() { return Element.qualifiedLocatorKey(this, ElementRole.TEXT); }
 
     @Override
     default String getPrimaryLocator() { return getTextLocator(); }
@@ -29,7 +30,7 @@ public interface ReadOnly extends Element, ActionCapabilityProvider {
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getTextLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

@@ -1,15 +1,14 @@
 {
-  "DemoLoginElements": {
+  "DemoLoginPage": {
     "Credentials": {
-      "USERNAME_INPUT": "//input[@id='username']",
-      "PASSWORD_INPUT": "//input[@id='password']"
+      "USERNAME_INPUT": { "INPUT": "//input[@id='username']" },
+      "PASSWORD_INPUT": { "INPUT": "//input[@id='password']" }
     },
-    "Actions": {
-      "LOGIN_BUTTON": "//button[@type='submit']"
+    "Button": {
+      "LOGIN_BUTTON": { "TRIGGER": "//button[@type='submit']" }
     },
     "Labels": {
-      "SUCCESS_MESSAGE": "//div[@id='flash']"
+      "SUCCESS_MESSAGE": { "TEXT": "//div[@id='flash']" }
     }
   }
 }
-

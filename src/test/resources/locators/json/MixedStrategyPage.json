@@ -1,8 +1,8 @@
 {
   "MixedStrategyPage": {
     "Buttons": {
-      "SAVE":   "//button[@id='save']",
-      "CANCEL": "//button[@id='cancel']"
+      "SAVE":   { "TRIGGER": "//button[@id='save']" },
+      "CANCEL": { "TRIGGER": "//button[@id='cancel']" }
     }
   }
 }

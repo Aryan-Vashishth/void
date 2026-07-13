@@ -26,8 +26,8 @@ import elements.meta.ElementRole;
  */
 public interface Clickable extends Element, ActionCapabilityProvider {
 
-    /** @return property key for the clickable element's locator template. */
-    default String getTriggerLocator() { return ((Enum<?>) this).name(); }
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TRIGGER}. */
+    default String getTriggerLocator() { return Element.qualifiedLocatorKey(this, ElementRole.TRIGGER); }
 
     @Override
     default String getPrimaryLocator() { return getTriggerLocator(); }
@@ -35,7 +35,7 @@ public interface Clickable extends Element, ActionCapabilityProvider {
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getTriggerLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

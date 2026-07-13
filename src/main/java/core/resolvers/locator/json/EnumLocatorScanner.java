@@ -14,14 +14,8 @@ import static core.logging.CustomLogger.warn;
 /**
  * Scans an enum class and emits one JSON entry per enum constant. For each constant
  * that implements {@link Element}, the constant's {@code name()} becomes the JSON key
- * and its resolved locator(s) become the value.
- *
- * <ul>
- *   <li><b>Single-role</b> element (e.g. {@code ReadOnlyElement}, {@code Clickable}):
- *       emitted as {@code "CONSTANT_NAME" : "resolvedLocator"}.</li>
- *   <li><b>Multi-role</b> element (e.g. {@code Dropdown}):
- *       emitted as {@code "CONSTANT_NAME" : { "TRIGGER" : "…", "LIST" : "…" }}.</li>
- * </ul>
+ * and its resolved locator(s) become the value, always in nested role-object form:
+ * {@code "CONSTANT_NAME" : { "ROLE" : "resolvedLocator" }}.
  *
  * <p>Locator values are resolved against the external {@code .properties} bundle
  * referenced by the element (if any). Class-tree recursion lives in
@@ -60,25 +54,16 @@ public final class EnumLocatorScanner {
 
             if (roles.isEmpty()) continue;
 
-            if (roles.size() == 1) {
-                // Single-role: emit as simple string value
-                String rawVal = roles.values().iterator().next();
+            // Always emit as nested role object { ROLE_NAME: resolvedValue } — uniform for
+            // single- and multi-role elements. Dot-path lookup in JsonNodeLookup handles both.
+            ObjectNode rolesNode = into.putObject(constantName);
+            for (Map.Entry<ElementRole, String> entry : roles.entrySet()) {
+                String rawVal = entry.getValue();
                 if (rawVal == null || rawVal.isBlank()) continue;
                 String resolvedVal = resolve(props, rawVal);
-                into.put(constantName, resolvedVal);
+                rolesNode.put(entry.getKey().name(), resolvedVal);
                 added++;
                 if (!resolvedVal.equals(rawVal)) resolved++; else raw++;
-            } else {
-                // Multi-role: emit as nested object { ROLE_NAME: resolvedValue }
-                ObjectNode rolesNode = into.putObject(constantName);
-                for (Map.Entry<ElementRole, String> entry : roles.entrySet()) {
-                    String rawVal = entry.getValue();
-                    if (rawVal == null || rawVal.isBlank()) continue;
-                    String resolvedVal = resolve(props, rawVal);
-                    rolesNode.put(entry.getKey().name(), resolvedVal);
-                    added++;
-                    if (!resolvedVal.equals(rawVal)) resolved++; else raw++;
-                }
             }
         }
         debug.log("[enum] name=" + enumClass.getSimpleName()

@@ -84,18 +84,20 @@ public class AccountMappingMigratorTest {
         assertTrue(header.has("LAST_SYNCED_LABEL"));
     }
 
-    @Test(description = "Header values are resolved XPaths (not raw property keys)")
+    @Test(description = "Header TEXT role values are resolved XPaths (not raw property keys)")
     public void header_valuesAreResolved() {
         JsonNode header = top.path("Header");
-        String val = header.path("PAGE_TITLE").asText();
+        // Phase 19 Part B: single-role emitted as nested { "PAGE_TITLE": { "TEXT": "xpath" } }
+        String val = header.path("PAGE_TITLE").path("TEXT").asText();
         assertTrue(val.contains("page-title"), "Expected resolved XPath; got: " + val);
     }
 
-    @Test(description = "Header values are plain strings (single-role)")
+    @Test(description = "Header constants are nested role objects (TEXT role)")
     public void header_valuesAreStrings() {
         JsonNode header = top.path("Header");
-        assertTrue(header.path("PAGE_TITLE").isTextual());
-        assertTrue(header.path("BREADCRUMB").isTextual());
+        // Phase 19 Part B: single-role always emitted as nested { "ROLE": "value" }
+        assertTrue(header.path("PAGE_TITLE").path("TEXT").isTextual());
+        assertTrue(header.path("BREADCRUMB").path("TEXT").isTextual());
     }
 
     // =====================================================================
@@ -149,23 +151,25 @@ public class AccountMappingMigratorTest {
         assertTrue(dr.has("DATE_TO"));
     }
 
-    @Test(description = "DateRange values are resolved strings (single-role)")
+    @Test(description = "DateRange INPUT role values are resolved (single-role nested object)")
     public void dateRange_valuesAreStrings() {
         JsonNode dr = top.path("FilterPanel").path("DateRange");
-        assertTrue(dr.path("DATE_FROM").isTextual());
-        assertTrue(dr.path("DATE_FROM").asText().contains("dateFrom"));
+        // Phase 19 Part B: single-role emitted as { "DATE_FROM": { "INPUT": "xpath" } }
+        assertTrue(dr.path("DATE_FROM").path("INPUT").isTextual());
+        assertTrue(dr.path("DATE_FROM").path("INPUT").asText().contains("dateFrom"));
     }
 
     // =====================================================================
     // 3c. FilterPanel > ActiveOnly — Checkbox (single role TRIGGER)
     // =====================================================================
 
-    @Test(description = "ActiveOnly.ACTIVE_ONLY_TOGGLE is a resolved string")
+    @Test(description = "ActiveOnly.ACTIVE_ONLY_TOGGLE TRIGGER role value is resolved")
     public void activeOnly_isResolvedString() {
         JsonNode ao = top.path("FilterPanel").path("ActiveOnly");
         assertTrue(ao.has("ACTIVE_ONLY_TOGGLE"));
-        assertTrue(ao.path("ACTIVE_ONLY_TOGGLE").isTextual());
-        assertTrue(ao.path("ACTIVE_ONLY_TOGGLE").asText().contains("activeOnly"));
+        // Phase 19 Part B: single-role emitted as { "ACTIVE_ONLY_TOGGLE": { "TRIGGER": "xpath" } }
+        assertTrue(ao.path("ACTIVE_ONLY_TOGGLE").path("TRIGGER").isTextual());
+        assertTrue(ao.path("ACTIVE_ONLY_TOGGLE").path("TRIGGER").asText().contains("activeOnly"));
     }
 
     // =====================================================================
@@ -179,9 +183,10 @@ public class AccountMappingMigratorTest {
         assertTrue(ab.has("RESET"));
     }
 
-    @Test(description = "ApplyButton.APPLY resolved to XPath containing 'Apply'")
+    @Test(description = "ApplyButton.APPLY TRIGGER role resolves to XPath containing 'Apply'")
     public void applyButton_applyResolved() {
-        String val = top.path("FilterPanel").path("ApplyButton").path("APPLY").asText();
+        // Phase 19 Part B: single-role emitted as { "APPLY": { "TRIGGER": "xpath" } }
+        String val = top.path("FilterPanel").path("ApplyButton").path("APPLY").path("TRIGGER").asText();
         assertTrue(val.contains("Apply"), "Expected Apply in XPath; got: " + val);
     }
 
@@ -220,9 +225,10 @@ public class AccountMappingMigratorTest {
         assertTrue(ie.has("CELL_EDITOR"), "Missing CELL_EDITOR constant");
     }
 
-    @Test(description = "InlineEditor.CELL_EDITOR has dynamic template with %s")
+    @Test(description = "InlineEditor.CELL_EDITOR INPUT role has dynamic template with %s")
     public void inlineEditor_hasTemplate() {
-        String val = top.path("AccountTable").path("InlineEditor").path("CELL_EDITOR").asText();
+        // Phase 19 Part B: single-role emitted as { "CELL_EDITOR": { "INPUT": "xpath" } }
+        String val = top.path("AccountTable").path("InlineEditor").path("CELL_EDITOR").path("INPUT").asText();
         assertTrue(val.contains("%s"), "Expected dynamic template; got: " + val);
     }
 
@@ -242,12 +248,13 @@ public class AccountMappingMigratorTest {
     // 5b. ActionBar > ExportButton — Clickable
     // =====================================================================
 
-    @Test(description = "ExportButton.EXPORT is a resolved string")
+    @Test(description = "ExportButton.EXPORT TRIGGER role value is resolved")
     public void exportButton_isResolvedString() {
         JsonNode eb = top.path("ActionBar").path("ExportButton");
         assertTrue(eb.has("EXPORT"));
-        assertTrue(eb.path("EXPORT").isTextual());
-        assertTrue(eb.path("EXPORT").asText().contains("export"));
+        // Phase 19 Part B: single-role emitted as { "EXPORT": { "TRIGGER": "xpath" } }
+        assertTrue(eb.path("EXPORT").path("TRIGGER").isTextual());
+        assertTrue(eb.path("EXPORT").path("TRIGGER").asText().contains("export"));
     }
 
     // =====================================================================
@@ -292,12 +299,13 @@ public class AccountMappingMigratorTest {
     // 6c. DetailPanel > FileUpload — FileInputElement (single role)
     // =====================================================================
 
-    @Test(description = "FileUpload.MAPPING_CSV is a resolved string")
+    @Test(description = "FileUpload.MAPPING_CSV INPUT role value is resolved")
     public void fileUpload_isResolvedString() {
         JsonNode fu = top.path("DetailPanel").path("FileUpload");
         assertTrue(fu.has("MAPPING_CSV"));
-        assertTrue(fu.path("MAPPING_CSV").isTextual());
-        assertTrue(fu.path("MAPPING_CSV").asText().contains("file"));
+        // Phase 19 Part B: single-role emitted as { "MAPPING_CSV": { "INPUT": "xpath" } }
+        assertTrue(fu.path("MAPPING_CSV").path("INPUT").isTextual());
+        assertTrue(fu.path("MAPPING_CSV").path("INPUT").asText().contains("file"));
     }
 
     // =====================================================================
@@ -330,15 +338,17 @@ public class AccountMappingMigratorTest {
     // Cross-cutting: no raw property keys leaked as values
     // =====================================================================
 
-    @Test(description = "Header PAGE_TITLE value is resolved XPath, not raw key")
+    @Test(description = "Header PAGE_TITLE TEXT role is resolved XPath, not raw key")
     public void noRawKeys_headerPageTitle() {
-        String val = top.path("Header").path("PAGE_TITLE").asText();
+        // Phase 19 Part B: single-role nested — check the leaf TEXT value
+        String val = top.path("Header").path("PAGE_TITLE").path("TEXT").asText();
         assertNotEquals(val, "PAGE_TITLE", "Value should be resolved, not the raw key");
     }
 
-    @Test(description = "ApplyButton APPLY value is resolved XPath, not raw key")
+    @Test(description = "ApplyButton APPLY TRIGGER role is resolved XPath, not raw key")
     public void noRawKeys_applyButton() {
-        String val = top.path("FilterPanel").path("ApplyButton").path("APPLY").asText();
+        // Phase 19 Part B: single-role nested — check the leaf TRIGGER value
+        String val = top.path("FilterPanel").path("ApplyButton").path("APPLY").path("TRIGGER").asText();
         assertNotEquals(val, "APPLY_FILTER_TRIGGER", "Value should be resolved, not the raw key");
     }
 
