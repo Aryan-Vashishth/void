@@ -1,8 +1,8 @@
 # Phase 11 — Remove Constructors From Static Elements
 
-**Status:** Partially complete — `getArgs()` redundancies removed; constructor/locator-method cleanup deferred to Phase 5
+**Status:** In progress — `getArgs()` redundancies removed; constructor/locator-method/`getExternalFileName()` cleanup now unblocked by Phase 19 Part B
 
-**Implementation note:** The JSON/properties files still use flat keys (`"USERNAME_INPUT"` etc.), not the namespaced format introduced in Phase 1. Changing locator method overrides to delegate to `getPrimaryLocator()` would break all lookups until Phase 5 (deterministic repository convention) and Phase 6 (template generator) are complete. What was removed in this pass: all `getArgs()` overrides returning `new Object[0]` in enums whose capability interface does not re-declare `getArgs()` as abstract (`Clickable`, `Typeable`, `ReadOnly`, `Hoverable`, `Uploadable`, `Checkable`, `Table`/`EditableTable`). What remains: constructors, locator key methods, `getExternalFileName()` overrides — pending Phase 5.  
+**Implementation note:** Phase 19 Part B (commit `a6a111f`) shipped fully-qualified locator key defaults on all single-role capability interfaces and migrated all locator data files to the nested role-object format. This unblocks the remaining cleanup: constructors that store a locator key string, locator method overrides that return that key, and `getExternalFileName()` overrides pointing to the conventional path (since the convention is now established by Phase 5). `getArgs()` overrides returning `new Object[0]` were already removed in the partial Phase 11 pass. What remains: constructors, locator key method overrides, and `getExternalFileName()` overrides in enums that are migrated to the conventional path.  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** Low — mechanical cleanup enabled by Phases 1–4; no behavior change
 

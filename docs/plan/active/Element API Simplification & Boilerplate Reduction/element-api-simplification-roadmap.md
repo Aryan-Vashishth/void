@@ -54,7 +54,7 @@ Resolve before the relevant phases begin.
 | 16 | `LocatorFamily` — shared template, auto arg from constant name | Medium | Complete |
 | 17 | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Complete |
 | 18 | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Complete |
-| 19 | Capability locator key defaults — `PageClass.EnumClass.CONSTANT.role` default on all locator methods | Medium | Partial |
+| 19 | Capability locator key defaults — `PageClass.EnumClass.CONSTANT.role` default on all locator methods | Medium | Complete |
 
 ---
 
