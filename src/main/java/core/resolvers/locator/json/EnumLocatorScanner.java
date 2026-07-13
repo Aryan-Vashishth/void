@@ -1,6 +1,7 @@
 package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import core.resolvers.locator.api.ConventionalLocatorPath;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -46,7 +47,7 @@ public final class EnumLocatorScanner {
             return 0;
         }
 
-        Properties props = loadPropsFor(constants);
+        Properties props = loadPropsFor(constants, enumClass);
         if (props != null) {
             debug.log("[enum] props name=" + enumClass.getSimpleName() + " keys=" + props.size());
         }
@@ -95,13 +96,31 @@ public final class EnumLocatorScanner {
         return (resolved != null && !resolved.isBlank()) ? resolved.trim() : rawVal;
     }
 
-    /** Find first {@link Element} constant with a non-blank external file name and load its props. */
-    private Properties loadPropsFor(Object[] constants) {
+    /**
+     * Load the properties bundle for the enum's enclosing page class.
+     *
+     * <p>Priority:</p>
+     * <ol>
+     *   <li>Phase 5 conventional path: {@code pkg/ClassName/locators.properties}</li>
+     *   <li>Explicit {@code getExternalFileName()} — only honoured when it ends with {@code .properties}</li>
+     * </ol>
+     */
+    private Properties loadPropsFor(Object[] constants, Class<?> enumClass) {
+        // Phase 5: probe conventional properties path for the enclosing page class
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        if (pageClass == null) pageClass = enumClass;
+        String conventionalPath = ConventionalLocatorPath.forClassProperties(pageClass);
+        Properties fromConventional = propertiesIndex.get(conventionalPath);
+        if (fromConventional != null && !fromConventional.isEmpty()) return fromConventional;
+
+        // Fallback: honour explicit getExternalFileName() only when it names a .properties file
         for (Object c : constants) {
             if (c instanceof Element e) {
                 try {
                     String pf = e.getExternalFileName();
-                    if (pf != null && !pf.isBlank()) return propertiesIndex.get(pf);
+                    if (pf != null && !pf.isBlank() && pf.endsWith(".properties")) {
+                        return propertiesIndex.get(pf);
+                    }
                 } catch (Throwable ignored) { /* tolerate misbehaving constants */ }
             }
         }

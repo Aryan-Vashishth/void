@@ -2,6 +2,7 @@ package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import core.elements.DemoPageElements;
+import core.resolvers.locator.api.ConventionalLocatorPath;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.annotations.AfterClass;
@@ -11,6 +12,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -296,6 +298,41 @@ public class JsonLocatorMigratorTest {
         // We only verify the path; don't actually write to src/main/resources in a unit test
         assertEquals(expectedPath.getFileName().toString(), expectedSuffix,
                 "Expected file name to follow the convention <classname-lowercase>-locators.json");
+    }
+
+    // =====================================================================
+    // Phase 7 — writeResolvedJsonConventional()
+    // =====================================================================
+
+    @Test(description = "writeResolvedJsonConventional target path follows pkg/ClassName/locators.json")
+    public void writeResolvedJsonConventional_pathFollowsConvention() {
+        String cpRelPath = ConventionalLocatorPath.forClass(DemoPageElements.class);
+        Path expectedOutput = Paths.get("src/main/resources").resolve(cpRelPath);
+        String normalised = expectedOutput.toString().replace('\\', '/');
+        assertTrue(normalised.endsWith("DemoPageElements/locators.json"),
+                "Expected path to end with 'DemoPageElements/locators.json'; got: " + normalised);
+    }
+
+    @Test(description = "writeResolvedJsonTo with conventional path in tempDir produces valid JSON")
+    public void writeResolvedJsonTo_conventionalPath_producesValidJson() throws IOException {
+        String cpRelPath = ConventionalLocatorPath.forClass(DemoPageElements.class);
+        Path outFile = tempDir.resolve(cpRelPath);
+        Path returned = JsonLocatorMigrator.writeResolvedJsonTo(DemoPageElements.class, outFile);
+        assertTrue(Files.exists(returned), "Expected output file to be created");
+        JsonNode parsed = MAPPER.readTree(Files.readString(returned));
+        assertNotNull(parsed);
+        assertTrue(parsed.has("DemoPageElements"),
+                "Written JSON should contain 'DemoPageElements' top-level key");
+    }
+
+    @Test(description = "writeResolvedJsonTo with conventional path places file inside pkg/ClassName/ dir")
+    public void writeResolvedJsonTo_conventionalPath_fileIsInsideClassNameDir() throws IOException {
+        String cpRelPath = ConventionalLocatorPath.forClass(DemoPageElements.class);
+        Path outFile = tempDir.resolve(cpRelPath);
+        Path returned = JsonLocatorMigrator.writeResolvedJsonTo(DemoPageElements.class, outFile);
+        String normalised = returned.toString().replace('\\', '/');
+        assertTrue(normalised.contains("DemoPageElements/locators.json"),
+                "Conventional path must contain 'ClassName/locators.json'; got: " + normalised);
     }
 
     // =====================================================================

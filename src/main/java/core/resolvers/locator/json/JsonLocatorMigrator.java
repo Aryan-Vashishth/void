@@ -4,6 +4,7 @@ package core.resolvers.locator.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import core.resolvers.locator.api.ConventionalLocatorPath;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -64,6 +65,20 @@ public final class JsonLocatorMigrator {
         String json     = buildResolvedJson(rootClass);
         String fileName = rootClass.getSimpleName().toLowerCase(Locale.ROOT) + "-locators.json";
         return writeJsonString(json, DEFAULT_OUT_DIR.resolve(fileName));
+    }
+
+    /**
+     * Build JSON and write to the Phase 5 conventional path:
+     * {@code src/main/resources/<pkg/ClassName>/locators.json}.
+     *
+     * <p>Example: {@code tests.demo.pages.DemoLoginPage} →
+     * {@code src/main/resources/tests/demo/pages/DemoLoginPage/locators.json}</p>
+     */
+    public static Path writeResolvedJsonConventional(Class<?> rootClass) {
+        Objects.requireNonNull(rootClass, "rootClass must not be null");
+        String cpRelPath = ConventionalLocatorPath.forClass(rootClass);
+        return writeJsonString(buildResolvedJson(rootClass),
+                Paths.get("src/main/resources").resolve(cpRelPath));
     }
 
     /** Build JSON and write to an explicit file. */

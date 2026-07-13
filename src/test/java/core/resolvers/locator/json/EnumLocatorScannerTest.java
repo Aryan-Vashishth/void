@@ -3,6 +3,7 @@ package core.resolvers.locator.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import core.elements.DemoPageElements;
+import elements.fixture.ConventionalPropsPage;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -58,6 +59,33 @@ public class EnumLocatorScannerTest {
             assertFalse(name.equals("declaringClass"));
             assertFalse(name.equals("name"));
         });
+    }
+
+    // =====================================================================
+    // Phase 7 — conventional properties path resolution
+    // =====================================================================
+
+    @Test(description = "Scanner probes conventional .properties path and resolves locators from it")
+    public void writeInto_conventionalPropertiesPath_resolvesXpathFromProperties() {
+        ObjectNode node = M.createObjectNode();
+        new EnumLocatorScanner(new PropertiesIndex()).writeInto(node, ConventionalPropsPage.Fields.class);
+        // Locator keys (EMAIL_INPUT, PHONE_INPUT) must be resolved via conventional properties path
+        // elements/fixture/ConventionalPropsPage/locators.properties
+        assertEquals(node.path("EMAIL_INPUT").asText(), "//input[@type='email']",
+                "Expected EMAIL_INPUT to resolve from conventional properties path");
+        assertEquals(node.path("PHONE_INPUT").asText(), "//input[@type='tel']",
+                "Expected PHONE_INPUT to resolve from conventional properties path");
+    }
+
+    @Test(description = "Scanner emits the constant name as-is when no properties file exists for the page")
+    public void writeInto_noProperties_emitsRawConstantName() {
+        // DemoPageElements.Login has hardcoded locators; its enclosing class has no .properties file
+        ObjectNode node = M.createObjectNode();
+        new EnumLocatorScanner(new PropertiesIndex()).writeInto(node, DemoPageElements.Login.class);
+        // Values must be non-blank (the raw locator key, not an error or blank)
+        String usernameVal = node.path("USERNAME").asText();
+        assertFalse(usernameVal.isBlank(),
+                "Expected a non-blank locator value even without a properties file");
     }
 }
 

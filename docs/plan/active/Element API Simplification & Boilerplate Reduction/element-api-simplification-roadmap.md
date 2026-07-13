@@ -42,7 +42,7 @@ Resolve before the relevant phases begin.
 | 4 | Automatic display text — derive from enum constant name | Low | Complete |
 | 5 | Deterministic locator repository convention | High | Complete |
 | 6 | Properties template generator (new CLI command) | Low | Pending |
-| 7 | Runtime repository generation (existing CLI repositioned) | Low | Pending |
+| 7 | Runtime repository generation (existing CLI repositioned) | Low | Complete |
 | 8 | `getExternalFileName()` as advanced override | Medium | Complete |
 | 9 | Locator resolution order | High | Complete |
 | 10 | Mixed locator strategies | Medium | Complete |

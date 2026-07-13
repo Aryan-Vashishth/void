@@ -19,6 +19,9 @@ import java.util.Locale;
  *
  *   # Write to a specific file:
  *   java JsonMigratorCli --write  com.example.MyPageElements  path/to/output.json
+ *
+ *   # Write to the Phase 5 conventional path (src/main/resources/pkg/ClassName/locators.json):
+ *   java JsonMigratorCli --write-conventional  com.example.MyPageElements
  * </pre>
  */
 public final class JsonMigratorCli {
@@ -51,8 +54,13 @@ public final class JsonMigratorCli {
                         : JsonLocatorMigrator.writeResolvedJson(rootClass);
                 System.out.println("[done] Written to: " + written.toAbsolutePath());
             }
+            case "--write-conventional" -> {
+                Path written = JsonLocatorMigrator.writeResolvedJsonConventional(rootClass);
+                System.out.println("[done] Written to: " + written.toAbsolutePath());
+            }
             default -> {
-                System.err.println("[error] Unknown mode: " + mode + ". Use --print or --write.");
+                System.err.println("[error] Unknown mode: " + mode
+                        + ". Use --print, --write, or --write-conventional.");
                 System.exit(1);
             }
         }
@@ -60,9 +68,10 @@ public final class JsonMigratorCli {
 
     private static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("  JsonMigratorCli --print  <fully.qualified.ClassName>");
-        System.out.println("  JsonMigratorCli --write  <fully.qualified.ClassName>");
-        System.out.println("  JsonMigratorCli --write  <fully.qualified.ClassName>  <outputFile>");
+        System.out.println("  JsonMigratorCli --print               <fully.qualified.ClassName>");
+        System.out.println("  JsonMigratorCli --write               <fully.qualified.ClassName>");
+        System.out.println("  JsonMigratorCli --write               <fully.qualified.ClassName>  <outputFile>");
+        System.out.println("  JsonMigratorCli --write-conventional  <fully.qualified.ClassName>");
     }
 }
 
