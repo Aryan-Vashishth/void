@@ -1,6 +1,6 @@
 # Phase 5 — Deterministic Locator Repository Convention
 
-**Status:** Pending  
+**Status:** Complete  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** High — changes how the runtime locates repositories; must coexist with existing explicit paths
 

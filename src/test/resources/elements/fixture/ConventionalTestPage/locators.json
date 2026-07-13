@@ -1,0 +1,5 @@
+{
+  "SUBMIT":         "//button[@id='submit']",
+  "CANCEL":         "//button[@id='cancel']",
+  "STATUS_MESSAGE": "//div[@class='status']"
+}

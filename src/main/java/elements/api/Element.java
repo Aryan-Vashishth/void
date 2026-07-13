@@ -40,23 +40,29 @@ public interface Element {
         Class<?> enumClass = e.getDeclaringClass();
         Class<?> pageClass = enumClass.getEnclosingClass();
         Class<?> target = pageClass != null ? pageClass : enumClass;
-        return resolveLocatorFileName(target.getSimpleName());
+        return resolveLocatorFileName(target);
     }
 
-    private static String resolveLocatorFileName(String baseName) {
-        // Priority-ordered [suffix, classpath-base] pairs — internal, not yet configurable.
-        // To add a new format (e.g. YAML): append { ".yaml", "locators/yaml/" } here
-        // and register a matching LocatorSource in LocatorSourceRegistry.
+    private static String resolveLocatorFileName(Class<?> pageClass) {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        // Phase 5: package-qualified conventional path — collision-free across packages.
+        // e.g. tests.demo.pages.DemoLoginPage → tests/demo/pages/DemoLoginPage/locators.json
+        // LocatorPaths.under() treats any path containing '/' as already-rooted.
+        String dir = pageClass.getName().replace('.', '/') + "/";
+        for (String file : new String[]{"locators.json", "locators.properties"}) {
+            if (cl.getResource(dir + file) != null) return dir + file;
+        }
+        // Phase 8 fallback: simple name under known bases (legacy and cross-package simple names).
+        // To add a new format: append { ".ext", "locators/ext/" } and register a LocatorSource.
+        String base = pageClass.getSimpleName();
         String[][] candidates = {
             { ".json",       "locators/json/"       },
             { ".properties", "locators/properties/" }
         };
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
         for (String[] c : candidates) {
-            String fileName = baseName + c[0];
-            if (cl.getResource(c[1] + fileName) != null) return fileName;
+            if (cl.getResource(c[1] + base + c[0]) != null) return base + c[0];
         }
-        return baseName + candidates[0][0];
+        return dir + "locators.json"; // preferred target even if not yet created
     }
 
     /**

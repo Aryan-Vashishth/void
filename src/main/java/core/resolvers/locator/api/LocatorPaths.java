@@ -43,9 +43,14 @@ public final class LocatorPaths {
         return under(JSON_BASE, fileName);
     }
 
-    /** Prepend {@code base} to {@code fileName} unless it is already prefixed. */
+    /**
+     * Prepend {@code base} to {@code fileName} unless the name already contains a
+     * path separator, which signals that it is a self-rooted classpath path
+     * (e.g. a Phase-5 conventional path such as
+     * {@code "tests/demo/pages/DemoLoginPage/locators.json"}).
+     */
     public static String under(String base, String fileName) {
         if (fileName == null) return null;
-        return fileName.startsWith(base) ? fileName : base + fileName;
+        return fileName.contains("/") ? fileName : base + fileName;
     }
 }
