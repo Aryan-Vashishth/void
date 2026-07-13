@@ -22,13 +22,13 @@ VOID generates everything else.
 
 Resolve before the relevant phases begin.
 
-| # | Decision | Affects |
-|---|----------|---------|
-| 1 | Locator repository convention root path — fixed or configurable | Phase 5 |
-| 2 | Properties template generator CLI design — command name, scope, merge behavior | Phase 6 |
-| 3 | `LocatorContext` contract — method signatures, composition with `LocatorResolver` | Phase 13 |
-| 4 | Repository abstraction boundaries — how far `LocatorRepository` decouples format | Phases 7, 13, 14 |
-| 5 | Regeneration strategy — recommended: merge-with-preserve | Phase 6 |
+| # | Decision | Affects | Status |
+|---|----------|---------|--------|
+| 1 | Locator repository convention root path — fixed or configurable | Phase 5 | Resolved in Phase 5 — fixed conventional path |
+| 2 | Properties template generator CLI design — command name, scope, merge behavior | Phase 6 | **Resolved** — `JsonMigratorCli --sync <ClassName>`; one class per invocation; merge-with-preserve |
+| 3 | `LocatorContext` contract — method signatures, composition with `LocatorResolver` | Phase 13 | Open |
+| 4 | Repository abstraction boundaries — how far `LocatorRepository` decouples format | Phases 7, 13, 14 | Open |
+| 5 | Regeneration strategy — recommended: merge-with-preserve | Phase 6 | **Resolved** — merge-with-preserve; orphan warnings only; `--prune` required to delete |
 
 ---
 
@@ -41,7 +41,7 @@ Resolve before the relevant phases begin.
 | 3 | Rename `EMPTY_ARGS` → `NO_ARGS` | Medium | Complete |
 | 4 | Automatic display text — derive from enum constant name | Low | Complete |
 | 5 | Deterministic locator repository convention | High | Complete |
-| 6 | Properties template generator (new CLI command) | Low | Pending |
+| 6 | Properties template generator (new CLI command) | Low | Complete |
 | 7 | Runtime repository generation (existing CLI repositioned) | Low | Complete |
 | 8 | `getExternalFileName()` as advanced override | Medium | Complete |
 | 9 | Locator resolution order | High | Complete |
