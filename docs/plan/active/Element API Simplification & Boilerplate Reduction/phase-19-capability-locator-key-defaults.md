@@ -2,13 +2,13 @@
 
 **Status:** Pending  
 **Branch:** `feature/element-api-simplification`  
-**Risk:** Low — purely additive defaults; no call sites change
+**Risk:** Medium — changes the properties key format; requires resolver update and migration of existing `.properties` files
 
 ---
 
 ## Objective
 
-Remove the last category of repetitive locator boilerplate from page enum declarations by making each capability interface's locator method default to `name()` — the same convention the JSON repository already uses as its key.
+Remove the last category of repetitive locator boilerplate from page enum declarations. Every capability interface's locator method will default to a fully-qualified, self-describing key that encodes the page class, the enum group, the constant name, and the locator role — matching the same information the JSON file already expresses via nesting.
 
 ---
 
@@ -22,57 +22,111 @@ enum Credentials implements Typeable {
     @Override public String getInputLocator() { return name(); }   // ← boilerplate
 }
 
-enum Labels implements ReadOnly {
-    SUCCESS_MESSAGE;
-    @Override public String getTextLocator() { return name(); }    // ← boilerplate
+enum Button implements Clickable {
+    LOGIN_BUTTON("Login");
+    @Override public String getTriggerLocator() { return name(); } // ← boilerplate
 }
 ```
 
-The JSON file already uses the constant name as the key. The properties file already uses the constant name as the key for single-role elements. The `name()` override adds nothing but noise.
+---
+
+## Key Format Convention
+
+The locator key for any element is the fully-qualified dotted path:
+
+```
+PageClass.EnumClass.CONSTANT_NAME.roleSuffix
+```
+
+Where `roleSuffix` is the capability method name with `get` stripped from the front and `Locator` stripped from the end, lowercased:
+
+| Method | Role suffix |
+|--------|-------------|
+| `getTriggerLocator` | `trigger` |
+| `getInputLocator` | `input` |
+| `getTextLocator` | `text` |
+| `getListLocator` | `list` |
+| `getToolTipContentLocator` | `toolTipContent` |
+| `getSearchInputLocator` | `searchInput` |
+| `getSearchButtonLocator` | `searchButton` |
+| `getSearchResultLocator` | `searchResult` |
+| `getTableLocator` | `table` |
+
+**Examples from `DemoLoginPage`:**
+
+```properties
+# tests/demo/pages/DemoLoginPage/locators.properties
+DemoLoginPage.Credentials.USERNAME_INPUT.input=//input[@id='username']
+DemoLoginPage.Credentials.PASSWORD_INPUT.input=//input[@id='password']
+DemoLoginPage.Button.LOGIN_BUTTON.trigger=//button[@type='submit']
+DemoLoginPage.Labels.SUCCESS_MESSAGE.text=//div[@id='flash']
+```
+
+Multi-role element (`Selectable` / `NavBar`):
+```properties
+DemoLoginPage.NavBar.PARTNER.trigger=//button[@data-partner]
+DemoLoginPage.NavBar.PARTNER.list=//ul[@class='partner-options']
+```
+
+### Why fully-qualified — not just `CONSTANT_NAME.role`
+
+The properties file is flat; without the page and enum prefix, two pages with a `USERNAME_INPUT` would collide if ever merged or referenced from a shared context. The full path is also self-describing — a developer reading the key knows exactly which element it belongs to, with no need to look at the file path. This mirrors what the JSON file expresses through nesting:
+
+```
+JSON nesting:          DemoLoginPage → Credentials → USERNAME_INPUT   (→ XPath)
+Properties flat key:   DemoLoginPage.Credentials.USERNAME_INPUT.input  (→ XPath)
+```
+
+Same information, different representation.
+
+### Default key derivation
+
+The default implementation in each capability interface derives the key from the enum's class hierarchy at runtime:
+
+```java
+// example: Typeable
+default String getInputLocator() {
+    Enum<?> e = (Enum<?>) this;
+    Class<?> enumClass = e.getDeclaringClass();
+    Class<?> pageClass = enumClass.getEnclosingClass();
+    String prefix = (pageClass != null)
+        ? pageClass.getSimpleName() + "." + enumClass.getSimpleName()
+        : enumClass.getSimpleName();
+    return prefix + "." + e.name() + ".input";
+}
+```
+
+An enum that needs a custom key simply overrides the method and returns whatever string it needs.
 
 ---
 
-## Convention
+## Resolver Impact
 
-Method name → properties/JSON key:
-- Strip leading `get`, strip trailing `Locator`, lowercase → the **role suffix**
-- `getTriggerLocator` → `trigger`
-- `getInputLocator` → `input`
-- `getTextLocator` → `text`
-- `getListLocator` → `list`
-- `getSearchInputLocator` → `searchInput` (camelCase preserved)
+The runtime locator resolver and `EnumLocatorScanner` currently do a flat properties lookup using the value returned by the locator method. After this phase, the value is the full qualified key (`DemoLoginPage.Credentials.USERNAME_INPUT.input`). The flat lookup in `PropertiesIndex` requires no structural change — it already does `props.getProperty(rawVal)` — the key just changes from `"USERNAME_INPUT"` to `"DemoLoginPage.Credentials.USERNAME_INPUT.input"`.
 
-**Single-role elements** — one locator method, default returns `name()`:
-```properties
-USERNAME_INPUT=//input[@id='username']   # key is the constant name, no suffix needed
-```
+**What must change:**
+- All existing `.properties` files — keys must be migrated to the fully-qualified format.
+- `EnumLocatorScanner` — currently emits the constant name as the JSON key by calling `((Enum<?>) constant).name()` directly. After this phase it still does that (JSON key stays as constant name, JSON is nesting-aware). The properties lookup already uses the locator method return value, which will now be the full qualified key.
+- Phase 6 template generator — must emit fully-qualified keys from the start.
 
-**Multi-role elements** — multiple locator methods, default returns `name() + "." + roleSuffix`:
-```properties
-PARTNER.trigger=//button[@data-partner]
-PARTNER.list=//ul[@class='partner-options']
-```
-
-The same constant name used in JSON is reused in properties — no new naming scheme to learn.
+**What does NOT change:**
+- The JSON file format — nesting already encodes the qualification. The JSON tree is written using `e.name()` as the leaf key and the class hierarchy for nesting. This is unchanged.
+- Hardcoded elements — an enum that overrides and returns an XPath directly continues to work; the resolver falls back to the raw return value if no properties entry is found.
 
 ---
 
 ## Part A — Single-Role Defaults (unblocked)
 
-Add `default` to these methods across the single-role capability interfaces:
-
 | Interface | Method | Default return |
 |-----------|--------|----------------|
-| `Clickable` | `getTriggerLocator()` | `((Enum<?>) this).name()` |
-| `Typeable` | `getInputLocator()` | `((Enum<?>) this).name()` |
-| `ReadOnly` | `getTextLocator()` | `((Enum<?>) this).name()` |
-| `Hoverable` | `getToolTipContentLocator()` | `((Enum<?>) this).name()` |
-| `Listable` | `getListLocator()` | `((Enum<?>) this).name()` |
-| `Uploadable` | `getInputLocator()` | `((Enum<?>) this).name()` |
+| `Clickable` | `getTriggerLocator()` | `pageClass.SIMPLE.enumClass.SIMPLE.name().trigger` |
+| `Typeable` | `getInputLocator()` | `… .input` |
+| `ReadOnly` | `getTextLocator()` | `… .text` |
+| `Hoverable` | `getToolTipContentLocator()` | `… .toolTipContent` |
+| `Listable` | `getListLocator()` | `… .list` |
+| `Uploadable` | `getInputLocator()` | `… .input` |
 
-`Listable.getListLocator()` is safe to default because `Listable` is used standalone (it is not `Selectable`). `Selectable` and other multi-role interfaces are Part B.
-
-After Part A, page enums that implement a single-role capability and have no custom locator key need no locator override at all:
+After Part A, page enums that need no custom key remove the locator override entirely:
 
 ```java
 // BEFORE
@@ -81,76 +135,79 @@ enum Credentials implements Typeable {
     @Override public String getInputLocator() { return name(); }
 }
 
-// AFTER
+// AFTER — zero boilerplate
 enum Credentials implements Typeable {
     USERNAME_INPUT, PASSWORD_INPUT;
 }
 ```
 
-**Resolver compatibility:** No change needed. The runtime already looks up `getInputLocator()` → `"USERNAME_INPUT"` against the JSON/properties repository. The default just moves that `return name()` from the call site to the interface.
+**Blocker:** Existing `.properties` files must be updated to use the qualified format before Part A can be committed. Implement the migration in the same PR.
 
 ---
 
-## Part B — Multi-Role Defaults (depends on Phase 6)
+## Part B — Multi-Role Defaults (unblocked — same format, no ambiguity)
 
-Multi-role interfaces cannot default both methods to `name()` — that would emit the same lookup key for two different roles, making them indistinguishable.
+Because the role suffix is always present in the key, multi-role interfaces are no longer a special case. `Selectable.getTriggerLocator()` and `Selectable.getListLocator()` both default to the fully-qualified key with their respective suffix — they are distinct by definition:
 
-The solution is to default to `name() + "." + roleSuffix`:
+```
+DemoLoginPage.NavBar.PARTNER.trigger  ← getTriggerLocator()
+DemoLoginPage.NavBar.PARTNER.list     ← getListLocator()
+```
+
+This means Part B is not blocked on Phase 6. The fully-qualified format already solves the multi-role disambiguation problem that made Part B appear harder.
 
 | Interface | Method | Default return |
 |-----------|--------|----------------|
-| `Selectable` | `getTriggerLocator()` | `name() + ".trigger"` |
-| `Selectable` | `getListLocator()` | `name() + ".list"` |
-| `MultiSelectable` | `getTriggerLocator()` | `name() + ".trigger"` |
-| `MultiSelectable` | `getListLocator()` | `name() + ".list"` |
-| `SearchField` | `getSearchInputLocator()` | `name() + ".searchInput"` |
-| `SearchField` | `getSearchButtonLocator()` | `name() + ".searchButton"` |
-| `Searchable` | `getSearchResultLocator()` | `name() + ".searchResult"` |
-| `SearchableDropdown` | `getTriggerLocator()` | `name() + ".trigger"` |
-
-**This requires two co-ordinated changes:**
-1. The properties file template generator (Phase 6) must emit `CONSTANT_NAME.roleSuffix=` keys for multi-role elements.
-2. `EnumLocatorScanner` must look up `CONSTANT_NAME.roleSuffix` (not raw `CONSTANT_NAME`) when the locator method returns a dotted key.
-
-These changes are Phase 6 scope and must land together. Do not implement Part B independently.
-
-**`Table` and `EditableTable`** — most methods already default to `null` (they are optional roles). Only `getTableLocator()` is abstract. Apply `name() + ".table"` as its default.
+| `Selectable` | `getTriggerLocator()` | `… .trigger` |
+| `Selectable` | `getListLocator()` | `… .list` |
+| `MultiSelectable` | `getTriggerLocator()` | `… .trigger` |
+| `MultiSelectable` | `getListLocator()` | `… .list` |
+| `SearchField` | `getSearchInputLocator()` | `… .searchInput` |
+| `SearchField` | `getSearchButtonLocator()` | `… .searchButton` |
+| `Searchable` | `getSearchResultLocator()` | `… .searchResult` |
+| `SearchableDropdown` | `getTriggerLocator()` | `… .trigger` |
+| `Table` | `getTableLocator()` | `… .table` |
 
 ---
 
 ## Implementation Order
 
-1. **Part A first** — add defaults to single-role interfaces; delete the boilerplate overrides from all page enums that were using `return name()`.
-2. **Resolve Open Decision 2 and 5** (Phase 6 template format) to confirm the `.role` suffix convention.
-3. **Part B** — add multi-role defaults + update Phase 6 template generator + update `EnumLocatorScanner` lookup logic, in a single coordinated commit.
+1. Update all existing `.properties` files to the fully-qualified key format.
+2. Add defaults to all capability interfaces (Parts A and B together — same format, same commit).
+3. Delete the now-redundant locator overrides from all page enums.
+4. Update Phase 6 template generator spec to emit fully-qualified keys from the start.
 
 ---
 
-## Affected Files (Part A)
+## Affected Files
 
-- `src/main/java/elements/api/capability/Clickable.java`
-- `src/main/java/elements/api/capability/Typeable.java`
-- `src/main/java/elements/api/capability/ReadOnly.java`
-- `src/main/java/elements/api/capability/Hoverable.java`
-- `src/main/java/elements/api/capability/Listable.java`
-- `src/main/java/elements/api/capability/Uploadable.java`
-- All page enum files with a now-redundant `return name()` override
+**Capability interfaces (all):**
+- `elements/api/capability/Clickable.java`
+- `elements/api/capability/Typeable.java`
+- `elements/api/capability/ReadOnly.java`
+- `elements/api/capability/Hoverable.java`
+- `elements/api/capability/Listable.java`
+- `elements/api/capability/Uploadable.java`
+- `elements/api/capability/Selectable.java`
+- `elements/api/capability/MultiSelectable.java`
+- `elements/api/capability/SearchField.java`
+- `elements/api/capability/Searchable.java`
+- `elements/api/capability/SearchableDropdown.java`
+- `elements/api/capability/Table.java`
 
-## Affected Files (Part B)
+**Page enums:** all files with redundant `return name()` overrides.
 
-- All multi-role capability interfaces
-- `src/main/java/core/resolvers/locator/json/EnumLocatorScanner.java` — role-suffixed lookup
-- Phase 6 template generator (not yet created)
-- Existing `.properties` files — keys must be migrated to `CONSTANT_NAME.role=` format
+**Resources:** all `.properties` locator files — key format migration.
 
 ---
 
 ## Exit Criteria
 
-- Single-role page enums declare only the enum constants and no locator override, unless a custom key is needed
-- Multi-role page enums declare only the enum constants and no locator override (Part B)
-- Properties files use `CONSTANT_NAME=` for single-role and `CONSTANT_NAME.role=` for multi-role
-- `EnumLocatorScanner` resolves both formats correctly
+- Page enums that need the default key declare only the enum constants — no locator override
+- Properties files use `PageClass.EnumClass.CONSTANT.role=` for all entries
+- JSON file format is unchanged (nesting stays)
+- `EnumLocatorScanner` resolves properties via the full qualified key returned by locator methods
+- Phase 6 template generator spec records the fully-qualified key format as the target output format
 - Full suite passes with no regressions
 
 ---

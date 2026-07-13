@@ -54,7 +54,7 @@ Resolve before the relevant phases begin.
 | 16 | `LocatorFamily` — shared template, auto arg from constant name | Medium | Complete |
 | 17 | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Complete |
 | 18 | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Complete |
-| 19 | Capability locator key defaults — `name()` default on single-role methods; `.role` suffix for multi-role | Low | Pending |
+| 19 | Capability locator key defaults — `PageClass.EnumClass.CONSTANT.role` default on all locator methods | Medium | Pending |
 
 ---
 
@@ -78,9 +78,7 @@ Resolve Open Decisions 2 and 5 before Phase 6.
 
 **Phase 12** (simplify capability interfaces) is independent and can run at any point.
 
-**Phase 19** (capability locator key defaults) has two parts:
-- **Part A** (single-role defaults) is unblocked and should run before Phase 11 — it eliminates the remaining `return name()` overrides, completing the boilerplate removal that Phase 11 started.
-- **Part B** (multi-role `.role` suffix) depends on Phase 6 — the template generator and resolver change must land together.
+**Phase 19** (capability locator key defaults) fully-qualifies every locator key as `PageClass.EnumClass.CONSTANT.role`. Both single-role and multi-role interfaces use the same format — the role suffix disambiguates multi-role without special-casing. Must run before Phase 11 (removes remaining locator overrides) and informs Phase 6 (template generator must emit this format).
 
 **Phase 15** is a validation pass, not an implementation phase — run last.
 
