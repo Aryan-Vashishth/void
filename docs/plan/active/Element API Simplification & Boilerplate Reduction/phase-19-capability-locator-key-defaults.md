@@ -1,6 +1,6 @@
 # Phase 19 — Capability Locator Key Defaults
 
-**Status:** Pending  
+**Status:** Partial — single-role defaults shipped; multi-role and fully-qualified key format pending Phase 6  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** Medium — changes the properties key format; requires resolver update and migration of existing `.properties` files
 

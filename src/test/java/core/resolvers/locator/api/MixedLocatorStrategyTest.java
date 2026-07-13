@@ -25,8 +25,6 @@ public class MixedLocatorStrategyTest {
         /** Conventional: inherits default getExternalFileName() → "MixedStrategyPage.json". */
         enum Buttons implements Clickable {
             SAVE, CANCEL;
-
-            @Override public String getTriggerLocator() { return name(); }
         }
 
         /**

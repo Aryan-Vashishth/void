@@ -11,13 +11,9 @@ public interface ConventionalTestPage {
 
     enum Buttons implements Clickable {
         SUBMIT, CANCEL;
-
-        @Override public String getTriggerLocator() { return name(); }
     }
 
     enum Labels implements ReadOnly {
         STATUS_MESSAGE;
-
-        @Override public String getTextLocator() { return name(); }
     }
 }

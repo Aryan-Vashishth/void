@@ -20,9 +20,12 @@ import elements.meta.ElementRole;
  */
 public interface Listable extends Element, ActionCapabilityProvider {
 
-    String getListLocator();
+    default String getListLocator() { return ((Enum<?>) this).name(); }
 
     int getIndex();
+
+    @Override
+    default String getPrimaryLocator() { return getListLocator(); }
 
     @Override
     default String getDisplayText() {

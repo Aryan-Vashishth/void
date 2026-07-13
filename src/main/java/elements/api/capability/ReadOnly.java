@@ -21,7 +21,7 @@ import elements.meta.ElementRole;
  */
 public interface ReadOnly extends Element, ActionCapabilityProvider {
 
-    String getTextLocator();
+    default String getTextLocator() { return ((Enum<?>) this).name(); }
 
     @Override
     default String getPrimaryLocator() { return getTextLocator(); }

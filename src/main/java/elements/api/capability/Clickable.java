@@ -27,7 +27,7 @@ import elements.meta.ElementRole;
 public interface Clickable extends Element, ActionCapabilityProvider {
 
     /** @return property key for the clickable element's locator template. */
-    String getTriggerLocator();
+    default String getTriggerLocator() { return ((Enum<?>) this).name(); }
 
     @Override
     default String getPrimaryLocator() { return getTriggerLocator(); }

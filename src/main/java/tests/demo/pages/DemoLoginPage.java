@@ -10,37 +10,24 @@ import elements.api.capability.Typeable;
  */
 public interface DemoLoginPage {
 
-    // --- Text fields use Typeable (role: INPUT) ---
+    // --- Text fields ---
     enum Credentials implements Typeable {
-        USERNAME_INPUT("USERNAME_INPUT"),
-        PASSWORD_INPUT("PASSWORD_INPUT");
-
-        private final String key;
-        Credentials(String k) { this.key = k; }
-
-        @Override public String getInputLocator() { return key; }
+        USERNAME_INPUT,
+        PASSWORD_INPUT;
     }
 
-    // --- Buttons use Clickable (role: TRIGGER) ---
+    // --- Buttons ---
     enum Button implements Clickable {
-        LOGIN_BUTTON("LOGIN_BUTTON", "Login");
+        LOGIN_BUTTON("Login");
 
-        private final String key;
         private final String label;
-        Button(String k, String l) { this.key = k; this.label = l; }
+        Button(String l) { this.label = l; }
 
-        @Override public String getTriggerLocator() { return key; }
-        @Override public Object[] getArgs()         { return new Object[]{label}; }
+        @Override public Object[] getArgs() { return new Object[]{label}; }
     }
 
-    // --- Labels use ReadOnly (role: TEXT) ---
+    // --- Labels ---
     enum Labels implements ReadOnly {
-        SUCCESS_MESSAGE("SUCCESS_MESSAGE");
-
-        private final String key;
-        Labels(String k) { this.key = k; }
-
-        @Override public String getTextLocator() { return key; }
+        SUCCESS_MESSAGE;
     }
 }
-

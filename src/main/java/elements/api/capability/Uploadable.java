@@ -21,7 +21,7 @@ import elements.meta.ElementRole;
  */
 public interface Uploadable extends Element, ActionCapabilityProvider {
 
-    String getInputLocator();
+    default String getInputLocator() { return ((Enum<?>) this).name(); }
 
     @Override
     default String getPrimaryLocator() { return getInputLocator(); }
