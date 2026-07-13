@@ -1,8 +1,12 @@
 # Phase 11 — Remove Constructors From Static Elements
 
-**Status:** Partially complete — `getArgs()` redundancies removed; constructor/locator-method cleanup deferred to Phase 5
+**Status:** Complete
 
-**Implementation note:** The JSON/properties files still use flat keys (`"USERNAME_INPUT"` etc.), not the namespaced format introduced in Phase 1. Changing locator method overrides to delegate to `getPrimaryLocator()` would break all lookups until Phase 5 (deterministic repository convention) and Phase 6 (template generator) are complete. What was removed in this pass: all `getArgs()` overrides returning `new Object[0]` in enums whose capability interface does not re-declare `getArgs()` as abstract (`Clickable`, `Typeable`, `ReadOnly`, `Hoverable`, `Uploadable`, `Checkable`, `Table`/`EditableTable`). What remains: constructors, locator key methods, `getExternalFileName()` overrides — pending Phase 5.  
+**Implementation note:** The partial Phase 11 pass (commit `63a0e59`) removed all `getArgs()` overrides returning `new Object[0]`. By the time Phase 19 Part B shipped (commit `a6a111f`), the only conventionally-pathed page with remaining boilerplate was `DemoLoginPage` — and `Credentials` / `Labels` were already minimal from the same pass. No further production code changes remain within Phase 11's defined scope:
+
+- `DemoLoginPage.Credentials`, `Labels` — minimal; no constructors, no overrides. ✅
+- `DemoLoginPage.Button.LOGIN_BUTTON("Login")` — constructor carries the display label "Login" (genuinely custom information). Migrating to `AdvancedLocatorFamily` would change the locator key from Phase 19's `DemoLoginPage.Button.LOGIN_BUTTON.TRIGGER` to the `LocatorFamily` format `DemoLoginPage.Button`, adding boilerplate rather than removing it. Left as-is per "Do not remove overrides that carry genuinely custom information."
+- `AccountMappingElements`, `ManageUsersElements` — not migrated to the Phase 5 conventional path (still use explicit flat-key `.properties` files). Phase 11 explicitly excludes these: `getExternalFileName()` overrides must stay until the pages are conventionally migrated.  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** Low — mechanical cleanup enabled by Phases 1–4; no behavior change
 

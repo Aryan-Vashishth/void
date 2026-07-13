@@ -46,7 +46,7 @@ Resolve before the relevant phases begin.
 | 8 | `getExternalFileName()` as advanced override | Medium | Complete |
 | 9 | Locator resolution order | High | Complete |
 | 10 | Mixed locator strategies | Medium | Complete |
-| 11 | Remove constructors from static elements | Low | Partial |
+| 11 | Remove constructors from static elements | Low | Complete |
 | 12 | Simplify capability interfaces | Medium | Complete |
 | 13 | `LocatorContext` abstraction (new) | High | Pending |
 | 14 | Cache `LocatorContext` resolution | Medium | Pending |
