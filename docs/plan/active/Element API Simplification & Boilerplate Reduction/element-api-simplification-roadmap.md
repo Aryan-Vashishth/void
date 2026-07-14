@@ -34,27 +34,27 @@ Resolve before the relevant phases begin.
 
 ## Phase Summary
 
-| Phase | Description | Risk | Status |
-|-------|-------------|------|--------|
-| 1 | Automatic locator keys — `name()` as default `getPrimaryLocator()` | Low | Complete |
-| 2 | Default empty args — `NO_ARGS` default in `Element` | Low | Complete |
-| 3 | Rename `EMPTY_ARGS` → `NO_ARGS` | Medium | Complete |
-| 4 | Automatic display text — derive from enum constant name | Low | Complete |
-| 5 | Deterministic locator repository convention | High | Complete |
-| 6 | Properties template generator (new CLI command) | Low | Complete |
-| 7 | Runtime repository generation (existing CLI repositioned) | Low | Complete |
-| 8 | `getExternalFileName()` as advanced override | Medium | Complete |
-| 9 | Locator resolution order | High | Complete |
-| 10 | Mixed locator strategies | Medium | Complete |
-| 11 | Remove constructors from static elements | Low | Complete |
-| 12 | Simplify capability interfaces | Medium | Complete |
-| 13 | `LocatorContext` abstraction (new) | High | Complete |
-| 14 | Cache `LocatorContext` resolution | Medium | Pending |
-| 15 | Preserve nested enum organization | Low | Pending |
-| 16 | `LocatorFamily` — shared template, auto arg from constant name | Medium | Complete |
-| 17 | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Complete |
-| 18 | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Complete |
-| 19 | Capability locator key defaults — `PageClass.EnumClass.CONSTANT.role` default on all locator methods | Medium | Complete |
+| Phase | Seq | Description | Risk | Status |
+|-------|-----|-------------|------|--------|
+| 1  | 1  | Automatic locator keys — `name()` as default `getPrimaryLocator()` | Low | Complete |
+| 2  | 2  | Default empty args — `NO_ARGS` default in `Element` | Low | Complete |
+| 3  | 3  | Rename `EMPTY_ARGS` → `NO_ARGS` | Medium | Complete |
+| 4  | 4  | Automatic display text — derive from enum constant name | Low | Complete |
+| 5  | 9  | Deterministic locator repository convention | High | Complete |
+| 6  | 10 | Properties template generator (new CLI command) | Low | Complete |
+| 7  | 11 | Runtime repository generation (existing CLI repositioned) | Low | Complete |
+| 8  | 12 | `getExternalFileName()` as advanced override | Medium | Complete |
+| 9  | 13 | Locator resolution order | High | Complete |
+| 10 | 14 | Mixed locator strategies | Medium | Complete |
+| 11 | 15 | Remove constructors from static elements | Low | Complete |
+| 12 | 16 | Simplify capability interfaces | Medium | Complete |
+| 13 | 17 | `LocatorContext` abstraction (new) | High | Complete |
+| 14 | 18 | Cache `LocatorContext` resolution | Medium | Pending |
+| 15 | 19 | Preserve nested enum organization | Low | Pending |
+| 16 | 5  | `LocatorFamily` — shared template, auto arg from constant name | Medium | Complete |
+| 17 | 6  | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Complete |
+| 18 | 7  | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Complete |
+| 19 | 8  | Capability locator key defaults — `PageClass.EnumClass.CONSTANT.role` default on all locator methods | Medium | Complete |
 
 ---
 
