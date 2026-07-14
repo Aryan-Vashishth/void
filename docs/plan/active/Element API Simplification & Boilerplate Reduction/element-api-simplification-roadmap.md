@@ -50,7 +50,7 @@ Resolve before the relevant phases begin.
 | 12 | 16 | Simplify capability interfaces | Medium | Complete |
 | 13 | 17 | `LocatorContext` abstraction (new) | High | Complete |
 | 14 | 18 | Cache `LocatorContext` resolution | Medium | Complete |
-| 15 | 19 | Preserve nested enum organization | Low | Pending |
+| 15 | 19 | Preserve nested enum organization | Low | Complete |
 | 16 | 5  | `LocatorFamily` — shared template, auto arg from constant name | Medium | Complete |
 | 17 | 6  | `AdvancedLocatorFamily` — family with explicit values for exceptions | Low | Complete |
 | 18 | 7  | `SwitchLocatorFamily` — centralised switch with compiler exhaustiveness | Low | Complete |
