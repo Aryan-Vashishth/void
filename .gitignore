@@ -32,4 +32,6 @@ test-output/
 .notes/
 
 #Claude
-.claude/
+.claude/*
+!.claude/commands/
+!.claude/commands/**
