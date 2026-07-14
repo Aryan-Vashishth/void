@@ -6,6 +6,8 @@ import elements.fixture.ConventionalTestPage;
 import org.testng.annotations.Test;
 import tests.demo.pages.DemoLoginPage;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.testng.Assert.*;
 
 /**
@@ -79,6 +81,59 @@ public class LocatorContextTest {
         LocatorContext custom = element -> "custom-file.json";
         LocatorResolver r = LocatorResolver.builder().locatorContext(custom).build();
         assertSame(r.locatorContext(), custom);
+    }
+
+    // -----------------------------------------------------------------------
+    // Phase 14 — caching: getExternalFileName() runs at most once per element class
+    // -----------------------------------------------------------------------
+
+    private static final AtomicInteger PROBE_COUNT = new AtomicInteger();
+
+    // CachingPageA.El and CachingPageB.El are isolated enum classes for caching tests.
+    // Each overrides getExternalFileName() with a counter so we can observe call frequency.
+    // Constants without a body share their enum class as the cache key.
+
+    private static class CachingPageA {
+        enum El implements Element {
+            X, Y;
+            @Override public String getExternalFileName() { PROBE_COUNT.incrementAndGet(); return "caching-a/locators.json"; }
+            @Override public String getPrimaryLocator()   { return name() + ".TRIGGER"; }
+        }
+    }
+
+    private static class CachingPageB {
+        enum El implements Element {
+            Z;
+            @Override public String getExternalFileName() { PROBE_COUNT.incrementAndGet(); return "caching-b/locators.json"; }
+            @Override public String getPrimaryLocator()   { return name() + ".TRIGGER"; }
+        }
+    }
+
+    @Test
+    public void caching_firstCall_invokesGetExternalFileName() {
+        // CachingPageA.El.class is only used in these caching tests; first call is a cache miss.
+        PROBE_COUNT.set(0);
+        CTX.resolveFileName(CachingPageA.El.X);
+        assertEquals(PROBE_COUNT.get(), 1, "First call must invoke getExternalFileName exactly once");
+    }
+
+    @Test(dependsOnMethods = "caching_firstCall_invokesGetExternalFileName")
+    public void caching_subsequentCalls_useCache() {
+        // CachingPageA.El.class already cached — repeated calls must not re-invoke resolution.
+        PROBE_COUNT.set(0);
+        CTX.resolveFileName(CachingPageA.El.X);
+        CTX.resolveFileName(CachingPageA.El.Y); // different constant, same enum class → same cache entry
+        assertEquals(PROBE_COUNT.get(), 0, "Cached enum class must not re-invoke getExternalFileName");
+    }
+
+    @Test(dependsOnMethods = "caching_firstCall_invokesGetExternalFileName")
+    public void caching_differentEnumClasses_independentEntries() {
+        // CachingPageA.El.class is cached; CachingPageB.El.class is new → triggers its own resolution.
+        PROBE_COUNT.set(0);
+        String a = CTX.resolveFileName(CachingPageA.El.X);
+        String b = CTX.resolveFileName(CachingPageB.El.Z);
+        assertEquals(PROBE_COUNT.get(), 1, "Only CachingPageB.El.class should trigger resolution");
+        assertNotEquals(a, b, "Different enum classes must resolve to different file names");
     }
 
     // -----------------------------------------------------------------------
