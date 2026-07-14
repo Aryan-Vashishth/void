@@ -13,24 +13,6 @@ package elements.api;
  * exactly one {@code %s} token; multi-token templates require an explicit {@code .with()}
  * override.</p>
  *
- * <h3>Diamond resolution</h3>
- * <p>When combined with a capability interface (e.g. {@code Clickable}) that also
- * provides a {@code getPrimaryLocator()} default, the implementing enum must add one
- * explicit resolution:</p>
- * <pre>{@code
- * @Override public String getPrimaryLocator() { return LocatorFamily.super.getPrimaryLocator(); }
- * }</pre>
- *
- * <h3>Capability locator methods</h3>
- * <p>Java only allows a default method to satisfy an abstract requirement from another interface
- * when the declaring interfaces are in the same hierarchy. Because capability interfaces
- * ({@code Clickable}, {@code Typeable}, etc.) are not supertypes of {@code LocatorFamily},
- * each implementing enum must provide its capability locator method as a one-liner that
- * delegates to {@code getPrimaryLocator()}:</p>
- * <pre>{@code
- * @Override public String getTriggerLocator() { return getPrimaryLocator(); }
- * }</pre>
- * <p>Phase 12 (capability interface simplification) will eliminate this requirement.</p>
  *
  * <h3>Progression</h3>
  * <ul>
@@ -43,12 +25,7 @@ package elements.api;
  */
 public interface LocatorFamily extends Element {
 
-    /**
-     * Returns the family locator key: {@code PageName.EnumName} (no constant suffix).
-     * <p>When this interface is combined with a capability interface that also overrides
-     * {@code getPrimaryLocator()}, the implementing enum must add:
-     * {@code @Override public String getPrimaryLocator() { return LocatorFamily.super.getPrimaryLocator(); }}</p>
-     */
+    /** Returns the family locator key: {@code PageName.EnumName} (no constant suffix). */
     @Override
     default String getPrimaryLocator() {
         Enum<?> e = (Enum<?>) this;

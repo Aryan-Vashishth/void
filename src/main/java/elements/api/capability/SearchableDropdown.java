@@ -40,9 +40,6 @@ public interface SearchableDropdown extends Selectable, Searchable {
     default String getListLocator() { return getSearchResultLocator(); }
 
     @Override
-    default String getPrimaryLocator() { return Selectable.super.getPrimaryLocator(); }
-
-    @Override
     default String getSecondaryLocator() { return Selectable.super.getSecondaryLocator(); }
 
     @Override

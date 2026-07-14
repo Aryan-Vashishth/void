@@ -30,9 +30,6 @@ public interface Clickable extends Element, ActionCapabilityProvider {
     default String getTriggerLocator() { return Element.qualifiedLocatorKey(this, ElementRole.TRIGGER); }
 
     @Override
-    default String getPrimaryLocator() { return getTriggerLocator(); }
-
-    @Override
     default String getDisplayText() {
         Object[] args = getArgs();
         return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();

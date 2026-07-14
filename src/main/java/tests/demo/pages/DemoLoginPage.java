@@ -1,5 +1,6 @@
 package tests.demo.pages;
 
+import elements.api.LocatorFamily;
 import elements.api.capability.Clickable;
 import elements.api.capability.ReadOnly;
 import elements.api.capability.Typeable;
@@ -11,9 +12,14 @@ import elements.api.capability.Typeable;
 public interface DemoLoginPage {
 
     // --- Text fields ---
-    enum Credentials implements Typeable {
-        USERNAME_INPUT,
-        PASSWORD_INPUT;
+    enum Credentials implements Typeable, LocatorFamily {
+        USERNAME,
+        PASSWORD;
+
+        @Override
+        public Object[] getArgs() {
+            return new Object[]{name().toLowerCase()};
+        }
     }
 
     // --- Buttons ---

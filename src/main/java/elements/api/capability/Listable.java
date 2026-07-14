@@ -26,9 +26,6 @@ public interface Listable extends Element, ActionCapabilityProvider {
     int getIndex();
 
     @Override
-    default String getPrimaryLocator() { return getListLocator(); }
-
-    @Override
     default String getDisplayText() {
         Object[] args = getArgs();
         return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();

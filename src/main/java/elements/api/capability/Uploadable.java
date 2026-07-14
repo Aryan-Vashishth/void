@@ -25,9 +25,6 @@ public interface Uploadable extends Element, ActionCapabilityProvider {
     default String getInputLocator() { return Element.qualifiedLocatorKey(this, ElementRole.INPUT); }
 
     @Override
-    default String getPrimaryLocator() { return getInputLocator(); }
-
-    @Override
     default String getDisplayText() {
         Object[] args = getArgs();
         return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();

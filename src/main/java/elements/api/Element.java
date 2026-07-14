@@ -67,18 +67,21 @@ public interface Element {
 
     /**
      * Returns the namespaced locator key for this element.
-     * <p>The default derives the key as {@code PageName.GroupName.CONSTANT_NAME} from
-     * the Java type hierarchy, matching the key format used in generated properties files.
-     * Capability interfaces and elements with custom keys override this as needed.</p>
+     * <p>For capability elements, delegates to the first role returned by {@link #getAllLocatorRoles()},
+     * which each capability interface populates independently. Falls back to the enum-name–derived key
+     * {@code PageName.GroupName.CONSTANT_NAME} for plain elements with no capability roles.</p>
+     * <p>{@link elements.api.LocatorFamily} and its subtypes override this directly to return
+     * the shared family key (no constant suffix), so they are unaffected by this delegation.</p>
      */
     default String getPrimaryLocator() {
+        java.util.Map<ElementRole, String> roles = getAllLocatorRoles();
+        if (!roles.isEmpty()) return roles.values().iterator().next();
         Enum<?> e = (Enum<?>) this;
         Class<?> enumClass = e.getDeclaringClass();
         Class<?> pageClass = enumClass.getEnclosingClass();
-        if (pageClass != null) {
-            return pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + e.name();
-        }
-        return enumClass.getSimpleName() + "." + e.name();
+        return pageClass != null
+            ? pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + e.name()
+            : enumClass.getSimpleName() + "." + e.name();
     }
 
     /** @return secondary fallback locator key, or null if not applicable. */
@@ -135,14 +138,13 @@ public interface Element {
     /**
      * Builds an ordered map of {@link ElementRole} to locator key strings.
      * Only non-blank locators are included; order reflects fallback priority.
+     * <p>The base implementation returns an empty map. Capability interfaces override this
+     * independently (without calling {@link #getPrimaryLocator()}) to populate their specific
+     * roles (INPUT, TRIGGER, TEXT, etc.), avoiding the circular dependency that would result
+     * from delegating here to {@code getPrimaryLocator()} while that method delegates back.</p>
      */
     default java.util.Map<ElementRole,String> getAllLocatorRoles(){
-        java.util.Map<ElementRole,String> roles = new java.util.LinkedHashMap<>();
-        String primary = getPrimaryLocator();
-        if(primary!=null && !primary.isBlank()) roles.put(ElementRole.PRIMARY, primary);
-        String secondary = getSecondaryLocator();
-        if(secondary!=null && !secondary.isBlank()) roles.put(ElementRole.SECONDARY, secondary);
-        return roles;
+        return java.util.Collections.emptyMap();
     }
 
 }

@@ -25,9 +25,6 @@ public interface ReadOnly extends Element, ActionCapabilityProvider {
     default String getTextLocator() { return Element.qualifiedLocatorKey(this, ElementRole.TEXT); }
 
     @Override
-    default String getPrimaryLocator() { return getTextLocator(); }
-
-    @Override
     default String getDisplayText() {
         Object[] args = getArgs();
         return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
