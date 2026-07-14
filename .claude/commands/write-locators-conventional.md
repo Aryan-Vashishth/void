@@ -3,7 +3,7 @@ Write `locators.json` for a page class to the conventional path derived from the
 Run the following command, replacing `$ARGUMENTS` with the fully-qualified class name (e.g. `tests.demo.pages.DemoLoginPage`).
 
 ```
-mvn process-resources -q && mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli -Dexec.args="--write-conventional $ARGUMENTS"
+mvn compile -q && mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli -Dexec.args="--write-conventional $ARGUMENTS"
 ```
 
 Show the full command output to the user.

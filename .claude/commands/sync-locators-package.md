@@ -7,6 +7,6 @@ Steps to follow:
 2. Convert the package to a directory path by replacing `.` with `/`.
 3. Find all `.java` files directly (non-recursively) in `src/main/java/<path>/` and `src/test/java/<path>/`. List their base names without the `.java` extension.
 4. Build the FQCN for each as `<basePackage>.<ClassName>`.
-5. Run `mvn process-resources -q` once.
+5. Run `mvn compile -q` once.
 6. For each FQCN, run: `mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli -Dexec.args="--sync <FQCN>"` and show the output.
 7. Print a summary: how many classes were synced and any that errored.
