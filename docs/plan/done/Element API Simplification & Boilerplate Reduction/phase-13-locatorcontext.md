@@ -1,6 +1,6 @@
 # Phase 13 — LocatorContext
 
-**Status:** Pending  
+**Status:** Complete  
 **Branch:** `feature/element-api-simplification`  
 **Risk:** High — new abstraction that decouples the resolver from the convention; must integrate cleanly with existing resolver infrastructure
 
@@ -12,13 +12,11 @@ Introduce `LocatorContext` as the abstraction that encapsulates how the resolver
 
 ---
 
-## Open Decisions Required
+## Open Decisions — Resolved
 
-**Open Decision 3** and **Open Decision 4** must be resolved before implementation begins:
+**Decision 3 (resolved):** `LocatorContext` is a single-method interface `resolveFileName(Element) → String` in `core.resolvers.locator.api`. Returns the classpath-relative file name (the existing seam between path resolution and `LocatorSourceRegistry.select()`). Injectable via `LocatorResolver.Builder`; defaults to `DefaultLocatorContext.INSTANCE`. Not a registry.
 
-> **Decision 3:** Exact method signatures; how `LocatorContext` composes with the existing `LocatorResolver`; whether it is injectable or resolved through a registry.
-
-> **Decision 4:** How far `LocatorRepository` abstracts the underlying source — affects what `LocatorContext` is responsible for loading.
+**Decision 4 (resolved):** `LocatorRepository` is deferred to Phase 14. Phase 13 returns a `String` file name — consistent with `LocatorRequest.fileName()` and `LocatorSourceRegistry`. Phase 14 introduces `LocatorRepository` as a pre-loaded, cached object when caching demands it.
 
 ---
 

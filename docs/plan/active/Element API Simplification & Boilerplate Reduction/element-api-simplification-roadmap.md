@@ -26,8 +26,8 @@ Resolve before the relevant phases begin.
 |---|----------|---------|--------|
 | 1 | Locator repository convention root path — fixed or configurable | Phase 5 | Resolved in Phase 5 — fixed conventional path |
 | 2 | Properties template generator CLI design — command name, scope, merge behavior | Phase 6 | **Resolved** — `JsonMigratorCli --sync <ClassName>`; one class per invocation; merge-with-preserve |
-| 3 | `LocatorContext` contract — method signatures, composition with `LocatorResolver` | Phase 13 | Open |
-| 4 | Repository abstraction boundaries — how far `LocatorRepository` decouples format | Phases 7, 13, 14 | Open |
+| 3 | `LocatorContext` contract — method signatures, composition with `LocatorResolver` | Phase 13 | **Resolved** — `resolveFileName(Element) → String`; injectable via Builder; defaults to `DefaultLocatorContext.INSTANCE` |
+| 4 | Repository abstraction boundaries — how far `LocatorRepository` decouples format | Phases 7, 13, 14 | **Resolved** — `LocatorRepository` deferred to Phase 14; Phase 13 uses `String` file name as the seam |
 | 5 | Regeneration strategy — recommended: merge-with-preserve | Phase 6 | **Resolved** — merge-with-preserve; orphan warnings only; `--prune` required to delete |
 
 ---
@@ -48,7 +48,7 @@ Resolve before the relevant phases begin.
 | 10 | Mixed locator strategies | Medium | Complete |
 | 11 | Remove constructors from static elements | Low | Complete |
 | 12 | Simplify capability interfaces | Medium | Complete |
-| 13 | `LocatorContext` abstraction (new) | High | Pending |
+| 13 | `LocatorContext` abstraction (new) | High | Complete |
 | 14 | Cache `LocatorContext` resolution | Medium | Pending |
 | 15 | Preserve nested enum organization | Low | Pending |
 | 16 | `LocatorFamily` — shared template, auto arg from constant name | Medium | Complete |
