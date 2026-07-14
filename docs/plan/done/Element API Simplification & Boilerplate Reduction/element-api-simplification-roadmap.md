@@ -1,6 +1,6 @@
 # Element API Simplification & Boilerplate Reduction — Roadmap
 
-**Status:** Active  
+**Status:** Complete  
 **Branch:** `feature/element-api-simplification`  
 **Version target:** 0.3.0  
 **Design document:** `docs/plan/active/Element API Simplification & Boilerplate Reduction/element-api-simplification-and-boilerplate-reduction.md`

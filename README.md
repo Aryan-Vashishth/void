@@ -131,40 +131,99 @@ Real example from `tests.demo.pages.DemoLoginPage`:
 ```java
 public interface DemoLoginPage {
 
-    String LOCATOR_FILE = "demo-login-elements.json";
-
     enum Credentials implements Typeable {
-        USERNAME_INPUT("USERNAME_INPUT"),
-        PASSWORD_INPUT("PASSWORD_INPUT");
-
-        private final String key;
-        Credentials(String k) { this.key = k; }
-
-        @Override public String getInputLocator()     { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
+        USERNAME_INPUT, PASSWORD_INPUT
     }
 
     enum Button implements Clickable {
-        LOGIN_BUTTON("LOGIN_BUTTON", "Login");
+        LOGIN_BUTTON
+    }
 
-        private final String key;
-        private final String label;
-        Button(String k, String l) { this.key = k; this.label = l; }
-
-        @Override public String getTriggerLocator()   { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[]{label}; }
+    enum Labels implements ReadOnly {
+        SUCCESS_MESSAGE
     }
 }
 ```
 
-Common capability interfaces live under:
-- `elements/api/capability/Clickable.java`
-- `elements/api/capability/Typeable.java`
-- `elements/api/capability/Selectable.java`
-- `elements/api/capability/ReadOnly.java`
-- `elements/api/capability/Hoverable.java`
+No constructors. No locator keys. No `getArgs()`. No `getExternalFileName()`.
+
+- Locator keys default to `PageClass.EnumClass.CONSTANT.ROLE` (e.g. `DemoLoginPage.Button.LOGIN_BUTTON.TRIGGER`).
+- Locator file defaults to the conventional path derived from the FQCN (e.g. `tests/demo/pages/DemoLoginPage/locators.json`).
+- Display text defaults to a word-transformed constant name (`LOGIN_BUTTON` → `"Login Button"`).
+- `getArgs()` defaults to no args.
+
+All of these are overridable. `getExternalFileName()` lets an element opt out of the convention and point to a named file instead.
+
+Common capability interfaces live under `elements/api/capability/`:
+`Clickable`, `Typeable`, `Selectable`, `ReadOnly`, `Hoverable`, `Checkable`, `Uploadable`, `Table`, `EditableTable`, `Listable`, `MultiSelectable`, `SearchField`, `Searchable`, `SearchableDropdown`.
+
+---
+
+## Locator Families
+
+For groups of elements that share a single XPath template (e.g. a navigation menu where every item uses the same `//a[text()='%s']` pattern), VOID provides three progressively expressive patterns:
+
+### `LocatorFamily` — labels auto-derived from constant name
+
+```java
+public interface ReportsPage {
+
+    enum Nav implements Clickable, LocatorFamily {
+        OVERVIEW, KPI_SUMMARY, VENDOR_PERFORMANCE;
+        // Template in locators.json: //li[@data-nav='%s']
+        // Args: OVERVIEW→"Overview", KPI_SUMMARY→"Kpi Summary", ...
+
+        @Override public String getPrimaryLocator()  { return LocatorFamily.super.getPrimaryLocator(); }
+        @Override public String getTriggerLocator()  { return getPrimaryLocator(); }
+    }
+}
+```
+
+### `AdvancedLocatorFamily` — mix auto-derived and explicit labels
+
+Use when most constants auto-derive cleanly but a few need custom values (acronyms, punctuation, slashes):
+
+```java
+enum Filters implements Clickable, AdvancedLocatorFamily {
+    COUNTRY,                                // auto: "Country"
+    PROGRAM_NAME,                           // auto: "Program Name"
+    HQ_STATE_PROVINCE("HQ State/Province"), // explicit: slash
+    CRM("CRM");                             // explicit: all-caps
+
+    private final String semanticValue;
+    Filters()         { this.semanticValue = null; }
+    Filters(String v) { this.semanticValue = v; }
+
+    @Override public String getPrimaryLocator() { return AdvancedLocatorFamily.super.getPrimaryLocator(); }
+    @Override public String getTriggerLocator() { return getPrimaryLocator(); }
+    @Override public String getSemanticValue()  { return semanticValue; }
+}
+```
+
+### `SwitchLocatorFamily` — all explicit, compiler-enforced exhaustiveness
+
+Use when all constants require custom values and a compile-time guarantee that every new constant gets a mapping:
+
+```java
+enum Sections implements Clickable, SwitchLocatorFamily {
+    OVERVIEW, KPI_SUMMARY, VENDOR_PERFORMANCE, YTD_ANALYSIS;
+
+    @Override public String getPrimaryLocator() { return SwitchLocatorFamily.super.getPrimaryLocator(); }
+    @Override public String getTriggerLocator() { return getPrimaryLocator(); }
+
+    @Override
+    public String getSemanticValue() {
+        return switch (this) {
+            case OVERVIEW           -> "Overview";
+            case KPI_SUMMARY        -> "KPI Summary";
+            case VENDOR_PERFORMANCE -> "Vendor Performance";
+            case YTD_ANALYSIS       -> "YTD Analysis";
+        };
+    }
+}
+```
+
+Adding a new constant without updating the switch is a compile error.
 
 ---
 
@@ -366,7 +425,7 @@ Resolution happens inside the framework, not in test code.
 Example from the demo page:
 - `DemoLoginPage.Credentials.USERNAME_INPUT` → role `INPUT`
 - `DemoLoginPage.Button.LOGIN_BUTTON` → role `TRIGGER`
-- locator file: `demo-login-elements.json`
+- locator file: `src/main/resources/tests/demo/pages/DemoLoginPage/locators.json` (conventional path)
 
 ### Locator resolution pipeline (DemoLoginPage)
 
@@ -374,12 +433,24 @@ Using `tests/demo/pages/DemoLoginPage.java` as reference:
 
 1. `DemoLoginPage.Button.LOGIN_BUTTON.click()` emits a deferred `Action`.
 2. At execution time, the action calls `engine.resolve(element, ElementRole.TRIGGER)`.
-3. `DemoLoginPage.Button.LOGIN_BUTTON.getTriggerLocator()` returns key `LOGIN_BUTTON`.
-4. `DemoLoginPage.Button.LOGIN_BUTTON.getExternalFileName()` returns `demo-login-elements.json`.
-5. Resolver reads the locator template/value, applies `getArgs()` (`"Login"` for `LOGIN_BUTTON`), and builds a `LocatorDescriptor`.
-6. `UIEngine` executes the action (`click`, `type`, etc.) from that resolved descriptor.
+3. `getPrimaryLocator()` returns the qualified key `DemoLoginPage.Button.LOGIN_BUTTON.TRIGGER`.
+4. `getExternalFileName()` returns `null` → falls back to the conventional classpath path.
+5. Convention maps the element's declaring page class FQCN to `tests/demo/pages/DemoLoginPage/locators.json`.
+6. Resolver reads `{ "TRIGGER": "//button[@type='submit']" }` and builds a `LocatorDescriptor`.
+7. `UIEngine` executes the action (`click`, `type`, etc.) from that descriptor.
 
 This keeps test code free of `By`, hardcoded locator strings, and engine-specific selector APIs.
+
+### Generate locators with `--sync`
+
+```bash
+mvn process-resources -q && mvn exec:java \
+  -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+```
+
+This creates a `locators.properties` template. Fill in the XPath values, then re-run to write `locators.json`.
+Claude Code slash commands `/sync-locators`, `/print-locators`, and `/write-locators` wrap this for in-IDE use.
 
 ---
 
@@ -405,7 +476,8 @@ void-framework/
 │       ├── pages/                  # Demo element enums
 │       └── hooks/                  # DemoHooks — named AfterActionHandler constants
 ├── src/main/resources/
-│   └── locators/                   # External locator definitions
+│   ├── locators/                   # Legacy named locator files (.properties / .json)
+│   └── tests/                      # Conventional locator repository (auto-path by FQCN)
 └── docs/
     ├── architecture/              # Architecture docs
     └── audits/                    # Audit reports

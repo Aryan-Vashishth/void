@@ -18,12 +18,7 @@ public interface DemoLoginPage {
 
     // --- Buttons ---
     enum Button implements Clickable {
-        LOGIN_BUTTON("Login");
-
-        private final String label;
-        Button(String l) { this.label = l; }
-
-        @Override public Object[] getArgs() { return new Object[]{label}; }
+        LOGIN_BUTTON;
     }
 
     // --- Labels ---
