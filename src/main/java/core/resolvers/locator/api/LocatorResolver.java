@@ -36,11 +36,13 @@ public final class LocatorResolver {
     private final LocatorSourceRegistry registry;
     private final LocatorTemplate.Policy templatePolicy;
     private final ByParser byParser;
+    private final LocatorContext locatorContext;
 
     private LocatorResolver(Builder b) {
         this.registry       = b.registry;
         this.templatePolicy = b.policy;
         this.byParser       = b.byParser;
+        this.locatorContext = b.locatorContext;
     }
 
     public static Builder builder() { return new Builder(); }
@@ -48,6 +50,7 @@ public final class LocatorResolver {
     public LocatorSourceRegistry registry()       { return registry; }
     public LocatorTemplate.Policy templatePolicy() { return templatePolicy; }
     public ByParser byParser()                    { return byParser; }
+    public LocatorContext locatorContext()        { return locatorContext; }
 
     // ---------------------------------------------------------------------
     // Raw lookup
@@ -149,13 +152,13 @@ public final class LocatorResolver {
             throw new IllegalStateException("Missing locator for role: " + role +
                     (e.getDisplayText() == null ? "" : (" (element=\"" + e.getDisplayText() + "\")")));
         }
-        return resolveDescriptor(e.getExternalFileName(), key, e.effectiveArgs(overrideArgs))
+        return resolveDescriptor(locatorContext.resolveFileName(e), key, e.effectiveArgs(overrideArgs))
                 .withLabel(labelOf(e));
     }
 
     /** Resolve the best-available descriptor: PRIMARY → SECONDARY → first non-blank role. */
     public LocatorDescriptor resolveDescriptorBest(Element e, Object... overrideArgs) {
-        String file  = e.getExternalFileName();
+        String file  = locatorContext.resolveFileName(e);
         Object[] args = e.effectiveArgs(overrideArgs);
         String label = labelOf(e);
 
@@ -220,14 +223,14 @@ public final class LocatorResolver {
             throw new IllegalStateException("Missing locator for role: " + role +
                     (e.getDisplayText() == null ? "" : (" (element=\"" + e.getDisplayText() + "\")")));
         }
-        return resolve(e.getExternalFileName(), key, e.effectiveArgs(overrideArgs));
+        return resolve(locatorContext.resolveFileName(e), key, e.effectiveArgs(overrideArgs));
     }
 
     /**
      * Resolve the best available locator: PRIMARY → SECONDARY → first non-blank role value.
      */
     public By resolveBest(Element e, Object... overrideArgs) {
-        String file = e.getExternalFileName();
+        String file = locatorContext.resolveFileName(e);
         Object[] args = e.effectiveArgs(overrideArgs);
 
         String key = e.getPrimaryLocator();
@@ -262,11 +265,13 @@ public final class LocatorResolver {
         private LocatorSourceRegistry registry  = LocatorSourceRegistry.DEFAULT;
         private LocatorTemplate.Policy policy   = LocatorTemplate.Policy.STRICT;
         private ByParser byParser               = ByParser.DEFAULT;
+        private LocatorContext locatorContext   = DefaultLocatorContext.INSTANCE;
 
-        public Builder registry(LocatorSourceRegistry r) { this.registry = r; return this; }
-        public Builder policy(LocatorTemplate.Policy p)  { this.policy = p; return this; }
-        public Builder byParser(ByParser p)              { this.byParser = p; return this; }
-        public LocatorResolver build()                   { return new LocatorResolver(this); }
+        public Builder registry(LocatorSourceRegistry r)      { this.registry = r; return this; }
+        public Builder policy(LocatorTemplate.Policy p)        { this.policy = p; return this; }
+        public Builder byParser(ByParser p)                    { this.byParser = p; return this; }
+        public Builder locatorContext(LocatorContext c)        { this.locatorContext = c; return this; }
+        public LocatorResolver build()                         { return new LocatorResolver(this); }
     }
 }
 
