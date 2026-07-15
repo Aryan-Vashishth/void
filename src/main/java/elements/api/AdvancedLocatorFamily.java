@@ -29,8 +29,6 @@ import javax.annotation.Nullable;
  *         Filters()          { this.semanticValue = null; }
  *         Filters(String v)  { this.semanticValue = v;    }
  *
- *         @Override public String getPrimaryLocator() { return AdvancedLocatorFamily.super.getPrimaryLocator(); }
- *         @Override public String getTriggerLocator() { return getPrimaryLocator(); }
  *         @Override public String getSemanticValue()  { return semanticValue; }
  *     }
  * }

@@ -21,7 +21,7 @@ import elements.meta.ElementRole;
 public interface Listable extends Element, ActionCapabilityProvider {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.LIST}. */
-    default String getListLocator() { return Element.qualifiedLocatorKey(this, ElementRole.LIST); }
+    default String getListLocator() { return locatorKeyForRole(ElementRole.LIST); }
 
     int getIndex();
 

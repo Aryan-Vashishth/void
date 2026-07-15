@@ -134,4 +134,42 @@ public class LocatorSyncOrchestratorTest {
         assertTrue(content.contains("SyncTestFixturePage.Inputs.USERNAME.INPUT=//user"),
             "Existing filled key must be preserved after merge");
     }
+
+    @Test
+    public void allValuesFilled_generatesJsonAndReturnsExitOk() throws IOException {
+        Path base = tempBase.resolve("all_filled");
+        Path propsFile = base.resolve(
+            SyncTestFixturePage.class.getName().replace('.', '/') + "/locators.properties"
+        );
+
+        // Pre-create file with every key filled — simulates the user completing the fill step
+        Files.createDirectories(propsFile.getParent());
+        Files.writeString(propsFile,
+            "# --- Dropdowns ---\n" +
+            "SyncTestFixturePage.Dropdowns.COUNTRY.TRIGGER=//select[@id='country']\n" +
+            "SyncTestFixturePage.Dropdowns.COUNTRY.LIST=//ul[@id='country-list']\n" +
+            "SyncTestFixturePage.Dropdowns.STATE.TRIGGER=//select[@id='state']\n" +
+            "SyncTestFixturePage.Dropdowns.STATE.LIST=//ul[@id='state-list']\n" +
+            "# --- Labels ---\n" +
+            "SyncTestFixturePage.Labels.ERROR_MSG.TEXT=//div[@class='error']\n" +
+            "# --- Actions ---\n" +
+            "SyncTestFixturePage.Actions.SUBMIT.TRIGGER=//button[@id='submit']\n" +
+            "SyncTestFixturePage.Actions.CANCEL.TRIGGER=//button[@id='cancel']\n" +
+            "# --- Inputs ---\n" +
+            "SyncTestFixturePage.Inputs.USERNAME.INPUT=//input[@id='username']\n" +
+            "SyncTestFixturePage.Inputs.EMAIL.INPUT=//input[@id='email']\n"
+        );
+
+        int code = orchestrator.sync(SyncTestFixturePage.class, false, base);
+
+        assertEquals(code, LocatorSyncOrchestrator.EXIT_OK,
+            "All locator values filled — sync must complete with EXIT_OK, not EXIT_EMPTY_KEYS");
+
+        // JSON must be written alongside the properties file
+        Path jsonFile = base.resolve(
+            SyncTestFixturePage.class.getName().replace('.', '/') + "/locators.json"
+        );
+        assertTrue(Files.exists(jsonFile),
+            "JSON file must be generated when all locator values are present");
+    }
 }

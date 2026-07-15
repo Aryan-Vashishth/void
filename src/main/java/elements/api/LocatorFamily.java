@@ -1,5 +1,7 @@
 package elements.api;
 
+import elements.meta.ElementRole;
+
 /**
  * Marker interface for enum groups whose constants share a single locator template
  * and differ only by a runtime argument derived automatically from the constant name.
@@ -25,6 +27,24 @@ package elements.api;
  */
 public interface LocatorFamily extends Element {
 
+    /**
+     * Routes every capability role through the family key so no per-enum override
+     * of {@code getInputLocator()} / {@code getTriggerLocator()} is ever needed.
+     */
+    @Override
+    default String locatorKeyForRole(ElementRole role) {
+        return getPrimaryLocator();
+    }
+
+    /**
+     * Signals the sync tool to emit one shared template key for this enum class
+     * rather than one key per constant.
+     */
+    @Override
+    default String templateFamilyKey() {
+        return getPrimaryLocator();
+    }
+
     /** Returns the family locator key: {@code PageName.EnumName} (no constant suffix). */
     @Override
     default String getPrimaryLocator() {
@@ -46,7 +66,7 @@ public interface LocatorFamily extends Element {
         String[] tokens = ((Enum<?>) this).name().split("_");
         StringBuilder sb = new StringBuilder();
         for (String token : tokens) {
-            if (sb.length() > 0) sb.append(' ');
+            if (!sb.isEmpty()) sb.append(' ');
             sb.append(Character.toUpperCase(token.charAt(0)));
             if (token.length() > 1) sb.append(token.substring(1).toLowerCase());
         }
@@ -54,10 +74,21 @@ public interface LocatorFamily extends Element {
     }
 
     /**
-     * Family elements use the deterministic repository convention and require no
-     * explicit filename. Returns {@code null} by default.
+     * Returns the conventional {@code locators.properties} path for this element's enclosing
+     * page class.
+     *
+     * <p>LocatorFamily keys are flat 2-segment strings ({@code PageName.EnumName}). The
+     * resolution chain selects a source based on file extension; {@code .properties} selects
+     * {@code PropertiesLocatorSource}, which handles flat key lookup natively. JSON sources
+     * navigate nested object paths and cannot resolve a 2-segment family key.</p>
      */
     @Override
-    default String getExternalFileName() { return null; }
+    default String getExternalFileName() {
+        Enum<?> e = (Enum<?>) this;
+        Class<?> ec = e.getDeclaringClass();
+        Class<?> pc = ec.getEnclosingClass();
+        Class<?> target = pc != null ? pc : ec;
+        return target.getName().replace('.', '/') + "/locators.properties";
+    }
 
 }

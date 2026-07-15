@@ -22,7 +22,7 @@ import elements.meta.ElementRole;
 public interface Uploadable extends Element, ActionCapabilityProvider {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.INPUT}. */
-    default String getInputLocator() { return Element.qualifiedLocatorKey(this, ElementRole.INPUT); }
+    default String getInputLocator() { return locatorKeyForRole(ElementRole.INPUT); }
 
     @Override
     default String getDisplayText() {

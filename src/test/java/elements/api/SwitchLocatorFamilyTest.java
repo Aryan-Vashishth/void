@@ -128,12 +128,14 @@ public class SwitchLocatorFamilyTest {
         assertEquals(ReportsPage.Labels.LAST_UPDATED.getArgs(),  new Object[]{"Last Updated"});
     }
 
-    // ── getExternalFileName — inherited null default ───────────────────────
+    // ── getExternalFileName ───────────────────────────────────────────────
 
     @Test
-    public void getExternalFileName_returnsNull() {
-        assertNull(ReportsPage.Sections.OVERVIEW.getExternalFileName());
-        assertNull(ReportsPage.Labels.STATUS_BADGE.getExternalFileName());
+    public void getExternalFileName_returnsConventionalPath() {
+        assertEquals(ReportsPage.Sections.OVERVIEW.getExternalFileName(),
+                "elements/api/SwitchLocatorFamilyTest$ReportsPage/locators.properties");
+        assertEquals(ReportsPage.Labels.STATUS_BADGE.getExternalFileName(),
+                "elements/api/SwitchLocatorFamilyTest$ReportsPage/locators.properties");
     }
 
     // ── capability locator methods delegate to family key ─────────────────

@@ -39,6 +39,17 @@ final class OrphanKeyDetector {
             int    line = entry.getValue();
 
             String[] parts = key.split("\\.");
+
+            // LocatorFamily family key: PageName.EnumName (exactly 2 segments, no constant suffix)
+            if (parts.length == 2) {
+                String enumSimple = parts[1];
+                if (!constantIndex.containsKey(enumSimple)) {
+                    warnings.add(new OrphanWarning(key, line,
+                        "enum class '" + enumSimple + "' not found in " + pageClass.getSimpleName()));
+                }
+                continue;
+            }
+
             if (parts.length < 3) {
                 warnings.add(new OrphanWarning(key, line, "malformed key — fewer than 3 segments"));
                 continue;

@@ -43,6 +43,16 @@ final class LocatorTemplateGenerator {
 
             for (Object constant : nested.getEnumConstants()) {
                 if (!(constant instanceof Element element)) continue;
+
+                // Family-locator pattern: one shared template key covers all constants.
+                String familyKey = element.templateFamilyKey();
+                if (familyKey != null) {
+                    if (result.stream().noneMatch(k -> k.key().equals(familyKey))) {
+                        result.add(new LocatorKey(enumSimple, familyKey));
+                    }
+                    continue;
+                }
+
                 String constantName = ((Enum<?>) constant).name();
 
                 Map<ElementRole, String> roles = element.getAllLocatorRoles();

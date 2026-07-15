@@ -143,13 +143,15 @@ public class LocatorFamilyTest {
     // ── getExternalFileName ───────────────────────────────────────────────
 
     @Test
-    public void getExternalFileName_pureFamily_returnsNull() {
-        assertNull(AdminHomePage.Tiles.AUDIT_INFO.getExternalFileName());
+    public void getExternalFileName_pureFamily_returnsConventionalPath() {
+        assertEquals(AdminHomePage.Tiles.AUDIT_INFO.getExternalFileName(),
+                "elements/api/LocatorFamilyTest$AdminHomePage/locators.properties");
     }
 
     @Test
-    public void getExternalFileName_withClickable_returnsNull() {
-        assertNull(AdminHomePage.ActionButtons.SAVE_CHANGES.getExternalFileName());
+    public void getExternalFileName_withClickable_returnsConventionalPath() {
+        assertEquals(AdminHomePage.ActionButtons.SAVE_CHANGES.getExternalFileName(),
+                "elements/api/LocatorFamilyTest$AdminHomePage/locators.properties");
     }
 
     // ── capability locator methods delegate to family key ─────────────────

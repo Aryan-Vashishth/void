@@ -40,8 +40,8 @@ public class LocatorContextTest {
 
     @Test
     public void resolveFileName_demoCredentials_returnsConventionalPath() {
-        String name = CTX.resolveFileName(DemoLoginPage.Credentials.USERNAME_INPUT);
-        assertEquals(name, "tests/demo/pages/DemoLoginPage/locators.json");
+        String name = CTX.resolveFileName(DemoLoginPage.Credentials.USERNAME);
+        assertEquals(name, "tests/demo/pages/DemoLoginPage/locators.properties");
     }
 
     // -----------------------------------------------------------------------

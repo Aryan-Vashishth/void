@@ -21,8 +21,6 @@ package elements.api;
  *         VENDOR_PERFORMANCE,
  *         YTD_ANALYSIS;
  *
- *         @Override public String getPrimaryLocator() { return SwitchLocatorFamily.super.getPrimaryLocator(); }
- *         @Override public String getTriggerLocator() { return getPrimaryLocator(); }
  *
  *         @Override
  *         public String getSemanticValue() {

@@ -74,8 +74,8 @@ public class ConventionalLocatorPathTest {
 
     @Test
     public void defaultFileName_demo_returnsPackageQualifiedPath() {
-        String name = DemoLoginPage.Credentials.USERNAME_INPUT.getExternalFileName();
-        assertEquals(name, "tests/demo/pages/DemoLoginPage/locators.json");
+        String name = DemoLoginPage.Credentials.USERNAME.getExternalFileName();
+        assertEquals(name, "tests/demo/pages/DemoLoginPage/locators.properties");
     }
 
     // -------------------------------------------------------------------------
@@ -102,7 +102,7 @@ public class ConventionalLocatorPathTest {
 
     @Test
     public void resolve_demoCredentials_fromConventionalPath() {
-        By by = LocatorResolvers.strict().resolve(DemoLoginPage.Credentials.USERNAME_INPUT);
+        By by = LocatorResolvers.strict().resolve(DemoLoginPage.Credentials.USERNAME);
         assertEquals(by.toString(), By.xpath("//input[@id='username']").toString());
     }
 

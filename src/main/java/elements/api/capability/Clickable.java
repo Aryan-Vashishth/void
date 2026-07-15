@@ -27,7 +27,7 @@ import elements.meta.ElementRole;
 public interface Clickable extends Element, ActionCapabilityProvider {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TRIGGER}. */
-    default String getTriggerLocator() { return Element.qualifiedLocatorKey(this, ElementRole.TRIGGER); }
+    default String getTriggerLocator() { return locatorKeyForRole(ElementRole.TRIGGER); }
 
     @Override
     default String getDisplayText() {

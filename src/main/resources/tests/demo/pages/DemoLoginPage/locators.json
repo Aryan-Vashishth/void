@@ -1,11 +1,11 @@
 {
   "DemoLoginPage" : {
     "Credentials" : {
-      "USERNAME_INPUT" : {
-        "INPUT" : "//input[@id='username']"
+      "USERNAME" : {
+        "INPUT" : "//input[@id='%s']"
       },
-      "PASSWORD_INPUT" : {
-        "INPUT" : "//input[@id='password']"
+      "PASSWORD" : {
+        "INPUT" : "//input[@id='%s']"
       }
     },
     "Button" : {

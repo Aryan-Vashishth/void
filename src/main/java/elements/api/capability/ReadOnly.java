@@ -22,7 +22,7 @@ import elements.meta.ElementRole;
 public interface ReadOnly extends Element, ActionCapabilityProvider {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TEXT}. */
-    default String getTextLocator() { return Element.qualifiedLocatorKey(this, ElementRole.TEXT); }
+    default String getTextLocator() { return locatorKeyForRole(ElementRole.TEXT); }
 
     @Override
     default String getDisplayText() {

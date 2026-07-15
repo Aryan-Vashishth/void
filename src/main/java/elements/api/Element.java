@@ -125,6 +125,29 @@ public interface Element {
      * <p>Format: {@code PageClass.EnumClass.CONSTANT.ROLE} (e.g. {@code LoginPage.Buttons.SUBMIT.TRIGGER}).
      * Used as the default locator key by single-role capability interfaces.</p>
      */
+    /**
+     * Returns the locator key for a given role on this element.
+     *
+     * <p>Default: delegates to {@link #qualifiedLocatorKey} — per-constant format
+     * {@code PageName.EnumName.CONSTANT.ROLE}.
+     * {@link LocatorFamily} overrides this to return the shared family key instead,
+     * so all capability defaults automatically route through the family template
+     * without any per-enum boilerplate.</p>
+     */
+    default String locatorKeyForRole(ElementRole role) {
+        return qualifiedLocatorKey(this, role);
+    }
+
+    /**
+     * Returns the single shared template key for this element if it uses the
+     * family-locator pattern, or {@code null} if per-constant keys should be generated.
+     *
+     * <p>The sync tool calls this to decide whether to emit one family key
+     * ({@link LocatorFamily} returns non-null) or one key per constant (default null).
+     * New strategies opt in by overriding this method — the generator never changes.</p>
+     */
+    default String templateFamilyKey() { return null; }
+
     static String qualifiedLocatorKey(Element element, ElementRole role) {
         Enum<?> e = (Enum<?>) element;
         Class<?> enumClass = e.getDeclaringClass();

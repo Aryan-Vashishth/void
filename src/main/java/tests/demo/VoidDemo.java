@@ -58,8 +58,8 @@ public class VoidDemo {
 
         info.log("Executing login flow...");
         app.run(Flow.of(
-                DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME),
-                DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD),
+                DemoLoginPage.Credentials.USERNAME.type(VALID_USERNAME),
+                DemoLoginPage.Credentials.PASSWORD.type(VALID_PASSWORD),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
         ));
         info.success("Flow executed successfully.");
@@ -111,9 +111,9 @@ public class VoidDemo {
         info.log("Executing profiled login flow...");
         app.run(Flow.of(
                 // safely() applies the SAFE profile — capability-aware hooks, no manual wiring
-                DemoLoginPage.Credentials.USERNAME_INPUT.type(VALID_USERNAME).safely(),
+                DemoLoginPage.Credentials.USERNAME.type(VALID_USERNAME).safely(),
 
-                DemoLoginPage.Credentials.PASSWORD_INPUT.type(VALID_PASSWORD).safely(),
+                DemoLoginPage.Credentials.PASSWORD.type(VALID_PASSWORD).safely(),
 
                 // safely() + custom named after-hook — see DemoHooks for the implementation.
                 // Named hooks are reusable, testable, and searchable; prefer them over

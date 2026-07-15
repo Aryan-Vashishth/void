@@ -114,12 +114,14 @@ public class AdvancedLocatorFamilyTest {
         assertEquals(VendorPage.Sections.CONTACT_DETAILS.getArgs(),  new Object[]{"Contact Details"});
     }
 
-    // ── getExternalFileName — inherited null default ───────────────────────
+    // ── getExternalFileName ───────────────────────────────────────────────
 
     @Test
-    public void getExternalFileName_returnsNull() {
-        assertNull(VendorPage.Filters.COUNTRY.getExternalFileName());
-        assertNull(VendorPage.Filters.CRM.getExternalFileName());
+    public void getExternalFileName_returnsConventionalPath() {
+        assertEquals(VendorPage.Filters.COUNTRY.getExternalFileName(),
+                "elements/api/AdvancedLocatorFamilyTest$VendorPage/locators.properties");
+        assertEquals(VendorPage.Filters.CRM.getExternalFileName(),
+                "elements/api/AdvancedLocatorFamilyTest$VendorPage/locators.properties");
     }
 
     // ── capability locator methods delegate to family key ─────────────────
