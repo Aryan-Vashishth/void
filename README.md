@@ -49,8 +49,8 @@ VOID app = VOID.start();
 app.navigateTo("https://the-internet.herokuapp.com/login");
 
 app.run(Flow.of(
-    DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith"),
-    DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!"),
+    DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
+    DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
     DemoLoginPage.Button.LOGIN_BUTTON.click()
 ));
 
@@ -131,8 +131,16 @@ Real example from `tests.demo.pages.DemoLoginPage`:
 ```java
 public interface DemoLoginPage {
 
-    enum Credentials implements Typeable {
-        USERNAME_INPUT, PASSWORD_INPUT
+    // LocatorFamily: all constants share one template key; getArgs() supplies
+    // the runtime argument. Locator file: locators.properties (resolved by convention).
+    enum Credentials implements Typeable, LocatorFamily {
+        USERNAME,
+        PASSWORD;
+
+        @Override
+        public Object[] getArgs() {
+            return new Object[]{name().toLowerCase()};
+        }
     }
 
     enum Button implements Clickable {
@@ -145,14 +153,20 @@ public interface DemoLoginPage {
 }
 ```
 
-No constructors. No locator keys. No `getArgs()`. No `getExternalFileName()`.
+For plain elements (no `LocatorFamily`):
 
 - Locator keys default to `PageClass.EnumClass.CONSTANT.ROLE` (e.g. `DemoLoginPage.Button.LOGIN_BUTTON.TRIGGER`).
-- Locator file defaults to the conventional path derived from the FQCN (e.g. `tests/demo/pages/DemoLoginPage/locators.json`).
+- Locator file defaults to the conventional `.json` path derived from the FQCN (e.g. `tests/demo/pages/DemoLoginPage/locators.json`).
 - Display text defaults to a word-transformed constant name (`LOGIN_BUTTON` → `"Login Button"`).
 - `getArgs()` defaults to no args.
 
-All of these are overridable. `getExternalFileName()` lets an element opt out of the convention and point to a named file instead.
+For `LocatorFamily` elements (like `Credentials` above):
+
+- All constants in the enum share one template key (`DemoLoginPage.Credentials`).
+- Locator file resolves to a `.properties` path (e.g. `tests/demo/pages/DemoLoginPage/locators.properties`).
+- `getArgs()` supplies the per-constant substitution argument for the `%s` template.
+
+All defaults are overridable. `getExternalFileName()` lets an element point to a named file instead of the convention.
 
 Common capability interfaces live under `elements/api/capability/`:
 `Clickable`, `Typeable`, `Selectable`, `ReadOnly`, `Hoverable`, `Checkable`, `Uploadable`, `Table`, `EditableTable`, `Listable`, `MultiSelectable`, `SearchField`, `Searchable`, `SearchableDropdown`.
@@ -170,11 +184,8 @@ public interface ReportsPage {
 
     enum Nav implements Clickable, LocatorFamily {
         OVERVIEW, KPI_SUMMARY, VENDOR_PERFORMANCE;
-        // Template in locators.json: //li[@data-nav='%s']
+        // Template in locators.properties: //li[@data-nav='%s']
         // Args: OVERVIEW→"Overview", KPI_SUMMARY→"Kpi Summary", ...
-
-        @Override public String getPrimaryLocator()  { return LocatorFamily.super.getPrimaryLocator(); }
-        @Override public String getTriggerLocator()  { return getPrimaryLocator(); }
     }
 }
 ```
@@ -194,9 +205,7 @@ enum Filters implements Clickable, AdvancedLocatorFamily {
     Filters()         { this.semanticValue = null; }
     Filters(String v) { this.semanticValue = v; }
 
-    @Override public String getPrimaryLocator() { return AdvancedLocatorFamily.super.getPrimaryLocator(); }
-    @Override public String getTriggerLocator() { return getPrimaryLocator(); }
-    @Override public String getSemanticValue()  { return semanticValue; }
+    @Override public String getSemanticValue() { return semanticValue; }
 }
 ```
 
@@ -207,9 +216,6 @@ Use when all constants require custom values and a compile-time guarantee that e
 ```java
 enum Sections implements Clickable, SwitchLocatorFamily {
     OVERVIEW, KPI_SUMMARY, VENDOR_PERFORMANCE, YTD_ANALYSIS;
-
-    @Override public String getPrimaryLocator() { return SwitchLocatorFamily.super.getPrimaryLocator(); }
-    @Override public String getTriggerLocator() { return getPrimaryLocator(); }
 
     @Override
     public String getSemanticValue() {
@@ -236,8 +242,8 @@ Examples from the current API:
 
 ```java
 DemoLoginPage.Button.LOGIN_BUTTON.click();
-DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith");
-DemoLoginPage.Credentials.PASSWORD_INPUT.typeAndPress("secret", "ENTER");
+DemoLoginPage.Credentials.USERNAME.type("tomsmith");
+DemoLoginPage.Credentials.PASSWORD.typeAndPress("secret", "ENTER");
 ```
 
 Key idea:
@@ -261,8 +267,8 @@ VOID app = VOID.start();
 app.navigateTo("https://the-internet.herokuapp.com/login");
 
 Flow login = Flow.of(
-    DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith"),
-    DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!"),
+    DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
+    DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
     DemoLoginPage.Button.LOGIN_BUTTON.click()
 );
 
@@ -296,8 +302,8 @@ capability family with no manual wiring:
 
 ```java
 app.run(Flow.of(
-    DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith").safely(),
-    DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!").safely(),
+    DemoLoginPage.Credentials.USERNAME.type("tomsmith").safely(),
+    DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!").safely(),
     DemoLoginPage.Button.LOGIN_BUTTON.click().safely()
 ));
 ```
@@ -315,10 +321,10 @@ import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 
 Flow login = Flow.of(
-    DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith")
+    DemoLoginPage.Credentials.USERNAME.type("tomsmith")
         .before(Before.CLEAR_FIELD)
         .after(After.HIGHLIGHT_ELEMENT),
-    DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!")
+    DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!")
         .before(Before.CLEAR_FIELD)
         .after(After.HIGHLIGHT_ELEMENT),
     DemoLoginPage.Button.LOGIN_BUTTON.click()
@@ -423,9 +429,8 @@ Locator values live in external `.json` / `.properties` files.
 Resolution happens inside the framework, not in test code.
 
 Example from the demo page:
-- `DemoLoginPage.Credentials.USERNAME_INPUT` → role `INPUT`
-- `DemoLoginPage.Button.LOGIN_BUTTON` → role `TRIGGER`
-- locator file: `src/main/resources/tests/demo/pages/DemoLoginPage/locators.json` (conventional path)
+- `DemoLoginPage.Credentials.USERNAME` → LocatorFamily element, role `INPUT`, locator file: `tests/demo/pages/DemoLoginPage/locators.properties`
+- `DemoLoginPage.Button.LOGIN_BUTTON` → plain element, role `TRIGGER`, locator file: `tests/demo/pages/DemoLoginPage/locators.json`
 
 ### Locator resolution pipeline (DemoLoginPage)
 
@@ -444,7 +449,7 @@ This keeps test code free of `By`, hardcoded locator strings, and engine-specifi
 ### Generate locators with `--sync`
 
 ```bash
-mvn process-resources -q && mvn exec:java \
+mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
   -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
 ```
@@ -549,8 +554,8 @@ public class Example {
             app.navigateTo("https://the-internet.herokuapp.com/login");
 
             app.run(Flow.of(
-                DemoLoginPage.Credentials.USERNAME_INPUT.type("tomsmith"),
-                DemoLoginPage.Credentials.PASSWORD_INPUT.type("SuperSecretPassword!"),
+                DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
+                DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
             ));
         } finally {
