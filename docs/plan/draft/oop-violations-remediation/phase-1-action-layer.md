@@ -31,35 +31,48 @@ composable wrapper (`RetryAction`, `TimedAction`) requires modifying all four me
 
 ### Fix
 
-**`Action.java` — add one extension hook:**
+Introduce **two extension hooks** — one for hook merging, one for profile attachment.
+`Action` itself never references `HookChainAction` again.
+
+**`Action.java` — hook-merging extension point:**
 ```java
 default Action mergeHooks(List<BeforeActionHandler> before, List<AfterActionHandler> after) {
     return new HookChainAction(this, before, after);
 }
 ```
 
-**`HookChainAction.java` — override to avoid re-wrapping:**
+**`Action.java` — profile-attachment extension point:**
+```java
+default Action attachProfile(Profile profile) {
+    return new HookChainAction(this).withProfileName(profile.name());
+}
+```
+
+**`HookChainAction.java` — override both to avoid re-wrapping:**
 ```java
 @Override
 public Action mergeHooks(List<BeforeActionHandler> before, List<AfterActionHandler> after) {
     return withAdditionalHooks(before, after);
 }
+
+@Override
+public Action attachProfile(Profile profile) {
+    return withProfileName(profile.name());
+}
 ```
 
-**`Action.java` — rewrite the four methods:**
+**`Action.java` — rewrite the four methods using empty lists, not null:**
 ```java
 default Action before(BeforeActionHandler... hooks) {
-    return mergeHooks(toList(hooks), null);
+    return mergeHooks(toList(hooks), Collections.emptyList());
 }
 
 default Action after(AfterActionHandler... hooks) {
-    return mergeHooks(null, toList(hooks));
+    return mergeHooks(Collections.emptyList(), toList(hooks));
 }
 
 default Action using(Profile profile) {
-    // profile application stays as-is — only hook merging changes
-    Action profiled = mergeHooks(null, null); // ensure chain exists
-    return ((HookChainAction) profiled).withProfileName(profile.name()); // see note below
+    return attachProfile(profile);
 }
 
 default Action withHooks(List<BeforeActionHandler> before, List<AfterActionHandler> after) {
@@ -67,12 +80,16 @@ default Action withHooks(List<BeforeActionHandler> before, List<AfterActionHandl
 }
 ```
 
-> **Note on `using(Profile)`:** the profile attachment still needs a `HookChainAction`
-> reference because `withProfileName` is specific to that class. Apply `mergeHooks` first
-> (which returns a `HookChainAction` by default), then cast. The cast is localised to one
-> method — not spread across four — and is justified because profile storage is an
-> implementation detail of `HookChainAction`, not a general `Action` concern. If profile
-> storage is later promoted to `Action`, this cast disappears too.
+No casts. No `instanceof`. No implementation knowledge in the base interface.
+`mergeHooks` implementations never need a null-guard because the callers pass
+`Collections.emptyList()` instead.
+
+**Why two hooks instead of one?**
+
+`mergeHooks` owns hook list composition — a generic wrapping concern any action type could
+participate in. `attachProfile` owns profile storage — a detail specific to wrapper state that
+different implementations may store differently. Collapsing them into one method would force
+a `HookChainAction` assumption into `mergeHooks`'s contract.
 
 **Extension test:** `RetryAction` wraps any action. It overrides `mergeHooks` to preserve
 its retry count when hooks are added:
@@ -120,10 +137,15 @@ cannot call them on `delegate` without a cast.
 **`Action.java` — add defaults:**
 ```java
 default String elementLabel()   { return "ACTION"; }
-default String operationLabel() { return "perform"; }
+default String operationLabel() { return getClass().getSimpleName(); }
 ```
-The defaults match the current else-branch fallbacks exactly — no silent behaviour change for
-any existing caller.
+
+`elementLabel()` keeps `"ACTION"` — the existing fallback — so no logging changes for callers
+that already see this value.
+
+`operationLabel()` uses `getClass().getSimpleName()` rather than `"perform"`. If a developer
+adds a new action class and forgets to override `operationLabel()`, seeing `"TimedAction"` in
+the trace immediately reveals the missing override. `"perform"` would have hidden the gap.
 
 **Concrete action classes — add one-liner overrides:**
 
@@ -168,12 +190,23 @@ Labels flow through the chain with no interface to implement, no cast, no fallba
 
 ---
 
+## Future watch — is `HookChainAction` becoming `ActionDecorator`?
+
+After Phase 1, `HookChainAction` holds hooks and a profile name. If over time it accumulates
+retry state, timeout, metrics, or other cross-cutting concerns, it will no longer be a
+hook chain — it will be the universal wrapper. Worth monitoring. If that happens, rename it
+and make the decorator role explicit rather than letting the name lie.
+
+Not something to change now, but a signal to watch.
+
+---
+
 ## Files changed
 
 | File                               | Change                                                   |
 |------------------------------------|----------------------------------------------------------|
-| `core/actions/Action.java`         | Add `mergeHooks`; add `elementLabel`/`operationLabel` defaults; rewrite 4 hook methods |
-| `core/actions/HookChainAction.java`| Override `mergeHooks`; rewrite `elementLabel`/`operationLabel` (no cast, no switch) |
+| `core/actions/Action.java`         | Add `mergeHooks`, `attachProfile`; add `elementLabel`/`operationLabel` defaults; rewrite 4 hook methods |
+| `core/actions/HookChainAction.java`| Override `mergeHooks`, `attachProfile`; rewrite `elementLabel`/`operationLabel` (no cast, no switch) |
 | `core/actions/ClickAction.java`    | `operationLabel() { return "click"; }`                   |
 | `core/actions/TypeAction.java`     | `operationLabel() { return "type"; }`                    |
 | `core/actions/SelectAction.java`   | `operationLabel() { return "select"; }`                  |
@@ -187,7 +220,7 @@ Labels flow through the chain with no interface to implement, no cast, no fallba
 ## Commits
 
 ```
-feat(actions): add mergeHooks extension hook, remove instanceof HookChainAction from Action defaults
+feat(actions): add mergeHooks and attachProfile extension hooks, remove instanceof HookChainAction from Action defaults
 feat(actions): promote elementLabel/operationLabel to Action, remove ActionLabeled
 chore(actions): delete HookedAction (deprecated since 0.2, superseded by HookChainAction)
 ```
