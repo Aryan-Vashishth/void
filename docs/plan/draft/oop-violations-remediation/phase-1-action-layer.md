@@ -43,10 +43,13 @@ default Action mergeHooks(List<BeforeActionHandler> before, List<AfterActionHand
 
 **`Action.java` — profile-attachment extension point:**
 ```java
-default Action attachProfile(Profile profile) {
+default Action withProfile(Profile profile) {
     return new HookChainAction(this).withProfileName(profile.name());
 }
 ```
+
+Named `withProfile` to match the fluent style of `before()`, `after()`, and `withHooks()`.
+"attach" implied mutation; "with" signals an immutable return like the rest of the API.
 
 **`HookChainAction.java` — override both to avoid re-wrapping:**
 ```java
@@ -56,7 +59,7 @@ public Action mergeHooks(List<BeforeActionHandler> before, List<AfterActionHandl
 }
 
 @Override
-public Action attachProfile(Profile profile) {
+public Action withProfile(Profile profile) {
     return withProfileName(profile.name());
 }
 ```
@@ -72,7 +75,7 @@ default Action after(AfterActionHandler... hooks) {
 }
 
 default Action using(Profile profile) {
-    return attachProfile(profile);
+    return withProfile(profile);
 }
 
 default Action withHooks(List<BeforeActionHandler> before, List<AfterActionHandler> after) {
@@ -87,7 +90,7 @@ No casts. No `instanceof`. No implementation knowledge in the base interface.
 **Why two hooks instead of one?**
 
 `mergeHooks` owns hook list composition — a generic wrapping concern any action type could
-participate in. `attachProfile` owns profile storage — a detail specific to wrapper state that
+participate in. `withProfile` owns profile storage — a detail specific to wrapper state that
 different implementations may store differently. Collapsing them into one method would force
 a `HookChainAction` assumption into `mergeHooks`'s contract.
 
@@ -99,6 +102,16 @@ public Action mergeHooks(List<BeforeActionHandler> before, List<AfterActionHandl
     return new RetryAction(delegate.mergeHooks(before, after), retryCount);
 }
 ```
+
+**Decorator convention — always delegate first, then re-wrap:**
+
+The pattern is `new RetryAction(delegate.mergeHooks(...), retryCount)`, not
+`delegate.mergeHooks(...)` alone. The decorator calls the hook on its inner delegate (which
+may itself be a decorator), then wraps the result to preserve the outer decorator's state.
+Returning `delegate.mergeHooks(...)` directly would silently discard the retry count. All
+future wrappers (`TimedAction`, `MetricsAction`, etc.) must follow the same rule: delegate
+the call inward, re-apply the wrapper's own state to the result.
+
 Zero changes to `Action`.
 
 ---
@@ -136,16 +149,17 @@ cannot call them on `delegate` without a cast.
 
 **`Action.java` — add defaults:**
 ```java
-default String elementLabel()   { return "ACTION"; }
+default String elementLabel()   { return getClass().getSimpleName(); }
 default String operationLabel() { return getClass().getSimpleName(); }
 ```
 
-`elementLabel()` keeps `"ACTION"` — the existing fallback — so no logging changes for callers
-that already see this value.
+Both defaults follow the same diagnostic philosophy: a missing override surfaces the class
+name in the trace rather than a generic string that hides the gap. Seeing `"TimedAction"` in
+a log immediately tells you an override is missing; `"ACTION"` or `"perform"` would not.
 
-`operationLabel()` uses `getClass().getSimpleName()` rather than `"perform"`. If a developer
-adds a new action class and forgets to override `operationLabel()`, seeing `"TimedAction"` in
-the trace immediately reveals the missing override. `"perform"` would have hidden the gap.
+All existing action classes that already override `elementLabel()` are unaffected — the
+default is only reached when no override exists, which is exactly when the class name is
+most useful.
 
 **Concrete action classes — add one-liner overrides:**
 
@@ -205,8 +219,8 @@ Not something to change now, but a signal to watch.
 
 | File                               | Change                                                   |
 |------------------------------------|----------------------------------------------------------|
-| `core/actions/Action.java`         | Add `mergeHooks`, `attachProfile`; add `elementLabel`/`operationLabel` defaults; rewrite 4 hook methods |
-| `core/actions/HookChainAction.java`| Override `mergeHooks`, `attachProfile`; rewrite `elementLabel`/`operationLabel` (no cast, no switch) |
+| `core/actions/Action.java`         | Add `mergeHooks`, `withProfile`; add `elementLabel`/`operationLabel` defaults; rewrite 4 hook methods |
+| `core/actions/HookChainAction.java`| Override `mergeHooks`, `withProfile`; rewrite `elementLabel`/`operationLabel` (no cast, no switch) |
 | `core/actions/ClickAction.java`    | `operationLabel() { return "click"; }`                   |
 | `core/actions/TypeAction.java`     | `operationLabel() { return "type"; }`                    |
 | `core/actions/SelectAction.java`   | `operationLabel() { return "select"; }`                  |
@@ -220,7 +234,7 @@ Not something to change now, but a signal to watch.
 ## Commits
 
 ```
-feat(actions): add mergeHooks and attachProfile extension hooks, remove instanceof HookChainAction from Action defaults
+feat(actions): add mergeHooks and withProfile extension hooks, remove instanceof HookChainAction from Action defaults
 feat(actions): promote elementLabel/operationLabel to Action, remove ActionLabeled
 chore(actions): delete HookedAction (deprecated since 0.2, superseded by HookChainAction)
 ```
@@ -233,9 +247,14 @@ chore(actions): delete HookedAction (deprecated since 0.2, superseded by HookCha
 mvn compile -q
 ```
 
-Then grep for residual references:
+Then grep for residual references — all four must return zero results:
 ```
-grep -r "ActionLabeled" src/
-grep -r "HookedAction"  src/
+grep -r "ActionLabeled"           src/
+grep -r "HookedAction"            src/
+grep -r "instanceof HookChainAction" src/
+grep -r "switch.*ActionCapability"   src/
 ```
-Both must return zero results.
+
+The first two confirm the deleted types are gone. The last two confirm the violations Phase 1
+was specifically created to eliminate are not present anywhere in the codebase — not just in
+the files we touched.
