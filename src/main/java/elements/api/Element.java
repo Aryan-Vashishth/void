@@ -95,19 +95,13 @@ public interface Element {
         String[] tokens = ((Enum<?>) this).name().split("_");
         StringBuilder sb = new StringBuilder();
         for (String token : tokens) {
-            if (sb.length() > 0) sb.append(' ');
+            if (!sb.isEmpty()) sb.append(' ');
             sb.append(Character.toUpperCase(token.charAt(0)));
             if (token.length() > 1) sb.append(token.substring(1).toLowerCase());
         }
         return sb.toString();
     }
 
-    /**
-     * Builds the fully-qualified, role-suffixed locator key for a capability element.
-     *
-     * <p>Format: {@code PageClass.EnumClass.CONSTANT.ROLE} (e.g. {@code LoginPage.Buttons.SUBMIT.TRIGGER}).
-     * Used as the default locator key by single-role capability interfaces.</p>
-     */
     /**
      * Returns the locator key for a given role on this element.
      *
