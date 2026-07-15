@@ -22,7 +22,7 @@ public class MixedLocatorStrategyTest {
 
     interface MixedStrategyPage {
 
-        /** Conventional: inherits default getExternalFileName() → "MixedStrategyPage.json". */
+        /** Conventional: inherits default getExternalFileName() — resolves to FQCN-based path. */
         enum Buttons implements Clickable {
             SAVE, CANCEL;
         }
@@ -45,8 +45,9 @@ public class MixedLocatorStrategyTest {
     // -------------------------------------------------------------------------
 
     @Test
-    public void conventional_derivesMixedStrategyPageJson() {
-        assertEquals(MixedStrategyPage.Buttons.SAVE.getExternalFileName(), "MixedStrategyPage.json");
+    public void conventional_derivesConventionalPath() {
+        assertEquals(MixedStrategyPage.Buttons.SAVE.getExternalFileName(),
+            "core/resolvers/locator/api/MixedLocatorStrategyTest$MixedStrategyPage/locators.json");
     }
 
     @Test

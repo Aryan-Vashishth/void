@@ -26,13 +26,13 @@ import javax.annotation.Nullable;
  */
 public interface Element {
     /**
-     * Returns the bare file name (no path prefix) of the external locator resource for this element,
+     * Returns the conventional classpath path of the external locator resource for this element,
      * or {@code null} if the locator is hardcoded.
      *
-     * <p>Default: derives the base name from the enclosing page interface (or the enum class itself
-     * for top-level enums), then probes candidate suffixes in priority order (.json, .properties, …),
-     * returning the first file that exists on the classpath. Falls back to {@code .json} if none found.
-     * Override to supply a fixed file name.</p>
+     * <p>Default: probes {@code PageClass/locators.json} then {@code PageClass/locators.properties}
+     * under the FQCN-derived directory. Returns the first that exists on the classpath, or the
+     * {@code .json} path as the preferred target when neither exists yet.
+     * Override to point to a different file.</p>
      */
     @Nullable
     default String getExternalFileName() {
@@ -40,29 +40,12 @@ public interface Element {
         Class<?> enumClass = e.getDeclaringClass();
         Class<?> pageClass = enumClass.getEnclosingClass();
         Class<?> target = pageClass != null ? pageClass : enumClass;
-        return resolveLocatorFileName(target);
-    }
-
-    private static String resolveLocatorFileName(Class<?> pageClass) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        // Phase 5: package-qualified conventional path — collision-free across packages.
-        // e.g. tests.demo.pages.DemoLoginPage → tests/demo/pages/DemoLoginPage/locators.json
-        // LocatorPaths.under() treats any path containing '/' as already-rooted.
-        String dir = pageClass.getName().replace('.', '/') + "/";
+        String dir = target.getName().replace('.', '/') + "/";
         for (String file : new String[]{"locators.json", "locators.properties"}) {
             if (cl.getResource(dir + file) != null) return dir + file;
         }
-        // Phase 8 fallback: simple name under known bases (legacy and cross-package simple names).
-        // To add a new format: append { ".ext", "locators/ext/" } and register a LocatorSource.
-        String base = pageClass.getSimpleName();
-        String[][] candidates = {
-            { ".json",       "locators/json/"       },
-            { ".properties", "locators/properties/" }
-        };
-        for (String[] c : candidates) {
-            if (cl.getResource(c[1] + base + c[0]) != null) return base + c[0];
-        }
-        return dir + "locators.json"; // preferred target even if not yet created
+        return dir + "locators.json";
     }
 
     /**
