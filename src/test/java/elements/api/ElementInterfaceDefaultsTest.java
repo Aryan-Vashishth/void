@@ -14,7 +14,9 @@ public class ElementInterfaceDefaultsTest {
     private enum StubElement implements Element {
         USERNAME_INPUT,
         LOGIN_BUTTON,
-        SAVE_AS_DRAFT;
+        SAVE_AS_DRAFT,
+        CRM_ID,
+        H1_HEADING;
 
         @Override public String getExternalFileName() { return null; }
     }
@@ -101,6 +103,18 @@ public class ElementInterfaceDefaultsTest {
     @Test
     public void getDisplayText_threeTokens_capitalisesEachWord() {
         assertEquals(StubElement.SAVE_AS_DRAFT.getDisplayText(), "Save As Draft");
+    }
+
+    @Test
+    public void getDisplayText_acronymToken_lowercasedAfterFirstChar() {
+        // "CRM" → "Crm", "ID" → "Id"
+        assertEquals(StubElement.CRM_ID.getDisplayText(), "Crm Id");
+    }
+
+    @Test
+    public void getDisplayText_tokenWithLeadingDigit_preservedAfterCapitalize() {
+        // "H1" → charAt(0)='H' upper + "1".toLowerCase()="1" → "H1"
+        assertEquals(StubElement.H1_HEADING.getDisplayText(), "H1 Heading");
     }
 
     @Test
