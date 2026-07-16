@@ -75,6 +75,29 @@ public class OrphanKeyDetectorTest {
     }
 
     @Test
+    public void locatorFamily_twoSegmentKey_knownEnum_noWarning() throws IOException {
+        // LocatorFamily emits "PageName.EnumName" with no constant suffix.
+        // Inputs is a valid nested enum in SyncTestFixturePage.
+        LineTrackingPropertiesReader reader = readerFor(
+            "SyncTestFixturePage.Inputs=//input[contains(@class,'%s')]"
+        );
+        List<OrphanWarning> warnings = detector.detect(SyncTestFixturePage.class, reader);
+        assertTrue(warnings.isEmpty(), "Valid LocatorFamily key must not be flagged: " + warnings);
+    }
+
+    @Test
+    public void locatorFamily_twoSegmentKey_unknownEnum_reportsOrphan() throws IOException {
+        // "OldFamily" does not exist as a nested enum in SyncTestFixturePage.
+        LineTrackingPropertiesReader reader = readerFor(
+            "SyncTestFixturePage.OldFamily=//div[%s]"
+        );
+        List<OrphanWarning> warnings = detector.detect(SyncTestFixturePage.class, reader);
+        assertEquals(warnings.size(), 1);
+        assertTrue(warnings.get(0).reason().contains("OldFamily"),
+            "Reason must name the missing enum class");
+    }
+
+    @Test
     public void lineNumber_reportedCorrectly() throws IOException {
         LineTrackingPropertiesReader reader = readerFor(
             "# comment",
