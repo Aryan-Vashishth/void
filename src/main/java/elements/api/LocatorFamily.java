@@ -12,8 +12,8 @@ import elements.meta.ElementRole;
  * <h3>Automatic argument</h3>
  * <p>The default {@link #getArgs()} returns the constant name word-transformed:
  * {@code MANAGE_USERS} → {@code ["Manage Users"]}. The locator template must contain
- * exactly one {@code %s} token; multi-token templates require an explicit {@code .with()}
- * override.</p>
+ * exactly one {@code %s} token. Multi-token templates require an explicit {@link #getArgs()}
+ * override on the constant.</p>
  *
  *
  * <h3>Progression</h3>
