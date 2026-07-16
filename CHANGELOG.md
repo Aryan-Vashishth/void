@@ -1,5 +1,23 @@
 # Changelog
 
+All notable changes to this project are documented here.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versions follow [Semantic Versioning](https://semver.org/).
+
+---
+
+## [Unreleased]
+
+### Planned
+
+- OOP violations remediation Phases 1-4 (see `docs/plan/draft/oop-violations-remediation/`)
+  - Phase 1: remove `instanceof HookChainAction` from `Action` defaults; promote label methods
+  - Phase 2: replace `(Enum<?>) this` casts in `Element`; move `capability()` to `Element`; default `Listable.getIndex()`
+  - Phase 3: replace `instanceof` dispatch chains in `VoidDSL` with typed overloads and `EnumMap` dispatch
+  - Phase 4: `UIEngineFactory` registry map; `LocatorRoles` dedup helper; `Via` capability-helper reduction
+
+---
+
 ## [0.2.0] — 2026-07-12
 
 ### Changed
@@ -175,7 +193,7 @@ The following are deprecated since **2.1** and scheduled for removal in **3.0**:
 
 ---
 
-## 2.0-SNAPSHOT (chore/remove-deprecated-apis)
+## [0.1.0]
 
 ### Removed (binary-breaking)
 
@@ -231,3 +249,9 @@ After bumping to `2.0-SNAPSHOT`:
 | `DriverFactory.createEmptyTemplate()`                            | `DriverFactory.createPropertiesTemplate(Profile.DEFAULT, true, true, false, false)`       |
 | `JsonLocatorMigrator.main(args)`                                 | `JsonMigratorCli.main(args)`                                                              |
 | `ThemeColors.theme()...build()`                                  | `ThemeColors.builder()...build()`                                                         |
+
+---
+
+[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Aryan-Vashishth/void-framework/releases/tag/v0.1.0
