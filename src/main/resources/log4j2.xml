@@ -2,8 +2,8 @@
 <Configuration status="WARN">
     <Properties>
         <Property name="voidLogDir">${sys:void.logDir:-./logs}</Property>
-        <Property name="voidRunId">${sys:void.runId:-startup}</Property>
-        <Property name="voidRunDate">${sys:void.runDate:-unknown-date}</Property>
+        <Property name="voidRunDate">${date:yyyy-MM-dd}</Property>
+        <Property name="voidRunId">${date:yyyyMMdd-HHmmss-SSS}-pid${pid}</Property>
         <Property name="voidRootLogLevel">${sys:void.rootLogLevel:-INFO}</Property>
 
         <Property name="voidDateLogDir">${voidLogDir}/${voidRunDate}</Property>
