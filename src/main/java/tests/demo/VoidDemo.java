@@ -40,7 +40,7 @@ public class VoidDemo {
         CustomLogger.setTheme(LogTheme.HIGH_CONTRAST);
 
         info.log("==================================================");
-        info.log("|       VOID Framework -- Quick Start Demo        |");
+        info.log("|            VOID -- Quick Start Demo            |");
         info.log("==================================================");
 
         info.log("[SETUP] Starting VOID session...");
