@@ -483,6 +483,11 @@ void-framework/
 ├── src/main/resources/
 │   ├── locators/                   # Legacy named locator files (.properties / .json)
 │   └── tests/                      # Conventional locator repository (auto-path by FQCN)
+├── logs/                       # Runtime trace archive — gitignored, generated each run
+│   └── YYYY-MM-DD/
+│       ├── debug-trace/        # Full caller-chain traces (DEBUG level)
+│       ├── partial-trace/      # Action-level traces without caller chain
+│       └── full-trace/         # All output, no ANSI
 └── docs/
     ├── architecture/              # Architecture docs
     └── audits/                    # Audit reports
