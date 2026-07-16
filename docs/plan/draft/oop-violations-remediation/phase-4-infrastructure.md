@@ -8,7 +8,7 @@ No upstream dependencies — can be done after any phase or in parallel with Pha
 ## Goal
 
 After this phase:
-- Adding a new `UIEngine` requires zero changes to `UIEngineFactory`.
+- Supporting a new `UIEngine` requires no modification to `UIEngineFactory`; only registration of the new engine.
 - `SearchableDropdown`/`SearchField` can add new locator roles with one line, no equality checks.
 - `Via.java` no longer acts as a growing catalogue of per-capability static methods.
 
@@ -20,7 +20,7 @@ After this phase:
 
 ```java
 UIEngine engine = switch (engineName) {
-    case "selenium"   -> new SeleniumEngine(driver);
+    case "selenium"   -> new SeleniumEngine(engineHost);
     // case "playwright" -> new PlaywrightEngine();
     default -> throw new IllegalStateException("Unsupported engine: ...");
 };
@@ -37,25 +37,29 @@ Replace the `switch` with a registry map. Keep the API surface identical — onl
 ```java
 public final class UIEngineFactory {
 
-    private static final Map<String, BiFunction<String, Object, UIEngine>> REGISTRY =
-        new LinkedHashMap<>();
+    private static final Map<String, Function<Object, UIEngine>> REGISTRY =
+        new LinkedHashMap<>(); // insertion order preserved for readable exception messages
 
     static {
-        REGISTRY.put("selenium", (name, driver) -> new SeleniumEngine((WebDriver) driver));
+        REGISTRY.put("selenium",
+            engineHost -> new SeleniumEngine((WebDriver) engineHost));
     }
 
-    public static void register(String name, BiFunction<String, Object, UIEngine> creator) {
-        REGISTRY.put(name.trim().toLowerCase(Locale.ROOT), creator);
+    public static void register(String engineName, Function<Object, UIEngine> creator) {
+        String key = engineName.trim().toLowerCase(Locale.ROOT);
+        if (REGISTRY.containsKey(key))
+            throw new IllegalStateException("Engine '" + engineName + "' is already registered.");
+        REGISTRY.put(key, creator);
     }
 
-    public static UIEngine create(String name, Object driver) {
-        String key = name.trim().toLowerCase(Locale.ROOT);
-        BiFunction<String, Object, UIEngine> creator = REGISTRY.get(key);
+    public static UIEngine create(String engineName, Object engineHost) {
+        String key = engineName.trim().toLowerCase(Locale.ROOT);
+        Function<Object, UIEngine> creator = REGISTRY.get(key);
         if (creator == null) {
             throw new IllegalStateException(
-                "Unsupported engine: '" + name + "'. Registered: " + REGISTRY.keySet());
+                "No UIEngine registered for '" + engineName + "'.\nRegistered engines: " + REGISTRY.keySet());
         }
-        return creator.apply(key, driver);
+        return creator.apply(engineHost);
     }
 
     private UIEngineFactory() {}
@@ -64,14 +68,43 @@ public final class UIEngineFactory {
 
 Adding Playwright in a future module:
 ```java
-UIEngineFactory.register("playwright", (name, driver) -> new PlaywrightEngine());
+UIEngineFactory.register(
+    "playwright",
+    host -> new PlaywrightEngine((Page) host)
+);
 ```
 Zero changes to `UIEngineFactory`.
+
+`Function<Object, UIEngine>` is sufficient because the creator already knows which engine it
+constructs from the registration itself. Passing the engine name into the creator (as
+`BiFunction<String, Object, UIEngine>` would) duplicated information that was never used.
+
+**EngineHost abstraction:** an EngineHost is the bootstrap object supplied when creating a
+`UIEngine`. Each engine implementation requires a different concrete EngineHost type -- for
+Selenium this is a `WebDriver`; for Playwright it may be a `Page` or `BrowserContext`. The
+factory resolves the registered engine creator and passes the EngineHost through unchanged.
+The factory treats the EngineHost as opaque; only the registered engine implementation interprets its concrete type.
+
+EngineHost is represented as `Object` because each engine implementation requires a different
+concrete host type. Introducing a common host interface would unnecessarily couple unrelated
+engine implementations. Each registered engine creator is therefore responsible for validating
+and casting its own EngineHost
+(for example `(WebDriver) engineHost`). Callers supplying the wrong host type will receive
+a `ClassCastException` at the creator site rather than a compile-time error. This is an
+inherent constraint of supporting heterogeneous engine implementations and is acceptable
+because engine creation is an internal framework bootstrap operation, not user-facing API.
 
 **Why not `ServiceLoader`:** `ServiceLoader` is the correct long-term answer for a modular
 build. It requires a `module-info.java` or `META-INF/services` file. The map achieves OCP now
 without that infrastructure cost. When the project modularises, `register(...)` calls in module
-initializers replace the `static {}` block — the public API is unchanged.
+initializers replace the `static {}` block -- the public API is unchanged.
+
+**Future consideration -- registry lifecycle:** registration is expected during framework
+bootstrap, not during execution. If runtime engine registration is never required, the registry
+can later be frozen after initialization (e.g., wrapping with `Collections.unmodifiableMap`)
+to prevent accidental mutation. Not necessary for this phase, but worth tracking: registries
+are typically populated during framework bootstrap. If runtime registration is never required,
+making the registry immutable after initialization is the natural next step.
 
 ---
 
@@ -89,58 +122,68 @@ to add new equality checks against all four existing roles.
 
 ### Fix
 
-Add a package-private static helper to `Element.java` (or a package-private `LocatorRoleMap`
-utility if the method feels out-of-place on `Element`):
+Introduce a new package-private utility class `LocatorRoles` (same package as
+`SearchableDropdown` and `SearchField`). This is a locator-role concern, not an element
+reflection concern, so it belongs in its own class rather than growing `ElementSupport`:
 
 ```java
-static Map<ElementRole, String> roleMap(Object... pairs) {
-    Map<ElementRole, String> result = new LinkedHashMap<>();
-    Set<String> seen = new LinkedHashSet<>();
-    for (int i = 0; i + 1 < pairs.length; i += 2) {
-        ElementRole role = (ElementRole) pairs[i];
-        String key  = (String) pairs[i + 1];
-        if (key != null && !key.isBlank() && seen.add(key)) {
-            result.put(role, key);
-        }
+final class LocatorRoles {
+
+    static record RoleEntry(ElementRole role, String key) {}
+
+    static RoleEntry role(ElementRole role, String key) {
+        return new RoleEntry(role, key);
     }
-    return result;
+
+    static Map<ElementRole, String> roleMap(RoleEntry... roles) {
+        Map<ElementRole, String> result = new LinkedHashMap<>();
+        Set<String> seen = new LinkedHashSet<>();
+        for (RoleEntry r : roles) {
+            if (r.key() != null && !r.key().isBlank() && seen.add(r.key())) {
+                result.put(r.role(), r.key());
+            }
+        }
+        return result;
+    }
+
+    private LocatorRoles() {}
 }
 ```
+
+`RoleEntry` is nested inside `LocatorRoles` so it never escapes the class. It is an
+implementation detail of the deduplication helper, not a standalone framework type.
 
 `SearchableDropdown.getAllLocatorRoles()` becomes:
 ```java
 @Override
 default Map<ElementRole, String> getAllLocatorRoles() {
-    return Element.roleMap(
-        ElementRole.TRIGGER,       getTriggerLocator(),
-        ElementRole.SEARCH_INPUT,  getSearchInputLocator(),
-        ElementRole.SEARCH_BUTTON, getSearchButtonLocator(),
-        ElementRole.LIST,          getListLocator()
+    return LocatorRoles.roleMap(
+        LocatorRoles.role(ElementRole.TRIGGER,       getTriggerLocator()),
+        LocatorRoles.role(ElementRole.SEARCH_INPUT,  getSearchInputLocator()),
+        LocatorRoles.role(ElementRole.SEARCH_BUTTON, getSearchButtonLocator()),
+        LocatorRoles.role(ElementRole.LIST,          getListLocator())
     );
 }
 ```
 
-Adding `SEARCH_CLEAR_BUTTON`: one new pair at the end. Dedup is automatic.
+Adding `SEARCH_CLEAR_BUTTON` is one new `role(...)` line at the end. No overload to add,
+no arity limit, one implementation forever. Dedup is automatic.
 
-`SearchField.getAllLocatorRoles()` — same pattern.
+`SearchField.getAllLocatorRoles()` -- same pattern.
 
-**Why varargs pairs and not a builder:** a builder is a new public type with its own lifecycle.
-Varargs pairs are inline at the call site, read as a declaration, and the helper is
-package-private — not part of the framework API. If a builder is ever needed (dynamic role
-registration, conditional inclusion), the varargs helper is the prototype for it.
+**Why a record over `Object...`:** the varargs element is now `RoleEntry`, not `Object`.
+The compiler guarantees that every varargs element is a `RoleEntry`. Invalid argument
+ordering (such as alternating `ElementRole` and `String` values) is no longer possible
+because the `(role, key)` pairing is encapsulated by the record. No runtime casts.
 
-**Constraint:** pairs must be `(ElementRole, String, ElementRole, String, ...)` — even count,
-alternating types. The helper does not validate this at compile time. If misuse is a concern,
-consider an overloaded form:
-```java
-static Map<ElementRole, String> roleMap(
-    ElementRole r1, String k1,
-    ElementRole r2, String k2,
-    ElementRole r3, String k3,
-    ElementRole r4, String k4) { ... }
-```
-For four fixed roles this is more explicit. Add overloads for 2, 3, 4 roles and keep the
-varargs form for ≥5.
+**Why a record over typed overloads:** overloads bound arity. Adding a fifth role would
+require either a new overload or switching to varargs anyway. The record keeps the call site
+equally readable, stays compile-time safe, and supports any number of roles with one
+implementation.
+
+**Why not a builder:** a builder is a new public type with its own lifecycle. The record +
+varargs combination is package-private, inline at the call site, and reads as a declaration.
+If a builder is ever needed (conditional inclusion, dynamic role sets), this is the prototype.
 
 ---
 
@@ -159,18 +202,26 @@ capability set.
 grep -rn "Via\." src/
 ```
 
-Classify each call site into one of three categories:
+Classify each call site into one of four categories:
 
 | Category | Example | Replacement |
 |----------|---------|-------------|
-| Boolean check | `Via.isClickable(e)` | `e instanceof Clickable` |
-| Cast for immediate use | `Via.clickable(e).click()` | `((Clickable) e).click()` |
+| Boolean check | `Via.isClickable(e)` | `e instanceof Clickable` or `e instanceof Clickable c` (pattern) |
+| Cast for immediate use | `Via.clickable(e).click()` | `((Clickable) e).click()` or pattern match -- whichever is more readable at the call site |
 | Dynamic / unknown at compile time | `Via.cast(e, capabilityClass)` | keep one generic helper |
+| Locator descriptor | `Via.descriptor(e)` | **out of scope -- do not inline or remove** |
+
+`Via` currently contains three active `descriptor(...)` methods that resolve
+`LocatorDescriptor` objects. These are not capability dispatchers and are not part of this
+phase. Leave them untouched. Category 1, 2, and 3 apply only to the capability-related
+methods (`isXxx`, `xxx(element)`). Deprecated Selenium helpers (`locator(...)`,
+`webElement(...)`) may be removed separately in a future cleanup phase but are also out of
+scope here.
 
 **Step 2 — eliminate category 1 and 2 call sites** — inline the `instanceof` or cast directly.
 These are one-liners; the `Via` wrapper adds no value.
 
-**Step 3 — reduce `Via` to at most one generic method** (or delete the class):
+**Step 3 — reduce `Via` to at most one generic method** (or delete the capability section):
 
 If any category-3 call sites exist (truly dynamic capability resolution where the capability
 class is a variable), keep:
@@ -197,9 +248,9 @@ The audit + reduction in this phase exists precisely to prevent that pattern fro
 | File                                                    | Change                                          |
 |---------------------------------------------------------|-------------------------------------------------|
 | `core/engine/UIEngineFactory.java`                      | `switch` → registry `Map`                       |
-| `elements/api/Element.java`                             | add `roleMap` static helper                     |
-| `elements/api/capability/SearchableDropdown.java`       | `getAllLocatorRoles()` uses `Element.roleMap(…)` |
-| `elements/api/capability/SearchField.java`              | `getAllLocatorRoles()` uses `Element.roleMap(…)` |
+| `elements/api/capability/LocatorRoles.java`             | **NEW** -- package-private `RoleEntry` record, `role()` factory, `roleMap()` helper |
+| `elements/api/capability/SearchableDropdown.java`       | `getAllLocatorRoles()` uses `LocatorRoles.roleMap(…)` |
+| `elements/api/capability/SearchField.java`              | `getAllLocatorRoles()` uses `LocatorRoles.roleMap(…)` |
 | `core/interactions/Via.java`                            | reduce to 1 generic method **or DELETE**        |
 | All `Via.*` call sites                                  | inline `instanceof` / cast                      |
 
@@ -230,6 +281,12 @@ Confirm no string switch in factory:
 ```
 grep -n "switch" src/main/java/core/engine/UIEngineFactory.java
 # must return zero results
+```
+
+Confirm no leftover `Via.*` call sites across the codebase:
+```
+grep -rn "Via\." src/
+# must return zero results (or only the generic cast method if category-3 sites exist)
 ```
 
 Confirm no per-capability methods remain in `Via` (if kept):

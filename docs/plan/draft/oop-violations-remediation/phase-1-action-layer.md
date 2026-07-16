@@ -87,6 +87,10 @@ No casts. No `instanceof`. No implementation knowledge in the base interface.
 `mergeHooks` implementations never need a null-guard because the callers pass
 `Collections.emptyList()` instead.
 
+**`mergeHooks` and `withProfile` are framework extension hooks.** They are public only
+because Java interface default methods cannot have narrower visibility. Framework consumers
+should use `before()`, `after()`, `using()`, and `withHooks()` instead.
+
 **Why two hooks instead of one?**
 
 `mergeHooks` owns hook list composition — a generic wrapping concern any action type could
@@ -108,9 +112,18 @@ public Action mergeHooks(List<BeforeActionHandler> before, List<AfterActionHandl
 The pattern is `new RetryAction(delegate.mergeHooks(...), retryCount)`, not
 `delegate.mergeHooks(...)` alone. The decorator calls the hook on its inner delegate (which
 may itself be a decorator), then wraps the result to preserve the outer decorator's state.
-Returning `delegate.mergeHooks(...)` directly would silently discard the retry count. All
-future wrappers (`TimedAction`, `MetricsAction`, etc.) must follow the same rule: delegate
-the call inward, re-apply the wrapper's own state to the result.
+Returning `delegate.mergeHooks(...)` directly would silently discard the retry count.
+
+**The general rule:** a decorator overriding an extension hook must delegate to the inner
+action and then reconstruct itself with all of its existing state preserved -- not just the
+field shown in the example. A `TimedAction` must carry its timeout through; a `MetricsAction`
+must carry its tag set; any future wrapper must carry whatever state defines it. An override
+that reconstructs only part of the decorator's state is silently broken.
+
+**Decorator ordering is stable.** Each wrapper re-applies itself around the result of the
+inner delegate call, so the layer order established at construction is preserved across any
+hook or profile operation. A chain of `TimedAction > RetryAction > ClickAction` remains in
+that order after `before(...)` is called.
 
 Zero changes to `Action`.
 
@@ -157,7 +170,12 @@ Both defaults follow the same diagnostic philosophy: a missing override surfaces
 name in the trace rather than a generic string that hides the gap. Seeing `"TimedAction"` in
 a log immediately tells you an override is missing; `"ACTION"` or `"perform"` would not.
 
-All existing action classes that already override `elementLabel()` are unaffected — the
+**These defaults are diagnostic fallbacks only and must never appear in production traces.**
+Every user-visible action must override `elementLabel()` directly, or inherit an override
+from `ElementAction`. If `getClass().getSimpleName()` appears in a production log it means
+an override is missing -- that is a bug, not acceptable output.
+
+All existing action classes that already override `elementLabel()` are unaffected -- the
 default is only reached when no override exists, which is exactly when the class name is
 most useful.
 
@@ -251,10 +269,11 @@ Then grep for residual references — all four must return zero results:
 ```
 grep -r "ActionLabeled"           src/
 grep -r "HookedAction"            src/
-grep -r "instanceof HookChainAction" src/
-grep -r "switch.*ActionCapability"   src/
+grep -R "instanceof HookChainAction" src/main/java/core/actions
+grep -R "switch.*ActionCapability"   src/main/java/core/actions
 ```
 
 The first two confirm the deleted types are gone. The last two confirm the violations Phase 1
-was specifically created to eliminate are not present anywhere in the codebase — not just in
-the files we touched.
+was created to eliminate are absent from `core/actions` -- the scope this phase owns.
+Switches on `ActionCapability` elsewhere (reporting, serialization, migration) may be
+legitimate and should not be treated as failures.

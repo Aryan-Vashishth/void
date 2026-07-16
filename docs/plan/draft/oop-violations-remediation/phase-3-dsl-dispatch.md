@@ -8,7 +8,8 @@ Depends on: Phase 1 and Phase 2 complete (capability interfaces stable)
 ## Goal
 
 After this phase, `VoidDSL` contains no sequential `instanceof` chains for dispatching to
-engine operations. Adding a new capability interface requires zero changes to `VoidDSL`.
+engine operations. Adding a new capability interface requires zero changes to the typed DSL
+API. Dynamic runtime entry points require a single centralized registration.
 
 ---
 
@@ -75,44 +76,88 @@ public void select(Selectable element, String value) {
 }
 ```
 
-**Why typed overloads over a dispatch table:** a dispatch table (`Map<Class<?>, Function<...>>`)
-looks open/closed but still requires an explicit `put(...)` registration when a new capability
-is added — the same modification problem in a different form. Typed overloads move the
-dispatch entirely to the compiler. The DSL caller already knows what type it has.
+**Why typed overloads over a dispatch table:** a dispatch table still requires an explicit
+registration entry when a new capability is added -- the same modification problem in a
+different form. Typed overloads move the dispatch entirely to the compiler.
 
-### Step 3 — Dispatch table only for genuinely dynamic entry points
+In the majority of the public DSL API, the capability is already known statically: a method
+accepting `Clickable` will only be called with something `Clickable`. Where the public
+signature already accepts a specific capability interface, there is no dispatch to do -- call
+the action factory method directly through the typed parameter.
 
-If a DSL method truly cannot know the element type at compile time (e.g., a scripting API or
-a step that resolves elements by string name at runtime), use a dispatch table as a last resort:
+### Step 3 — Capability dispatch for genuinely dynamic entry points
+
+**This step is the exception, not an equal alternative to Step 2.** It applies only to DSL
+methods that resolve elements from string keys at runtime and therefore cannot express a
+specific capability type in their signatures. All other methods belong in Step 2.
+
+Phase 2 established `element.capability()` as the canonical way to ask an element what it
+does. Runtime dispatch should use the same model -- keyed on `ActionCapability` (an enum),
+not on interface types (which would reintroduce `isInstance()` and duplicate Phase 2's model
+in a different form):
 
 ```java
-private static final Map<Class<? extends Element>, BiConsumer<Element, String>> DISPATCH =
-    new LinkedHashMap<>(); // order matters: subtype before supertype
+private static final EnumMap<ActionCapability, BiConsumer<Element, String>> DISPATCH =
+    new EnumMap<>(ActionCapability.class);
 
 static {
-    DISPATCH.put(MultiSelectable.class, (e, v) -> ((MultiSelectable) e).selectOptions(v.split(",")).execute(engine));
-    DISPATCH.put(Selectable.class,      (e, v) -> ((Selectable) e).selectOption(v).execute(engine));
-    DISPATCH.put(Typeable.class,        (e, v) -> ((Typeable) e).type(v).execute(engine));
+    DISPATCH.put(ActionCapability.MULTI_SELECTABLE, (e, v) -> ((MultiSelectable) e).selectOptions(v.split(",")).execute(engine));
+    DISPATCH.put(ActionCapability.SELECTABLE,       (e, v) -> ((Selectable) e).selectOption(v).execute(engine));
+    DISPATCH.put(ActionCapability.TYPEABLE,         (e, v) -> ((Typeable) e).type(v).execute(engine));
 }
 
 private void dispatch(Element element, String value) {
-    for (Map.Entry<Class<? extends Element>, BiConsumer<Element, String>> entry : DISPATCH.entrySet()) {
-        if (entry.getKey().isInstance(element)) {
-            entry.getValue().accept(element, value);
-            return;
-        }
-    }
-    throw new UnsupportedOperationException("No dispatch registered for " + element.getClass());
+    BiConsumer<Element, String> handler = DISPATCH.get(element.capability());
+    if (handler == null) throw new UnsupportedOperationException(
+        "No dispatch registered for capability " + element.capability());
+    handler.accept(element, value);
 }
 ```
 
-**Key difference from `instanceof` chain:** adding `DraggableElement` is one `DISPATCH.put`
-call in one location — not a search through `VoidDSL` methods for every chain that needs updating.
-The subtype-before-supertype ordering is still required, but it is explicit data in one map, not
-implicit control flow scattered across methods.
+**Why `EnumMap<ActionCapability, ...>` over `Map<Class<?>, ...>`:** Phase 2 guarantees
+one capability family per element and makes `capability()` the canonical query. Using
+interface types as keys would maintain two parallel runtime-dispatch models. Using the
+enum key aligns dispatch with the model already documented, eliminates `isInstance()`,
+and removes the subtype-ordering requirement (enum keys have no inheritance relationship).
 
-**Prefer Step 2 wherever feasible.** Use Step 3 only if a genuinely dynamic entry point exists
-after the Step 2 audit.
+**Key difference from `instanceof` chain:** the modification point is centralized -- one
+`DISPATCH.put` entry per capability, in one place, rather than a search through every DSL
+method for every chain that needs updating. There is still one modification when a new
+capability is added; it no longer requires touching existing code in multiple locations.
+Adding a new `ActionCapability` constant will produce an unused-entry warning from static
+analysis tools if a handler is not registered -- a near-compile-time enforcement the old
+chain could not provide.
+
+**Type-safe registration:** the `DISPATCH.put` calls above cast `e` inside the lambda, which
+the compiler cannot verify. To eliminate this unchecked association, route registration
+through a typed helper:
+
+```java
+private static <T extends Element> void register(
+    ActionCapability capability,
+    Class<T> type,
+    BiConsumer<T, String> handler
+) {
+    DISPATCH.put(capability, (e, v) -> handler.accept(type.cast(e), v));
+}
+
+// Registration site is now type-safe:
+register(ActionCapability.SELECTABLE, Selectable.class, (s, v) -> s.selectOption(v).execute(engine));
+register(ActionCapability.TYPEABLE,   Typeable.class,   (t, v) -> t.type(v).execute(engine));
+```
+
+The helper guarantees that `Class<T>` and the `BiConsumer<T, String>` handler remain
+type-consistent with each other -- the compiler links the two via `T`. The association
+between an `ActionCapability` enum constant and its capability interface is not enforced by
+the type system (Java cannot express that relationship generically) and remains a
+registration-time responsibility.
+
+**This registry is the canonical runtime dispatch mechanism for capability-based routing.** `switch` on
+`ActionCapability` and `isInstance` checks outside this map are prohibited in `VoidDSL`
+and should not appear in other classes that could route through the DSL instead.
+
+**Prefer Step 2 wherever feasible.** Use Step 3 only for entry points confirmed dynamic by
+the audit.
 
 ---
 
@@ -126,11 +171,23 @@ For each `instanceof` occurrence in `VoidDSL.java`:
 - [ ] Does the dispatch need to handle `MultiSelectable` before `Selectable` (subtype ordering)?
 - [ ] Is the dispatch reachable from more than one public DSL method?
 
-Fill in this table before starting:
+**For every method where "Can narrow?" is No, add a "Reason if not" entry.** Every remaining
+`Element` parameter must justify its existence -- a blank reason means the audit is incomplete.
 
-| DSL method | Line | Element param type | Can narrow? | Subtype ordering needed? |
-|------------|------|-------------------|-------------|--------------------------|
-| (fill in)  |      |                   |             |                          |
+Pre-filled from the current `VoidDSL.java` audit (verify line numbers before implementing):
+
+| DSL method | Element param type | Can narrow? | Reason if not |
+|---|---|---|---|
+| `selectFromDropdownByContext` | resolved from `String unresolvedEnumName` at runtime | No | Element type not known until runtime resolution |
+| `triggerDropdownByContext` | resolved from `String keySuffix` at runtime | No | Element type not known until runtime resolution |
+| `getSearchedElementByContext` | resolved from `String unresolvedEnumName` at runtime | No | Element type not known until runtime resolution |
+| `clickSearchableElementByContext` | resolved from `String unresolvedEnumName` at runtime | No | Element type not known until runtime resolution |
+| `setCheckboxByContext` | resolved from runtime context | No | Element type not known until runtime resolution |
+| `verifyElementsAreVisible` | cast to bare `Element` via `(Element) resolved` | Investigate | Check whether `ResolvableEnum` cast site can be narrowed instead |
+
+`resolveEnumConstant` uses `instanceof ResolvableEnum` to determine resolution strategy
+rather than to dispatch to a capability-specific engine operation. It is not part of this
+phase unless the audit determines it participates in runtime capability routing.
 
 ---
 
@@ -166,8 +223,9 @@ Run the demo login test end-to-end (exercises `Typeable`, `Clickable`, `ReadOnly
 mvn test -Dtest=DemoLoginTest -q
 ```
 
-Confirm no remaining `instanceof` in `VoidDSL`:
+Confirm no remaining dispatch-style `instanceof` or `switch` in `VoidDSL`:
 ```
 grep -n "instanceof" src/main/java/dsl/VoidDSL.java
+grep -n "switch.*ActionCapability" src/main/java/dsl/VoidDSL.java
 ```
-Expected: zero results, or only marker checks unrelated to capability dispatch.
+Expected: zero results for both, or only non-dispatch marker checks with a comment explaining why.

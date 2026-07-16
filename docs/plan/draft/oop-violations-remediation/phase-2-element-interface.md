@@ -27,39 +27,57 @@ decision that produced the wrong type.
 
 ### Fix
 
-Add three static helper methods to `Element.java`. They are package-private (not `public`) —
-they are implementation detail, not extension API:
+**Important visibility constraint:** Java interface static methods are implicitly `public
+static` and cannot be narrowed. Adding the helpers directly to `Element.java` would expose
+them as framework API forever, even though they are implementation details. To keep them
+package-private, introduce a dedicated utility class:
 
+**New file: `elements/api/ElementSupport.java`** (package-private, same package as `Element`):
 ```java
-static String nameOf(Element e) {
-    return e instanceof Enum<?> en ? en.name() : e.getClass().getSimpleName();
-}
+final class ElementSupport {
+    private ElementSupport() {}
 
-static Class<?> declaringClassOf(Element e) {
-    if (e instanceof Enum<?> en) {
-        Class<?> dc = en.getDeclaringClass();
-        return dc != null ? dc : en.getClass();
+    static String nameOf(Element e) {
+        return e instanceof Enum<?> en ? en.name() : e.getClass().getSimpleName();
     }
-    return e.getClass();
-}
 
-static int ordinalOf(Element e) {
-    return e instanceof Enum<?> en ? en.ordinal() : 0;
+    static Class<?> declaringClassOf(Element e) {
+        if (e instanceof Enum<?> en) {
+            Class<?> dc = en.getDeclaringClass();
+            return dc != null ? dc : en.getClass();
+        }
+        return e.getClass();
+    }
+
+    static int ordinalOf(Element e) {
+        if (e instanceof Enum<?> en) return en.ordinal();
+        throw new UnsupportedOperationException(
+            e.getClass().getSimpleName() + " implements Listable but has no ordinal semantics. Override Listable.getIndex()."
+        );
+    }
 }
 ```
 
-Replace every `((Enum<?>) this).name()` → `Element.nameOf(this)`.
+`ordinalOf` throws rather than returning `0` for non-enum elements because ordinal is a
+semantic value: `0` is indistinguishable from a real first-position index and would silently
+produce wrong list offsets rather than failing visibly. Any non-enum `Listable` implementor
+must override `getIndex()` explicitly.
+
+Replace every `((Enum<?>) this).name()` → `ElementSupport.nameOf(this)`.
 Replace every `((Enum<?>) this).getDeclaringClass()` / `.getEnclosingClass()` →
-`Element.declaringClassOf(this)`.
-Replace every `((Enum<?>) this).ordinal()` → `Element.ordinalOf(this)`.
+`ElementSupport.declaringClassOf(this)`.
+Replace every `((Enum<?>) this).ordinal()` → `ElementSupport.ordinalOf(this)`.
 
 **Why three helpers and not one value-object:** a `EnumInfo` wrapper would need a factory call
 and a field access per use. Three static one-liners are inline and disappear at the call site.
-They are not part of the public API — they exist only to centralise the cast fallback logic.
+`ElementSupport` is not part of the public API -- it exists only to centralise enum-specific
+reflection with the visibility the design actually requires. Its scope is intentionally
+narrow: structural enum facts (`name`, `declaring class`, `ordinal`). It must not accumulate
+presentation helpers, resolver-specific formatting, or any logic that belongs to a call site.
+Utility classes expand by default; the constraint here is deliberate.
 
 **Non-enum behaviour after fix:** `nameOf` returns `getClass().getSimpleName()`,
-`declaringClassOf` returns the class itself, `ordinalOf` returns 0. These are reasonable
-fallbacks — not perfect, but they don't crash. Implementors that need precise control override
+`declaringClassOf` returns the class itself. Implementors that need precise control override
 the default methods that call these helpers.
 
 ---
@@ -107,6 +125,15 @@ The `instanceof` check is gone. If `capabilityFor` is only called in one place, 
 **Delete `ActionCapabilityProvider.java`** — the interface is now empty. Any external code
 doing `element instanceof ActionCapabilityProvider` should migrate to
 `element.capability() != ActionCapability.UNKNOWN`.
+
+**Architectural invariant -- one capability family per element:** `capability()` returns a
+single `ActionCapability`. This is a deliberate constraint: each element enum constant
+represents one interaction kind (click a button, type into a field), and the framework routes
+it to a single action family. An element that is simultaneously `Clickable` and `Typeable`
+is a design error at the element-modelling level, not something the API should accommodate.
+Document this constraint wherever `capability()` is discussed so future contributors do not
+attempt to make one element satisfy multiple capability interfaces and then discover the
+method cannot represent that model.
 
 **Extension test:** `DraggableElement` is a new capability interface.
 ```java
@@ -158,7 +185,7 @@ in P5:
 
 ```java
 private static String labelOf(Element element) {
-    Class<?> declaring = Element.declaringClassOf(element);
+    Class<?> declaring = ElementSupport.declaringClassOf(element);
     Class<?> page = declaring.getEnclosingClass();
     String prefix = page != null ? page.getSimpleName() + " > " + declaring.getSimpleName() + " > " : "";
     return prefix + element.getDisplayText();
@@ -188,7 +215,7 @@ with no compile error.
 **`Listable.java` — change abstract to default:**
 ```java
 default int getIndex() {
-    return Element.ordinalOf(this);   // uses the P5 helper
+    return ElementSupport.ordinalOf(this);   // uses the P5 helper
 }
 ```
 
@@ -199,13 +226,19 @@ be deleted — they are now redundant.
 **Audit:** before deleting any override, verify it does not do arithmetic on the ordinal
 (e.g., `ordinal() + 1` for one-based indexing) — those must be kept.
 
+`Selectable.getIndex()` currently returns a hardcoded `0`, not an ordinal value. This is not
+redundant with the new default and must not be silently deleted. Determine whether `0` is
+intentional (a fixed index for a specific engine API contract) or a placeholder before
+removing or replacing this override.
+
 ---
 
 ## Files changed
 
 | File                                             | Change                                                      |
 |--------------------------------------------------|-------------------------------------------------------------|
-| `elements/api/Element.java`                      | Add 3 static helpers; replace casts; add `capability()` default |
+| `elements/api/ElementSupport.java`               | **NEW** — package-private utility: `nameOf`, `declaringClassOf`, `ordinalOf` |
+| `elements/api/Element.java`                      | Replace casts with `ElementSupport` calls; add `capability()` default |
 | `elements/api/capability/Listable.java`          | `getIndex()` becomes `default`                              |
 | `elements/api/capability/Clickable.java`         | Remove `implements ActionCapabilityProvider`                |
 | `elements/api/capability/Typeable.java`          | Remove `implements ActionCapabilityProvider`                |
@@ -237,6 +270,13 @@ feat(elements): default getIndex() on Listable from ordinal
 
 ## Verification
 
+Before removing `ActionCapabilityProvider`, confirm every implementation site:
+```
+grep -rn "ActionCapabilityProvider" src/main/java
+# review each result -- remove implements clause from each interface found
+```
+
+Then verify deletion is complete:
 ```
 mvn compile -q
 grep -r "ActionCapabilityProvider" src/
