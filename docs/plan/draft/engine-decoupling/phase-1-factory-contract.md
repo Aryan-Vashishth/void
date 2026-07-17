@@ -249,6 +249,7 @@ See: `docs/plan/draft/oop-violations-remediation/phase-4-infrastructure.md` (P8 
 | `core/engine/UIEngineFactory.java` | `create()` signature: `WebDriver` -> `EngineBootstrap`; nested switch dispatches on bootstrap type to reach the correct `SeleniumEngine` constructor; `WebDriver` import removed |
 | `core/engine/EngineBootstrap.java` | New sealed interface with `FromDriver(WebDriver)` and `FromProfile(DriverFactory.Profile)` records; `fromDriver()` deleted in Phase 2 commit |
 | `core/engine/selenium/SeleniumEngine.java` | Add `SeleniumEngine(Profile)` primary constructor; `SeleniumEngine(WebDriver)` marked `@Deprecated(forRemoval=true)` as compatibility constructor; `initialize()` creates driver when `this.driver == null` |
+| `core/runtime/VOID.java` | `VOID.start()` factory call: wrap existing `WebDriver` in `EngineBootstrap.fromDriver(driver)` to match new factory signature |
 
 ---
 

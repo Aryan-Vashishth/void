@@ -5,6 +5,10 @@ Touches: `Interactions.java`
 
 ---
 
+> **Implementation dependency**: This phase assumes Phase 2 has already moved `DriverContext`
+> registration into `SeleniumEngine.initialize()`. Applying Phase 3 before Phase 2 breaks
+> legacy `DriverContext` consumers.
+
 ## Goal
 
 `Interactions` is a frozen legacy class. Its constructor currently registers a `WebDriver` in

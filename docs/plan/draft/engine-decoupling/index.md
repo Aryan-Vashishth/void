@@ -104,7 +104,7 @@ V6 is cosmetic and has no functional dependency on any other phase. It goes last
 
 - `DriverFactory` — still the Selenium driver builder; now called from inside `SeleniumEngine` instead of from `VOID`
 - `DriverContext` — still the Selenium ThreadLocal registry; now written to from inside `SeleniumEngine` only
-- `DriverManager.createDriver()` — still exists for callers who need it directly; deprecated in Phase 2
+- `DriverManager.createDriver()` — still exists for callers who need it directly; deprecation deferred to a future workstream once no internal or external callers remain
 - `UIEngine` interface — no changes to contract
 - `EngineConfig` — no structural changes; Phase 1 notes that it already passes raw `Properties` through
 - `Interactions` — frozen; only the constructor side-effect is removed in Phase 3
@@ -129,8 +129,9 @@ refactor(runtime): replace ExecutionContext with SessionContext in VOID; invert 
 refactor(runtime): VOID.shutdown() delegates DriverContext cleanup to SeleniumEngine
 
 # Phase 3
-fix(interactions): remove unsafe WebDriver cast from Interactions constructor
-chore(interactions): remove SeleniumEngine import from Interactions
+fix(interactions): remove unsafe WebDriver cast from Interactions(UIEngine) constructor
+refactor(bridge): introduce SeleniumLocatorBridge; relocate Selenium By adapter
+refactor(interactions): replace SeleniumEngine.fromBy() call sites with SeleniumLocatorBridge
 
 # Phase 4
 refactor(bootstrap): move Selenium JUL logger suppression to SeleniumEngine.initialize()
