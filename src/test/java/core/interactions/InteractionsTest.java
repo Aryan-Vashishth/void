@@ -63,8 +63,6 @@ public class InteractionsTest {
 
     @AfterMethod(alwaysRun = true)
     public void detachDrivers() {
-        // Constructor calls DriverContext.setPrimaryDriver - clean up so tests
-        // remain order-independent.
         try { DriverContext.removePrimary(); }   catch (Exception ignored) {}
         try { DriverContext.removeSecondary(); } catch (Exception ignored) {}
     }
@@ -99,11 +97,14 @@ public class InteractionsTest {
                 "SeleniumEngine should initialize with a 10 second default timeout");
     }
     @Test
-    public void constructor_registersDriverInDriverContext() {
+    public void constructor_doesNotRegisterDriverInDriverContext() {
+        // After Phase 3: driver registration moved to SeleniumEngine.initialize().
+        // Interactions(UIEngine) no longer touches DriverContext.
         WebDriver fake = newFakeDriver();
         new Interactions(new SeleniumEngine(fake));
-        assertSame(DriverContext.getDriver(), fake,
-                "Interactions constructor must register driver as PRIMARY in DriverContext");
+        assertFalse(DriverContext.hasPrimary(),
+                "Interactions constructor must not register driver in DriverContext; "
+                + "registration is owned by SeleniumEngine.initialize()");
     }
     // ---------------------------------------------------------------------
     // of(ActionHandler...)
