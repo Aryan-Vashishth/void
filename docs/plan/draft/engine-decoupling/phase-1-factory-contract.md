@@ -7,8 +7,8 @@ Touches: `UIEngineFactory.java`, `SeleniumEngine.java`, `DriverManager.java`
 
 ## Goal
 
-`UIEngineFactory.create()` must not accept a `WebDriver`. Each engine implementation creates
-and manages its own native driver internally during `initialize()`. After this phase:
+`UIEngineFactory.create()` must not accept a `WebDriver`. Each engine implementation owns
+creation, lifecycle, and shutdown of its native automation runtime. After this phase:
 - A non-Selenium engine can be registered in the factory switch without ever touching
   `WebDriver`, `DriverFactory`, or `DriverContext`.
 - `SeleniumEngine` is self-contained: given a `DriverFactory.Profile` it produces and
@@ -41,19 +41,43 @@ only one engine type can use.
 
 ### Fix
 
-Replace the `WebDriver driver` parameter with `DriverFactory.Profile profile`.
-`profile` is an enum that describes what kind of Selenium driver to build — it is only
-meaningful to `SeleniumEngine`. Any non-Selenium engine ignores it.
+Replace the `WebDriver driver` parameter with an `EngineBootstrap` abstraction.
+`EngineBootstrap` encapsulates whatever initialization data the factory needs to pass to the
+engine. In Phase 1 it can carry a pre-built driver (compatibility path from `VOID.start()`);
+in Phase 2 it carries only a `DriverFactory.Profile`.
+
+The profile is only consumed by `SeleniumEngine`. Other engines obtain their initialization
+data through their own engine-specific configuration once engine registration becomes
+extensible.
+
+**`EngineBootstrap.java` — new sealed type:**
+```java
+public sealed interface EngineBootstrap
+        permits EngineBootstrap.FromDriver, EngineBootstrap.FromProfile {
+
+    record FromDriver(WebDriver driver) implements EngineBootstrap {}
+    record FromProfile(DriverFactory.Profile profile) implements EngineBootstrap {}
+
+    static EngineBootstrap fromDriver(WebDriver driver) { return new FromDriver(driver); }
+    static EngineBootstrap fromProfile(DriverFactory.Profile profile) { return new FromProfile(profile); }
+}
+```
+
+`FromDriver` is the compatibility path used by `VOID.start()` in Phase 1.
+`FromDriver` and `EngineBootstrap.fromDriver()` are deleted in the Phase 2 commit.
 
 **`UIEngineFactory.java` — new signature:**
 ```java
-public static UIEngine create(Properties config, DriverFactory.Profile profile) {
+public static UIEngine create(Properties config, EngineBootstrap bootstrap) {
     String engineName = resolveEngineName(config);
     info.log("[UIEngineFactory] Creating engine: " + engineName);
 
     UIEngine engine = switch (engineName) {
-        case "selenium"   -> new SeleniumEngine(profile);
-        // case "playwright" -> new PlaywrightEngine();   // Phase 3 of engine roadmap
+        case "selenium" -> switch (bootstrap) {
+            case EngineBootstrap.FromDriver  fd -> new SeleniumEngine(fd.driver());
+            case EngineBootstrap.FromProfile fp -> new SeleniumEngine(fp.profile());
+        };
+        // case "playwright" -> ...   // Phase 3 of engine roadmap
         default -> throw new IllegalStateException(
                 "Unsupported engine: '" + engineName + "'. Supported: selenium");
     };
@@ -73,10 +97,10 @@ The import `org.openqa.selenium.WebDriver` is **removed** from `UIEngineFactory.
 
 ---
 
-## `SeleniumEngine` — dual-constructor for clean and legacy paths
+## `SeleniumEngine` — dual-constructor for primary and compatibility paths
 
 `SeleniumEngine` currently takes a `WebDriver` in its only constructor. After Phase 1 it
-needs two constructors: one for the clean engine-factory path, one for the legacy
+needs two constructors: one for the primary engine-factory path, one for the compatibility
 `Interactions(WebDriver)` bridge that still exists.
 
 **`SeleniumEngine.java` — new primary constructor:**
@@ -88,9 +112,9 @@ SeleniumEngine(DriverFactory.Profile profile) {
 }
 ```
 
-**`SeleniumEngine.java` — deprecated legacy constructor:**
+**`SeleniumEngine.java` — compatibility constructor:**
 ```java
-// Legacy bridge for: Interactions(WebDriver) → SeleniumEngine(WebDriver)
+// Compatibility bridge for: Interactions(WebDriver) -> SeleniumEngine(WebDriver)
 // Kept until the Interactions(WebDriver) deprecated constructor is removed.
 @Deprecated(forRemoval = true)
 public SeleniumEngine(WebDriver driver) {
@@ -138,51 +162,52 @@ is added in Phase 2 (it belongs in shutdown, not initialize).
 `DriverManager.createDriver()` still works. `VOID.start()` still calls it in Phase 1
 because the `VOID` startup sequence is not inverted until Phase 2.
 
-In Phase 1, the call chain is temporarily inconsistent:
+In Phase 1, the call chain would be temporarily inconsistent without a bridge:
 
 ```
 VOID.start(profile)
-  1. DriverManager.createDriver(profile)   → creates WebDriver, registers in DriverContext
-  2. UIEngineFactory.create(config, profile)
-       → SeleniumEngine(profile) → initialize() → tries to build ANOTHER driver
+  1. DriverManager.createDriver(profile)   -> creates WebDriver, registers in DriverContext
+  2. UIEngineFactory.create(config, bootstrap)
+       -> SeleniumEngine(profile) -> initialize() -> tries to build ANOTHER driver
 ```
 
-This would create two browsers. To prevent this: in Phase 1 the `VOID.start()` call
-to `UIEngineFactory.create()` is updated to pass `null` profile or the factory method is
-temporarily overloaded.
+This would create two browsers. The `EngineBootstrap` abstraction prevents this.
 
-**Preferred approach:** update `VOID.start()` to use a temporary adapter overload that
-passes the already-created driver through, and merge the full inversion in Phase 2 as a
-single atomic commit. This keeps Phase 1 compiler-clean without a half-baked startup.
+**`VOID.start()` in Phase 1** wraps the already-created driver in a compatibility bootstrap
+and passes it to the factory. No new factory method is introduced:
 
-**Temporary `UIEngineFactory` overload for Phase 1 only:**
 ```java
-/** @deprecated Internal bridge. Remove when VOID.start() is inverted in Phase 2. */
-@Deprecated
-static UIEngine createWithDriver(Properties config, WebDriver driver) {
-    String engineName = resolveEngineName(config);
-    UIEngine engine = switch (engineName) {
-        case "selenium" -> new SeleniumEngine(driver);  // legacy constructor
-        default -> throw new IllegalStateException("Unsupported: " + engineName);
-    };
-    engine.initialize(new EngineConfig(config));
-    return engine;
-}
+// VOID.start() — Phase 1 (before inversion)
+WebDriver driver = DriverManager.createDriver(profile);
+UIEngine engine = UIEngineFactory.create(
+        config,
+        EngineBootstrap.fromDriver(driver));  // compatibility path
 ```
 
-`VOID.start()` calls `createWithDriver()` in Phase 1 and switches to `create(config, profile)`
-in Phase 2. The `createWithDriver` method is deleted in the Phase 2 commit.
+The factory's `FromDriver` branch reaches `new SeleniumEngine(driver)` (compatibility
+constructor). `initialize()` sees `this.driver != null` and skips driver creation.
 
-This keeps each phase independently compilable with zero double-browser risk.
+**`VOID.start()` in Phase 2** (inversion) stops creating the driver itself:
+
+```java
+// VOID.start() — Phase 2 (after inversion)
+UIEngine engine = UIEngineFactory.create(
+        config,
+        EngineBootstrap.fromProfile(profile));  // primary path
+```
+
+`EngineBootstrap.fromDriver()` and `EngineBootstrap.FromDriver` are deleted in the Phase 2
+commit. The factory signature is unchanged across both phases.
 
 ---
 
 ## Files changed
 
-| File                                          | Change                                                                      |
-|-----------------------------------------------|-----------------------------------------------------------------------------|
-| `core/engine/UIEngineFactory.java`            | `create()` signature: `WebDriver` → `DriverFactory.Profile`; add temporary `createWithDriver()` |
-| `core/engine/selenium/SeleniumEngine.java`    | Add `SeleniumEngine(Profile)` primary constructor; `SeleniumEngine(WebDriver)` → `@Deprecated(forRemoval=true)`; `initialize()` creates driver when `driver == null` |
+| File | Change |
+|---|---|
+| `core/engine/UIEngineFactory.java` | `create()` signature: `WebDriver` -> `EngineBootstrap`; nested switch dispatches on bootstrap type to reach the correct `SeleniumEngine` constructor; `WebDriver` import removed |
+| `core/engine/EngineBootstrap.java` | New sealed interface with `FromDriver(WebDriver)` and `FromProfile(DriverFactory.Profile)` records; `fromDriver()` deleted in Phase 2 commit |
+| `core/engine/selenium/SeleniumEngine.java` | Add `SeleniumEngine(Profile)` primary constructor; `SeleniumEngine(WebDriver)` marked `@Deprecated(forRemoval=true)` as compatibility constructor; `initialize()` creates driver when `this.driver == null` |
 
 ---
 
@@ -199,9 +224,17 @@ refactor(engine): drop WebDriver param from UIEngineFactory.create(), accept Dri
 
 ```
 mvn compile -q
+
 grep -n "import org.openqa.selenium.WebDriver" src/main/java/core/engine/UIEngineFactory.java
-# must return zero results
+# expected: zero results
 
 grep -rn "new SeleniumEngine(" src/main/java/
-# must only appear inside UIEngineFactory (legacy bridge) and Interactions (deprecated path)
+# expected: only inside UIEngineFactory (EngineBootstrap dispatch) and Interactions (compatibility path)
+
+grep -rn "DriverFactory.fromProfile" src/main/java/
+# expected during Phase 1: two creation paths --
+#   SeleniumEngine.initialize() (primary path, reached via EngineBootstrap.FromProfile)
+#   DriverManager.createDriver() (compatibility path, still active in VOID.start())
+# expected after Phase 2: exactly one creation path (SeleniumEngine.initialize() only)
+# use this as a regression check during the migration
 ```
