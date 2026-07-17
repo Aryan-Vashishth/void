@@ -46,6 +46,10 @@ Replace the `WebDriver driver` parameter with an `EngineBootstrap` abstraction.
 engine. In Phase 1 it can carry a pre-built driver (compatibility path from `VOID.start()`);
 in Phase 2 it carries only a `DriverFactory.Profile`.
 
+> **Migration note**: `EngineBootstrap` exists solely to keep Phase 1 and Phase 2
+> independently compilable while avoiding duplicate driver creation. It is intentionally
+> simplified after Phase 2 and is not intended as a permanent cross-engine abstraction.
+
 The profile is only consumed by `SeleniumEngine`. Other engines obtain their initialization
 data through their own engine-specific configuration once engine registration becomes
 extensible.
