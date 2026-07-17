@@ -119,8 +119,11 @@ layer, where it is scoped to deprecated paths and clearly marked for deletion.
 package core.bridge.selenium;
 
 /**
- * @deprecated Selenium compatibility bridge for deprecated By-based APIs in Interactions.
- *             Delete together with the deprecated By/WebElement methods.
+ * Temporary compatibility bridge.
+ * Exists only to support deprecated Selenium-based APIs in {@link Interactions}.
+ * Delete together with those APIs.
+ *
+ * @deprecated Selenium-specific. No new call sites.
  */
 @Deprecated(forRemoval = true)
 public final class SeleniumLocatorBridge {
@@ -218,7 +221,7 @@ These do not affect engine hotswapping and are unchanged in this phase.
 
 ```
 fix(interactions): remove unsafe WebDriver cast from Interactions(UIEngine) constructor
-feat(bridge): introduce SeleniumLocatorBridge; move fromBy out of SeleniumEngine
+refactor(bridge): introduce SeleniumLocatorBridge; relocate Selenium By adapter
 refactor(interactions): replace SeleniumEngine.fromBy() call sites with SeleniumLocatorBridge
 ```
 
