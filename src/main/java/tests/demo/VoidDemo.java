@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 import static core.logging.CustomLogger.*;
 
 /**
- * VOID Framework — Quick Start Demo (TestNG).
+ * VOID — Quick Start Demo (TestNG).
  *
  * <p>Demonstrates the session-façade pattern: all interactions go through
  * the {@code VOID} session object — no direct engine or executor access.</p>
@@ -40,7 +40,7 @@ public class VoidDemo {
         CustomLogger.setTheme(LogTheme.HIGH_CONTRAST);
 
         info.log("==================================================");
-        info.log("|            VOID -- Quick Start Demo            |");
+        info.log("|            VOID -- Quick Start Demo           |");
         info.log("==================================================");
 
         info.log("[SETUP] Starting VOID session...");
@@ -56,12 +56,15 @@ public class VoidDemo {
     public void loginWithValidCredentials() {
         app.navigateTo(TARGET_URL);
 
-        info.log("Executing login flow...");
-        app.run(Flow.of(
+        info.log("Creating login flow...");
+        Flow loginFlow = Flow.of(
                 DemoLoginPage.Credentials.USERNAME.type(VALID_USERNAME),
                 DemoLoginPage.Credentials.PASSWORD.type(VALID_PASSWORD),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
-        ));
+        );
+
+        info.log("Executing login flow...");
+        app.run(loginFlow);
         info.success("Flow executed successfully.");
 
         info.verifying("Verifying redirect to /secure...");
