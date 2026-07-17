@@ -14,6 +14,7 @@ Thank you for considering contributing to VOID! This document outlines the stand
 6. [Pull Requests](#pull-requests)
 7. [Testing](#testing)
 8. [Documentation](#documentation)
+9. [Versioning](#versioning)
 
 ---
 
@@ -173,7 +174,7 @@ chore(deps): bump selenium to 4.38.0
 - [ ] New code has unit tests (aim for >80% coverage on new classes).
 - [ ] Public APIs have Javadoc (see [Documentation](#documentation)).
 - [ ] No compiler warnings introduced.
-- [ ] Changelog updated (if user-facing changes).
+- [ ] `CHANGELOG.md` updated under `## [Unreleased]` for any user-facing change (see [Versioning](#versioning)).
 
 ### PR Description
 
@@ -240,6 +241,84 @@ User-facing guides live in `/docs`. When adding a new feature:
 1. Update the relevant guide (or create a new one).
 2. Add a link in the README documentation table.
 3. Keep code samples up to date.
+
+---
+
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/) and
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+### Version numbers
+
+| Change | Bump | Example |
+|--------|------|---------|
+| Breaking API change (removal, rename, incompatible signature) | Major (`X.0.0`) | `0.2.0` to `1.0.0` |
+| New feature, backwards-compatible | Minor (`0.X.0`) | `0.2.0` to `0.3.0` |
+| Bug fix or internal correction, backwards-compatible | Patch (`0.0.X`) | `0.2.0` to `0.2.1` |
+
+While the project is below `1.0.0`, a minor bump (`0.X.0`) may include breaking changes
+if they are documented in the changelog under `### Removed` or `### Changed`.
+
+### Updating CHANGELOG.md
+
+Every user-facing change must have an entry in `CHANGELOG.md` under `## [Unreleased]`
+before it is merged. Purely internal changes (refactors with no API impact, test-only
+changes, build tooling) do not require a changelog entry.
+
+**Sections -- use only what applies to your change:**
+
+| Section | What belongs here |
+|---------|-------------------|
+| `Added` | New public API, new capabilities, new config options |
+| `Changed` | Modified behaviour in existing features |
+| `Deprecated` | Features marked for removal in a future version |
+| `Removed` | API or behaviour removed in this release |
+| `Fixed` | Bug fixes |
+| `Security` | Vulnerability fixes |
+
+**Entry format:**
+
+```markdown
+## [Unreleased]
+
+### Added
+
+- **FeatureName** -- one-line summary of what was added
+  - Sub-bullet for additional detail if needed
+
+### Changed
+
+- **ClassName.method()** -- what changed and why (link an ADR if a decision was made)
+
+### Removed
+
+- **`OldClass`** -- removed; use `NewClass` instead (see Migration table below)
+```
+
+Keep entries in the same style as the existing changelog: bold the subject, follow with
+a double-hyphen and a short description.
+
+### Cutting a release
+
+1. Replace `## [Unreleased]` with the new version and today's date:
+   ```
+   ## [0.3.0] - 2026-xx-xx
+   ```
+2. Add a new empty `## [Unreleased]` section above it.
+3. Update the comparison links at the bottom of `CHANGELOG.md`:
+   ```
+   [Unreleased]: .../compare/v0.3.0...HEAD
+   [0.3.0]: .../compare/v0.2.0...v0.3.0
+   ```
+4. Tag the release commit: `git tag v0.3.0`.
+
+### What does NOT go in the changelog
+
+- Commits with type `chore`, `test`, `style`, or `refactor` that have no public API
+  impact -- let the commit message carry that information.
+- In-progress work -- entries belong in `[Unreleased]` only when the change is complete
+  and merged. Use the `docs/plan/` directory for pre-implementation planning.
 
 ---
 

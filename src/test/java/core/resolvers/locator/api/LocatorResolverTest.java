@@ -33,6 +33,7 @@ public class LocatorResolverTest {
         assertSame(r.registry(), LocatorSourceRegistry.DEFAULT);
         assertEquals(r.templatePolicy(), LocatorTemplate.Policy.STRICT);
         assertSame(r.byParser(), ByParser.DEFAULT);
+        assertSame(r.locatorContext(), DefaultLocatorContext.INSTANCE);
     }
 
     @Test

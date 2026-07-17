@@ -1,0 +1,22 @@
+{
+  "DemoLoginPage" : {
+    "Credentials" : {
+      "USERNAME" : {
+        "INPUT" : "//input[@id='%s']"
+      },
+      "PASSWORD" : {
+        "INPUT" : "//input[@id='%s']"
+      }
+    },
+    "Button" : {
+      "LOGIN_BUTTON" : {
+        "TRIGGER" : "//button[@type='submit']"
+      }
+    },
+    "Labels" : {
+      "SUCCESS_MESSAGE" : {
+        "TEXT" : "//div[@id='flash']"
+      }
+    }
+  }
+}

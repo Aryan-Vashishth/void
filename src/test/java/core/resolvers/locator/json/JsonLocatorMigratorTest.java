@@ -2,6 +2,7 @@ package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import core.elements.DemoPageElements;
+import core.resolvers.locator.api.ConventionalLocatorPath;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.annotations.AfterClass;
@@ -11,6 +12,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -137,11 +139,12 @@ public class JsonLocatorMigratorTest {
                 "Expected 'PASSWORD' key in Login node; found: " + loginNode.fieldNames());
     }
 
-    @Test(description = "Login.USERNAME value is the hardcoded XPath template string")
+    @Test(description = "Login.USERNAME nested INPUT role contains the hardcoded XPath template")
     public void buildResolvedJson_loginEnum_usernameValue_isHardcodedXpath() throws IOException {
         JsonNode loginNode = getLoginNode();
-        String val = loginNode.path("USERNAME").asText();
-        assertFalse(val.isBlank(), "Expected non-blank USERNAME value");
+        // Phase 19 Part B: scanner always emits { "CONSTANT": { "ROLE": "value" } }
+        String val = loginNode.path("USERNAME").path("INPUT").asText();
+        assertFalse(val.isBlank(), "Expected non-blank USERNAME.INPUT value");
         assertTrue(val.contains("input"),
                 "Expected the XPath to reference an input element; got: " + val);
     }
@@ -202,14 +205,15 @@ public class JsonLocatorMigratorTest {
                 "Expected 'SUBMIT' in LoginButton node; found: " + loginButtonNode.fieldNames());
     }
 
-    @Test(description = "LoginButton.SUBMIT contains XPath for a button element")
+    @Test(description = "LoginButton.SUBMIT nested TRIGGER role contains XPath for a button element")
     public void buildResolvedJson_loginButton_submitValue_containsButton() throws IOException {
         JsonNode root = parseJson(DemoPageElements.class);
         JsonNode loginButtonNode = findNodeAnywhere(root, "LoginButton");
         assertNotNull(loginButtonNode, "LoginButton node not found");
-        String val = loginButtonNode.path("SUBMIT").asText();
+        // Phase 19 Part B: scanner always emits { "CONSTANT": { "ROLE": "value" } }
+        String val = loginButtonNode.path("SUBMIT").path("TRIGGER").asText();
         assertTrue(val.contains("button"),
-                "Expected SUBMIT to reference a button; got: " + val);
+                "Expected SUBMIT.TRIGGER to reference a button; got: " + val);
     }
 
     // =====================================================================
@@ -296,6 +300,41 @@ public class JsonLocatorMigratorTest {
         // We only verify the path; don't actually write to src/main/resources in a unit test
         assertEquals(expectedPath.getFileName().toString(), expectedSuffix,
                 "Expected file name to follow the convention <classname-lowercase>-locators.json");
+    }
+
+    // =====================================================================
+    // Phase 7 — writeResolvedJsonConventional()
+    // =====================================================================
+
+    @Test(description = "writeResolvedJsonConventional target path follows pkg/ClassName/locators.json")
+    public void writeResolvedJsonConventional_pathFollowsConvention() {
+        String cpRelPath = ConventionalLocatorPath.forClass(DemoPageElements.class);
+        Path expectedOutput = Paths.get("src/main/resources").resolve(cpRelPath);
+        String normalised = expectedOutput.toString().replace('\\', '/');
+        assertTrue(normalised.endsWith("DemoPageElements/locators.json"),
+                "Expected path to end with 'DemoPageElements/locators.json'; got: " + normalised);
+    }
+
+    @Test(description = "writeResolvedJsonTo with conventional path in tempDir produces valid JSON")
+    public void writeResolvedJsonTo_conventionalPath_producesValidJson() throws IOException {
+        String cpRelPath = ConventionalLocatorPath.forClass(DemoPageElements.class);
+        Path outFile = tempDir.resolve(cpRelPath);
+        Path returned = JsonLocatorMigrator.writeResolvedJsonTo(DemoPageElements.class, outFile);
+        assertTrue(Files.exists(returned), "Expected output file to be created");
+        JsonNode parsed = MAPPER.readTree(Files.readString(returned));
+        assertNotNull(parsed);
+        assertTrue(parsed.has("DemoPageElements"),
+                "Written JSON should contain 'DemoPageElements' top-level key");
+    }
+
+    @Test(description = "writeResolvedJsonTo with conventional path places file inside pkg/ClassName/ dir")
+    public void writeResolvedJsonTo_conventionalPath_fileIsInsideClassNameDir() throws IOException {
+        String cpRelPath = ConventionalLocatorPath.forClass(DemoPageElements.class);
+        Path outFile = tempDir.resolve(cpRelPath);
+        Path returned = JsonLocatorMigrator.writeResolvedJsonTo(DemoPageElements.class, outFile);
+        String normalised = returned.toString().replace('\\', '/');
+        assertTrue(normalised.contains("DemoPageElements/locators.json"),
+                "Conventional path must contain 'ClassName/locators.json'; got: " + normalised);
     }
 
     // =====================================================================

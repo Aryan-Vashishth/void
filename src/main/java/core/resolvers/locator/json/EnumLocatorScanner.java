@@ -1,6 +1,7 @@
 package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import core.resolvers.locator.api.ConventionalLocatorPath;
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -13,14 +14,8 @@ import static core.logging.CustomLogger.warn;
 /**
  * Scans an enum class and emits one JSON entry per enum constant. For each constant
  * that implements {@link Element}, the constant's {@code name()} becomes the JSON key
- * and its resolved locator(s) become the value.
- *
- * <ul>
- *   <li><b>Single-role</b> element (e.g. {@code ReadOnlyElement}, {@code Clickable}):
- *       emitted as {@code "CONSTANT_NAME" : "resolvedLocator"}.</li>
- *   <li><b>Multi-role</b> element (e.g. {@code Dropdown}):
- *       emitted as {@code "CONSTANT_NAME" : { "TRIGGER" : "…", "LIST" : "…" }}.</li>
- * </ul>
+ * and its resolved locator(s) become the value, always in nested role-object form:
+ * {@code "CONSTANT_NAME" : { "ROLE" : "resolvedLocator" }}.
  *
  * <p>Locator values are resolved against the external {@code .properties} bundle
  * referenced by the element (if any). Class-tree recursion lives in
@@ -46,7 +41,7 @@ public final class EnumLocatorScanner {
             return 0;
         }
 
-        Properties props = loadPropsFor(constants);
+        Properties props = loadPropsFor(constants, enumClass);
         if (props != null) {
             debug.log("[enum] props name=" + enumClass.getSimpleName() + " keys=" + props.size());
         }
@@ -59,25 +54,16 @@ public final class EnumLocatorScanner {
 
             if (roles.isEmpty()) continue;
 
-            if (roles.size() == 1) {
-                // Single-role: emit as simple string value
-                String rawVal = roles.values().iterator().next();
+            // Always emit as nested role object { ROLE_NAME: resolvedValue } — uniform for
+            // single- and multi-role elements. Dot-path lookup in JsonNodeLookup handles both.
+            ObjectNode rolesNode = into.putObject(constantName);
+            for (Map.Entry<ElementRole, String> entry : roles.entrySet()) {
+                String rawVal = entry.getValue();
                 if (rawVal == null || rawVal.isBlank()) continue;
                 String resolvedVal = resolve(props, rawVal);
-                into.put(constantName, resolvedVal);
+                rolesNode.put(entry.getKey().name(), resolvedVal);
                 added++;
                 if (!resolvedVal.equals(rawVal)) resolved++; else raw++;
-            } else {
-                // Multi-role: emit as nested object { ROLE_NAME: resolvedValue }
-                ObjectNode rolesNode = into.putObject(constantName);
-                for (Map.Entry<ElementRole, String> entry : roles.entrySet()) {
-                    String rawVal = entry.getValue();
-                    if (rawVal == null || rawVal.isBlank()) continue;
-                    String resolvedVal = resolve(props, rawVal);
-                    rolesNode.put(entry.getKey().name(), resolvedVal);
-                    added++;
-                    if (!resolvedVal.equals(rawVal)) resolved++; else raw++;
-                }
             }
         }
         debug.log("[enum] name=" + enumClass.getSimpleName()
@@ -95,13 +81,31 @@ public final class EnumLocatorScanner {
         return (resolved != null && !resolved.isBlank()) ? resolved.trim() : rawVal;
     }
 
-    /** Find first {@link Element} constant with a non-blank external file name and load its props. */
-    private Properties loadPropsFor(Object[] constants) {
+    /**
+     * Load the properties bundle for the enum's enclosing page class.
+     *
+     * <p>Priority:</p>
+     * <ol>
+     *   <li>Phase 5 conventional path: {@code pkg/ClassName/locators.properties}</li>
+     *   <li>Explicit {@code getExternalFileName()} — only honoured when it ends with {@code .properties}</li>
+     * </ol>
+     */
+    private Properties loadPropsFor(Object[] constants, Class<?> enumClass) {
+        // Phase 5: probe conventional properties path for the enclosing page class
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        if (pageClass == null) pageClass = enumClass;
+        String conventionalPath = ConventionalLocatorPath.forClassProperties(pageClass);
+        Properties fromConventional = propertiesIndex.get(conventionalPath);
+        if (fromConventional != null && !fromConventional.isEmpty()) return fromConventional;
+
+        // Fallback: honour explicit getExternalFileName() only when it names a .properties file
         for (Object c : constants) {
             if (c instanceof Element e) {
                 try {
                     String pf = e.getExternalFileName();
-                    if (pf != null && !pf.isBlank()) return propertiesIndex.get(pf);
+                    if (pf != null && !pf.isBlank() && pf.endsWith(".properties")) {
+                        return propertiesIndex.get(pf);
+                    }
                 } catch (Throwable ignored) { /* tolerate misbehaving constants */ }
             }
         }

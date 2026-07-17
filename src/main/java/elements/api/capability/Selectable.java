@@ -30,9 +30,6 @@ public interface Selectable extends Clickable, Listable {
     String getListLocator();
 
     @Override
-    default String getPrimaryLocator() { return getTriggerLocator(); }
-
-    @Override
     default String getSecondaryLocator() { return getListLocator(); }
 
     @Override

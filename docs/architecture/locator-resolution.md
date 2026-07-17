@@ -279,9 +279,77 @@ Map<ElementRole, String> roles = element.getAllLocatorRoles();
 
 ---
 
+## Conventional Repository Path
+
+When `getExternalFileName()` returns `null` (the default for all minimal element enums), VOID derives the locator file path from the element's declaring page class:
+
+```
+FQCN: tests.demo.pages.DemoLoginPage
+→ Classpath path: tests/demo/pages/DemoLoginPage/locators.json
+```
+
+The file is looked up on the classpath under `src/main/resources/`. No configuration needed — the path is deterministic and always unique per page class.
+
+### Qualified Key Format
+
+Locator keys in the conventional JSON use the fully-qualified format `PageClass.EnumClass.CONSTANT.ROLE`, mirroring the Java navigation path:
+
+```json
+{
+  "DemoLoginPage": {
+    "Credentials": {
+      "USERNAME_INPUT": { "INPUT":   "//input[@id='username']" },
+      "PASSWORD_INPUT": { "INPUT":   "//input[@id='password']" }
+    },
+    "Button": {
+      "LOGIN_BUTTON":   { "TRIGGER": "//button[@type='submit']" }
+    },
+    "Labels": {
+      "SUCCESS_MESSAGE": { "TEXT":   "//div[@id='flash']" }
+    }
+  }
+}
+```
+
+The role key (`TRIGGER`, `INPUT`, `TEXT`, etc.) maps to `ElementRole` and is filled in by the `--sync` generator from the element's capability interface.
+
+### Generate with `--sync`
+
+```bash
+# Creates locators.properties template — fill in XPath values
+mvn process-resources -q && mvn exec:java \
+  -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+
+# Re-run after filling values — writes locators.json
+mvn process-resources -q && mvn exec:java \
+  -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+```
+
+In Claude Code: `/sync-locators tests.demo.pages.DemoLoginPage`.
+
+Add `--prune` to remove keys for constants that no longer exist in the enum.
+
+### Opting out of the convention
+
+Override `getExternalFileName()` on the enum to point to a named file:
+
+```java
+enum Credentials implements Typeable {
+    USERNAME_INPUT, PASSWORD_INPUT;
+
+    @Override public String getExternalFileName() { return "shared-credentials.json"; }
+}
+```
+
+Named files are resolved from `locators/json/` (or `locators/properties/`). Both conventional and named-file elements can coexist in the same page interface.
+
+---
+
 ## Locator File Formats
 
-### Properties Format
+### Properties Format (named files only)
 
 ```properties
 # src/main/resources/locators/properties/login-page-elements.properties
@@ -452,22 +520,40 @@ The engine recursively resolves parent→child at execution time:
 
 ---
 
-## Migration: Properties → JSON
+## Migration: Properties → JSON / Sync
 
-VOID includes a built-in migration tool to convert `.properties` locator files to the recommended JSON format.
+VOID includes a built-in CLI for generating and syncing locator files.
 
 ### CLI
 
 ```bash
-# Preview: print resolved JSON to stdout
-java core.resolvers.locator.json.JsonMigratorCli --print elements.LoginPageElements
+# Sync: generate locators.properties template + write locators.json (conventional path)
+mvn process-resources -q && mvn exec:java \
+  -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+
+# Sync with orphan key removal
+mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--sync tests.demo.pages.DemoLoginPage --prune"
+
+# Preview: print resolved JSON to stdout (no files written)
+mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--print elements.LoginPageElements"
 
 # Write to default directory (src/main/resources/locators/json/)
-java core.resolvers.locator.json.JsonMigratorCli --write elements.LoginPageElements
+mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--write elements.LoginPageElements"
+
+# Write to conventional path
+mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--write-conventional tests.demo.pages.DemoLoginPage"
 
 # Write to a specific file
-java core.resolvers.locator.json.JsonMigratorCli --write elements.LoginPageElements path/to/output.json
+mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--write elements.LoginPageElements path/to/output.json"
 ```
+
+> Always prefix with `mvn process-resources -q` when using `--sync` on a newly created page class, so the classpath reflects the latest `.properties` file.
 
 ### Programmatic
 
@@ -513,12 +599,19 @@ mvn test -Dlocator.json.base.path=custom/locators/json/
 
 ### File Naming Convention
 
+**Conventional path** (default — `getExternalFileName()` returns `null`):
+
+| Page Class FQCN | Conventional Path |
+|-----------------|------------------|
+| `tests.demo.pages.DemoLoginPage` | `tests/demo/pages/DemoLoginPage/locators.json` |
+| `tests.app.pages.ManageUsersPage` | `tests/app/pages/ManageUsersPage/locators.json` |
+
+**Named files** (opt-in via `getExternalFileName()`):
+
 | Element Interface                 | Properties File                          | JSON File                            |
 |-----------------------------------|------------------------------------------|--------------------------------------|
-| `LoginPageElements`               | `login-page-elements.properties`         | `login-page-elements.json`           |
-| `ManageUsersElements`             | `manage-users-elements.properties`       | `manage-users-elements.json`         |
-
-The file name is returned by each element's `getExternalFileName()` method.
+| `LoginPageElements`               | `locators/properties/login-page-elements.properties` | `locators/json/login-page-elements.json` |
+| `ManageUsersElements`             | `locators/properties/manage-users-elements.properties` | `locators/json/manage-users-elements.json` |
 
 ---
 

@@ -26,16 +26,13 @@ import elements.meta.ElementRole;
  */
 public interface Clickable extends Element, ActionCapabilityProvider {
 
-    /** @return property key for the clickable element's locator template. */
-    String getTriggerLocator();
-
-    @Override
-    default String getPrimaryLocator() { return getTriggerLocator(); }
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TRIGGER}. */
+    default String getTriggerLocator() { return locatorKeyForRole(ElementRole.TRIGGER); }
 
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getTriggerLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

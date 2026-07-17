@@ -20,20 +20,18 @@ import elements.meta.ElementRole;
  * </pre>
  *
  * <h3>Action emission</h3>
- * <p>Emits deferred {@link Action} objects for type, clear, append, and typeAndPress.
+ * <p>Emits deferred {@link core.actions.Action} objects for type, clear, append, and typeAndPress.
  * Contains NO execution logic. Elements emit Action (intent), engine executes.</p>
  */
 public interface Typeable extends Element, ActionCapabilityProvider {
 
-    String getInputLocator();
-
-    @Override
-    default String getPrimaryLocator() { return getInputLocator(); }
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.INPUT}. */
+    default String getInputLocator() { return locatorKeyForRole(ElementRole.INPUT); }
 
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getInputLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

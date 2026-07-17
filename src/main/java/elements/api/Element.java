@@ -25,18 +25,56 @@ import javax.annotation.Nullable;
  * </p>
  */
 public interface Element {
-    /** @return properties file name containing locator key/value pairs, or null if none. */
+    /**
+     * Returns the conventional classpath path of the external locator resource for this element,
+     * or {@code null} if the locator is hardcoded.
+     *
+     * <p>Default: probes {@code PageClass/locators.json} then {@code PageClass/locators.properties}
+     * under the FQCN-derived directory. Returns the first that exists on the classpath, or the
+     * {@code .json} path as the preferred target when neither exists yet.
+     * Override to point to a different file.</p>
+     */
     @Nullable
-    String getExternalFileName();
+    default String getExternalFileName() {
+        Enum<?> e = (Enum<?>) this;
+        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        Class<?> target = pageClass != null ? pageClass : enumClass;
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        String dir = target.getName().replace('.', '/') + "/";
+        for (String file : new String[]{"locators.json", "locators.properties"}) {
+            if (cl.getResource(dir + file) != null) return dir + file;
+        }
+        return dir + "locators.json";
+    }
 
-    /** @return primary locator key (e.g. for By.xpath lookup). Must not be blank for actionable elements. */
-    String getPrimaryLocator();
+    /**
+     * Returns the namespaced locator key for this element.
+     * <p>For capability elements, delegates to the first role returned by {@link #getAllLocatorRoles()},
+     * which each capability interface populates independently. Falls back to the enum-name–derived key
+     * {@code PageName.GroupName.CONSTANT_NAME} for plain elements with no capability roles.</p>
+     * <p>{@link elements.api.LocatorFamily} and its subtypes override this directly to return
+     * the shared family key (no constant suffix), so they are unaffected by this delegation.</p>
+     */
+    default String getPrimaryLocator() {
+        java.util.Map<ElementRole, String> roles = getAllLocatorRoles();
+        if (!roles.isEmpty()) return roles.values().iterator().next();
+        Enum<?> e = (Enum<?>) this;
+        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        return pageClass != null
+            ? pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + e.name()
+            : enumClass.getSimpleName() + "." + e.name();
+    }
 
     /** @return secondary fallback locator key, or null if not applicable. */
     default String getSecondaryLocator(){ return null; }
 
+    /** Shared empty-args constant — signals that this element requires no locator arguments. */
+    Object[] NO_ARGS = new Object[0];
+
     /** @return dynamic arguments used to format locator templates containing %s tokens. */
-    Object[] getArgs();
+    default Object[] getArgs() { return NO_ARGS; }
 
     /**
      * Returns {@code overrides} when it is non-null and non-empty; otherwise returns {@link #getArgs()}.
@@ -47,23 +85,66 @@ public interface Element {
         return (overrides != null && overrides.length > 0) ? overrides : getArgs();
     }
 
-    /** @return human friendly label for logs; default uses first arg or empty string. */
+    /**
+     * Returns a human-readable label derived from the enum constant name.
+     * <p>Transformation: {@code SAVE_AS_DRAFT} → {@code Save As Draft}.
+     * Tokens are split on underscores; each token is capitalised with the rest lowercased.
+     * Capability interfaces override this to incorporate dynamic args when present.</p>
+     */
     default String getDisplayText() {
-        Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : "";
+        String[] tokens = ((Enum<?>) this).name().split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String token : tokens) {
+            if (!sb.isEmpty()) sb.append(' ');
+            sb.append(Character.toUpperCase(token.charAt(0)));
+            if (token.length() > 1) sb.append(token.substring(1).toLowerCase());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Returns the locator key for a given role on this element.
+     *
+     * <p>Default: delegates to {@link #qualifiedLocatorKey} — per-constant format
+     * {@code PageName.EnumName.CONSTANT.ROLE}.
+     * {@link LocatorFamily} overrides this to return the shared family key instead,
+     * so all capability defaults automatically route through the family template
+     * without any per-enum boilerplate.</p>
+     */
+    default String locatorKeyForRole(ElementRole role) {
+        return qualifiedLocatorKey(this, role);
+    }
+
+    /**
+     * Returns the single shared template key for this element if it uses the
+     * family-locator pattern, or {@code null} if per-constant keys should be generated.
+     *
+     * <p>The sync tool calls this to decide whether to emit one family key
+     * ({@link LocatorFamily} returns non-null) or one key per constant (default null).
+     * New strategies opt in by overriding this method — the generator never changes.</p>
+     */
+    default String templateFamilyKey() { return null; }
+
+    static String qualifiedLocatorKey(Element element, ElementRole role) {
+        Enum<?> e = (Enum<?>) element;
+        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        String prefix = (pageClass != null)
+            ? pageClass.getSimpleName() + "." + enumClass.getSimpleName()
+            : enumClass.getSimpleName();
+        return prefix + "." + e.name() + "." + role.name();
     }
 
     /**
      * Builds an ordered map of {@link ElementRole} to locator key strings.
      * Only non-blank locators are included; order reflects fallback priority.
+     * <p>The base implementation returns an empty map. Capability interfaces override this
+     * independently (without calling {@link #getPrimaryLocator()}) to populate their specific
+     * roles (INPUT, TRIGGER, TEXT, etc.), avoiding the circular dependency that would result
+     * from delegating here to {@code getPrimaryLocator()} while that method delegates back.</p>
      */
     default java.util.Map<ElementRole,String> getAllLocatorRoles(){
-        java.util.Map<ElementRole,String> roles = new java.util.LinkedHashMap<>();
-        String primary = getPrimaryLocator();
-        if(primary!=null && !primary.isBlank()) roles.put(ElementRole.PRIMARY, primary);
-        String secondary = getSecondaryLocator();
-        if(secondary!=null && !secondary.isBlank()) roles.put(ElementRole.SECONDARY, secondary);
-        return roles;
+        return java.util.Collections.emptyMap();
     }
 
 }

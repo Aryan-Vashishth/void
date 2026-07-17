@@ -1,5 +1,99 @@
 # Changelog
 
+All notable changes to this project are documented here.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versions follow [Semantic Versioning](https://semver.org/).
+
+---
+
+## [Unreleased]
+
+---
+
+## [0.3.0] - 2026-07-17
+
+### Added
+
+- **Element API Simplification & Boilerplate Reduction** (Phases 1-19 complete)
+
+  **Boilerplate elimination**
+  - `Element.getPrimaryLocator()` defaults to `PageName.EnumName.CONSTANT_NAME.ROLE` derived
+    from the Java type hierarchy -- no constructor string argument needed for locator keys
+  - `Element.getArgs()` defaults to `NO_ARGS` -- eliminates the universal `return new Object[0]`
+    override from every static element
+  - `Element.getDisplayText()` defaults to a word-transform of the enum constant name
+    (`LOGIN_BUTTON` → `"Login Button"`) -- no display text override needed for the common case
+  - Static elements (no runtime args, no custom display text) now require only the bare enum
+    declaration -- no constructor, no field, no overrides
+
+  **Locator resolution architecture**
+  - Deterministic repository convention -- VOID derives each page's repository path from its
+    fully qualified type: `tests.demo.pages.DemoLoginPage` →
+    `src/main/resources/tests/demo/pages/DemoLoginPage/locators.json`; no path constant,
+    no annotation, no `getExternalFileName()` override in the common case
+  - `LocatorContext` -- new interface abstracting repository discovery; default implementation
+    (`DefaultLocatorContext.INSTANCE`) applies the convention; injectable via builder for
+    custom project layouts
+  - Repository cache -- `ConcurrentHashMap<Class<?>, LocatorRepository>` caches the resolved
+    repository per page type; constant-time element lookups after first resolution
+  - Three-step locator resolution order: (1) `getExternalFileName()` override,
+    (2) deterministic convention, (3) hardcoded fallback
+  - Mixed strategies -- pages may combine convention-resolved and hardcoded elements freely
+    within the same interface
+
+  **Developer tooling**
+  - Properties template generator (`JsonMigratorCli --sync <ClassName>`) -- generates a
+    pre-populated `locators.properties` with all keys derived from enum declarations;
+    merge-with-preserve: adds new keys, retains existing values, warns on orphaned keys;
+    `--prune` flag for explicit orphan removal
+  - Runtime Repository Generation -- existing JSON Migration CLI repositioned as the named
+    pipeline step that converts a filled `locators.properties` into `locators.json`
+
+  **Locator families**
+  - `LocatorFamily` -- marker interface for enums whose constants share one locator template;
+    VOID derives the runtime argument from the constant name via the same word-transform as
+    `getDisplayText()`
+  - `AdvancedLocatorFamily` -- extends `LocatorFamily`; per-constant constructor overrides the
+    derived label for values that cannot be derived (acronyms, symbols, domain-specific text);
+    constants without a constructor continue to use automatic derivation
+  - `SwitchLocatorFamily` -- exhaustive-switch alternative for a centralised semantic mapping;
+    the compiler reports missing branches when a new constant is added
+  - `getExternalFileName()` preserved as an advanced override for shared repositories, generated
+    repositories, or custom project layouts; takes precedence over the convention when non-null
+
+### Changed
+
+- **`Element.EMPTY_ARGS`** renamed to `Element.NO_ARGS` -- name now communicates intent rather
+  than state
+- **Locator key format** -- capability locator method defaults now produce fully-qualified keys
+  in `PageName.EnumName.CONSTANT.ROLE` format using `ElementRole.name()` as the role token
+  (e.g. `DemoLoginPage.Credentials.USERNAME_INPUT.INPUT`); existing `.properties` files must
+  be regenerated via `JsonMigratorCli --sync`
+- **Capability interfaces** -- forwarding implementations that delegated to `Element` without
+  adding behavior removed; interfaces now contain only capability-specific declarations and
+  action emission
+
+### Migration
+
+| Old | New |
+|-----|-----|
+| `Element.EMPTY_ARGS` | `Element.NO_ARGS` |
+| `USERNAME_INPUT("USERNAME_INPUT")` constructor | `USERNAME_INPUT` bare constant |
+| `return new Object[0]` in `getArgs()` | delete the override |
+| `String LOCATOR_FILE = "..."` constant | delete; convention resolves path automatically |
+| `getExternalFileName() { return LOCATOR_FILE; }` | delete; only override for non-standard layouts |
+| Bare `CONSTANT.ROLE` key in `.properties` | `PageName.EnumName.CONSTANT.ROLE` -- run `JsonMigratorCli --sync <PageClass>` to regenerate |
+
+### Planned
+
+- OOP violations remediation Phases 1-4 (see `docs/plan/draft/oop-violations-remediation/`)
+  - Phase 1: remove `instanceof HookChainAction` from `Action` defaults; promote label methods
+  - Phase 2: replace `(Enum<?>) this` casts in `Element`; move `capability()` to `Element`; default `Listable.getIndex()`
+  - Phase 3: replace `instanceof` dispatch chains in `VoidDSL` with typed overloads and `EnumMap` dispatch
+  - Phase 4: `UIEngineFactory` registry map; `LocatorRoles` dedup helper; `Via` capability-helper reduction
+
+---
+
 ## [0.2.0] — 2026-07-12
 
 ### Changed
@@ -175,7 +269,7 @@ The following are deprecated since **2.1** and scheduled for removal in **3.0**:
 
 ---
 
-## 2.0-SNAPSHOT (chore/remove-deprecated-apis)
+## [0.1.0]
 
 ### Removed (binary-breaking)
 
@@ -231,3 +325,10 @@ After bumping to `2.0-SNAPSHOT`:
 | `DriverFactory.createEmptyTemplate()`                            | `DriverFactory.createPropertiesTemplate(Profile.DEFAULT, true, true, false, false)`       |
 | `JsonLocatorMigrator.main(args)`                                 | `JsonMigratorCli.main(args)`                                                              |
 | `ThemeColors.theme()...build()`                                  | `ThemeColors.builder()...build()`                                                         |
+
+---
+
+[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Aryan-Vashishth/void-framework/releases/tag/v0.1.0

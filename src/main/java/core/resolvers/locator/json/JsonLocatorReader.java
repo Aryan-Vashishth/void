@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import core.resolvers.locator.api.LocatorPaths;
 
 import java.io.InputStream;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * V1 JSON reader shim used by the locator resolvers.
@@ -16,6 +18,8 @@ import java.io.InputStream;
  */
 public final class JsonLocatorReader {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ConcurrentHashMap<String, Optional<JsonNode>> NODE_CACHE =
+            new ConcurrentHashMap<>();
 
     private JsonLocatorReader() {}
 
@@ -31,11 +35,13 @@ public final class JsonLocatorReader {
     }
 
     private static JsonNode load(String cp) {
-        try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(cp)) {
-            if (in == null) return null;
-            return MAPPER.readTree(in);
-        } catch (Exception e) {
-            return null;
-        }
+        return NODE_CACHE.computeIfAbsent(cp, key -> {
+            try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(key)) {
+                if (in == null) return Optional.empty();
+                return Optional.of(MAPPER.readTree(in));
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        }).orElse(null);
     }
 }

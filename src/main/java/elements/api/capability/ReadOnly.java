@@ -21,15 +21,13 @@ import elements.meta.ElementRole;
  */
 public interface ReadOnly extends Element, ActionCapabilityProvider {
 
-    String getTextLocator();
-
-    @Override
-    default String getPrimaryLocator() { return getTextLocator(); }
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TEXT}. */
+    default String getTextLocator() { return locatorKeyForRole(ElementRole.TEXT); }
 
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getTextLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

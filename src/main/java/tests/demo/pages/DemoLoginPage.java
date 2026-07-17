@@ -1,5 +1,6 @@
 package tests.demo.pages;
 
+import elements.api.LocatorFamily;
 import elements.api.capability.Clickable;
 import elements.api.capability.ReadOnly;
 import elements.api.capability.Typeable;
@@ -10,45 +11,24 @@ import elements.api.capability.Typeable;
  */
 public interface DemoLoginPage {
 
-    /** Shared JSON locator file for all enums in this interface. */
-    String LOCATOR_FILE = "demo-login-elements.json";
+    // --- Text fields ---
+    enum Credentials implements Typeable, LocatorFamily {
+        USERNAME,
+        PASSWORD;
 
-    // --- Text fields use Typeable (role: INPUT) ---
-    enum Credentials implements Typeable {
-        USERNAME_INPUT("USERNAME_INPUT"),
-        PASSWORD_INPUT("PASSWORD_INPUT");
-
-        private final String key;
-        Credentials(String k) { this.key = k; }
-
-        @Override public String getInputLocator()     { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
+        @Override
+        public Object[] getArgs() {
+            return new Object[]{name().toLowerCase()};
+        }
     }
 
-    // --- Buttons use Clickable (role: TRIGGER) ---
+    // --- Buttons ---
     enum Button implements Clickable {
-        LOGIN_BUTTON("LOGIN_BUTTON", "Login");
-
-        private final String key;
-        private final String label;
-        Button(String k, String l) { this.key = k; this.label = l; }
-
-        @Override public String getTriggerLocator()   { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[]{label}; }
+        LOGIN_BUTTON;
     }
 
-    // --- Labels use ReadOnly (role: TEXT) ---
+    // --- Labels ---
     enum Labels implements ReadOnly {
-        SUCCESS_MESSAGE("SUCCESS_MESSAGE");
-
-        private final String key;
-        Labels(String k) { this.key = k; }
-
-        @Override public String getTextLocator()      { return key; }
-        @Override public String getExternalFileName() { return LOCATOR_FILE; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
+        SUCCESS_MESSAGE;
     }
 }
-

@@ -20,14 +20,15 @@ import elements.meta.ElementRole;
  */
 public interface Listable extends Element, ActionCapabilityProvider {
 
-    String getListLocator();
+    /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.LIST}. */
+    default String getListLocator() { return locatorKeyForRole(ElementRole.LIST); }
 
     int getIndex();
 
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : getListLocator();
+        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
     }
 
     @Override

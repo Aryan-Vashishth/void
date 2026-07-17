@@ -1,0 +1,11 @@
+{
+  "ConventionalTestPage": {
+    "Buttons": {
+      "SUBMIT":   { "TRIGGER": "//button[@id='submit']" },
+      "CANCEL":   { "TRIGGER": "//button[@id='cancel']" }
+    },
+    "Labels": {
+      "STATUS_MESSAGE": { "TEXT": "//div[@class='status']" }
+    }
+  }
+}

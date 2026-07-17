@@ -37,6 +37,9 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - [012 - ElementActions Factory Scope](../decisions/accepted/012-elementactions-factory-scope.md)
 - [013 - Architectural Layering Principle](../decisions/accepted/013-architectural-layering-principle.md)
 - [014 - Concrete Actions over Anonymous Lambdas](../decisions/accepted/014-concrete-actions-over-lambdas.md)
+- [015 - Capability Self-Description via ActionCapabilityProvider](../decisions/accepted/015-capability-self-description.md)
+- [016 - capability() Ownership Migration](../decisions/accepted/016-capability-ownership-migration.md)
+- [017 - ElementSupport and LocatorRoles Utility Scope](../decisions/accepted/017-element-support-locator-roles.md)
 
 ---
 
@@ -199,6 +202,7 @@ Locators live under `src/main/resources/locators/` in two formats:
 ## 📂 Project Structure
 
 > For detailed documentation on each `core/` sub-package, see [Core Package Architecture](core-packages.md).
+> For the element and capability layer, see [Element Layer Architecture](elements.md).
 
 ```
 void-framework/

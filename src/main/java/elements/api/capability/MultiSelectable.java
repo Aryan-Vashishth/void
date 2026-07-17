@@ -26,9 +26,6 @@ public interface MultiSelectable extends Element, ActionCapabilityProvider {
     String getListLocator();
 
     @Override
-    default String getPrimaryLocator() { return getTriggerLocator(); }
-
-    @Override
     Object[] getArgs();
 
     @Override

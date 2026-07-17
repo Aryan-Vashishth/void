@@ -32,9 +32,6 @@ public interface SearchField extends Typeable, Clickable {
     default String getInputLocator() { return getSearchInputLocator(); }
 
     @Override
-    default String getPrimaryLocator() { return Typeable.super.getPrimaryLocator(); }
-
-    @Override
     default String getDisplayText() { return Typeable.super.getDisplayText(); }
 
     @Override

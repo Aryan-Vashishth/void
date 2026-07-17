@@ -102,52 +102,70 @@ All keys have sensible defaults — the file works out of the box for a local Ch
 ## 3 — Define Your Elements
 
 Create an interface with nested enums for each page / component.
-Each enum constant maps to a locator key in an external `.properties` or `.json` file.
+Each enum constant maps to a locator key resolved from an external `.json` file.
 
-### Capability interfaces define what an element CAN DO:
+### Minimal form — zero boilerplate
 
 ```java
-package elements;
+package tests.your.pages;
 
 import elements.api.capability.*;
 
 public interface LoginPageElements {
 
-    /** Shared properties file for all enums in this interface. */
-    String PROPS = "login-page-elements.properties";
-
-    // --- Text fields use Typeable (role: INPUT) ---
+    // Text fields — Typeable resolves role INPUT
     enum Credentials implements Typeable {
-        USERNAME_INPUT("USERNAME_INPUT"),
-        PASSWORD_INPUT("PASSWORD_INPUT");
-
-        private final String key;
-        Credentials(String k) { this.key = k; }
-
-        @Override public String getInputLocator()     { return key; }
-        @Override public String getExternalFileName() { return PROPS; }
-        @Override public Object[] getArgs()           { return new Object[0]; }
+        USERNAME_INPUT, PASSWORD_INPUT
     }
 
-    // --- Buttons use Clickable (role: TRIGGER) ---
+    // Buttons — Clickable resolves role TRIGGER
     enum Actions implements Clickable {
-        SIGN_IN_BUTTON("SIGN_IN_BUTTON", "Sign In");
+        SIGN_IN_BUTTON
+    }
 
-        private final String key;
-        private final String label;
-        Actions(String k, String l) { this.key = k; this.label = l; }
-
-        @Override public String getTriggerLocator()   { return key; }
-        @Override public String getExternalFileName() { return PROPS; }
-        @Override public Object[] getArgs()           { return new Object[]{label}; }
+    // Read-only labels — ReadOnly resolves role TEXT
+    enum Labels implements ReadOnly {
+        ERROR_MESSAGE, SUCCESS_BANNER
     }
 }
 ```
 
+No constructors, no locator keys, no `getArgs()`, no `getExternalFileName()`.
+
+| Derived automatically | Rule |
+|-----------------------|------|
+| Locator key | `PageClass.EnumClass.CONSTANT.ROLE` — e.g. `LoginPageElements.Credentials.USERNAME_INPUT.INPUT` |
+| Locator file | Conventional classpath path from FQCN — e.g. `tests/your/pages/LoginPageElements/locators.json` |
+| Display text | Word-transform of constant name — `SIGN_IN_BUTTON` → `"Sign In Button"` |
+| Args | Empty (`NO_ARGS`) |
+
 > **Why separate enums?** Each enum implements exactly one capability interface matching its UI role.
-> Text inputs implement `Typeable` (provides `getInputLocator()`), buttons implement
-> `Clickable` (provides `getTriggerLocator()`). This keeps role maps clean and lets the
-> resolver pipeline pick the correct `ElementRole` automatically.
+> Text inputs implement `Typeable`, buttons implement `Clickable`. This keeps role maps clean and
+> lets the resolver pick the correct `ElementRole` automatically.
+
+### Advanced overrides
+
+Override only what differs from the convention:
+
+```java
+enum Credentials implements Typeable {
+    USERNAME_INPUT, PASSWORD_INPUT;
+
+    // Point to a named file instead of the conventional path
+    @Override public String getExternalFileName() { return "shared-login.json"; }
+}
+```
+
+```java
+enum Actions implements Clickable {
+    SUBMIT_BUTTON;
+
+    // Inline XPath — skips file lookup entirely
+    @Override public String getTriggerLocator() { return "//button[@type='submit']"; }
+}
+```
+
+Both inline (hardcoded) and file-based elements can coexist in the same page interface.
 
 ### Capability Interfaces: What to Implement
 
@@ -214,9 +232,62 @@ enum UserCards implements ReadOnly, ResolvableEnum {
 
 ## 4 — Add Locators
 
-### Option A — `.properties` file
+### Option A — Conventional path via `--sync` ⭐ Recommended
 
-Create `src/main/resources/locators/properties/login-page-elements.properties`:
+Run `--sync` to generate a `.properties` template, fill in XPath values, then re-run to write the JSON:
+
+```bash
+# Step 1: generate the template
+mvn process-resources -q && mvn exec:java \
+  -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--sync tests.your.pages.LoginPageElements"
+```
+
+This creates `src/main/resources/tests/your/pages/LoginPageElements/locators.properties`:
+
+```properties
+# Fill in XPath values — do not edit keys
+LoginPageElements.Credentials.USERNAME_INPUT.INPUT=
+LoginPageElements.Credentials.PASSWORD_INPUT.INPUT=
+LoginPageElements.Actions.SIGN_IN_BUTTON.TRIGGER=
+LoginPageElements.Labels.ERROR_MESSAGE.TEXT=
+LoginPageElements.Labels.SUCCESS_BANNER.TEXT=
+```
+
+```bash
+# Step 2: after filling values, write locators.json
+mvn process-resources -q && mvn exec:java \
+  -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--sync tests.your.pages.LoginPageElements"
+```
+
+Resulting `locators.json`:
+
+```json
+{
+  "LoginPageElements": {
+    "Credentials": {
+      "USERNAME_INPUT": { "INPUT":   "//input[@id='username']" },
+      "PASSWORD_INPUT": { "INPUT":   "//input[@id='password']" }
+    },
+    "Actions": {
+      "SIGN_IN_BUTTON": { "TRIGGER": "//button[@type='submit']" }
+    },
+    "Labels": {
+      "ERROR_MESSAGE":  { "TEXT": "//div[@class='error']" },
+      "SUCCESS_BANNER": { "TEXT": "//div[@class='success']" }
+    }
+  }
+}
+```
+
+In Claude Code: `/sync-locators tests.your.pages.LoginPageElements` runs both steps for you.
+
+---
+
+### Option B — Manual `.properties` file
+
+Create `src/main/resources/locators/properties/login-page-elements.properties` (named file, opt-in via `getExternalFileName()`):
 
 ```properties
 USERNAME_INPUT  = //input[@id='username']
@@ -224,7 +295,7 @@ PASSWORD_INPUT  = //input[@id='password']
 SIGN_IN_BUTTON  = //button[@type='submit']
 ```
 
-### Option B — `.json` file ⭐ Recommended
+### Option C — Manual `.json` file
 
 Create `src/main/resources/locators/json/login-page-elements.json`:
 
@@ -242,16 +313,16 @@ Create `src/main/resources/locators/json/login-page-elements.json`:
 }
 ```
 
-### Option C — Migrate from Properties → JSON automatically
-
-Use the built-in CLI migrator:
+### Option D — Migrate existing `.properties` → JSON
 
 ```bash
 # Preview
-java core.resolvers.locator.json.JsonMigratorCli --print  elements.LoginPageElements
+mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--print elements.LoginPageElements"
 
 # Write to default directory
-java core.resolvers.locator.json.JsonMigratorCli --write  elements.LoginPageElements
+mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
+  -Dexec.args="--write elements.LoginPageElements"
 ```
 
 Or programmatically:
@@ -260,7 +331,7 @@ Or programmatically:
 import core.resolvers.locator.json.JsonLocatorMigrator;
 
 String json = JsonLocatorMigrator.buildResolvedJson(LoginPageElements.class);
-Path file = JsonLocatorMigrator.writeResolvedJson(LoginPageElements.class);
+Path file   = JsonLocatorMigrator.writeResolvedJson(LoginPageElements.class);
 ```
 
 ---

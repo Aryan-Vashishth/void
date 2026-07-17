@@ -26,9 +26,6 @@ public interface EditableTable extends Table {
     default String getFooterInputRowLocator() { return null; }
 
     @Override
-    default String getPrimaryLocator() { return getTableLocator(); }
-
-    @Override
     default java.util.Map<ElementRole, String> getAllLocatorRoles() {
         java.util.Map<ElementRole, String> roles = new java.util.LinkedHashMap<>(Table.super.getAllLocatorRoles());
         String add = getAddRowButtonLocator();

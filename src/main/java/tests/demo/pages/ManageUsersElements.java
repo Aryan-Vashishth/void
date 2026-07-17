@@ -17,8 +17,6 @@ public interface ManageUsersElements {
         private final String key; UserCards(String k){this.key=k;}
         @Override public String getExternalFileName(){ return "manage-users-elements.properties"; }
         @Override public String getTextLocator(){ return key; }
-
-        @Override public Object[] getArgs(){ return new Object[0]; }
     }
 }
 
