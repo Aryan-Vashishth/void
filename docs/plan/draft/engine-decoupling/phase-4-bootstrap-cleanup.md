@@ -31,23 +31,21 @@ belongs to the Selenium engine, not to the bootstrap. After Phase 2, the driver 
 inside `SeleniumEngine.initialize()`, so `SeleniumEngine` already controls the moment
 before driver creation. The logger suppression can safely move there.
 
-The JUL logger is a JVM-global side effect — once set to `SEVERE` it stays there for the
+The JUL logger configuration is JVM-global -- once set to `SEVERE` it stays there for the
 life of the JVM regardless of which engine subsequently runs. Moving it into
 `SeleniumEngine.initialize()` does not change this behavior; it only moves the call site to
 where it logically belongs.
 
 ### Fix
 
-**`SeleniumEngine.java` — suppress at the start of `initialize()`, before driver creation:**
+**`SeleniumEngine.java` — extract `configureLogging()`, call at the start of `initialize()`:**
 ```java
 @Override
 public void initialize(EngineConfig config) {
     this.config = config;
     this.defaultTimeout = config.getDefaultTimeout();
 
-    // Suppress Selenium's JUL logging before Selenium Manager or any driver code runs.
-    // CDP version-mismatch warnings and verbose protocol messages appear during driver startup.
-    Logger.getLogger("org.openqa.selenium").setLevel(Level.SEVERE);
+    configureLogging();
 
     if (this.driver == null) {
         this.driver = DriverFactory.fromProfile(profile).build();
@@ -58,6 +56,11 @@ public void initialize(EngineConfig config) {
     }
 
     debug.log("[SeleniumEngine] Initialized with timeout=" + defaultTimeout.toSeconds() + "s");
+}
+
+// Names the intent; the logger configuration must run before any Selenium code.
+private static void configureLogging() {
+    Logger.getLogger("org.openqa.selenium").setLevel(Level.SEVERE);
 }
 ```
 
