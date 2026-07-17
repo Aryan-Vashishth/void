@@ -224,15 +224,9 @@ passed to a registered creator, and types the registry as `Function<Object, UIEn
 Phase 1-2, `EngineBootstrap` is the concrete EngineHost type for Selenium. The cast inside the
 registered lambda is safe because the factory only produces `EngineBootstrap` instances today.
 
-**Future non-Selenium engines**: a Playwright engine needs its own bootstrap type. Two options,
-both deferred to P8:
-- Relax `EngineBootstrap` from `sealed` to a non-sealed marker interface; each engine's bootstrap
-  implements it; registry uses `Function<EngineBootstrap, UIEngine>`.
-- Change `UIEngineFactory.create()` to `create(Properties config, Object engineHost)` to exactly
-  match P8's registry type; callers cast before calling.
-
-This decision belongs to the P8 phase. Record this interaction so the P8 implementor is not
-surprised by the `EngineBootstrap` type at the factory boundary.
+**Future engines**: `EngineBootstrap` is an internal migration abstraction. Once additional engine
+implementations are introduced, the bootstrap mechanism will be revisited based on their actual
+initialization requirements.
 
 See: `docs/plan/draft/oop-violations-remediation/phase-4-infrastructure.md` (P8 section).
 
@@ -252,7 +246,7 @@ See: `docs/plan/draft/oop-violations-remediation/phase-4-infrastructure.md` (P8 
 
 ```
 feat(engine): add SeleniumEngine(Profile) constructor; initialize() creates driver internally
-refactor(engine): drop WebDriver param from UIEngineFactory.create(), accept DriverFactory.Profile
+refactor(engine): replace WebDriver factory parameter with EngineBootstrap
 ```
 
 ---
