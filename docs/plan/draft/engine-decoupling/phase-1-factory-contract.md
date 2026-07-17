@@ -201,6 +201,43 @@ commit. The factory signature is unchanged across both phases.
 
 ---
 
+## Interaction with OOP violations Phase 4 (P8)
+
+OOP violations Phase 4 / P8 also modifies `UIEngineFactory` -- it replaces the `switch`-on-string
+dispatch with a registry `Map<String, Function<Object, UIEngine>>`. The two changes are orthogonal
+and must be applied in sequence:
+
+1. **Phase 1** (this phase): changes the **parameter type** (`WebDriver` -> `EngineBootstrap`).
+2. **Phase 2**: inverts `VOID.start()`, deletes `EngineBootstrap.FromDriver`.
+3. **OOP P8** (after Phase 2): changes the **dispatch mechanism** (`switch` -> registry map).
+
+P8 must not be applied before Phase 2 is complete. After Phase 2, `EngineBootstrap` holds only
+`FromProfile`, and the registered Selenium creator becomes:
+
+```java
+REGISTRY.put("selenium",
+    host -> new SeleniumEngine(((EngineBootstrap.FromProfile) host).profile()));
+```
+
+**EngineBootstrap as EngineHost**: P8 uses the term "EngineHost" for the opaque bootstrap object
+passed to a registered creator, and types the registry as `Function<Object, UIEngine>`. After
+Phase 1-2, `EngineBootstrap` is the concrete EngineHost type for Selenium. The cast inside the
+registered lambda is safe because the factory only produces `EngineBootstrap` instances today.
+
+**Future non-Selenium engines**: a Playwright engine needs its own bootstrap type. Two options,
+both deferred to P8:
+- Relax `EngineBootstrap` from `sealed` to a non-sealed marker interface; each engine's bootstrap
+  implements it; registry uses `Function<EngineBootstrap, UIEngine>`.
+- Change `UIEngineFactory.create()` to `create(Properties config, Object engineHost)` to exactly
+  match P8's registry type; callers cast before calling.
+
+This decision belongs to the P8 phase. Record this interaction so the P8 implementor is not
+surprised by the `EngineBootstrap` type at the factory boundary.
+
+See: `docs/plan/draft/oop-violations-remediation/phase-4-infrastructure.md` (P8 section).
+
+---
+
 ## Files changed
 
 | File | Change |
