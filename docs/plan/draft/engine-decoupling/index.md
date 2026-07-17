@@ -140,6 +140,39 @@ All commits follow Conventional Commits format. No em dashes. Imperative present
 
 ---
 
+## Post-completion: runtime isolation
+
+Once all four phases are complete, each `VOID` instance is the correct unit of isolation.
+A natural follow-on is to make that isolation total -- every execution concern owned by the
+runtime, nothing shared by default:
+
+```
+VOID runtime
+ ├── SessionContext
+ ├── UIEngine
+ ├── FlowExecutor
+ ├── Logger
+ ├── EventBus (future)
+ ├── RuntimeConfig
+ └── Resources (screenshots, downloads, traces)
+```
+
+Then two concurrent runtimes have no shared mutable state unless explicitly wired together:
+
+```java
+VOID admin    = VOID.builder().profile(CHROME).start();
+VOID customer = VOID.builder().profile(CHROME).start();
+// admin and customer share no mutable execution state
+```
+
+This is not part of the current four phases. The current phases remove the forced coupling
+to Selenium. Full runtime isolation is the logical destination once that coupling is gone.
+It would likely involve replacing `DriverContext` (a ThreadLocal singleton) with per-instance
+state inside `SeleniumEngine`, and scoping logging to the runtime instance rather than the
+JVM. Track as a separate initiative once Phase 4 is verified.
+
+---
+
 ## Post-completion naming
 
 Once all four phases are complete, two Selenium-specific names will be inconsistent with

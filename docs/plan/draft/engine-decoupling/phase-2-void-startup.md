@@ -98,6 +98,14 @@ If `.engine()` is not called, `UIEngineFactory` resolves the engine name from
 System property -> ENV -> config -> default ("selenium"). `.engine()` overrides that
 resolution by injecting into the config copy; it never sets a global System property.
 
+> **Future cleanup**: `resolvedConfig()` injects the engine name into a `Properties` copy
+> to communicate with the factory. This conflates runtime selection with framework
+> configuration -- the factory is receiving initialization data through two separate
+> channels (the `EngineBootstrap` argument and the mutated `Properties` object). The
+> cleaner design carries the engine name inside `EngineBootstrap` itself (or its
+> successor), so the factory has a single source of input. Deferred to post-Phase 2
+> cleanup; does not block this phase.
+
 **Engine ID convention**: pass a typed constant rather than a raw string literal.
 Each engine implementation declares a `public static final String ID`:
 
