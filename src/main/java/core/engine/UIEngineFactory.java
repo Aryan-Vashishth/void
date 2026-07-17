@@ -1,7 +1,6 @@
 package core.engine;
 
 import core.engine.selenium.SeleniumEngine;
-import org.openqa.selenium.WebDriver;
 
 import java.util.Locale;
 import java.util.Properties;
@@ -33,20 +32,27 @@ public final class UIEngineFactory {
     /**
      * Creates and initializes a UIEngine based on the given config.
      *
-     * @param config  combined configuration properties
-     * @param driver  WebDriver instance (used by SeleniumEngine; ignored by other engines)
+     * @param config    combined configuration properties
+     * @param bootstrap engine initialization token (see {@link EngineBootstrap})
      * @return initialized UIEngine
      * @throws IllegalStateException if the configured engine is not supported
      */
-    public static UIEngine create(Properties config, WebDriver driver) {
+    public static UIEngine create(Properties config, EngineBootstrap bootstrap) {
         String engineName = resolveEngineName(config);
         info.log("[UIEngineFactory] Creating engine: " + engineName);
 
         UIEngine engine = switch (engineName) {
-            case "selenium" -> new SeleniumEngine(driver);
-            // case "playwright" -> new PlaywrightEngine(); // Phase 3
+            case "selenium" -> {
+                if (bootstrap instanceof EngineBootstrap.FromProfile fp) {
+                    yield new SeleniumEngine(fp.profile());
+                } else {
+                    throw new IllegalStateException(
+                            "Unknown EngineBootstrap type: " + bootstrap.getClass().getSimpleName());
+                }
+            }
+            // case "playwright" -> ...   // Phase 3 of engine roadmap
             default -> throw new IllegalStateException(
-                    "Unsupported engine: '" + engineName + "'. Supported values: selenium");
+                    "Unsupported engine: '" + engineName + "'. Supported: selenium");
         };
 
         EngineConfig engineConfig = new EngineConfig(config);
