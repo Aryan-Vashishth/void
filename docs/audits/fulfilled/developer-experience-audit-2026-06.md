@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-13  
 **Scope:** `core.actions`, `core.interactions.hooks`, VOID public API surface  
-**Status:** Findings recorded — roadmap created
+**Status:** Fulfilled — all 7 phases implemented in v0.3.0 (feature/element-api-simplification)
 
 ---
 
