@@ -1,4 +1,4 @@
-# Phase 3 — Interactions: Remove Unsafe Cast and SeleniumEngine Import
+# Phase 3 — Interactions: Remove Unsafe Cast; Isolate Selenium Bridge
 
 Violations: **V4**
 Touches: `Interactions.java`
@@ -9,11 +9,23 @@ Touches: `Interactions.java`
 
 `Interactions` is a frozen legacy class. Its constructor currently registers a `WebDriver` in
 `DriverContext` by casting `engine.getNativeDriver()` — a cast that throws `ClassCastException`
-for any non-Selenium engine. After this phase:
+for any non-Selenium engine. After this phase, `Interactions` no longer assumes Selenium when
+constructed from a `UIEngine`:
 - The `Interactions(UIEngine)` constructor is safe for any engine.
-- `Interactions.java` does not import `SeleniumEngine` (a concrete implementation).
-- All remaining `By`/`WebElement` bridge methods are left in place — they are deprecated but
-  their removal is not in scope here.
+- `SeleniumEngine.fromBy()` call sites are replaced by `SeleniumLocatorBridge.fromBy()`;
+  `LocatorDescriptor` stays Selenium-free.
+- The `SeleniumEngine` import in `Interactions.java` is reduced to the single deprecated
+  `Interactions(WebDriver)` constructor (both are `@Deprecated(forRemoval=true)`; that
+  constructor is not removed here).
+- All remaining `By`/`WebElement` bridge methods are left in place.
+
+## Non-goals
+
+- Removing deprecated `By`-parameter methods (`clickOn(By)`, `typeInto(By)`, etc.).
+- Removing deprecated `WebElement`-parameter methods.
+- Removing the deprecated `Interactions(WebDriver)` constructor.
+- Rewriting or deleting the `By`/`WebElement` legacy bridge.
+- Any change to `LocatorDescriptor`, `ByParser`, or the core locator model.
 
 ---
 
@@ -94,60 +106,72 @@ public Interactions(WebDriver driver) {
 LocatorDescriptor descriptor = SeleniumEngine.fromBy(locator);
 ```
 
-### Fix — `SeleniumEngine.fromBy()` moves to a neutral location
+### Fix — `SeleniumEngine.fromBy()` moves to `SeleniumLocatorBridge`
 
 `SeleniumEngine.fromBy(By)` converts a Selenium `By` into a `LocatorDescriptor`. It is a
-pure conversion utility — it does not touch any engine instance. Its current home in
-`SeleniumEngine` is convenient but conceptually wrong: a conversion from `By` to
-`LocatorDescriptor` should not require importing the engine implementation.
+pure conversion utility that does not touch any engine instance. Moving it into
+`LocatorDescriptor` would make the engine-neutral locator model depend on Selenium -- the
+wrong direction. Instead it moves to a dedicated bridge class in the Selenium compatibility
+layer, where it is scoped to deprecated paths and clearly marked for deletion.
 
-Move it to `LocatorDescriptor` as a static factory, gated behind a Selenium-specific import:
-
-**`LocatorDescriptor.java` — add static bridge (only for deprecated paths):**
+**`SeleniumLocatorBridge.java` (new):**
 ```java
+package core.bridge.selenium;
+
 /**
- * Creates a descriptor from a Selenium {@link org.openqa.selenium.By} locator.
- * For use in deprecated By-based bridge methods only. Do not add new call sites.
- *
- * @deprecated Selenium-specific. Use string-based descriptors or element-based resolution.
+ * @deprecated Selenium compatibility bridge for deprecated By-based APIs in Interactions.
+ *             Delete together with the deprecated By/WebElement methods.
  */
 @Deprecated(forRemoval = true)
-public static LocatorDescriptor fromBy(org.openqa.selenium.By by) {
-    String raw = by.toString();
-    // By.toString() format: "By.cssSelector: .foo" or "By.xpath: //div"
-    int colon = raw.indexOf(':');
-    if (colon < 0) return LocatorDescriptor.of(raw);
-    String type  = raw.substring(0, colon).trim().toLowerCase(Locale.ROOT);
-    String value = raw.substring(colon + 1).trim();
-    LocatorStrategy strategy = switch (type) {
-        case "by.id"              -> LocatorStrategy.ID;
-        case "by.cssselector"     -> LocatorStrategy.CSS;
-        case "by.xpath"           -> LocatorStrategy.XPATH;
-        case "by.name"            -> LocatorStrategy.NAME;
-        default                   -> LocatorStrategy.CSS;
-    };
-    return new LocatorDescriptor(value, strategy);
+public final class SeleniumLocatorBridge {
+
+    /**
+     * @deprecated Use element-based or string-based locator resolution instead.
+     */
+    @Deprecated(forRemoval = true)
+    public static LocatorDescriptor fromBy(By by) {
+        String raw = by.toString();
+        // By.toString() format: "By.cssSelector: .foo" or "By.xpath: //div"
+        int colon = raw.indexOf(':');
+        if (colon < 0) return LocatorDescriptor.of(raw);
+        String type  = raw.substring(0, colon).trim().toLowerCase(Locale.ROOT);
+        String value = raw.substring(colon + 1).trim();
+        LocatorStrategy strategy = switch (type) {
+            case "by.id"          -> LocatorStrategy.ID;
+            case "by.cssselector" -> LocatorStrategy.CSS;
+            case "by.xpath"       -> LocatorStrategy.XPATH;
+            case "by.name"        -> LocatorStrategy.NAME;
+            default               -> LocatorStrategy.CSS;
+        };
+        return new LocatorDescriptor(value, strategy);
+    }
+
+    private SeleniumLocatorBridge() {}
 }
 ```
 
-**Verify `SeleniumEngine.fromBy()` implementation** first — if it already does the same
-parsing, replicate the logic. If it delegates to `ByParser`, the `LocatorDescriptor` bridge
-can parse via `ByParser` and then infer strategy from the returned `By` type.
+**Verify `SeleniumEngine.fromBy()` implementation first** -- if it delegates to `ByParser`,
+replicate the `ByParser` call in `SeleniumLocatorBridge`. If it parses `By.toString()`
+directly, replicate that logic. The goal is the same output, not a new dependency.
 
-**Alternative if moving `fromBy` is too invasive:** keep `SeleniumEngine.fromBy()` where
-it is, but replace the `Interactions` import with a direct call to `ByParser.DEFAULT.parse()`
-+ `LocatorDescriptor.of(by.toString())`. The deprecated bridge methods in `Interactions` are
-already `@Deprecated(forRemoval=true)` — they only need to compile, not be clean.
+**`Interactions.java` -- replace call sites:**
+```java
+// Before (6 sites)
+LocatorDescriptor descriptor = SeleniumEngine.fromBy(locator);
 
-The **minimum acceptable fix for this phase** is:
+// After
+LocatorDescriptor descriptor = SeleniumLocatorBridge.fromBy(locator);
+```
 
-1. Remove the `DriverContext.setPrimaryDriver((WebDriver) engine.getNativeDriver())` line.
-2. If `SeleniumEngine.fromBy()` is only used for the deprecated By-bridges and nothing else,
-   leave the import in place with a note that it will be removed when the bridge methods are
-   deleted. The import is an aesthetic issue; the cast is a correctness issue.
+The `SeleniumEngine` import is **not fully removed** from `Interactions.java` because the
+deprecated `Interactions(WebDriver)` constructor still delegates to `new SeleniumEngine(driver)`.
+That constructor is `@Deprecated(forRemoval=true)` and is not changed in this phase. The
+import scope narrows: from 7 references (1 constructor + 6 `fromBy` call sites) to 1
+reference (the deprecated constructor only).
 
-The cast is the P0. The import is cleanup. Do not block Phase 3 on the `fromBy` refactor
-if it adds scope.
+The cast is P0. The import narrowing is cleanup. Do not block Phase 3 on the bridge
+extraction if it adds scope -- the minimum acceptable fix is removing the cast and the
+`DriverContext` registration.
 
 ### Fix — `Interactions(WebDriver)` deprecated constructor
 
@@ -177,34 +201,31 @@ Examples left intact:
 - `typeInto(By locator, String text)` — line 621
 - `isAnyDisplayed(By locator, Duration timeout, Duration poll)` — line 820
 
-These do not affect engine hotswapping. They use the deprecated `SeleniumEngine.fromBy()`
-bridge which is Selenium-internal. A Playwright session would never call these methods via
-the `Interactions` API.
+These do not affect engine hotswapping and are unchanged in this phase.
 
 ---
 
 ## Files changed
 
-| File                                      | Change                                                                                        |
-|-------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `core/interactions/Interactions.java`     | Remove `DriverContext.setPrimaryDriver((WebDriver) engine.getNativeDriver())` from constructor; optionally remove `SeleniumEngine` import if `fromBy` is relocated |
-| `core/engine/LocatorDescriptor.java`      | Add `@Deprecated static fromBy(By)` if `SeleniumEngine.fromBy()` is relocated (optional for this phase) |
+| File                                                        | Change                                                                                                                       |
+|-------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| `core/interactions/Interactions.java`                       | Remove `DriverContext.setPrimaryDriver((WebDriver) engine.getNativeDriver())` from constructor; replace 6x `SeleniumEngine.fromBy()` with `SeleniumLocatorBridge.fromBy()`; add `SeleniumLocatorBridge` import |
+| `core/bridge/selenium/SeleniumLocatorBridge.java`           | **NEW** -- `@Deprecated` bridge with `fromBy(By)` static method; deletes with the `By`/`WebElement` deprecated API workstream |
 
 ---
 
 ## Commits
 
 ```
-fix(interactions): remove unsafe WebDriver cast from Interactions constructor
-chore(interactions): remove SeleniumEngine import from Interactions
+fix(interactions): remove unsafe WebDriver cast from Interactions(UIEngine) constructor
+feat(bridge): introduce SeleniumLocatorBridge; move fromBy out of SeleniumEngine
+refactor(interactions): replace SeleniumEngine.fromBy() call sites with SeleniumLocatorBridge
 ```
 
-Second commit is conditional on whether `fromBy` is relocated. If the import is kept
-temporarily, note it in the commit message:
-
-```
-chore(interactions): note SeleniumEngine import retained pending fromBy relocation
-```
+The second and third commits are conditional on extracting `SeleniumLocatorBridge`. If the
+bridge extraction adds too much scope, skip those commits and note that the `SeleniumEngine`
+import remains scoped to the deprecated constructor -- to be cleaned up when the deprecated
+`By`/`WebElement` API workstream runs.
 
 ---
 
