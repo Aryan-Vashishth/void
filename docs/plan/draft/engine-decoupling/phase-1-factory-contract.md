@@ -1,7 +1,7 @@
 # Phase 1 — Factory Contract: Engine Owns Its Driver
 
 Violations: **V1**
-Touches: `UIEngineFactory.java`, `SeleniumEngine.java`, `DriverManager.java`
+Touches: `UIEngineFactory.java`, `SeleniumEngine.java`
 
 ---
 
@@ -15,6 +15,11 @@ creation, lifecycle, and shutdown of its native automation runtime. After this p
   manages its own driver.
 - `VOID.start()` still creates a WebDriver (that changes in Phase 2); Phase 1 only fixes
   the factory contract so the Phase 2 inversion is safe.
+- `UIEngineFactory` no longer owns or understands native automation resources; it only
+  constructs engines.
+
+> **Invariant**: Driver creation occurs at most once per VOID runtime. All compatibility
+> bridge logic in this phase exists solely to preserve this invariant during the transition.
 
 ---
 
@@ -272,4 +277,8 @@ grep -rn "DriverFactory.fromProfile" src/main/java/
 #   DriverManager.createDriver() (compatibility path, still active in VOID.start())
 # expected after Phase 2: exactly one creation path (SeleniumEngine.initialize() only)
 # use this as a regression check during the migration
+
+# Behavioral check: call VOID.start() and confirm exactly one browser window opens.
+# If the EngineBootstrap compatibility bridge is missing or broken, DriverManager and
+# SeleniumEngine.initialize() will both create a driver -- two windows will open instead of one.
 ```
