@@ -2,13 +2,9 @@ package core.runtime;
 
 import core.actions.Action;
 import core.bootstrap.FrameworkBootstrap;
-import core.context.ExecutionContext;
-import core.driver.DriverContext;
+import core.context.SessionContext;
 import core.driver.DriverFactory;
-import core.driver.DriverManager;
-import core.engine.EngineConfig;
 import core.engine.UIEngine;
-import core.engine.UIEngineFactory;
 import core.executor.FlowExecutor;
 import core.flow.Flow;
 import core.logging.CustomLogger;
@@ -76,8 +72,8 @@ import org.openqa.selenium.WebDriver;
  */
 public class VOID {
 
-    /** Per-session execution context (config + driver). */
-    private final ExecutionContext context;
+    /** Per-session context (config + engine). */
+    private final SessionContext context;
 
     /** The active execution engine for this session. */
     private final UIEngine engine;
@@ -94,12 +90,12 @@ public class VOID {
     // ===========================
 
     /**
-     * Protected constructor — use {@link #start()} or {@link #start(DriverFactory.Profile)}.
+     * Protected constructor -- use {@link #builder()} or {@link #start(DriverFactory.Profile)}.
      *
-     * @param context the execution context for this session
+     * @param context the session context for this session
      * @param engine  the active UI engine
      */
-    protected VOID(ExecutionContext context, UIEngine engine) {
+    protected VOID(SessionContext context, UIEngine engine) {
         this.context = context;
         this.engine = engine;
         this.executor = new FlowExecutor(engine);
@@ -110,20 +106,30 @@ public class VOID {
     // ===========================
 
     /**
+     * Returns a new {@link VOIDBuilder} for fluent session configuration.
+     *
+     * <pre>
+     *   VOID session = VOID.builder()
+     *           .profile(DriverFactory.Profile.DEFAULT)
+     *           .start();
+     * </pre>
+     *
+     * @return a new builder instance
+     */
+    public static VOIDBuilder builder() {
+        return new VOIDBuilder();
+    }
+
+    /**
      * Starts a new VOID session with the {@link DriverFactory.Profile#DEFAULT DEFAULT} profile.
      *
-     * <p>Orchestrates the full startup pipeline:</p>
-     * <ol>
-     *   <li>{@link FrameworkBootstrap#init()} — one-time config validation</li>
-     *   <li>{@link DriverManager#createDriver(DriverFactory.Profile)} — WebDriver creation + registration</li>
-     *   <li>Builds an {@link ExecutionContext} binding config and driver</li>
-     *   <li>Creates a {@link UIEngine} via factory</li>
-     * </ol>
-     *
      * @return a ready-to-use VOID session
+     * @deprecated since 0.3 -- use {@link #builder()} instead.
+     *             Will be removed in 1.0.
      */
+    @Deprecated(since = "0.3", forRemoval = true)
     public static VOID start() {
-        return start(DriverFactory.Profile.DEFAULT);
+        return builder().start();
     }
 
     /**
@@ -131,20 +137,12 @@ public class VOID {
      *
      * @param profile the driver configuration profile
      * @return a ready-to-use VOID session
+     * @deprecated since 0.3 -- use {@link #builder()} instead.
+     *             Will be removed in 1.0.
      */
+    @Deprecated(since = "0.3", forRemoval = true)
     public static VOID start(DriverFactory.Profile profile) {
-        FrameworkBootstrap.init();
-
-        WebDriver driver = DriverManager.createDriver(profile);
-        ExecutionContext ctx = new ExecutionContext(
-                FrameworkBootstrap.getUtilsConfig(),
-                driver
-        );
-
-        UIEngine engine = UIEngineFactory.create(FrameworkBootstrap.getUtilsConfig(), driver);
-
-        CustomLogger.info.log("VOID session started — engine=" + engine.getEngineName() + ", driver ready.");
-        return new VOID(ctx, engine);
+        return builder().profile(profile).start();
     }
 
     // ===========================
@@ -160,9 +158,9 @@ public class VOID {
      * on the same thread are unaffected.</p>
      */
     public void shutdown() {
-        CustomLogger.info.log("VOID session shutting down — engine=" + engine.getEngineName());
+        CustomLogger.info.log("VOID session shutting down -- engine=" + engine.getEngineName());
         engine.shutdown();
-        DriverContext.removePrimary();
+        // DriverContext cleanup is owned by SeleniumEngine.shutdown()
     }
 
     // ===========================
@@ -267,27 +265,26 @@ public class VOID {
     }
 
     /**
-     * Returns the {@link ExecutionContext} so subclasses
-     * can access configuration without re-fetching from globals.
+     * Returns the {@link SessionContext} for this session.
      *
-     * @deprecated Since 2.1 — subclasses should access session state through
-     *             engine-level abstractions rather than the raw execution context.
-     *             Will be removed in 3.0.
+     * @deprecated since 0.1 -- subclasses should access session state through
+     *             engine-level abstractions rather than the raw context.
+     *             Will be removed in 1.0.
      */
     @Deprecated(since = "0.1", forRemoval = true)
-    protected ExecutionContext getContext() {
+    protected SessionContext getContext() {
         return context;
     }
 
     /**
      * Returns the underlying {@link WebDriver} for this session.
      *
-     * @deprecated Since 2.1 — exposes Selenium types directly, breaking engine
+     * @deprecated since 0.1 -- exposes Selenium types directly, breaking engine
      *             portability. Use {@link #getEngine()}{@code .getNativeDriver()}
-     *             for engine-specific escape-hatch access. Will be removed in 3.0.
+     *             for engine-specific escape-hatch access. Will be removed in 1.0.
      */
     @Deprecated(since = "0.1", forRemoval = true)
     protected WebDriver getDriver() {
-        return context.getDriver();
+        return (WebDriver) engine.getNativeDriver();
     }
 }
