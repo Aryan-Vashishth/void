@@ -148,6 +148,8 @@ public void initialize(EngineConfig config) {
         // Legacy path: driver was provided by caller (Interactions bridge)
         debug.log("[SeleniumEngine] Driver provided externally (legacy path).");
     }
+    // DriverContext remains a temporary Selenium compatibility mechanism;
+    // it is removed from the runtime startup path in Phase 2.
 
     debug.log("[SeleniumEngine] Initialized with timeout=" + defaultTimeout.toSeconds() + "s");
 }
@@ -282,3 +284,22 @@ grep -rn "DriverFactory.fromProfile" src/main/java/
 # If the EngineBootstrap compatibility bridge is missing or broken, DriverManager and
 # SeleniumEngine.initialize() will both create a driver -- two windows will open instead of one.
 ```
+
+---
+
+## Phase complete when
+
+- [ ] `UIEngineFactory.create()` has no `WebDriver` parameter.
+- [ ] `SeleniumEngine` can create its own driver from a `DriverFactory.Profile`.
+- [ ] `VOID.start()` still launches exactly one browser.
+- [ ] Existing tests compile and pass without behavior changes.
+
+---
+
+## Future naming
+
+`DriverContext` is the Selenium-specific registry for the active `WebDriver`. As engine
+decoupling progresses, this can be renamed `EngineHostContext` and the `driver` field in
+`SeleniumEngine` renamed to reflect its role as the engine's native host runtime rather
+than a Selenium-specific artifact. This rename belongs in Phase 4 (bootstrap cleanup),
+not here.
