@@ -8,7 +8,9 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Targeting **0.3.0**. Branch: `feature/element-api-simplification`.
+---
+
+## [0.3.0] - 2026-07-17
 
 ### Added
 
@@ -326,6 +328,7 @@ After bumping to `2.0-SNAPSHOT`:
 
 ---
 
-[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Aryan-Vashishth/void-framework/releases/tag/v0.1.0
