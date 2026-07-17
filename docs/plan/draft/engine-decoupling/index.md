@@ -120,7 +120,7 @@ One commit per step. No commit spans two phases.
 ```
 # Phase 1
 feat(engine): add SeleniumEngine(Profile) constructor; initialize() creates driver internally
-refactor(engine): drop WebDriver param from UIEngineFactory.create(), accept DriverFactory.Profile
+refactor(engine): replace WebDriver factory parameter with EngineBootstrap
 
 # Phase 2
 refactor(runtime): replace ExecutionContext with SessionContext in VOID; invert startup order
@@ -135,6 +135,23 @@ refactor(bootstrap): move Selenium JUL logger suppression to SeleniumEngine.init
 ```
 
 All commits follow Conventional Commits format. No em dashes. Imperative present tense.
+
+---
+
+## Post-completion naming
+
+Once all four phases are complete, two Selenium-specific names will be inconsistent with
+the engine-agnostic architecture:
+
+- `DriverContext` -- the ThreadLocal registry for the active WebDriver. Can be renamed
+  `EngineHostContext` to reflect that it holds the native runtime handle, not a Selenium
+  artifact specifically.
+- The `driver` field in `SeleniumEngine` -- can be renamed to `engineHost` or `nativeRuntime`
+  to match the vocabulary established by the decoupling plan.
+
+Neither rename is required for correctness. Both should be deferred until after the
+engine-decoupling phases are verified, since renaming during the migration adds noise to
+diffs and makes the phase-boundary commits harder to review.
 
 ---
 

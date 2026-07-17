@@ -11,8 +11,7 @@ Touches: `UIEngineFactory.java`, `SeleniumEngine.java`
 creation, lifecycle, and shutdown of its native automation runtime. After this phase:
 - A non-Selenium engine can be registered in the factory switch without ever touching
   `WebDriver`, `DriverFactory`, or `DriverContext`.
-- `SeleniumEngine` is self-contained: given a `DriverFactory.Profile` it produces and
-  manages its own driver.
+- `SeleniumEngine` owns creation and lifecycle of its native automation runtime.
 - `VOID.start()` still creates a WebDriver (that changes in Phase 2); Phase 1 only fixes
   the factory contract so the Phase 2 inversion is safe.
 - `UIEngineFactory` no longer owns or understands native automation resources; it only
@@ -294,12 +293,3 @@ grep -rn "DriverFactory.fromProfile" src/main/java/
 - [ ] `VOID.start()` still launches exactly one browser.
 - [ ] Existing tests compile and pass without behavior changes.
 
----
-
-## Future naming
-
-`DriverContext` is the Selenium-specific registry for the active `WebDriver`. As engine
-decoupling progresses, this can be renamed `EngineHostContext` and the `driver` field in
-`SeleniumEngine` renamed to reflect its role as the engine's native host runtime rather
-than a Selenium-specific artifact. This rename belongs in Phase 4 (bootstrap cleanup),
-not here.
