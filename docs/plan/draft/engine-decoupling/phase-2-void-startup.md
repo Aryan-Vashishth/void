@@ -17,7 +17,8 @@ Deprecates: `ExecutionContext`, `VOID.start(Profile)`
 - Multiple independent `VOID` instances can coexist without new global state.
 
 > **Invariant**: Every `VOID` instance owns exactly one `SessionContext`, one `UIEngine`,
-> and one native automation runtime.
+> and one native automation runtime. No mutable runtime state is shared between `VOID`
+> instances.
 
 ---
 
@@ -39,29 +40,34 @@ already-open Chrome window.
 
 ### Fix
 
-Replace `VOID.start(Profile)` with a `RuntimeBuilder` entry point. The builder collects
+Replace `VOID.start(Profile)` with a `VOIDBuilder` entry point. The builder collects
 runtime configuration before anything is created; `start()` is the terminal operation that
 initializes the engine and returns a fully-started `VOID` instance.
 
-**`RuntimeBuilder.java` (new):**
+**`VOIDBuilder.java` (new):**
 ```java
-public final class RuntimeBuilder {
+public final class VOIDBuilder {
     private String engineName;           // null = resolved from config/env/System property
     private DriverFactory.Profile profile;
+    private boolean started = false;
 
-    RuntimeBuilder() {}  // package-private; callers use VOID.builder()
+    VOIDBuilder() {}  // package-private; callers use VOID.builder()
 
-    public RuntimeBuilder engine(String engineName) {
-        this.engineName = engineName;
+    public VOIDBuilder engine(String engineId) {
+        this.engineName = engineId;
         return this;
     }
 
-    public RuntimeBuilder profile(DriverFactory.Profile profile) {
+    public VOIDBuilder profile(DriverFactory.Profile profile) {
         this.profile = profile;
         return this;
     }
 
     public VOID start() {
+        if (started) throw new IllegalStateException(
+                "VOIDBuilder is single-use. Call VOID.builder() for each new session.");
+        started = true;
+
         FrameworkBootstrap.init();
 
         Properties config = resolvedConfig();
@@ -85,14 +91,33 @@ public final class RuntimeBuilder {
 }
 ```
 
-If `.engine()` is not called, `UIEngineFactory` resolves the name from System property ->
-ENV -> config -> default ("selenium"). `.engine()` overrides that resolution by injecting
-into the config copy; it does not set a global System property.
+A `VOIDBuilder` is single-use. Calling `start()` twice on the same instance throws
+`IllegalStateException`. Call `VOID.builder()` for each new session.
+
+If `.engine()` is not called, `UIEngineFactory` resolves the engine name from
+System property -> ENV -> config -> default ("selenium"). `.engine()` overrides that
+resolution by injecting into the config copy; it never sets a global System property.
+
+**Engine ID convention**: pass a typed constant rather than a raw string literal.
+Each engine implementation declares a `public static final String ID`:
+
+```java
+// SeleniumEngine.java
+public static final String ID = "selenium";
+```
+
+Usage:
+```java
+VOID.builder().engine(SeleniumEngine.ID).profile(CHROME).start();
+```
+
+This means renaming an engine is not a source-level breaking change for callers -- only
+the constant value changes. String resolution inside the factory is unchanged.
 
 **`VOID.java` -- builder entry point:**
 ```java
-public static RuntimeBuilder builder() {
-    return new RuntimeBuilder();
+public static VOIDBuilder builder() {
+    return new VOIDBuilder();
 }
 ```
 
@@ -103,9 +128,9 @@ VOID session = VOID.builder()
         .profile(CHROME)
         .start();
 
-// Explicit engine
+// Explicit engine -- prefer the typed constant over a raw string
 VOID session = VOID.builder()
-        .engine("selenium")
+        .engine(SeleniumEngine.ID)
         .profile(CHROME)
         .start();
 
@@ -122,7 +147,7 @@ public static VOID start(DriverFactory.Profile profile) {
 }
 ```
 
-`DriverManager.createDriver()` is no longer called from `RuntimeBuilder.start()`. Multiple
+`DriverManager.createDriver()` is no longer called from `VOIDBuilder.start()`. Multiple
 `VOID.builder().start()` calls produce independent instances -- there is no shared static
 `VOID` field. The invariant (one engine, one runtime, one context per instance) holds
 structurally.
@@ -133,7 +158,7 @@ structurally.
 
 `EngineBootstrap.FromDriver` and `EngineBootstrap.fromDriver()` were introduced in Phase 1
 so `VOID.start()` could pass a pre-built driver into the factory without creating a second
-browser. `RuntimeBuilder.start()` calls `EngineBootstrap.fromProfile()` directly. The
+browser. `VOIDBuilder.start()` calls `EngineBootstrap.fromProfile()` directly. The
 `FromDriver` path has no remaining caller and is deleted in this phase.
 
 **`EngineBootstrap.java` -- remove `FromDriver`:**
@@ -313,36 +338,15 @@ public void shutdown() {
 
 ---
 
-## `DriverManager.createDriver()` -- mark deprecated
-
-`DriverManager.createDriver()` is no longer called by `VOID` or `RuntimeBuilder`. It may
-still be called by tests or utilities that construct a `WebDriver` directly. Mark it deprecated:
-
-```java
-/**
- * @deprecated Since 0.3 -- {@code VOID} no longer uses this method.
- *             Use {@code VOID.builder().profile(profile).start()} to start a managed session.
- *             Direct callers should construct a {@link SeleniumEngine} explicitly.
- */
-@Deprecated(since = "0.3")
-public static WebDriver createDriver(DriverFactory.Profile profile) { ... }
-```
-
-`DriverManager.java` is not deleted -- its other methods (`quitAll`, `quitPrimary`) may
-still be useful to direct Selenium users. Deletion is a separate workstream.
-
----
-
 ## Files changed
 
 | File                                         | Change                                                                                                          |
 |----------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
 | `core/runtime/VOID.java`                     | Add `builder()` factory method; `start(Profile)` deprecated (delegates to builder); field `ExecutionContext` -> `SessionContext`; `shutdown()` removes `DriverContext` call; `getDriver()` re-routes through engine |
-| `core/runtime/RuntimeBuilder.java`           | **NEW** -- fluent builder: `engine()`, `profile()`, `start()`                                                   |
+| `core/runtime/VOIDBuilder.java`           | **NEW** -- fluent builder: `engine()`, `profile()`, `start()`; single-use guard                                 |
 | `core/engine/EngineBootstrap.java`           | Delete `FromDriver` record and `fromDriver()` static method; `sealed permits` reduced to `FromProfile` only    |
 | `core/engine/UIEngineFactory.java`           | Inner switch simplified: `FromDriver` case removed; single `FromProfile` case remains                           |
-| `core/engine/selenium/SeleniumEngine.java`   | `shutdown()` adds `DriverContext.removePrimary()` in `finally`                                                  |
-| `core/driver/DriverManager.java`             | `createDriver()` marked `@Deprecated(since = "0.3")`                                                           |
+| `core/engine/selenium/SeleniumEngine.java`   | Add `public static final String ID = "selenium"`; `shutdown()` adds `DriverContext.removePrimary()` in `finally` |
 | `core/context/ExecutionContext.java`         | Class marked `@Deprecated(since = "0.2")`                                                                       |
 
 ---
@@ -350,7 +354,7 @@ still be useful to direct Selenium users. Deletion is a separate workstream.
 ## Commits
 
 ```
-feat(runtime): introduce RuntimeBuilder; VOID.builder() replaces VOID.start(Profile)
+feat(runtime): introduce VOIDBuilder; VOID.builder() replaces VOID.start(Profile)
 refactor(engine): delete EngineBootstrap.FromDriver; simplify UIEngineFactory inner switch
 refactor(runtime): replace ExecutionContext with SessionContext in VOID; invert startup order
 refactor(runtime): VOID.shutdown() delegates DriverContext cleanup to SeleniumEngine
