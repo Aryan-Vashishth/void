@@ -11,7 +11,7 @@ Plan to remove the direct Selenium bootstrap coupling from VOID's startup path, 
 | Phase | File | Summary |
 |---|---|---|
 | 1 | `phase-1-factory-contract.md` | Establish `UIEngineFactory` contract and registration API |
-| 2 | `phase-2-void-startup.md` | Decouple `VOID.start()` from `SeleniumEngine` direct instantiation |
+| 2 | `phase-2-void-startup.md` | Introduce `VOID.builder()`; invert startup order; wire `SessionContext` |
 | 3 | `phase-3-interactions-cleanup.md` | Remove legacy `Interactions` engine dependency |
 | 4 | `phase-4-bootstrap-cleanup.md` | Clean up `FrameworkBootstrap` Selenium-specific wiring |
 

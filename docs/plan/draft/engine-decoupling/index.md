@@ -123,6 +123,8 @@ feat(engine): add SeleniumEngine(Profile) constructor; initialize() creates driv
 refactor(engine): replace WebDriver factory parameter with EngineBootstrap
 
 # Phase 2
+feat(runtime): introduce RuntimeBuilder; VOID.builder() replaces VOID.start(Profile)
+refactor(engine): delete EngineBootstrap.FromDriver; simplify UIEngineFactory inner switch
 refactor(runtime): replace ExecutionContext with SessionContext in VOID; invert startup order
 refactor(runtime): VOID.shutdown() delegates DriverContext cleanup to SeleniumEngine
 
