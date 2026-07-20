@@ -237,6 +237,8 @@ extension.
 
 `Action.java` checks the runtime type of `this` to decide behavior:
 
+##### Examples
+
 ```java
 // core/actions/Action.java -- P1 violation (4 sites)
 default Action before(@Nullable BeforeActionHandler... hooks) {
@@ -278,6 +280,8 @@ method (`mergeHooks`) that `Action.before()` calls directly, with no type check 
 
 `UIEngineFactory.java` selects an engine implementation by comparing a string:
 
+##### Examples
+
 ```java
 // core/engine/UIEngineFactory.java -- P8 violation
 UIEngine engine = switch (engineName) {
@@ -303,6 +307,8 @@ Registering a new engine adds an entry without modifying the factory body.
 
 `HookChainAction.java` derives an operation label by switching on `ActionCapability`:
 
+##### Examples
+
 ```java
 // core/actions/HookChainAction.java -- P3 violation
 @Override
@@ -326,6 +332,8 @@ capability interface should provide it. The switch disappears.
 
 `Clickable.java` uses no type checks. Behavior is declared directly on the interface:
 
+##### Example
+
 ```java
 // elements/api/capability/Clickable.java -- correct OCP pattern
 public interface Clickable extends Element, ActionCapabilityProvider {
@@ -346,6 +354,8 @@ or relies on a runtime cast that only works for specific implementors.
 #### Violation: unguarded (Enum<?>) this cast (P5)
 
 `Element.java` default methods cast `this` to `Enum<?>` without verifying the type:
+
+##### Examples
 
 ```java
 // elements/api/Element.java -- P5 violation (4 sites)
@@ -374,6 +384,8 @@ one place and is accompanied by documentation of the invariant it assumes.
 
 `HookChainAction.java` checks whether its delegate satisfies a secondary interface before
 calling a method:
+
+##### Examples
 
 ```java
 // core/actions/HookChainAction.java -- P4 violation
@@ -404,6 +416,8 @@ is too broad.
 `ActionLabeled` is a package-private interface with exactly two methods, both used by every
 implementor:
 
+##### Example
+
 ```java
 // core/actions/ActionLabeled.java -- correct ISP (narrow, focused)
 interface ActionLabeled {
@@ -418,6 +432,8 @@ declares only the methods relevant to that one capability.
 #### Violation: Via grows per capability (P11)
 
 `Via.java` has a static cast helper for every capability interface -- currently eight:
+
+##### Examples
 
 ```java
 // core/interactions/Via.java -- P11 violation (grows with every new capability)
@@ -451,6 +467,8 @@ configures logging changes for two unrelated reasons.
 Before engine decoupling Phase 4, `FrameworkBootstrap.java` suppressed the Selenium JUL
 logger unconditionally:
 
+##### Examples
+
 ```java
 // FrameworkBootstrap.java (pre-decoupling) -- SRP violation
 public static void init() {
@@ -473,6 +491,8 @@ High-level modules must not depend on low-level modules. Both should depend on a
 
 #### Correct pattern: VOID depends on UIEngine, not SeleniumEngine
 
+##### Example
+
 ```java
 // core/runtime/VOID.java -- correct DIP
 private final UIEngine engine;         // depends on the abstraction
@@ -487,6 +507,8 @@ public void shutdown() {
 
 Before engine decoupling Phase 3, `Interactions(UIEngine)` cast the native driver to a
 Selenium-specific type:
+
+##### Examples
 
 ```java
 // core/interactions/Interactions.java (pre-Phase-3) -- DIP violation
