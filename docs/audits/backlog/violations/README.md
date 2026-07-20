@@ -21,3 +21,7 @@ the remediation plan directly.
 | [i1-tablehandler-direct-webdriver-calls.md](i1-tablehandler-direct-webdriver-calls.md) | ADR-007 | `core/utils/web/TableHandler.java` | High |
 | [i1-waitutils-direct-webdriver-calls.md](i1-waitutils-direct-webdriver-calls.md) | ADR-007, ADR-018 | `core/utils/web/WaitUtils.java` | High |
 | [oop-driverfactory-instanceof-preference-dispatch.md](oop-driverfactory-instanceof-preference-dispatch.md) | OCP | `core/driver/DriverFactory.java:722` | Low |
+| [waitutils-waitforcondition-selenium-webdriver-param.md](waitutils-waitforcondition-selenium-webdriver-param.md) | ADR-007 | `core/utils/web/WaitUtils.java:71` | Low |
+| [waitutils-waitforcondition-internal-webdriver-coupling.md](waitutils-waitforcondition-internal-webdriver-coupling.md) | ADR-007 (internal) | `core/utils/web/WaitUtils.java:110` | Very Low |
+| [waiter-returns-webdriverwait.md](waiter-returns-webdriverwait.md) | ADR-007 | `core/driver/Waiter.java` | Medium |
+| [uiengine-sendkeys-javadoc-selenium-reference.md](uiengine-sendkeys-javadoc-selenium-reference.md) | ADR-018 (doc) | `core/engine/UIEngine.java:357` | Very Low |
