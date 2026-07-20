@@ -17,4 +17,7 @@ the remediation plan directly.
 
 | File | Principle | Area | Risk |
 |---|---|---|---|
-| *(none yet)* | | | |
+| [i1-domutils-direct-webdriver-calls.md](i1-domutils-direct-webdriver-calls.md) | ADR-007 | `core/utils/web/DOMUtils.java` | High |
+| [i1-tablehandler-direct-webdriver-calls.md](i1-tablehandler-direct-webdriver-calls.md) | ADR-007 | `core/utils/web/TableHandler.java` | High |
+| [i1-waitutils-direct-webdriver-calls.md](i1-waitutils-direct-webdriver-calls.md) | ADR-007, ADR-018 | `core/utils/web/WaitUtils.java` | High |
+| [oop-driverfactory-instanceof-preference-dispatch.md](oop-driverfactory-instanceof-preference-dispatch.md) | OCP | `core/driver/DriverFactory.java:722` | Low |
