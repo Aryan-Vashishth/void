@@ -530,7 +530,10 @@ public final class SeleniumEngine implements UIEngine {
      *
      * @param by Selenium By locator
      * @return equivalent LocatorDescriptor
+     * @deprecated Use {@link core.bridge.selenium.SeleniumLocatorBridge#fromBy(By)} instead.
+     *             Will be removed with the {@code By}/{@code WebElement} deprecated API workstream.
      */
+    @Deprecated(forRemoval = true)
     public static LocatorDescriptor fromBy(By by) {
         String byString = by.toString();
         if (byString.startsWith("By.xpath:")) {
