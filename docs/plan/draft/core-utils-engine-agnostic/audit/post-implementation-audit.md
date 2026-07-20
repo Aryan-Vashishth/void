@@ -3,7 +3,7 @@
 **Date:** 2026-07-20
 **Branch:** `initiative/core-utils-engine-agnostic`
 **Auditing ADRs:** ADR-007 (UIEngine execution authority), ADR-018 (engine-agnostic layers)
-**Verdict:** CONDITIONAL PASS -- one hotfix required before merge
+**Verdict:** PASS -- initiative scope fully addressed; backlog entries required for pre-existing gaps
 
 ---
 
@@ -23,7 +23,7 @@
 
 | Invariant | Status | Notes |
 |---|---|---|
-| UIEngine is the single execution authority (ADR-007) | **Partial** -- see F1 | All initiative-scoped violations addressed. One pre-existing gap surfaced (see F1). |
+| UIEngine is the single execution authority (ADR-007) | **Pass** | All three scoped violations (I1-A, I1-B, I1-C) fully addressed. Pre-existing gaps found in audit logged to backlog (F1, F3) -- not introduced or worsened by this initiative. |
 | Engine-agnostic layers are Selenium-free (ADR-018) | Pass | DOMUtils/WaitUtils/TableHandler are all deprecated and contain no new Selenium introductions. |
 | LocatorDescriptor is Selenium-free (ADR-019) | Pass | No new `By` fields on LocatorDescriptor. |
 | ElementSupport scope frozen (ADR-017) | Pass | Not touched. |
@@ -41,7 +41,7 @@ No call sites outside `CommonStepDef.java` were found for the deprecated utiliti
 
 ## Findings
 
-### F1 -- WaitUtils.waitForCondition(WebDriver, ...) is public and non-deprecated [Hotfix required]
+### F1 -- WaitUtils.waitForCondition(WebDriver, ...) is public and non-deprecated [Backlog]
 
 **File:** `WaitUtils.java:71`
 
@@ -56,15 +56,9 @@ public static <T> T waitForCondition(
         String conditionLabel)
 ```
 
-This method is public, non-deprecated, and accepts `WebDriver`, `ExpectedCondition<T>`, and `By` -- all Selenium-specific types. It exposes Selenium API outside `UIEngine` implementations, violating ADR-007.
+Public, non-deprecated, and accepts `WebDriver`, `ExpectedCondition<T>`, and `By` -- all Selenium-specific types. Pre-existing gap: it was not in the I1-C violation map, was not introduced by this initiative, and was not worsened. Current callers are `DOMUtils.switchToFrame()` (deprecated) and WaitUtils deprecated internal methods only -- no live non-deprecated callers.
 
-Current callers: `DOMUtils.switchToFrame()` (deprecated) and WaitUtils deprecated internal methods only. No live non-deprecated callers. Risk is low today but grows with new test code that can reach this method.
-
-**Fix:** `@Deprecated(forRemoval = true)` with Javadoc pointing callers to:
-- `waitForCondition(String, Duration, Duration, Supplier<Boolean>)` for engine-agnostic condition checks
-- UIEngine wait methods for element-specific waits
-
-**Cost:** Minimal -- annotation + one-line Javadoc.
+**Action:** Log to `docs/audits/backlog/violations/`. Minimal fix when addressed: `@Deprecated(forRemoval = true)` with Javadoc pointing to `waitForCondition(String, Duration, Duration, Supplier<Boolean>)` or UIEngine wait methods.
 
 ---
 
@@ -90,15 +84,13 @@ Returns `WebDriverWait` (Selenium type) from two public non-deprecated methods. 
 
 ---
 
-### F4 -- UIEngine.sendKeys(CharSequence...) Javadoc references Keys.ESCAPE [Minor / inline fix]
+### F4 -- UIEngine.sendKeys(CharSequence...) Javadoc references Keys.ESCAPE [Backlog / minor]
 
 **File:** `UIEngine.java:357`
 
-The `@param` example references `Keys.ESCAPE` and `Keys.TAB` -- both Selenium types -- in the interface-level Javadoc. `UIEngine` is meant to be engine-agnostic; its documentation should not reference Selenium constants.
+The `@param` example references `Keys.ESCAPE` and `Keys.TAB` -- both Selenium types -- in the interface-level Javadoc. `UIEngine` is engine-agnostic; its documentation should not reference Selenium constants. Not a compile issue; purely a doc purity concern.
 
-**Fix:** Replace the Javadoc example with a plain description (e.g., `"ESCAPE, TAB, or any key sequence"`).
-
-**Cost:** One-line Javadoc edit. Can be done inline in the hotfix commit.
+**Action:** Log to `docs/audits/backlog/violations/`. Fix: replace the example with a plain description.
 
 ---
 
@@ -115,13 +107,8 @@ The `@param` example references `Keys.ESCAPE` and `Keys.TAB` -- both Selenium ty
 
 ## Recommendation
 
-Open `hotfix/core-utils-engine-agnostic-final-audit` to address:
+Log F1, F2, F3, and F4 to `docs/audits/backlog/violations/` (one file each). All are pre-existing gaps not introduced or worsened by this initiative.
 
-1. **F1:** Deprecate `WaitUtils.waitForCondition(WebDriver, ExpectedCondition<T>, By, ...)` with pointing Javadoc.
-2. **F4:** Clean up UIEngine.sendKeys Javadoc to remove the Selenium-specific example.
-
-Log F2 and F3 to `docs/audits/backlog/violations/` (one file each).
-
-After the hotfix, this initiative is clear for:
+This initiative is clear for:
 - ADR authoring (`docs/decisions/pending-review/`)
 - Merge to `main`
