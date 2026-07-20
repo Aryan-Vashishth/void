@@ -14,26 +14,21 @@ import static core.logging.CustomLogger.error;
 /**
  * Static DOM manipulation utilities for Selenium {@link org.openqa.selenium.WebDriver}.
  *
- * <p>Provides JavaScript-powered helpers for scrolling, hovering, highlighting,
- * and low-level DOM inspection. All methods obtain the active driver from
- * {@link core.driver.DriverContext} — no instance needed.</p>
- *
- * <p>Typical usage from hooks or interaction helpers:
- * <pre>
- *   DOMUtils.scrollToElement(element);
- *   DOMUtils.hoverOnElement(element);
- * </pre>
- *
- * @see core.utils.web.WaitUtils
- * @see core.driver.DriverContext
+ * @deprecated All operations in this class are available as engine-agnostic methods on
+ *             {@link core.engine.UIEngine}: {@code scrollTo}, {@code hover},
+ *             {@code switchToFrame}, {@code switchToDefaultContent}, {@code sendKeys}.
+ *             This class will be removed once all callers migrate to the engine API.
+ * @see core.engine.UIEngine
  */
+@Deprecated(forRemoval = true)
 public class DOMUtils {
 
     private DOMUtils() { /* static utility */ }
 
     /**
-     * Scrolls to a WebElement using JavaScript scrollIntoView.
+     * @deprecated Use {@link core.engine.UIEngine#scrollTo(core.engine.LocatorDescriptor)} instead.
      */
+    @Deprecated(forRemoval = true)
     public static void scrollToElement(WebElement element) {
         try {
             WebDriver driver = DriverContext.getDriver();
@@ -48,8 +43,9 @@ public class DOMUtils {
     }
 
     /**
-     * Hovers over a WebElement using Selenium Actions class.
+     * @deprecated Use {@link core.engine.UIEngine#hover(core.engine.LocatorDescriptor)} instead.
      */
+    @Deprecated(forRemoval = true)
     public static void hoverOnElement(WebElement element) {
         debug.log("Attempting to hover on element: " + element);
         try {
@@ -65,8 +61,9 @@ public class DOMUtils {
     }
 
     /**
-     * Switches into an iframe using its locator after waiting for visibility.
+     * @deprecated Use {@link core.engine.UIEngine#switchToFrame(core.engine.LocatorDescriptor)} instead.
      */
+    @Deprecated(forRemoval = true)
     public static void switchToFrame(By iframeLocator) {
         try {
             WebDriver driver = DriverContext.getDriver();
@@ -117,8 +114,9 @@ public class DOMUtils {
     }
 
     /**
-     * Switches back to the main/default frame.
+     * @deprecated Use {@link core.engine.UIEngine#switchToDefaultContent()} instead.
      */
+    @Deprecated(forRemoval = true)
     public static void switchToDefaultContent() {
         try {
             WebDriver driver = DriverContext.getDriver();
@@ -130,6 +128,10 @@ public class DOMUtils {
         }
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#sendKeys(CharSequence...)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void sendKey(Keys key) {
         try {
             WebDriver driver = DriverContext.getDriver();
@@ -143,8 +145,9 @@ public class DOMUtils {
     }
 
     /**
-     * Sends the ESCAPE key using Selenium Actions to close overlays, popups, or modals.
+     * @deprecated Use {@code engine.sendKeys(Keys.ESCAPE)} via {@link core.engine.UIEngine#sendKeys(CharSequence...)} instead.
      */
+    @Deprecated(forRemoval = true)
     public static void sendEscapeKey() {
         sendKey(Keys.ESCAPE);
     }

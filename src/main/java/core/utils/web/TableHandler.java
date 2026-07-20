@@ -2,6 +2,8 @@ package core.utils.web;
 
 import elements.api.capability.ReadOnly;
 import core.driver.DriverContext;
+import core.engine.LocatorDescriptor;
+import core.engine.selenium.SeleniumEngine;
 import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
 import org.openqa.selenium.WebDriver;
@@ -21,17 +23,13 @@ import static core.logging.CustomLogger.error;
 /**
  * Static utility for reading and manipulating HTML tables via Selenium.
  *
- * <p>Provides helpers for mapping table headers to column indices, reading row/cell
- * values, and inserting data into editable table footers. Works with both
- * {@link elements.api.capability.Table} and the simplified {@link TableElementV1}
- * contract defined below.</p>
- *
- * <p>Locator resolution uses {@link core.resolvers.locator.api.LocatorResolvers}
- * to look up header, row, and cell locators from external files.</p>
- *
- * @see elements.api.capability.Table
- * @see elements.api.capability.EditableTable
+ * @deprecated All methods in this class access {@link org.openqa.selenium.WebDriver} directly,
+ *             violating ADR-007. Table operations should be performed through
+ *             {@link core.engine.UIEngine} methods. This class will be removed once
+ *             engine-agnostic table access is available on UIEngine.
+ * @see core.engine.UIEngine
  */
+@Deprecated(forRemoval = true)
 public class TableHandler {
 
     private TableHandler() { /* static utility */ }
@@ -45,15 +43,15 @@ public class TableHandler {
     }
 
     /**
-     * Inserts one row of data into a dynamic table footer by mapping headers to values.
-     *
-     * @param fieldNameToValue Map of header names to values
-     * @param tableElement     Table element enum used for locating headers/inputs
+     * @deprecated Accesses WebDriver directly in violation of ADR-007.
+     *             Migrate to UIEngine-based table operations when available.
      */
+    @Deprecated(forRemoval = true)
     public static void insertRowInTable(Map<String, String> fieldNameToValue, TableElementV1 tableElement) {
         try {
             WebDriver driver = DriverContext.getDriver();
-            By headersBy = LocatorResolvers.strict().resolve(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
+            LocatorDescriptor headersDescriptor = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
+            By headersBy = SeleniumEngine.toBy(headersDescriptor);
             List<WebElement> headers = driver.findElements(headersBy);
             List<String> headerNames = new ArrayList<>();
             for (WebElement header : headers) headerNames.add(header.getText().trim());
@@ -76,10 +74,16 @@ public class TableHandler {
     }
 
 
+    /**
+     * @deprecated Accesses WebDriver directly in violation of ADR-007.
+     *             Migrate to UIEngine-based table operations when available.
+     */
+    @Deprecated(forRemoval = true)
     public static List<String> getColumnHeaders(TableElementV1 tableElement) {
         try {
             WebDriver driver = DriverContext.getDriver();
-            By headerBy = LocatorResolvers.strict().resolve(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
+            LocatorDescriptor headerDescriptor = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
+            By headerBy = SeleniumEngine.toBy(headerDescriptor);
             List<WebElement> headerElements = driver.findElements(headerBy);
             List<String> headers = new ArrayList<>();
             for (WebElement header : headerElements) {
@@ -94,6 +98,11 @@ public class TableHandler {
         }
     }
 
+    /**
+     * @deprecated Accesses WebDriver directly in violation of ADR-007.
+     *             Migrate to UIEngine-based table operations when available.
+     */
+    @Deprecated(forRemoval = true)
     public static List<Map<String, String>> getRow(
             TableElementV1 tableElement,
             Integer rowNumber,
@@ -104,7 +113,8 @@ public class TableHandler {
             WebDriver driver = DriverContext.getDriver();
             int startIndex = (rowNumber == null) ? 0 : rowNumber - 1;
             List<String> headers = getColumnHeaders(tableElement);
-            By rowsBy = LocatorResolvers.strict().resolve(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getRowLocator()));
+            LocatorDescriptor rowsDescriptor = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getRowLocator()));
+            By rowsBy = SeleniumEngine.toBy(rowsDescriptor);
             List<WebElement> rows = driver.findElements(rowsBy);
             if (rows.isEmpty()) throw new RuntimeException("No rows found for table: " + tableElement.getDisplayText());
             List<Map<String, String>> rowDataList = new ArrayList<>();

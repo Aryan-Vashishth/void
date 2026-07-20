@@ -31,6 +31,9 @@ Hotfix Initiative         (if audit finds problems: hotfix/<initiative>-final-au
 Architecture Decision     (docs/decisions/pending-review/)
         |
         v
+Move Plan to Done         (docs/plan/draft/ → docs/plan/done/; committed on initiative branch)
+        |
+        v
 Merge to main
 ```
 
@@ -43,6 +46,7 @@ Merge to main
 | Full-System Audit | After all phases, audit the initiative as a coherent system |
 | Hotfix Initiative | If the full-system audit finds integration issues, address them on a scoped hotfix branch |
 | Architecture Decision | Record the decision in `docs/decisions/pending-review/` after implementation and review |
+| Move Plan to Done | Move `docs/plan/draft/<initiative>/` to `docs/plan/done/` as a commit on the initiative branch, before merging to main |
 
 ---
 
@@ -51,7 +55,8 @@ Merge to main
 - Audit before implementation. When a significant architectural change is requested, start
   with an audit document in `docs/plan/draft/<initiative>/audit/`.
 - Write the plan before writing code. Phases live in `docs/plan/draft/<initiative>/`.
-  Move to `docs/plan/done/` when all phases are merged.
+  Move to `docs/plan/done/` after the ADR is written and before merging to main. The move
+  is a commit on the initiative branch -- it arrives in `main` as part of the merge.
 - One commit per phase step. Never mix changes from two phases in a single commit.
 - Each phase must compile and pass `mvn compile -q` before the next phase begins.
 - ADRs go in `docs/decisions/pending-review/` after implementation; move to
@@ -102,6 +107,7 @@ An initiative is merged to `main` only when:
 - The full-system audit has been conducted and any findings addressed.
 - No architectural violations remain from the original violation map.
 - ADRs are written and placed in `docs/decisions/pending-review/`.
+- Plan directory moved from `docs/plan/draft/` to `docs/plan/done/` (as a commit on the branch).
 
 `main` receives only production-ready architectural changes.
 

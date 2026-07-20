@@ -338,6 +338,26 @@ public interface UIEngine {
      */
     void hover(LocatorDescriptor locator);
 
+    /**
+     * Switches the browser context into the iframe identified by the locator.
+     *
+     * @param locator descriptor for the iframe element
+     */
+    void switchToFrame(LocatorDescriptor locator);
+
+    /**
+     * Switches the browser context back to the top-level document.
+     */
+    void switchToDefaultContent();
+
+    /**
+     * Sends one or more keys globally (not targeted at a specific element).
+     * Useful for keyboard shortcuts, ESCAPE, TAB, arrow navigation, etc.
+     *
+     * @param keys keys to send (e.g., {@code Keys.ESCAPE}, {@code Keys.TAB})
+     */
+    void sendKeys(CharSequence... keys);
+
     // ─────────────────────────────────────────────────────────────────────
     // CONTEXT / ESCAPE HATCH
     // ─────────────────────────────────────────────────────────────────────
