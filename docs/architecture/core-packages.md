@@ -358,7 +358,7 @@ VOID.start()
 |---------|---------|---------|
 | `data` | `DataGenerator`, `DataVerifier` | Test data generation and verification |
 | `io` | `FileUtils`, `JsonReader`, `JsonLogger`, `PropertiesReader` | File I/O and format readers |
-| `web` | `DOMUtils`, `WaitUtils`, `TableHandler`, `KeyValuePairHandler`, `Upload` | Browser/DOM utilities |
+| `web` | `KeyValuePairHandler`, `Upload`; `DOMUtils` *(deprecated)*, `WaitUtils` *(By-based API deprecated)*, `TableHandler` *(deprecated)* | Browser/DOM utilities -- deprecated classes migrated to `UIEngine` |
 
 ---
 

@@ -359,10 +359,10 @@ Each hook should do **one thing**. Combine them in lists rather than building me
 List.of(Before.WAIT_FOR_ANGULAR_LOADER, Before.SCROLL_TO_ELEMENT, Before.HIGHLIGHT_ELEMENT)
 
 // ❌ Bad — monolithic, not reusable
-List.of(driver -> {
-    WaitUtils.resolveAngularLoader();
-    DOMUtils.scrollToElement(UIContext.getLastElement());
-    DOMUtils.highlightElement(UIContext.getLastElement());
+List.of((engine, descriptor) -> {
+    engine.waitForOverlay(Duration.ofSeconds(5));
+    engine.scrollTo(descriptor);
+    engine.highlight(descriptor, "blue");
 })
 ```
 

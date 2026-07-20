@@ -138,6 +138,7 @@ Element → Interactions (frozen orchestrator) → UIEngine (execution)
 - Handles scroll, waits, retries, and fallback internally
 - Each engine (Selenium, Playwright) provides its own implementation
 - Callers must NOT perform scroll, waits, or direct execution
+- Advanced operations: `switchToFrame`, `switchToDefaultContent`, `sendKeys` (global key dispatch), `executeScript`, `hover`, `scrollTo`, `highlight`, `uploadFile`
 
 ---
 
@@ -171,9 +172,9 @@ Element → Interactions (frozen orchestrator) → UIEngine (execution)
 
 | Utility | Description |
 |---|---|
-| `DOMUtils` | JS scroll-to-element, highlight, DOM manipulation. |
-| `WaitUtils` | Fluent waits, Angular CDK overlay stabilisation, flicker detection. |
-| `TableHandler` | Table row/cell read and navigation helpers. |
+| `DOMUtils` | *(deprecated -- use `UIEngine.scrollTo`, `UIEngine.hover`, `UIEngine.switchToFrame`, `UIEngine.switchToDefaultContent`, `UIEngine.sendKeys`)* |
+| `WaitUtils` | Fluent waits and loader stabilisation. By-based public API deprecated -- use `UIEngine.waitForVisible`, `UIEngine.waitForAbsence`, `UIEngine.waitForClickable`, `UIEngine.waitForOverlay`. Internal condition-wait utilities remain. |
+| `TableHandler` | *(deprecated -- no UIEngine table-read API yet; deferred until active callers drive the design)* |
 | `KeyValuePairHandler` | Key-value pair interaction utilities. |
 | `Upload` | File upload support. |
 | `ConfigLoader` | Hierarchical config: System → ENV → classpath → defaults. |
