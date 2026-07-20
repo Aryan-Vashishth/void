@@ -1,5 +1,11 @@
 # OOP Violations Remediation
 
+> **Coordination note (2026-07-20)**: Phases 1-3 are an independent prerequisite of
+> [`../runtime-redesign/`](../runtime-redesign/index.md) and proceed unchanged.
+> From Phase 4: **P8 is absorbed** by runtime-redesign phase 4.1 (engine registry)
+> and **P11 by phase 9.3** (Via deletion) -- do not implement them here. P9 remains
+> owned by this initiative.
+
 Identified: 2026-07-15 interface audit.
 Supersedes: `action-layer-ocp-violations.md` (covered P1/P3/P4/P6/P7 as an earlier partial draft — fully absorbed here).
 Branch target: `initiative/oop-violations-remediation`

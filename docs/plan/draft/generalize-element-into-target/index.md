@@ -1,5 +1,10 @@
 # Generalize Element into Target
 
+> **MERGED (2026-07-20)** into [`../runtime-redesign/`](../runtime-redesign/index.md)
+> as Initiative I1 (phases 1.1-1.3 of this draft are lifted verbatim; a new phase 1.4
+> is added there). The phase docs below remain the authoritative implementation text
+> and are consumed when I1 activates. Track status in runtime-redesign.
+
 Identified: 2026-07-20 post-engine-decoupling domain model audit.
 Branch target: cut from `initiative/engine-decoupling` once merged.
 
