@@ -5,6 +5,33 @@ requires: descriptions vs occurrences, one-or-more subjects, and an explicit Res
 contract. The vocabulary reclaim (Action -> Interaction naming) is planned here but
 executes with I9 because the name is occupied.
 
+## Program context
+
+**Why this initiative exists.** I1-I7 change where things live and what types
+edges carry; none of them change what an interaction *means*. The ontology's
+three semantic tightenings (O2 description vs occurrence, O3 multi-subject
+binding, O5 results) are what make the kernel's central concept able to model
+real domains: without occurrences there is nothing for retries and traces to
+attach to, without multi-subject binding drag-and-drop and cross-table joins are
+unrepresentable, and without a Result contract every reading operation smuggles
+its value out of band.
+
+**Why it is sequenced here.** Semantics land last among model changes,
+deliberately: occurrence identity is minted at the neutral dispatch edge (I4)
+with session identity in it (I5), so defining occurrence semantics earlier would
+mean defining them against structure that was about to move.
+
+**What architectural boundary it owns.** The meaning of the kernel's intent
+concept: what is immutable description, what is execution occurrence, what may be
+a subject, what may be yielded.
+
+**What it deliberately does not own.** Inter-step dataflow (piping one
+interaction's result into the next turns Flow into a language -- out of scope
+until demanded); streaming and continuous-control semantics (the ontology's
+declared scope limit, O9); and the rename itself -- 8.3 only produces the mapping
+table, because executing it before 9.3 frees the Interaction name would put two
+meanings of the framework's central noun in one codebase.
+
 ---
 
 ## Phase 8.1 -- Description / occurrence split

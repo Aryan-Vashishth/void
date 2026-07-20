@@ -4,6 +4,30 @@ Objective: capabilities become an open, declarative vocabulary owned by domains;
 the runtime validates against them as opaque requirements; no silent fallback
 behavior remains.
 
+## Program context
+
+**Why this initiative exists.** Capability is the ontology's only coupling point
+between intent and subject (invariant I6) and its one non-observable concept --
+which makes it the easiest to get quietly wrong. Today it is quietly wrong twice:
+a closed enum forces runtime edits for every new domain (audit D18, the June
+audit's "what cracks first"), and the UNKNOWN fallback silently applies browser
+wait hooks to actions the runtime does not understand.
+
+**Why it is sequenced here.** After I2 because the capability types must have
+their final home before the set is opened, and after oop-remediation P3/P7
+because opening a surface that another initiative is still reshaping guarantees
+conflicts. Before I4.4 and I6.3 because validation at the neutral edge and the
+probe domain both consume the open set.
+
+**What architectural boundary it owns.** The capability vocabulary line: openness
+(I11), declarative-only status (I4 of the ontology invariants), and explicit
+rather than silent profile selection.
+
+**What it deliberately does not own.** Generalizing the emission mechanism (UI
+capability interfaces manufacturing actions is UI-side API sugar; touching it
+without a second domain's requirements is speculation), and the implementation
+mechanics of validation timing beyond AD3's decided posture.
+
 ---
 
 ## Phase 3.1 -- Open the capability set

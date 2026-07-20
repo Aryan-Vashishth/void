@@ -4,6 +4,33 @@ Objective: the engine contract is sealed against its implementations and against
 driver infrastructure; a neutral execution-owner contract (name per ADR-021/AD2)
 sits above UIEngine; kernel edges are retyped against it with bridged compatibility.
 
+## Program context
+
+**Why this initiative exists.** The execution seam is the reason the ontology
+review happened: execution ownership was the five-concept model's orphaned
+responsibility (O1), and in code the seam is soft in both directions -- the
+contract package depends on its Selenium implementation and on driver
+infrastructure (audit D2, D3), and the kernel's central signature names the UI
+domain (`perform(UIEngine)`). Every promise the word "runtime" makes routes
+through this initiative.
+
+**Why it is sequenced here.** It needs I2's kernel purity (so the neutral contract
+has a clean place to sit) and I3's capability contracts (so dispatch validation
+has neutral types to reference). It unblocks everything downstream: sessions bind
+execution owners (I5), domains ship them (I6), and the descriptor can only leave
+the neutral edge once that edge exists (7.2).
+
+**What architectural boundary it owns.** Two lines: contract vs implementation
+(engine registry, bootstrap decoupling, driver re-homing) and the kernel's
+execution-facing edge (the retyped signatures). Phase 4.3 carries the roadmap's
+single highest architectural risk -- one UI method on the neutral contract poisons
+neutrality permanently -- and that risk is owned here, nowhere else.
+
+**What it deliberately does not own.** Session lifecycle (I5), domain
+registration (I6), and the deaths of the bridges it creates (9.4). It never
+promotes a UIEngine method to the neutral contract speculatively: promotion
+requires a second domain's demand (extension before modification).
+
 ---
 
 ## Phase 4.1 -- Engine registry (absorbs oop-remediation P8; from superseded runtime-kernel-boundary phase 2, part 1)

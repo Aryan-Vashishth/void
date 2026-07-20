@@ -5,6 +5,32 @@ registration contract, the Web domain assembled as its first instance, and a
 standing machine-checked proof that a new domain integrates with zero runtime
 modification.
 
+## Program context
+
+**Why this initiative exists.** Domain is the ontology's extension unit, and
+"extensibility without modifying the runtime" is the roadmap's headline claim --
+but a claim with no registration seam and no second instance is a slogan. This
+initiative gives the claim a mechanism (6.1), a first real occupant (6.2, the Web
+domain), and a permanent falsifier (6.3, the probe): after M4 the claim is a CI
+check, not a sentence in a README.
+
+**Why it is sequenced here.** It consumes nearly everything before it: open
+capabilities (I3), neutral dispatch (I4), neutral bootstrap (I5). Sequencing it
+earlier would force the registration contract to be designed against surfaces
+still in motion; sequencing it later would delay the M4 gate that tells us the
+preceding five initiatives actually worked.
+
+**What architectural boundary it owns.** The runtime/extension boundary: how a
+domain announces its vocabulary and execution owners, and the standing proof that
+crossing that boundary requires no runtime edits (ontology invariants I1, I2).
+
+**What it deliberately does not own.** Any production second domain -- REST or CLI
+built for real would double the roadmap (cross-initiative risk #7) and becomes its
+own initiative after M4. No plugin-discovery machinery (classloaders, SPI, module
+scanning): explicit registration only, until a real ecosystem demands more. And no
+web-domain content -- everything it registers in 6.2 was moved by earlier
+initiatives; 6.2 is wiring, not migration.
+
 ---
 
 ## Phase 6.1 -- Domain registration contract

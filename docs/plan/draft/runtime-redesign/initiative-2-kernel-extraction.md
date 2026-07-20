@@ -4,6 +4,29 @@ Objective: the interaction kernel (Action, Flow, FlowExecutor, ActionProfile, ho
 trace) becomes physically separable: no imports from the legacy zone, no imports
 from the UI element model, and its boundary is machine-enforced.
 
+## Program context
+
+**Why this initiative exists.** The kernel is the product the whole roadmap
+exists to extract, and today its boundary runs invisibly through the middle of
+`core.actions` (audit Part I): neutral contracts, 17 UI actions, and deprecated
+remnants share one package, the kernel imports through the deprecated legacy zone
+(D4), and it is mutually dependent with the UI element model (D1). Until the
+kernel is physically separable, "domain-neutral runtime" has no referent in code.
+
+**Why it is sequenced here.** After I1 because the cycle break needs Target to
+exist; before I3 and I4 because opening the capability set or retyping execution
+edges against a package still mixing three populations would build on sand and
+force rework.
+
+**What architectural boundary it owns.** The kernel package boundary itself: the
+ADR-021 membership list made physical, and the kernel-purity fitness group that
+makes D1 and D4 unrecurrable.
+
+**What it deliberately does not own.** The semantics of kernel types (occurrence,
+subjects, results are I8), the execution seam (I4), and the meaning of
+capabilities (I3). It relocates and severs; it changes no behavior and no
+contracts.
+
 ---
 
 ## Phase 2.1 -- Hooks ownership (from superseded runtime-kernel-boundary phase 3)

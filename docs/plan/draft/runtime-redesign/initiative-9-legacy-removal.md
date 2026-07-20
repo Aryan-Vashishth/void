@@ -4,6 +4,33 @@ Objective: the strangler completes: the DSL leaves the legacy pipeline, the lega
 surface is deleted, the ontology vocabulary is reclaimed, and the stability tiers
 are re-declared for the new major release.
 
+## Program context
+
+**Why this initiative exists.** A strangler is only a strategy if it ends. The
+audit's gravitational-pull finding (D5) is precise about the failure mode: frozen
+code with living dependents does not shrink, and today the non-deprecated DSL
+keeps the legacy pipeline alive by depending on it. Separately, the
+ubiquitous-language repair (D11) is impossible while the deprecated `Interactions`
+class squats on the framework's central noun. This initiative is where both debts
+are called in, aligned to the major-release boundary where breaking is allowed.
+
+**Why it is sequenced last.** Deletion is safe only when nothing living depends on
+what is deleted -- which is a statement about every previous initiative having
+finished its migration. The internal order is itself dependency-driven: DSL off
+the legacy pipeline (9.1) and utils dismantled (9.2) before the deletion cut
+(9.3), the name freed before the reclaim (9.4), and the closing audit after
+everything (9.5), per the workflow's mandated final stage.
+
+**What architectural boundary it owns.** The public surface of the next major
+release: what exists, what it is named, which tier guarantees it carries, and how
+users migrate to it.
+
+**What it deliberately does not own.** New functionality of any kind -- every
+phase here deletes, renames, or re-declares; nothing is added. Findings from the
+closing audit (9.5) are also not absorbed here: if the audit finds integration
+issues, they spawn the workflow's scoped hotfix initiative rather than extending
+this one.
+
 ---
 
 ## Phase 9.1 -- DSL re-founded on the kernel pipeline

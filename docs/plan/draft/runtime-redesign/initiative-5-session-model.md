@@ -3,6 +3,31 @@
 Objective: Session becomes the first-class, domain-neutral unit of lifetime,
 identity, and isolation; bootstrap and configuration stop being Selenium-gated.
 
+## Program context
+
+**Why this initiative exists.** Session is the ontology's dependent-but-real
+entity: user-visible, stateful, the unit of isolation -- yet in code its
+responsibilities smear across the facade, `SessionContext`, `FrameworkBootstrap`,
+and the engine, and the framework cannot even start without `driver.properties`
+(audit C4). A runtime whose ignition system belongs to one platform is not
+neutral no matter how clean its pipeline is; this initiative owns the fix.
+
+**Why it is sequenced here.** After I4 because a session binds an execution owner,
+so the neutral contract must exist before Session can be defined against it.
+Before I6 because domain registration relocates config validation into the seam
+this initiative opens (5.2), and the probe domain (6.3) requires bootstrap to
+succeed with no web configuration present.
+
+**What architectural boundary it owns.** The lifetime/identity/isolation boundary
+(what state is session-scoped vs value vs executor-internal, per ontology I9) and
+the neutrality of startup (what the framework validates vs what a domain
+validates).
+
+**What it deliberately does not own.** The facade's public shape -- `VOID`'s
+surface stays frozen until the M5 tier re-declaration (9.5); multi-domain session
+composition beyond whatever AD1 ruled; and the H6 mutable-Properties exposure,
+which stays backlogged so 5.2 keeps exactly one objective.
+
 ---
 
 ## Phase 5.1 -- Session contract

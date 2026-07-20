@@ -3,6 +3,29 @@
 Objective: make the decisions that gate everything else, and turn architectural
 boundaries from prose into automated checks before any code moves.
 
+## Program context
+
+**Why this initiative exists.** A 37-phase campaign fails in one of two ways:
+decisions get re-litigated phase by phase, or boundaries won early decay silently
+under later churn. I0 removes both failure modes before they can start: ADR-021 is
+the single written authority for AD1-AD3 and kernel membership, and the fitness
+checks are the mechanism that makes every subsequently won boundary permanent
+(audit D17: today every invariant is enforced by grep and reviewer memory).
+
+**Why it is sequenced first.** It is pure prerequisite: the only initiative with
+zero production-code risk, and the only one every other initiative depends on.
+Nothing here can be invalidated by later work, so doing it first costs nothing and
+starting anything else first risks rework against undecided questions.
+
+**What architectural boundary it owns.** The decision layer itself: which axis each
+invariant governs, what is inside the kernel, and how a boundary is encoded and
+tightened. I0 owns the ratchet mechanism, not any individual boundary.
+
+**What it deliberately does not own.** No production code changes, no package
+moves, no boundary victories -- those belong to I1-I9; I0 only records decisions
+and guards outcomes. It also does not design APIs: ADR-021 decides names, shapes,
+and rules, and stops there.
+
 ---
 
 ## Phase 0.1 -- ADR-021: kernel boundary, ontology, open decisions

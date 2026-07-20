@@ -6,6 +6,32 @@ confined to the platform edge and then removed from the resolution surface.
 
 Runs parallel to I5/I6 (disjoint files) after I4.
 
+## Program context
+
+**Why this initiative exists.** Resolution is the UI domain's largest subsystem
+and the last place Selenium types sit on a non-deprecated surface (the
+By-returning path). It also carries an unresolved ownership question the audit
+flagged directly (priority 13): `LocatorDescriptor` lives in the engine contract
+package while being produced by resolvers and carried by actions -- the shared
+noun is housed on the wrong side of the seam I4 hardens. Leaving this initiative
+out would ship a "neutral" runtime whose contract package still owns a DOM-scoped
+locator type.
+
+**Why it is sequenced here.** After I4 because the descriptor can only leave the
+neutral edge once that edge exists (7.2 depends on 4.3/4.4). Parallel to I5/I6
+because the file sets are disjoint -- this is the roadmap's main opportunity to
+recover calendar time without violating the never-parallel rules.
+
+**What architectural boundary it owns.** The resolution boundary: the strategy
+vocabulary (open, per D18), descriptor ownership (web-domain side), and the
+confinement then removal of `By` from every surface above the Selenium executor.
+
+**What it deliberately does not own.** Locator file formats -- they are stable,
+user-facing, and the `locator-sync-trigger` initiative depends on them. And it
+does not invent a neutral "address" abstraction for future domains: the June
+audit's TargetDescriptor idea stays unbuilt until a second domain supplies real
+requirements.
+
 ---
 
 ## Phase 7.1 -- Open the strategy set

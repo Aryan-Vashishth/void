@@ -7,6 +7,28 @@ to the subject of an interaction.
 Phases 1.1-1.3 are the merged `generalize-element-into-target` draft; its phase docs
 are the authoritative text and are lifted into this initiative when activated.
 
+## Program context
+
+**Why this initiative exists.** Every later re-typing phase needs a neutral answer
+to "what is the subject of an interaction?" Today the answer is `Element`, a
+UI-named, UI-shaped type, which is the root of the kernel/UI fusion (audit D1): the
+kernel cannot shed UI vocabulary while its subject type IS the UI element. Target
+is the ontology's subject concept made real.
+
+**Why it is sequenced here.** It is the cheapest structural change with the widest
+downstream payoff, and it is already validated (the merged draft carries its own
+pre-plan audit). I2's cycle break is literally impossible before a neutral subject
+type exists to retreat to, so I1 must precede all kernel work.
+
+**What architectural boundary it owns.** The subject-side vocabulary line: which
+members are neutral (display text, args -- Target) and which are UI (locator keys,
+roles, files -- UIElement). Once drawn here, that line is what I2 and I7 enforce.
+
+**What it deliberately does not own.** The action/kernel package split (I2),
+capability semantics (I3), resolution machinery (I7). It does not generalize
+`ElementRole` or invent a non-UI addressing concept -- both stay UI-side until a
+second domain provides real requirements (merged draft's future-watch discipline).
+
 ---
 
 ## Phase 1.1 -- Introduce Target (merged draft phase 1)
