@@ -25,3 +25,4 @@ the remediation plan directly.
 | [waitutils-waitforcondition-internal-webdriver-coupling.md](waitutils-waitforcondition-internal-webdriver-coupling.md) | ADR-007 (internal) | `core/utils/web/WaitUtils.java:110` | Very Low |
 | [waiter-returns-webdriverwait.md](waiter-returns-webdriverwait.md) | ADR-007 | `core/driver/Waiter.java` | Medium |
 | [uiengine-sendkeys-javadoc-selenium-reference.md](uiengine-sendkeys-javadoc-selenium-reference.md) | ADR-018 (doc) | `core/engine/UIEngine.java:357` | Very Low |
+| [core-driver-package-selenium-coupling.md](core-driver-package-selenium-coupling.md) | ADR-018, package cohesion | `core/driver/` package | Medium |
