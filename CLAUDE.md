@@ -505,17 +505,38 @@ now registers the driver itself, and `Interactions` has no knowledge of WebDrive
 
 ### When you encounter a violation
 
-Do not silently work around a violation. If a task surfaces a new OOP violation:
+Do not silently work around a violation. Apply this decision tree:
 
-1. Name the violation explicitly -- which principle, which file and line, what the runtime
-   risk is.
-2. If the violation is already tracked in `docs/plan/draft/oop-violations-remediation/index.md`,
-   reference the P-ID.
-3. If it is new, log it immediately in `docs/audits/backlog/violations/` as a standalone
-   file. Do not add it to the remediation plan directly -- backlog first, then it gets
-   triaged into a phase during the next planning session.
-4. Never introduce a new `instanceof` dispatch chain, `switch`-on-string type selector, or
-   unguarded `(Enum<?>) this` cast without logging it in `docs/audits/backlog/violations/`.
+**Step 1 -- Identify it.**
+Name the violation explicitly: which principle, which file and line, what the runtime risk
+is. If it is already tracked in `docs/plan/draft/oop-violations-remediation/index.md`,
+reference the P-ID.
+
+**Step 2 -- Assess the fix cost.**
+Estimate whether the fix is minimal (a few lines, no ripple effect, no new abstractions
+needed) or dedicated (requires new classes, interface changes, or cross-file edits that
+belong in a planned phase).
+
+**Step 3 -- Decide.**
+
+| Fix cost | Action |
+|---|---|
+| Minimal -- cheaper to fix now than to carry the debt | Fix it inline in the current work. Commit it as a separate, clearly labelled commit. |
+| Dedicated -- more than a few lines, or touches interfaces shared across the codebase | Log it in `docs/audits/backlog/violations/`. Do not fix it in the current initiative. |
+
+**Step 4 -- If fixing inline:**
+- Make it a dedicated commit with a clear message, e.g.
+  `fix(elements): remove instanceof ActionLabeled fallback; use Action.elementLabel() default`
+- If the current work is part of an initiative, update the initiative's phase doc
+  (`docs/plan/draft/<initiative>/phase-N-*.md`) to record the fix under a "Incidental fixes"
+  section. This keeps the phase doc accurate and prevents the change from being invisible
+  during the final audit.
+
+**Step 5 -- If logging in backlog:**
+- Create a file in `docs/audits/backlog/violations/` using the format below.
+- Update the index table in `docs/audits/backlog/violations/README.md`.
+- Never introduce a new `instanceof` dispatch chain, `switch`-on-string type selector, or
+  unguarded `(Enum<?>) this` cast without either fixing it or logging it -- no exceptions.
 
 ### Violation file format
 
