@@ -153,3 +153,12 @@ Gated on a concrete second domain or second engine entering active development:
 
 These require two concrete implementations to validate against. Do not design them
 speculatively.
+
+---
+
+## Versioning (CHANGELOG.md)
+
+Superseded -- no release of its own. Changelog entries for its content ship with
+the runtime-redesign releases that absorbed the phases: phase 1 (ADR-021) is
+docs-only, no entry; phases 3 and 4 (hooks, vocabularies) under **0.5.0** (M2);
+phase 2 (engine contract) under **0.6.0** (M3).

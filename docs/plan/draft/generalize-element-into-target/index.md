@@ -112,3 +112,14 @@ Once a second concrete engine type (Playwright, API) is under active development
 
 These decisions require two concrete implementations to validate against.
 Do not design them speculatively.
+
+---
+
+## Versioning (CHANGELOG.md)
+
+Ships inside runtime-redesign M2 (**0.5.0**) as Initiative I1; no standalone
+release. `## [Unreleased]` entries when phases land:
+
+- `### Added` -- **`Target`** -- domain-neutral root interface in `core.target`
+- `### Changed` -- **`Element`** -- renamed to `UIElement extends Target`;
+  deprecated `Element` alias retained until 1.0.0 (runtime-redesign phase 9.5)

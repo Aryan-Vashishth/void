@@ -126,3 +126,23 @@ All commits follow Conventional Commits format. No em dashes. Imperative present
 - Incremental sync (skip page classes whose enum source has not changed since last sync)
 - Sync for non-Java page object representations (Playwright TypeScript, etc.)
 - IDE plugin that triggers sync on file save
+
+---
+
+## Versioning (CHANGELOG.md)
+
+Target release: **minor bump at whatever version is current when it merges**
+(independent of the runtime-redesign milestone train; branch cut from `main`).
+`## [Unreleased]` entries as phases land:
+
+- `### Added` -- **`void.bat` / `void.sh`** -- developer convenience wrappers
+  (Phase 1)
+- `### Added` -- **`LocatorSyncRunner`** -- library interface for locator sync,
+  no JVM fork required (Phase 2)
+- `### Added` -- **`void-maven-plugin`** -- auto-sync at `process-classes` plus
+  manual goals (Phase 3)
+- `### Added` -- **`void` CLI** -- standalone Picocli fat-JAR with short-name
+  resolution and `--help` (Phase 4)
+
+Phases 1-2 alone are user-facing enough to warrant entries; the plugin and CLI
+each justify the minor bump on their own if released separately.

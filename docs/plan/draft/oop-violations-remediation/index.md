@@ -140,3 +140,20 @@ grep -n "switch" src/main/java/core/engine/UIEngineFactory.java   # must be empt
 - `LocatorTemplateGenerator` / `OrphanKeyDetector` sync pipeline
 - Public `Element` API surface — Phase 2 adds static helpers and new defaults only
 - `ActionCapability` enum constants — only the dispatch-by-switch is removed, not the enum
+
+---
+
+## Versioning (CHANGELOG.md)
+
+Target release: **0.4.0** (minor; pre-1.0 policy allows documented breaking
+changes). `## [Unreleased]` entries as phases land:
+
+- `### Removed` -- **`HookedAction`**, **`ActionLabeled`**,
+  **`ActionCapabilityProvider`** -- Phase 1-2 deletions, each entry names its
+  replacement
+- `### Changed` -- **`Element`** -- enum-safe default helpers, `capability()`
+  ownership, `Listable.getIndex()` default (Phase 2)
+- Phase 3 (`VoidDSL` dispatch) is a behavior-neutral internal refactor -- entry
+  only if its public surface shifts
+- P8 and P11 entries belong to the runtime-redesign releases that absorbed them
+  (0.6.0 and 1.0.0); P9 is internal, no entry

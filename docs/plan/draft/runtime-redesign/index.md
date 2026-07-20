@@ -205,6 +205,28 @@ may be added to this ledger without a deletion phase.
 
 ---
 
+## Versioning (CHANGELOG.md mapping)
+
+Per CONTRIBUTING.md: SemVer + Keep a Changelog; entries accrue under
+`## [Unreleased]` as phases land; releases are cut at milestone boundaries. Below
+1.0.0 a minor bump may carry breaking changes when documented under `### Removed`
+/ `### Changed`.
+
+| Milestone | Version | CHANGELOG sections |
+|---|---|---|
+| M1 (I0) | none | Docs-only; no changelog entry per CONTRIBUTING |
+| M2 (I1-I3) | 0.5.0 | Added: `Target` root. Changed: `Element` renamed to `UIElement` (deprecated alias), capability set opened. Removed: UNKNOWN silent profile fallback. Deprecated: old hook package location (2.1 bridges) |
+| M3 (I4) | 0.6.0 | Added: neutral execution-owner contract, engine registry. Deprecated: UIEngine-typed bridge overloads |
+| M4 (I5-I7) | 0.7.0 | Added: Session, domain registration, probe domain. Changed: bootstrap no longer requires `driver.properties`; open locator strategy set. Removed: By-returning resolver path |
+| M5 (I8-I9) | 1.0.0 | Removed: `Interactions`, `Via`, `UIContext`, `ExecutionContext`, bridges, deprecated aliases. Changed: vocabulary renames (Action -> Interaction) with migration guide. Added: Result contract, multi-subject binding |
+
+Assumes 0.3.0 ships `initiative/engine-decoupling` and 0.4.0 ships
+`oop-violations-remediation` Phases 1-3 before M2. If those shift, the version
+numbers here shift with them; the stable part is the mapping itself: one minor
+bump per milestone, major at M5.
+
+---
+
 ## Final Architecture Check
 
 At M5 the conceptual chain holds end to end, with enforcement, not intention:
