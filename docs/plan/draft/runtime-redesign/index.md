@@ -245,3 +245,17 @@ repair identified as D11.
 6. Every phase compiles and passes `mvn compile -q` and the test suite; phases that
    consciously break a Beta-tier signature migrate all in-repo callers within the
    same phase.
+7. The Runtime's responsibility list is closed: orchestration, validation,
+   observation dispatch, session creation, registry. No phase may add a
+   responsibility to the Runtime (configuration management, target resolution,
+   execution, caching, engine management) until Session, Domain, the execution
+   owner, and observability have each been considered and refused it -- and the
+   refusals are recorded in the phase doc. An orchestrator that accumulates
+   leftover duties becomes a central manager, which is the god-object failure
+   mode this roadmap exists to prevent.
+8. Domain ownership is two-layered and phases must say which layer they touch:
+   logical ownership (the vocabulary a domain defines -- targets, capabilities,
+   interactions) versus implementation ownership (the realizations it contains --
+   executors, resolution, platform internals). A second implementation of an
+   existing medium (Playwright) joins the existing domain's implementation layer;
+   it never becomes a sibling domain.

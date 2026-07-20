@@ -96,7 +96,9 @@ requires a second domain's demand (extension before modification).
   neutral contract poisons domain neutrality permanently; mitigation: the contract
   starts minimal (lifecycle + dispatch + identity), and the fitness check forbids
   it importing anything UI; anything else stays on UIEngine until a second domain
-  demands promotion (extension before modification); (compat) none -- additive.
+  demands promotion (extension before modification). The minimality rule is also
+  the LSP guard: any method a non-web executor could only implement by throwing
+  does not belong on the neutral contract; (compat) none -- additive.
 - **Rollback**: delete the new types; UIEngine reverts to standalone.
 - **Validation**: suite green; fitness check: neutral contract imports neither
   Selenium nor `elements.*` nor UI vocabulary.

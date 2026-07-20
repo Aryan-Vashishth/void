@@ -60,10 +60,16 @@ initiatives; 6.2 is wiring, not migration.
 ## Phase 6.2 -- Web domain assembly
 
 - **Objective**: everything UI-specific that previous initiatives pushed out of the
-  kernel (UI capabilities, concrete UI actions, UIElement model, locator
-  resolution, UIEngine + Selenium executor, driver internals) is declared and
-  registered as the Web domain -- the first Domain instance. Primarily wiring and
-  declaration; the content already moved in I1-I4, I7.
+  kernel is declared and registered as the Web domain -- the first Domain instance.
+  Primarily wiring and declaration; the content already moved in I1-I4, I7.
+  The declaration distinguishes the domain's two ownership layers explicitly
+  (guardrail rule 8): **logical ownership** -- the vocabulary the Web domain
+  defines (UIElement model, UI capabilities, concrete UI interactions, roles) --
+  versus **implementation ownership** -- the realizations it contains (the web
+  execution contract and its Selenium executor, locator resolution, driver
+  internals). The distinction is load-bearing: a future Playwright executor is a
+  second entry in the Web domain's implementation layer against the same
+  vocabulary, not a new domain.
 - **Motivation**: the ontology's Domain concept must have one real instance before
   the probe (6.3) can prove the second costs no runtime edits.
 - **Scope / files**: web-domain registration implementation; package-info ownership
@@ -75,7 +81,8 @@ initiatives; 6.2 is wiring, not migration.
   leftover strays -- anything that cannot be assigned to web-domain or kernel at
   this point is a missed finding; the phase includes a full-assignment sweep
   (every main-tree package maps to kernel / web domain / observability /
-  tooling / legacy-pending-deletion).
+  tooling / legacy-pending-deletion, and web-domain rows are further classified
+  as vocabulary vs implementation per guardrail rule 8).
 - **Rollback**: revert wiring; content stays where I1-I4 put it.
 - **Validation**: full suite green with web as a registered domain; assignment
   sweep table committed to docs.
