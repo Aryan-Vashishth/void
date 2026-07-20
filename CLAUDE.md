@@ -2,7 +2,7 @@
 
 Project-level instructions for Claude Code. These override default behavior.
 
-Before starting any task, read the relevant docs. Code without its architectural context is
+Read relevant docs before starting any task. Code without its architectural context is
 incomplete information.
 
 ---
@@ -77,8 +77,7 @@ test(runtime): add VOIDBuilderTest covering fluent API and single-use guard
 
 ## Architecture Invariants
 
-Non-negotiable. Do not work around these. If a task seems to require violating one, raise
-it explicitly before proceeding.
+Non-negotiable. Raise a violation explicitly before working around one.
 
 | Invariant | Rule |
 |---|---|
@@ -88,20 +87,6 @@ it explicitly before proceeding.
 | `ElementSupport` scope is frozen | Exactly three methods: `nameOf`, `declaringClassOf`, `ordinalOf`. No additions without an ADR. ADR-017. |
 | `Target` carries no enum-specific defaults | `core.target.Target` must not assume enum implementors. |
 | `VOIDBuilder` is single-use | Each session requires a new `VOID.builder()` call. ADR-018. |
-
----
-
-## Coding Conventions
-
-- Java 17. Use records, sealed classes, pattern matching where appropriate.
-- No Lombok, no compile-time code generation.
-- No wildcard imports (except `static` from `CustomLogger` and `AnsiColors`).
-- Logging: `CustomLogger` only. Never `System.out.println`.
-- Test naming: `methodUnderTest_scenario_expectedOutcome`.
-- Unit tests do not open a browser. Use reflection for private state.
-- Static utility classes must have a `private` constructor.
-
-Full details: `docs/contributing/coding-standards.md`.
 
 ---
 
@@ -115,16 +100,30 @@ Before introducing a new interface, abstraction, factory, registry, or lifecycle
 4. Will this still make sense after a second engine is added?
 5. Is this an implementation detail or a permanent architectural concept?
 
-If the answer to (1) or (2) is yes, do not introduce the new abstraction. If (3) is
-"relocates only", reconsider. If (4) is unclear, the abstraction is premature.
+If (1) or (2) is yes, do not introduce it. If (3) is "relocates only", reconsider. If (4)
+is unclear, the abstraction is premature.
 
 Architecture should emerge from repeated requirements, not anticipated ones.
 
 ---
 
+## Coding Conventions
+
+- Java 17. Records, sealed classes, pattern matching where appropriate.
+- No Lombok, no compile-time code generation.
+- No wildcard imports except `static` from `CustomLogger` and `AnsiColors`.
+- Logging: `CustomLogger` only. Never `System.out.println`.
+- Test naming: `methodUnderTest_scenario_expectedOutcome`.
+- Unit tests do not open a browser. Use reflection for private state.
+- Static utility classes must have a `private` constructor.
+
+Full details: `docs/contributing/coding-standards.md`.
+
+---
+
 ## OOP Principles
 
-Violations are tracked as P-IDs. When referencing or logging a violation, use the ID.
+Violations are tracked as P-IDs. Reference the ID when naming or logging a violation.
 
 | ID | Principle | Summary |
 |---|---|---|
@@ -142,15 +141,34 @@ Violations are tracked as P-IDs. When referencing or logging a violation, use th
 
 Full SOLID reference with code examples: `docs/architecture/oop-principles.md`.
 
-### When you encounter a violation
+### Violation protocol
 
-1. Name it (P-ID if tracked, or describe if new).
-2. Assess fix cost: minimal (few lines, no ripple) or dedicated (new classes, interface changes).
-3. **Minimal** -- fix inline, dedicated commit; record in the phase doc under "Incidental fixes".
-4. **Dedicated** -- log in `docs/audits/backlog/violations/`, update the index. Do not fix in the current initiative.
-5. Never introduce a new `instanceof` dispatch chain, `switch`-on-string type selector, or unguarded `(Enum<?>) this` cast without either fixing it or logging it.
+Name it (P-ID or description). Then:
 
-Violation file format and full protocol: `docs/contributing/architecture-rules.md`.
+| Fix cost | Action |
+|---|---|
+| Minimal -- few lines, no ripple | Fix inline. Dedicated commit. Record in phase doc under "Incidental fixes". |
+| Dedicated -- new classes or interface changes | Log in `docs/audits/backlog/violations/`. Update the index. Do not fix in the current initiative. |
+
+Never introduce a new `instanceof` dispatch chain, `switch`-on-string selector, or
+unguarded `(Enum<?>) this` cast without fixing it or logging it.
+
+Full protocol and file format: `docs/contributing/architecture-rules.md`.
+
+---
+
+## Token Efficiency
+
+- Prefer architectural reasoning over verbose narration.
+- Do not restate the user's request before acting on it.
+- Do not explain what obvious code does.
+- Do not narrate implementation progress step by step -- report results.
+- Reference existing documentation instead of reproducing it inline.
+- When editing files, describe only changed sections unless asked otherwise.
+- During audits, report findings only -- do not describe code that has no issues.
+- Ask one concise clarification instead of listing multiple assumptions.
+- Do not repeat previous phase summaries when continuing an initiative.
+- Preserve context budget on long initiatives: read only the docs relevant to the current phase.
 
 ---
 
@@ -158,7 +176,7 @@ Violation file format and full protocol: `docs/contributing/architecture-rules.m
 
 | Doc | Contents |
 |---|---|
-| `docs/contributing/workflow.md` | Full initiative lifecycle, audit stages, merge policy, reading docs guide, docs/ directory guide |
+| `docs/contributing/workflow.md` | Initiative lifecycle, audit stages, merge policy, reading docs guide, docs/ directory guide |
 | `docs/contributing/coding-standards.md` | Java conventions, logging, testing, naming |
 | `docs/contributing/architecture-rules.md` | Architecture invariants, stability rules, violation protocol and file format |
 | `docs/architecture/oop-principles.md` | Full SOLID reference with P1-P11 code examples and planned fixes |
