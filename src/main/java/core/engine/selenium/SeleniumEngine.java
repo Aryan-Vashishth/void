@@ -56,9 +56,8 @@ public final class SeleniumEngine implements UIEngine {
     }
 
     /**
-     * Compatibility bridge for: {@code Interactions(WebDriver)} and the Phase 1
-     * {@code EngineBootstrap.FromDriver} path.  Kept until
-     * {@code Interactions(WebDriver)} and {@code EngineBootstrap.FromDriver} are removed.
+     * Compatibility bridge for {@code Interactions(WebDriver)}.
+     * Kept until {@code Interactions(WebDriver)} is removed.
      *
      * @param driver active WebDriver instance (already created by caller)
      * @deprecated use {@link #SeleniumEngine(DriverFactory.Profile)} via the factory
@@ -531,7 +530,10 @@ public final class SeleniumEngine implements UIEngine {
      *
      * @param by Selenium By locator
      * @return equivalent LocatorDescriptor
+     * @deprecated Use {@link core.bridge.selenium.SeleniumLocatorBridge#fromBy(By)} instead.
+     *             Will be removed with the {@code By}/{@code WebElement} deprecated API workstream.
      */
+    @Deprecated(forRemoval = true)
     public static LocatorDescriptor fromBy(By by) {
         String byString = by.toString();
         if (byString.startsWith("By.xpath:")) {
