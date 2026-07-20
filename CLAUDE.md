@@ -505,14 +505,44 @@ now registers the driver itself, and `Interactions` has no knowledge of WebDrive
 
 ### When you encounter a violation
 
-Do not silently work around a violation. If a task requires introducing or deepening one:
+Do not silently work around a violation. If a task surfaces a new OOP violation:
 
-1. Name the violation explicitly using the P-ID from
-   `docs/plan/draft/oop-violations-remediation/index.md` if it is already tracked, or
-   describe it if it is new.
-2. Ask whether to address it inline or log it as a new entry in the violation map.
-3. Never introduce a new `instanceof` dispatch chain, `switch`-on-string type selector, or
-   unguarded `(Enum<?>) this` cast without flagging it first.
+1. Name the violation explicitly -- which principle, which file and line, what the runtime
+   risk is.
+2. If the violation is already tracked in `docs/plan/draft/oop-violations-remediation/index.md`,
+   reference the P-ID.
+3. If it is new, log it immediately in `docs/audits/backlog/violations/` as a standalone
+   file. Do not add it to the remediation plan directly -- backlog first, then it gets
+   triaged into a phase during the next planning session.
+4. Never introduce a new `instanceof` dispatch chain, `switch`-on-string type selector, or
+   unguarded `(Enum<?>) this` cast without logging it in `docs/audits/backlog/violations/`.
+
+### Violation file format
+
+New violation files in `docs/audits/backlog/violations/` follow this structure:
+
+```
+# <short title>
+
+**Principle:** OCP / LSP / ISP / SRP / DIP
+**File:** src/main/java/...
+**Discovered:** <date>
+**Risk:** Critical / High / Medium / Low
+
+## What it does
+
+One paragraph describing the code and why it is a violation.
+
+## Code
+
+<code snippet showing the violation>
+
+## Recommended fix
+
+One paragraph describing the correct approach.
+```
+
+Update `docs/audits/backlog/violations/README.md` index after adding any file.
 
 ---
 
