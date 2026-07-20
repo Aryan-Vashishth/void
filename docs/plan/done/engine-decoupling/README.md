@@ -1,7 +1,7 @@
 # Engine Decoupling
 
-**Status:** Draft
-**Branch target:** `feature/engine-decoupling` (cut from `main`)
+**Status:** Complete
+**Branch:** `feature/engine-decoupling` -- merged 2026-07-20
 **Identified:** 2026-07-15
 
 Plan to remove the direct Selenium bootstrap coupling from VOID's startup path, enabling engine hot-swap and cleaner engine registration.
