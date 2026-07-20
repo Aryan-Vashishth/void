@@ -4,8 +4,8 @@ Project-level instructions for Claude Code. These override default behavior.
 
 ## Core Principles
 
-- Architecture before implementation.
 - Documentation is the source of truth.
+- Architecture before implementation.
 - Prefer extension over modification.
 - Preserve engine neutrality.
 - Keep abstractions minimal and intentional.
@@ -17,7 +17,7 @@ Project-level instructions for Claude Code. These override default behavior.
 When guidance conflicts, follow this order:
 
 1. Current initiative plan (`docs/plan/draft/<initiative>/`)
-2. Accepted ADRs -- and pending-review ADRs on the current initiative branch
+2. Accepted ADRs, or pending-review ADRs when working on their initiative branch
 3. Architecture invariants (this file)
 4. Coding conventions
 
@@ -35,6 +35,16 @@ Understand the current design before changing it.
 - Check `docs/audits/ongoing/` for open findings in the affected area.
 
 Do not design from code alone.
+
+### Documentation Scope
+
+Do not load additional documentation for:
+
+- isolated bug fixes
+- formatting or documentation-only changes
+- test-only changes with no architectural impact
+
+Only read documents relevant to the current task.
 
 ---
 
@@ -71,6 +81,17 @@ Merge to main
 ```
 
 Do not skip stages. Full details: `docs/contributing/workflow.md`.
+
+---
+
+## Execution Mode
+
+Unless the user requests otherwise:
+
+- Complete a coherent unit of work before responding.
+- Do not stop after every small edit to ask for confirmation.
+- Batch related changes into a single implementation step.
+- Keep responses focused on decisions, verification, and remaining risks.
 
 ---
 
@@ -134,7 +155,8 @@ Before introducing a new interface, abstraction, factory, registry, or lifecycle
 If (1) or (2) is yes, do not introduce it. If (3) is "relocates only", reconsider. If (4)
 is unclear, the abstraction is premature.
 
-Architecture should emerge from repeated requirements, not anticipated ones.
+Architecture should emerge from repeated requirements, not anticipated ones. Never optimize
+for hypothetical future requirements unless the active initiative explicitly requires it.
 
 ---
 
