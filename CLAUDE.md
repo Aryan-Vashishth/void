@@ -219,54 +219,300 @@ src/
 ## OOP Principles
 
 Apply OOP principles in all production code. These are not style preferences -- violations
-are tracked as architectural debt and addressed through remediation initiatives.
+are tracked as architectural debt in `docs/plan/draft/oop-violations-remediation/index.md`
+and addressed through a dedicated remediation initiative.
+
+The violation map uses IDs P1-P11. When a violation is referenced, use that ID.
+
+---
 
 ### Open/Closed Principle (highest priority)
 
-Classes and interfaces must be open for extension, closed for modification. Concretely:
+Classes and interfaces must be **open for extension, closed for modification**. Adding a new
+engine, capability, or action type should require adding a new class -- not editing an
+existing one. A method that must be changed every time a new subtype is added is closed for
+extension.
 
-- **No `instanceof` dispatch chains.** A method that branches on the runtime type of its
-  argument is a violation. Use polymorphism: put the behavior on the type.
-- **No `switch`-on-string for type selection.** A `switch (engineName)` that grows with
-  every new engine is a closed registry. Replace with an open registration map
-  (`Map<String, Supplier<UIEngine>>`).
-- **No unguarded `(Enum<?>) this` casts.** Casts that assume every implementor is an enum
-  encode a convention as a runtime assumption. Use a utility (`ElementSupport`) or a
-  type-safe interface method instead.
-- **New behavior through extension, not modification.** Adding a new engine, capability, or
-  action type should require adding a new class -- not editing an existing one.
+#### Violation: instanceof dispatch chain (P1, P2)
 
-### Single Responsibility Principle
+`Action.java` checks the runtime type of `this` to decide behavior:
 
-Each class has one reason to change. A class that manages driver lifecycle should not also
-parse locators. A factory that creates engines should not configure logging.
+```java
+// core/actions/Action.java -- P1 violation (4 sites)
+default Action before(@Nullable BeforeActionHandler... hooks) {
+    if (this instanceof HookChainAction chain) {          // type check on self
+        return chain.withAdditionalHooks(toList(hooks), null);
+    }
+    return new HookChainAction(this, toList(hooks), null);
+}
+
+default Action withProfile(ActionProfile profile) {
+    Action profiled = profile.apply(this);
+    if (profiled instanceof HookChainAction chain) {      // type check again
+        profiled = chain.withProfileName(profile.name());
+    }
+    return profiled;
+}
+```
+
+`VoidDSL.java` branches on the runtime type of a method argument:
+
+```java
+// dsl/VoidDSL.java -- P2 violation
+if (first instanceof MultiSelectable multiDropdown) {
+    engine.triggerDropdown(multiDropdown, dropdownIndex);
+} else if (first instanceof Selectable singleDropdown) {
+    engine.triggerDropdown(singleDropdown);
+} else {
+    throw new IllegalArgumentException(...);
+}
+```
+
+Both are OCP violations: adding a new type requires modifying existing methods.
+
+**The fix:** Put the behavior on the type. `HookChainAction` should expose an extension hook
+method (`mergeHooks`) that `Action.before()` calls directly, with no type check needed.
+`VoidDSL` should call `element.triggerAction()` and let each capability interface dispatch.
+
+#### Violation: switch-on-string type selector (P8)
+
+`UIEngineFactory.java` selects an engine implementation by comparing a string:
+
+```java
+// core/engine/UIEngineFactory.java -- P8 violation
+UIEngine engine = switch (engineName) {
+    case "selenium" -> {
+        if (bootstrap instanceof EngineBootstrap.FromProfile fp) {
+            yield new SeleniumEngine(fp.profile());
+        } else {
+            throw new IllegalStateException(...);
+        }
+    }
+    // Adding "playwright" requires editing this method
+    default -> throw new IllegalStateException(
+            "Unsupported engine: '" + engineName + "'. Supported: selenium");
+};
+```
+
+Every new engine requires modifying this switch. The factory is closed.
+
+**The fix:** An open registration map -- `Map<String, Function<EngineBootstrap, UIEngine>>`.
+Registering a new engine adds an entry without modifying the factory body.
+
+#### Violation: switch on enum value for label (P3)
+
+`HookChainAction.java` derives an operation label by switching on `ActionCapability`:
+
+```java
+// core/actions/HookChainAction.java -- P3 violation
+@Override
+public String operationLabel() {
+    if (delegate instanceof ActionLabeled l) return l.operationLabel();
+    return switch (capability()) {
+        case CLICKABLE  -> "click";
+        case TYPEABLE   -> "type";
+        case SELECTABLE -> "select";
+        default         -> "perform";
+    };
+}
+```
+
+Adding a new `ActionCapability` value requires editing this method.
+
+**The fix:** `operationLabel()` should be a default method on `Action` itself, or each
+capability interface should provide it. The switch disappears.
+
+#### Correct pattern: capability interfaces
+
+`Clickable.java` uses no type checks. Behavior is declared directly on the interface:
+
+```java
+// elements/api/capability/Clickable.java -- correct OCP pattern
+public interface Clickable extends Element, ActionCapabilityProvider {
+    default ActionCapability capability() { return ActionCapability.CLICKABLE; }
+    default ClickAction click() { return new ClickAction(this); }
+    // adding a new capability = adding a new interface, no existing code changes
+}
+```
+
+---
 
 ### Liskov Substitution Principle
 
 Subtypes must be substitutable for their base type without changing program correctness.
-Do not override a method in a way that weakens the contract or throws where the base does
-not.
+Do not override a method in a way that narrows the contract, throws where the base does not,
+or relies on a runtime cast that only works for specific implementors.
+
+#### Violation: unguarded (Enum<?>) this cast (P5)
+
+`Element.java` default methods cast `this` to `Enum<?>` without verifying the type:
+
+```java
+// elements/api/Element.java -- P5 violation (4 sites)
+default String getExternalFileName() {
+    Enum<?> e = (Enum<?>) this;            // throws ClassCastException for any non-enum Element
+    Class<?> enumClass = e.getDeclaringClass();
+    ...
+}
+
+default String getPrimaryLocator() {
+    ...
+    Enum<?> e = (Enum<?>) this;            // same assumption, no guard
+    Class<?> enumClass = e.getDeclaringClass();
+    ...
+}
+```
+
+A non-enum implementor of `Element` would throw `ClassCastException` at runtime when any
+default method is called. The interface cannot be safely subtyped.
+
+**The fix:** `ElementSupport` (planned, not yet written) centralises the cast with a clear
+scope: `ElementSupport.nameOf(e)`, `ElementSupport.declaringClassOf(e)`. The cast moves to
+one place and is accompanied by documentation of the invariant it assumes.
+
+#### Violation: instanceof ActionLabeled fallback (P4)
+
+`HookChainAction.java` checks whether its delegate satisfies a secondary interface before
+calling a method:
+
+```java
+// core/actions/HookChainAction.java -- P4 violation
+@Override
+public String elementLabel() {
+    if (delegate instanceof ActionLabeled l) return l.elementLabel();
+    return "ACTION";    // silent fallback for implementors that don't satisfy ActionLabeled
+}
+```
+
+This means `HookChainAction` behaves differently based on the runtime type of `delegate`.
+Callers cannot predict what `elementLabel()` returns without knowing the concrete type.
+
+**The fix:** Promote `elementLabel()` and `operationLabel()` to `Action` with defaults.
+Every `Action` implementor provides its own label; no secondary interface or runtime check
+is needed.
+
+---
 
 ### Interface Segregation Principle
 
-Prefer narrow, focused interfaces over broad ones. A class that implements an interface
-should use every method it declares. If an implementor leaves methods empty or throws
-`UnsupportedOperationException`, the interface is too broad.
+A class that implements an interface should use every method it declares. If an implementor
+leaves methods empty or the only way to satisfy an interface is a runtime cast, the interface
+is too broad.
+
+#### Correct pattern: narrow interfaces
+
+`ActionLabeled` is a package-private interface with exactly two methods, both used by every
+implementor:
+
+```java
+// core/actions/ActionLabeled.java -- correct ISP (narrow, focused)
+interface ActionLabeled {
+    String elementLabel();    // used by every implementor
+    String operationLabel();  // used by every implementor
+}
+```
+
+Each capability interface (`Clickable`, `Typeable`, `Selectable`) is similarly narrow: it
+declares only the methods relevant to that one capability.
+
+#### Violation: Via grows per capability (P11)
+
+`Via.java` has a static cast helper for every capability interface -- currently eight:
+
+```java
+// core/interactions/Via.java -- P11 violation (grows with every new capability)
+public static Clickable          clickable(Element e)          { ... }
+public static Typeable           typeable(Element e)           { ... }
+public static Selectable         selectable(Element e)         { ... }
+public static ReadOnly           readOnly(Element e)           { ... }
+public static Searchable         searchable(Element e)         { ... }
+public static SearchableDropdown searchableDropdown(Element e) { ... }
+public static MultiSelectable    multiSelectable(Element e)    { ... }
+public static Checkable          checkable(Element e)          { ... }
+public static Hoverable          hoverable(Element e)          { ... }
+```
+
+Adding a new capability interface requires adding another method here. The class is not
+closed for modification.
+
+**The fix:** One generic cast helper:
+`public static <T extends Element> T as(Element e, Class<T> type)`. Existing call sites
+migrate once; future capabilities add nothing to `Via`.
+
+---
+
+### Single Responsibility Principle
+
+Each class has one reason to change. A class that both manages driver lifecycle and
+configures logging changes for two unrelated reasons.
+
+#### Example: FrameworkBootstrap before Phase 4
+
+Before engine decoupling Phase 4, `FrameworkBootstrap.java` suppressed the Selenium JUL
+logger unconditionally:
+
+```java
+// FrameworkBootstrap.java (pre-decoupling) -- SRP violation
+public static void init() {
+    configureLogging();
+    suppressSeleniumLogger();   // Selenium-specific; belongs in SeleniumEngine.initialize()
+}
+```
+
+`FrameworkBootstrap` is engine-agnostic bootstrap. Suppressing a Selenium-specific logger
+was a second responsibility that changed whenever the engine changed.
+
+**The fix (Phase 4):** `suppressSeleniumLogger()` moved into `SeleniumEngine.initialize()`.
+`FrameworkBootstrap.init()` now contains only framework-level initialization.
+
+---
 
 ### Dependency Inversion Principle
 
 High-level modules must not depend on low-level modules. Both should depend on abstractions.
-`VOID` depends on `UIEngine`, not on `SeleniumEngine`. `Interactions` depends on `UIEngine`,
-not on `WebDriver`.
+
+#### Correct pattern: VOID depends on UIEngine, not SeleniumEngine
+
+```java
+// core/runtime/VOID.java -- correct DIP
+private final UIEngine engine;         // depends on the abstraction
+private final SessionContext context;  // engine-typed context, not WebDriver-typed
+
+public void shutdown() {
+    engine.shutdown();                 // delegates; no knowledge of SeleniumEngine
+}
+```
+
+#### Violation: Interactions depended on WebDriver (fixed in Phase 3)
+
+Before engine decoupling Phase 3, `Interactions(UIEngine)` cast the native driver to a
+Selenium-specific type:
+
+```java
+// core/interactions/Interactions.java (pre-Phase-3) -- DIP violation
+public Interactions(UIEngine engine) {
+    this.engine = engine;
+    // High-level interaction layer depending on Selenium WebDriver directly:
+    DriverContext.setPrimaryDriver((WebDriver) engine.getNativeDriver());
+}
+```
+
+`Interactions` is a high-level interaction orchestrator. It should not depend on the
+Selenium `WebDriver` type. The cast was removed in Phase 3 -- `SeleniumEngine.initialize()`
+now registers the driver itself, and `Interactions` has no knowledge of WebDriver.
+
+---
 
 ### When you encounter a violation
 
-Do not silently work around it. If a task requires introducing or deepening an OOP violation:
-1. Note the violation explicitly.
-2. Ask whether to address it now (inline) or add it to the open violations list in
-   `docs/plan/draft/oop-violations-remediation/`.
+Do not silently work around a violation. If a task requires introducing or deepening one:
+
+1. Name the violation explicitly using the P-ID from
+   `docs/plan/draft/oop-violations-remediation/index.md` if it is already tracked, or
+   describe it if it is new.
+2. Ask whether to address it inline or log it as a new entry in the violation map.
 3. Never introduce a new `instanceof` dispatch chain, `switch`-on-string type selector, or
-   unguarded `(Enum<?>) this` cast without flagging it.
+   unguarded `(Enum<?>) this` cast without flagging it first.
 
 ---
 
