@@ -1,504 +1,262 @@
-# VOID Architecture Audit — Domain-Agnostic Interaction Runtime?
+# VOID Domain-Agnostic Runtime Audit
 
-**Date:** 2026-06-16
-**Scope:** Full structural analysis of execution model, domain boundaries, coupling, and evolutionary fitness
-**Question:** Is VOID genuinely evolving toward a Domain-Agnostic Interaction Runtime, or is it a UI automation framework with generic-looking abstractions?
-**Method:** Trace the actual execution path through source code. Evaluate coupling at each layer. Apply the domain-substitution test: can a new domain (robotics, agents) be added without redesigning the runtime?
-
----
-
-## Execution Path (Actual)
-
-```
-Element (domain descriptor)
- ↓
-Capability.click() / type() / etc.  (domain: emits Action intent)
- ↓
-Action.perform(UIEngine engine)  ← first runtime artifact; PINNED to UIEngine
- ↓
-FlowExecutor(UIEngine engine)    ← pinned to UIEngine
- ↓
-UIEngine.click(LocatorDescriptor)
- ↓
-SeleniumEngine → By → WebDriver API
-```
-
-The runtime boundary is `Action`. Everything before `Action` is domain. Everything from `Action` through `FlowExecutor` to `UIEngine` is the runtime.
+**Date:** 2026-06-16 (three rounds) | **Consolidated:** 2026-07-20
+**Branch evaluated:** `initiative/engine-decoupling`
+**Rounds:** Initial (Verdict B), Revised (Verdict C), Stress-test (Verdict C+), Remediation synthesis
+**Final verdict:** C+ -- Runtime Model Mostly Survives Domain Substitution
 
 ---
 
-## 1. Runtime Boundary
+## Verdict
 
-**Where does the runtime begin?**
+> **C+** -- Core runtime concepts survive domain substitution. Most remaining blockers are
+> boundary abstractions. Migration path is visible and credible. Second domain cannot yet
+> be added without implementation work. Architecture appears designed for generalization
+> even if implementation is incomplete.
 
-At `Action`.
+The runtime is an **unfinished domain-agnostic runtime**, not a UI runtime that appears
+generalizable. The distinction matters: the abstractions were built for generalization and
+are in migration, not retrofitted for appearance. Evidence:
 
-`Element` and capabilities (`Clickable`, `Typeable`, etc.) are domain descriptors. They produce no side effects. `Clickable.click()` returns an `Action` object — it does not interact with any driver or engine. Resolution and execution are deferred until `Action.perform(engine)` is called.
-
-The true execution boundary is:
-
-```
-Action → FlowExecutor → UIEngine
-```
-
-**Supporting evidence:**
-
-`Clickable.java:50–53`:
-```java
-default Action click() {
-    return ElementActions.of(this, ElementRole.TRIGGER,
-            (engine, d) -> engine.click(d));
-}
-```
-
-`FlowExecutor.java:39–43`:
-```java
-public void run(Flow flow) {
-    for (Action action : flow.getActions()) {
-        action.perform(engine);
-    }
-}
-```
-
-The domain layer produces Actions. The runtime executes them.
+- `SessionContext` holds `UIEngine`, not `WebDriver` -- written explicitly to decouple from
+  browser lifecycle, with Javadoc explaining the predecessor it replaces.
+- `resolveDescriptor()` was added alongside deprecated `resolve()` as the target resolution
+  path -- migration behavior, not cosmetic.
+- `// case "playwright" -> new PlaywrightEngine();` -- explicit future mapping in the factory.
+- JSON locator files and `LocatorSourceRegistry` are overengineered for a single-domain tool
+  and correctly engineered for a multi-domain platform.
 
 ---
 
-## 2. Domain Boundary
+## Domain Survival Analysis
 
-**What belongs to the domain:**
+Seven runtime primitives evaluated against UI, Robot, Agent, and Workflow domains under
+a single-domain-per-session model (one VOID session hosts one engine domain).
 
-| Artifact | Belongs To | Reason |
+| Component | Verdict | Reasoning |
 |---|---|---|
-| `Element` interface | Domain | Pure descriptor; no execution |
-| `Clickable`, `Typeable`, `Selectable`, etc. | Domain | Vocabulary of the UI domain; emit Actions only |
-| `ElementRole` | Domain | Semantic tagging of locator roles |
-| Locator files (JSON, properties) | Domain | External data describing elements |
-| `LocatorDescriptor`, `LocatorStrategy` | Disputed (see §3) | Conceptually domain-agnostic, but strategies are HTML-specific |
-| `SeleniumEngine` | Domain implementation | Selenium realization of the UIEngine contract |
+| `Action` | **Survives** | "Deferred execution intent" is domain-agnostic. Under single-domain-per-session, actions never cross domain boundaries. |
+| `Flow` | **Survives** | Pure sequential composition. Zero domain semantics. Unchanged across any engine. |
+| `FlowExecutor` | **Survives** | A for-loop calling `action.perform(engine)`. After type-pin generalization, domain-neutral. |
+| `HookChainAction` | **Survives** | Before/after hook orchestration. Zero domain semantics. The mechanism is agnostic; only hook implementations are domain-specific. |
+| `ActionProfile` (interface) | **Survives** | Domain-neutral mechanism. A `RobotProfiles` or `AgentProfiles` can be written without touching the interface. Built-in presets are UI-domain assets, not runtime constraints. |
+| `LocatorDescriptor` | **Evolves** | Structural pattern survives. Naming (`locator`, `parent`, `LocatorStrategy`) encodes browser DOM semantics. Migration path: rename `parent` to `scope`; extensible `LocatorStrategy`; eventual rename to `TargetDescriptor`. Not redesign -- evolution. |
+| `ActionCapability` | **Evolves** | Capability-aware dispatch concept survives. The closed enum (`CLICKABLE`, `TYPEABLE`, `SELECTABLE`, `UNKNOWN`) does not. Must become an extensible open set (interface-with-constants). |
 
-**What belongs to the runtime:**
+Six of seven runtime primitives survive conceptually. Neither evolving primitive requires
+redesign. This is the primary evidence for C+ over C.
 
-| Artifact | Belongs To | Reason |
+---
+
+## What Cracks First When a Second Domain Is Introduced
+
+Ranked by order of encounter during development:
+
+| Rank | What Breaks | How It Breaks |
 |---|---|---|
-| `Action` | Runtime | Execution intent; the primitive of the runtime |
-| `Flow` | Runtime | Compositional sequence of Actions |
-| `FlowExecutor` | Runtime | Dispatch engine |
-| `UIEngine` (interface) | Disputed (see §5) | Intended as runtime contract; actually UI-specific |
-| `VOID` | Runtime | Session lifecycle and entry point |
-| Hook system (`ActionHandler`, `Before`, `After`) | Runtime | Cross-cutting execution concerns |
+| 1 | `ActionCapability` closed enum | New domain capabilities don't exist in enum; `UNKNOWN` fallback silently applies browser wait hooks, producing wrong runtime behavior |
+| 2 | `UIEngineFactory.create(Properties, WebDriver)` | Creating a non-Selenium engine requires passing a `WebDriver` with no meaning |
+| 3 | `Action.perform(UIEngine)` type pin | Non-UI engine cannot be passed to `perform()` |
+| 4 | `VOID.start()` unconditional WebDriver creation | Session startup always creates a browser; no entry point for non-browser domains |
+| 5 | `LocatorStrategy` closed enum | Non-browser strategies cannot be declared |
+| 6 | `LocatorDescriptor.parent` DOM scoping | Nested lookups model DOM containment; does not map to robot joints or agent registries |
 
-**Disputed territory:**
-
-`LocatorDescriptor`, `LocatorStrategy`, and `LocatorResolver` occupy the interface between domain and runtime. `LocatorDescriptor` itself imports no Selenium types and represents a resolved locator string — it is domain-agnostic in form. But `LocatorStrategy.XPATH / CSS / ID / NAME` are web/HTML strategies. A robot domain would not use these. This is addressed in §6.
-
----
-
-## 3. Capability Analysis
-
-**Are the capabilities evidence of UI coupling?**
-
-The capability interfaces (`Clickable`, `Typeable`, `Selectable`, `Hoverable`) are **UI domain vocabulary**, not runtime coupling. They belong to the domain layer. The runtime does not depend on them.
-
-`Clickable.click()` returns `Action`. The runtime sees only `Action`. It does not see `Clickable`.
-
-**Domain substitution test — capabilities:**
-
-Replacing `Clickable` with `Movable`, and `Typeable` with `Actuatable`, would require:
-
-1. New capability interfaces: `Movable`, `Actuatable` — implement `Element`, emit `Action`
-2. New element enums implementing those interfaces
-3. No runtime changes required
-
-The runtime never inspects capability types. It dispatches `Action` objects. Capability replacement is a domain-only change.
-
-**Verdict on capabilities:** Not evidence of runtime coupling. They are correctly domain-local.
-
-**However:** The capability names (`Clickable`, `Typeable`, `Hoverable`) use browser terminology because the current domain is a browser domain. This is correct. Domain vocabulary should reflect the domain.
+`ActionCapability` is the most dangerous blocker: unlike the `UIEngine` type pin (fails
+loudly at compile time), `ActionCapability.UNKNOWN` fails silently at runtime -- agent
+actions receive browser wait hooks and time out with no obvious cause.
 
 ---
 
-## 4. Action Analysis
+## Remediation Priorities
 
-**Is `Action` the true architectural primitive?**
+All findings from all three audit rounds, classified by remediation priority.
 
-Architecturally yes. Practically, no — because of its signature.
+### Critical -- Must fix before further evolution
 
-`Action.java:41–48`:
-```java
-@FunctionalInterface
-public interface Action {
-    void perform(UIEngine engine);
-}
-```
-
-`Action` is formally the primitive. But its `perform` method takes `UIEngine` specifically — not an abstract `Engine` type. This is the central architectural defect.
-
-**Consequence of this pin:**
-
-A `MoveAction` for a robotics domain would need to call `engine.moveTo(x, y, z)`. But `UIEngine` has no `moveTo` method. The method cannot be called. The `Action` contract cannot express a non-UI operation without:
-- Adding `moveTo` to `UIEngine` (which corrupts the UI contract with robot vocabulary)
-- Or creating a parallel `RobotAction.perform(RobotEngine)` with a different signature (which creates two incompatible Action types and renders the runtime non-unified)
-
-Neither option is domain-agnostic. The execution contract is effectively:
-
-```
-Action → [must call UIEngine methods] → browser behavior
-```
-
-**For the architecture to be domain-agnostic, the signature must become:**
-
-```java
-void perform(Engine engine);
-```
-
-where `Engine` is an abstract supertype:
-
-```java
-UIEngine extends Engine
-RobotEngine extends Engine
-AgentEngine extends Engine
-```
-
-This single change, propagated through `FlowExecutor` and `VOID`, would make the runtime genuinely domain-agnostic.
-
-**Current state:** `Action` looks like a domain-agnostic primitive but is pinned to the current domain's execution contract.
-
----
-
-## 5. Engine Analysis
-
-**Is `UIEngine` a runtime primitive, a domain implementation, or a leaky abstraction?**
-
-`UIEngine` is a domain implementation masquerading as a runtime contract.
-
-Evidence from the interface:
-
-```java
-void navigateTo(String url);         // "url" is a web concept
-String getCurrentUrl();              // web concept
-void waitForOverlay(Duration);       // hardcoded CDK/Material concern
-void executeScript(String, Object...); // JavaScript — browser-only
-void selectByVisibleText(...);       // HTML <select> element concept
-void selectByValue(...);             // HTML <select> element concept
-void getTitle();                     // browser tab concept
-```
-
-`waitForOverlay` is the most revealing method. Its implementation in `SeleniumEngine.java:361`:
-```java
-By overlayPane = By.cssSelector("div.cdk-overlay-pane");
-```
-
-An Angular Material-specific CDK selector is embedded in the engine contract. This is not a UI-level coupling — it is an application-level coupling baked into what is supposed to be a framework-level contract.
-
-**Can the architecture support `RobotEngine`, `AgentEngine`, `WorkflowEngine`?**
-
-No. Not without redesigning `UIEngine`.
-
-A `RobotEngine` implementing `UIEngine` would need to provide:
-- `navigateTo(String url)` — meaningless for a robot
-- `waitForOverlay(Duration)` — meaningless for a robot
-- `executeScript(String, Object...)` — meaningless for a robot
-- `selectByVisibleText(LocatorDescriptor, String)` — meaningless for a robot
-- `getCurrentUrl()` — meaningless for a robot
-
-The interface cannot be implemented by a non-browser engine without hollow stub implementations that violate the Liskov Substitution Principle.
-
-**Root cause:** There is no abstract `Engine` supertype. `UIEngine` is both the abstract contract and the UI domain contract. These are two different things that have been collapsed into one interface.
-
-**What a multi-domain architecture requires:**
-
-```java
-interface Engine {
-    void initialize(EngineConfig config);
-    void shutdown();
-}
-
-interface UIEngine extends Engine {
-    void navigateTo(String url);
-    void click(LocatorDescriptor locator);
-    // ... all current UIEngine methods
-}
-
-interface RobotEngine extends Engine {
-    void moveTo(double x, double y, double z);
-    void actuate(String joint, double angle);
-}
-```
-
-`FlowExecutor` would then operate on `Engine`, and `Action.perform(Engine)` would work with any domain-specific engine.
-
----
-
-## 6. Hidden Coupling Audit
-
-### 6.1 Necessary UI Coupling
-
-These are correctly isolated. They belong to the Selenium implementation layer and do not leak into the runtime contracts.
-
-| Location | Coupling | Assessment |
+| Finding | File | Why Critical |
 |---|---|---|
-| `SeleniumEngine.java` | `WebDriver`, `By`, `WebElement`, `ExpectedConditions` | Correct — implementation detail |
-| `DriverFactory`, `DriverManager`, `DriverContext` | `WebDriver` | Correct — Selenium lifecycle |
-| `EngineConfig` | None (pure Properties + Duration) | Correctly agnostic |
+| `Action.perform(UIEngine)` type pin | `core/actions/Action.java` | Every future domain capability is blocked. All downstream generalization requires this first. |
+| `ActionCapability` closed enum | `core/actions/ActionCapability.java` | Introduced on this branch as new code. Fix before it hardens -- after release costs 3x more. `Profiles.SAFE`/`RELIABLE` exhaustive switches are the immediate forcing function. |
+| `ActionHandler.execute(UIEngine, LocatorDescriptor)` | `core/actions/hooks/ActionHandler.java` | Largest hidden surface area. Every `Before.*` / `After.*` constant is typed to `UIEngine`. Changing `Action.perform()` propagates here. |
 
-### 6.2 Accidental UI Coupling
+### Important -- Fix within next few releases
 
-These represent coupling that has leaked past where it belongs.
-
----
-
-**Finding 1 — `Action.perform(UIEngine)`: the execution primitive is domain-pinned**
-
-`Action.java:48`
-
-Severity: **Critical**
-
-The runtime's core primitive takes a UI-specific type. This single pin prevents the runtime from executing any non-UI domain. All downstream coupling is a consequence of this pin.
-
-No fix to `UIEngine`, `FlowExecutor`, or `VOID` matters until this pin is generalized.
-
----
-
-**Finding 2 — `ByParser` in the resolver layer**
-
-`core/resolvers/locator/parser/ByParser.java`
-
-```java
-import org.openqa.selenium.By;
-// ...
-public By parse(String raw) { ... }
-```
-
-`ByParser` lives inside `core.resolvers.locator` — the resolver layer. The resolver's job is to translate element descriptors into `LocatorDescriptor` objects. Producing a Selenium `By` object is the engine's job, not the resolver's job.
-
-The resolver layer now has two output types:
-- `LocatorResolver.resolve()` → returns `By` (old path, still used)
-- `LocatorResolver.resolveDescriptor()` → returns `LocatorDescriptor` (new path)
-
-The `By`-returning path is not an isolated legacy concern. `WaitUtils.waitForElementToDisappear(ReadOnly element)` at `WaitUtils.java:131` actively calls:
-```java
-By locator = LocatorResolvers.strict().resolve(element);
-```
-
-This means current production code in `core.utils.web` depends on the `By`-returning path. The migration is incomplete.
-
-Severity: **High** — resolver layer is coupled to Selenium despite having a working `LocatorDescriptor` abstraction.
-
----
-
-**Finding 3 — `UIEngineFactory.create(Properties, WebDriver)`: factory signature leaks Selenium**
-
-`UIEngineFactory.java:41`:
-```java
-public static UIEngine create(Properties config, WebDriver driver) {
-```
-
-The factory takes a `WebDriver` as a required parameter. This means any invocation of the factory is tied to Selenium. There is no path through this factory to create a non-Selenium engine. A future `PlaywrightEngine` would not accept a `WebDriver`.
-
-The comment in the code acknowledges this: `@param driver WebDriver instance (used by SeleniumEngine; ignored by other engines)`. If it is ignored by other engines, it should not be in the signature.
-
-Severity: **High** — entry point to engine creation is Selenium-gated.
-
----
-
-**Finding 4 — `VOID.start()` hardwires Selenium driver creation at session startup**
-
-`VOID.java:136–144`:
-```java
-public static VOID start(DriverFactory.Profile profile) {
-    FrameworkBootstrap.init();
-    WebDriver driver = DriverManager.createDriver(profile);
-    ExecutionContext ctx = new ExecutionContext(
-            FrameworkBootstrap.getUtilsConfig(), driver);
-    UIEngine engine = UIEngineFactory.create(FrameworkBootstrap.getUtilsConfig(), driver);
-    ...
-}
-```
-
-The session facade's primary factory method instantiates a `WebDriver` unconditionally. There is no code path through `VOID.start()` that does not create a Selenium WebDriver. A Playwright session, robot session, or agent session cannot be started without modifying this method.
-
-Severity: **High** — the user-facing entry point is Selenium-only.
-
----
-
-**Finding 5 — `core.utils.web` package in `core`**
-
-`DOMUtils.java`, `WaitUtils.java`, `TableHandler.java`, `WaitUtils.java`, `Upload.java`, `KeyValuePairHandler.java` live in `core.utils.web`. The package name `web` signals their domain. The class name `DOMUtils` (Document Object Model) is a browser-specific term. These files import `By`, `WebDriver`, `WebElement`.
-
-These utilities are in the `core` package, which should be the framework runtime. They are domain utilities — they belong in a `selenium/` or `ui/` implementation package, not in the core.
-
-`DOMUtils.java:4–8`:
-```java
-import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import core.driver.DriverContext;
-```
-
-`DOMUtils` also reaches into `DriverContext` directly, bypassing the engine abstraction entirely.
-
-Severity: **Medium** — the coupling is isolated to a utility subpackage but lives in the wrong layer.
-
----
-
-**Finding 6 — `WaitUtils` with hardcoded Angular CDK selectors**
-
-`WaitUtils.java:44–45`:
-```java
-public static final By ANGULAR_LOADER = By.tagName("app-loader");
-public static final By SPIN_SPINNER_LOADER = By.xpath("//span[contains(@class, 'spin spinner')]");
-```
-
-Framework-level wait utilities contain application-specific selectors (`app-loader`, `spin spinner`). This is coupling below the framework layer — application vocabulary embedded in a framework class. The `waitForOverlay` concern in `UIEngine` is the same failure at a higher level.
-
-Severity: **Low** (in context of the architectural question) — application concern leaking into framework, but isolated to one class.
-
----
-
-**Finding 7 — `LocatorStrategy` is a closed enum of HTML strategies**
-
-`LocatorStrategy.java`:
-```java
-public enum LocatorStrategy {
-    XPATH, CSS, ID, NAME;
-}
-```
-
-These four strategies are specific to web/HTML element location. A robot domain would use coordinate-based location. An agent domain might use semantic identifiers or API paths. The enum is not extensible — adding a new strategy requires modifying the enum, which modifies the engine contract.
-
-For a domain-agnostic runtime, `LocatorStrategy` would need to be an interface or an open set, not a closed enum.
-
-Severity: **Medium** — currently correct for the UI domain, but structurally blocks new domains.
-
----
-
-**Finding 8 — `UIEngine.waitForOverlay(Duration)` encodes Angular Material concern in the engine contract**
-
-`UIEngine.java:289`:
-```java
-void waitForOverlay(Duration timeout);
-```
-
-`SeleniumEngine.java:361`:
-```java
-By overlayPane = By.cssSelector("div.cdk-overlay-pane");
-```
-
-The engine contract includes a method specific to Angular Material's CDK overlay pane. This is not a UI-level abstraction — it is an application-level detail embedded in the engine interface. Every engine implementation (including a future Playwright engine) must implement a method that searches for `cdk-overlay-pane`.
-
-This method does not belong in `UIEngine`. It belongs in a higher-level application utility or as a configurable wait hook.
-
-Severity: **Low** (in context of the architectural question) — does not prevent domain-agnosticism, but indicates the engine contract is accumulating application-level concerns.
-
----
-
-### 6.3 Coupling Summary
-
-| Layer | Coupling Type | Severity | Notes |
-|---|---|---|---|
-| `Action.perform(UIEngine)` | Execution contract pinned to UI domain | Critical | Root cause of all runtime coupling |
-| `UIEngineFactory(WebDriver)` | Factory signature leaks Selenium | High | No path to non-Selenium engine |
-| `VOID.start()` | Session startup hardwired to WebDriver | High | User-facing entry point Selenium-only |
-| `ByParser` in resolver | Resolver produces `By` | High | Migration to `LocatorDescriptor` incomplete |
-| `core.utils.web.*` in core | DOM utilities in runtime layer | Medium | Wrong layer, not wrong code |
-| `LocatorStrategy` closed enum | Not extensible for new domains | Medium | Blocks new domain strategies |
-| `UIEngine.waitForOverlay` | App-level concern in engine contract | Low | Accumulating tech debt |
-| Capability interfaces | UI vocabulary | None | Correctly domain-local |
-| `LocatorDescriptor` | No Selenium imports | None | Correctly domain-agnostic |
-| `SeleniumEngine` internals | Full Selenium coupling | Correct | Correctly isolated |
-
----
-
-## 7. Future Evolution Test
-
-**Assumed future:** Pages, flows, and tests become JSON assets. Multiple engine families exist. UI automation is one domain among many.
-
-### What survives unchanged
-
-| Artifact | Survives | Reason |
+| Finding | File | Why Important |
 |---|---|---|
-| `Element` interface | ✅ | Pure descriptor; no coupling |
-| `Clickable`, `Typeable`, etc. | ✅ | Domain vocabulary; engine-agnostic |
-| `LocatorDescriptor` | ✅ | No Selenium imports; pure record |
-| `Flow` | ✅ | Pure sequence; no coupling |
-| Hook system (`ActionHandler`, `Before`, `After`) | ✅ | Engine-agnostic; receives descriptor |
-| `LocatorSourceRegistry` / `LocatorSource` | ✅ | Pluggable source chain; no coupling |
-| JSON/properties locator files | ✅ | Data; no coupling |
-| `EngineConfig` | ✅ | Pure configuration; no coupling |
+| No abstract `Engine` interface | n/a | Required for `UIEngine extends Engine`. Without it, Critical items cannot be resolved. One new file, zero risk. |
+| `VOID.start()` unconditional WebDriver creation | `core/runtime/VOID.java` | Once Engine is generalized, this is the entry point that blocks non-browser sessions. |
+| `UIEngineFactory.create(Properties, WebDriver)` signature | `core/engine/UIEngineFactory.java` | `WebDriver` in the parameter is wrong per its own Javadoc. Fix when Engine is generalized. |
+| `LocatorStrategy` closed enum | `core/engine/LocatorStrategy.java` | Same extensibility problem as `ActionCapability` but lower severity. Fix when touching nearby code. |
+| `ByParser` in resolver layer | `core/resolvers/locator/parser/ByParser.java` | Wrong layer for Selenium imports. Should be internal to `SeleniumEngine`. 10-minute cleanup. |
+| `resolve()` returning `By` in `LocatorResolver` | `core/resolvers/locator/api/LocatorResolver.java` | Both `resolve()` and `resolveDescriptor()` coexist. Formally deprecate and schedule deletion. |
+| `HookChainAction` / `HookedAction` type pins | `core/actions/HookChainAction.java`, `HookedAction.java` | Carry the UIEngine pin into hook orchestration. Update with `Action` type changes. |
 
-### What requires redesign
+### Opportunistic -- Fix when touching nearby code
 
-| Artifact | Problem | Required Change |
-|---|---|---|
-| `Action.perform(UIEngine)` | Pinned to UIEngine | Introduce abstract `Engine`; change signature to `perform(Engine)` |
-| `FlowExecutor(UIEngine)` | Depends on UIEngine | Change constructor to `FlowExecutor(Engine)` |
-| `UIEngine` (interface) | Is both runtime contract and UI domain contract | Extract abstract `Engine`; `UIEngine extends Engine` |
-| `UIEngineFactory.create(Properties, WebDriver)` | Requires WebDriver | Remove `WebDriver` param; each engine creates its own driver |
-| `VOID.start()` | Hardwires Selenium driver creation | Make engine-configurable; inject engine, not driver |
-| `ByParser` in resolver layer | Resolver produces `By` | Internalize `ByParser` to `SeleniumEngine`; resolver always returns `LocatorDescriptor` |
-| `LocatorResolver.resolve()` returning `By` | Dual output types | Deprecate and remove; `resolveDescriptor` is the only path |
-| `LocatorStrategy` enum | Closed set of HTML strategies | Convert to interface or extensible enum |
-| `core.utils.web.*` | In core layer, uses WebDriver | Move to `engine/selenium/utils/` or similar implementation package |
-
-### Prognosis
-
-The locator resolution pipeline (`LocatorDescriptor`, `LocatorSourceRegistry`, `LocatorTemplate`) is already in the right shape. Pages and flows as JSON assets are structurally supported today.
-
-The execution model (`Action`, `Flow`, `FlowExecutor`) is one pin change from being domain-agnostic. The pin is `UIEngine` in `Action.perform(UIEngine)`. One abstraction — an `Engine` supertype — removes that pin and unlocks multi-domain support without redesigning the runtime logic.
-
-The session startup (`VOID.start()`) needs the most invasive rework. It currently constructs a `WebDriver` unconditionally, which is the deepest Selenium coupling in the user-visible API.
-
----
-
-## 8. Final Verdict
-
-**B — UI Automation Runtime**
-
-This is not a UI automation *framework* (A), because the execution model is genuine: deferred action emission, compositional flows, lifecycle management, a hook pipeline, and an engine abstraction boundary. These are runtime behaviors, not framework glue.
-
-This is not an Interaction Runtime Currently Configured For UI Automation (C), because being "currently configured for UI" implies the runtime is domain-agnostic at its core and happens to be pointing at a UI engine. That is not the case here.
-
-**The test:** Can a `RobotEngine` be introduced primarily by adding new Elements, Capabilities, Actions, and an Engine implementation?
-
-**Result:** No.
-
-The execution contract is `Action.perform(UIEngine engine)`. A `RobotEngine` cannot be passed to this method unless it implements `UIEngine`. Implementing `UIEngine` requires implementing `navigateTo(url)`, `executeScript()`, `waitForOverlay()`, `selectByVisibleText()`, `getCurrentUrl()` — none of which have meaningful semantics for a robot. This is not a configuration difference. It is a contract violation.
-
-The runtime cannot host a second domain without changing `Action.perform(UIEngine)`. That is a runtime redesign, not a domain addition. Therefore the runtime is not domain-agnostic.
-
-**What the architecture has correctly achieved:**
-
-1. The domain layer (capabilities, elements) is clean. Replacing capabilities with robot or agent vocabulary requires zero runtime changes.
-2. `LocatorDescriptor` is correctly engine-agnostic. The resolver's descriptor path is correct.
-3. `SeleniumEngine` is correctly isolated — Selenium coupling is contained within one class.
-4. The hook system is correctly domain-agnostic.
-5. `Flow` and `FlowExecutor` are structurally correct — one type signature change makes them truly domain-agnostic.
-
-**What separates B from C:**
-
-| Requirement for (C) | Current state |
+| Finding | Why Opportunistic |
 |---|---|
-| Abstract `Engine` type exists | ❌ — does not exist |
-| `Action.perform(Engine)` | ❌ — `Action.perform(UIEngine)` |
-| `FlowExecutor(Engine)` | ❌ — `FlowExecutor(UIEngine)` |
-| Engine creation does not require domain driver | ❌ — factory requires `WebDriver` |
-| Session start does not hardwire driver creation | ❌ — `VOID.start()` unconditionally creates `WebDriver` |
-| Resolver does not produce domain-specific types | ❌ — `resolve()` still returns `By` |
+| `UIEngine.waitForOverlay(Duration)` CDK concept | Application-level concern in engine contract. Suppress with `@Deprecated` pointing to profile hook. |
+| `Before.WAIT_FOR_ANGULAR_LOADER` in profile library | Application-level constant in framework. Move to test project custom hooks. |
+| `WaitUtils.ANGULAR_LOADER = By.tagName("app-loader")` | Angular-specific selector in framework utility. Remove when touching WaitUtils. |
+| `Interactions` legacy class | Already `@Deprecated(since="2.1", forRemoval)`. Do not add new methods. Leave for 3.0 removal. |
 
-**Minimum changes required to reach (C):**
+### Ignore
 
-1. Introduce `Engine` interface (or rename `UIEngine` → `Engine` and move domain methods to `UIEngine extends Engine`)
-2. Change `Action` to `perform(Engine engine)`
-3. Change `FlowExecutor` to `FlowExecutor(Engine engine)`
-4. Remove `WebDriver` from `UIEngineFactory.create()` signature
-5. Remove `WebDriver` driver creation from `VOID.start()`; inject engine directly
-6. Remove `By`-returning methods from `LocatorResolver`; internalize `ByParser` to `SeleniumEngine`
-
-None of these changes require redesigning the locator resolution system, the hook system, the flow composition model, or the capability model. The domain layer survives intact. The structural skeleton of the runtime survives intact. Only the type pin changes.
-
-The framework is one abstraction away from (C). That abstraction is an `Engine` supertype.
+| Finding | Why Ignore |
+|---|---|
+| `Clickable`, `Typeable`, `Selectable` interface naming | Correct domain vocabulary for UI elements. Semantically accurate. |
+| `SeleniumEngine` using `By`, `WebElement`, `WebDriver` | Correctly isolated to the implementation class. Not a framework concern. |
+| Multi-domain flow coexistence | Premature. Single-domain-per-session is the correct initial model. Design later. |
+| `LocatorDescriptor.parent` rename only | Low value for high cost; rename together with `LocatorStrategy` extensibility work (use `scope`). |
 
 ---
 
-*Audit performed against commit 8c081c6. All findings reference actual source code.*
+## LLM Readiness
+
+### Implementation Readiness: 2/10
+
+No LLM integration, no output schema, no code generator tooling. `JsonMigratorCli` exists
+but does not consume LLM output. Every gap is tooling above the runtime, not a runtime change.
+
+### Architectural Readiness: 8/10
+
+| Pipeline Stage | Supporting Artifact | Status |
+|---|---|---|
+| Element discovery -> enum names | `Element` interface | Ready |
+| Capability assignment | `Clickable`, `Typeable`, `Selectable` | Ready |
+| Locator extraction -> JSON | `JsonLocatorReader`, `JsonLocatorSource` | Ready |
+| Parameterized locators | `LocatorTemplate` with `%s` formatting | Ready |
+| Migration CLI | `JsonMigratorCli` | Ready |
+| Config-driven profile selection | `void.profile.default`, `ActionProfiles` | Ready |
+| Flow execution of generated artifacts | `Flow.of(...)`, `app.run(flow)` | Ready |
+
+The architecture does not need to change to support an AI generation pipeline. An LLM
+generates a JSON locator asset and an enum implementing capability interfaces without any
+Selenium knowledge. The runtime consumes both unchanged.
+
+**The key structural property:** The descriptor-first, externalized-asset, capability-classified
+design separates what an element IS (address and capability) from HOW it is executed.
+AI systems generate knowledge; runtimes execute it. Traditional Selenium POM requires an
+LLM to generate Java code with Selenium imports, XPath correctness, and driver lifecycle
+awareness. VOID requires only key-value locator pairs and interface declarations. This
+separation is rare and positions VOID for AI tooling in ways that POM frameworks cannot
+easily retrofit.
+
+---
+
+## Locator Evolution
+
+`LocatorDescriptor` is a transitional abstraction. The structural `(value, strategy, args, scope)`
+pattern can hold any domain's target address. The conceptual model -- "locating" a target
+by XPath/CSS/ID within a parent DOM element -- is browser-derived.
+
+The `parent` field encodes DOM containment. A `GRIPPER` is not "within" an `ARM` the
+way a `<button>` is within a `<div>`. The field name is wrong for non-UI domains.
+
+**Rename `parent` to `scope` now.** `scope` expresses "find this descriptor within this
+context" -- which holds for DOM nesting, robot subsystems, and hierarchical address spaces.
+Affects `LocatorDescriptor`, `SeleniumEngine.toBy()`, and call sites of `isScoped()` /
+`withParent()`. Do as part of `LocatorStrategy` extensibility work.
+
+**Defer full rename to `TargetDescriptor` until a second domain exists.** A rename without
+a second domain is premature abstraction that adds diff noise without delivering value.
+
+---
+
+## What Earlier Audit Rounds Got Wrong
+
+### Overstated
+
+**`LocatorDescriptor.parent` as a major concern.** All three rounds mentioned the DOM-centric
+scoping model as a meaningful blocker. It is one field name. Until a second-domain developer
+asks "what does parent mean for a robot joint?", this has zero practical effect.
+
+**Multi-domain flow coexistence.** Round 3 raised "what happens when UI and robot actions
+coexist in a single Flow." The single-domain-per-session model resolves this entirely. The
+concern was answered correctly but raised unnecessarily.
+
+**`ByParser` in the resolver layer.** All rounds called this significant coupling. It is a
+two-method class -- a 10-minute package rename with no architectural consequence. Treated
+as a meaningful design violation.
+
+### Understated
+
+**`ActionHandler.execute(UIEngine, LocatorDescriptor)` as the true propagation bottleneck.**
+No round named this explicitly. When `Action.perform(UIEngine)` changes to `Action.perform(Engine)`,
+every `Before.*` and `After.*` constant carries `UIEngine` in its lambda. The propagation
+surface was underestimated by roughly 3x.
+
+**`ActionCapability` severity.** Rounds 1 and 2 did not assess it. Round 3 classified it as
+the next hidden bottleneck. None noted it was introduced on the branch under evaluation --
+new code with a window to fix at zero migration cost that closes at release.
+
+**`VOID.start()` session API mismatch for non-browser domains.** `navigateTo()`,
+`getCurrentUrl()`, `getTitle()`, `refresh()` are browser navigation methods on the session
+facade. A `RobotSession.start()` would return a different session type with different
+top-level methods. `VOID` is currently both the session contract AND the browser navigation
+API. These need separation before a second domain entry point is designed. No round named
+this concern.
+
+### Incorrect Assumptions
+
+**"Six type signature changes cover the migration."** Actual count: `Action.java` (2 pins:
+`perform`, `resolve`), `FlowExecutor.java` (1), `HookChainAction.java` (2), `HookedAction.java`
+(2), `ElementBoundAction` inner class (2), `ActionHandler.java` (1) = 10+ pins, plus
+`BiConsumer<UIEngine, LocatorDescriptor>` in `ElementActions.of()`. Six was a file count,
+not a signature count.
+
+**`ActionCapability` as "implementation coupling" with moderate severity.** `Profiles.SAFE`
+and `Profiles.RELIABLE` both use exhaustive `switch` over `ActionCapability`. Two exhaustive
+switches over a four-value closed enum, introduced on the branch being evaluated. This is a
+structural lock-in being built in real time.
+
+---
+
+## Roadmap
+
+### Next Release
+
+| Change | Cost | Risk |
+|---|---|---|
+| Introduce `Engine` interface | 1 file, 5 lines | Zero -- additive |
+| `UIEngine extends Engine` | 1 line | Zero -- backward compatible |
+| `Action.perform(Engine)` + `Action.ui()` migration helper | ~10 type signatures | Low |
+| `FlowExecutor(Engine)`, `HookChainAction(Engine)` | ~4 signatures | Low |
+| `ActionCapability` enum -> interface-with-constants | Replace 12 lines | Low -- same names, identical behavior for existing capabilities |
+| `Profiles.SAFE`/`RELIABLE` -> map-based dispatch | ~20 lines | Low -- output identical for existing capabilities |
+| Wire `SessionContext` into `VOID.start()` | ~10 lines in VOID.java | Low -- SessionContext already tested |
+
+Note on `ActionCapability`: replace exhaustive switch with `Map<ActionCapability, List<...>>`
+dispatch. New domain capabilities then work without modifying framework code. `ActionCapability`
+has no declared callers outside the framework's own `Profiles` and `ElementActions` classes --
+no deprecation period needed for this pre-release code.
+
+### Next 3 Releases
+
+| Change | Cost | Risk |
+|---|---|---|
+| `LocatorStrategy` enum -> interface-with-constants | 1 file replace | Low |
+| `LocatorDescriptor.parent` -> `scope` | Record field rename + ~10-20 call sites | Low |
+| Formal deprecation of all `By`-returning paths in `LocatorResolver` | Add `@Deprecated` to ~5 methods | Zero |
+| Move `ByParser` to `core.engine.selenium` | Package rename | Zero |
+| `UIEngineFactory.create()` removes `WebDriver` parameter | ~15 lines | Medium |
+| `ExecutionContext` `@Deprecated(forRemoval=true)` | 1 annotation | Zero |
+| `UIEngine.waitForOverlay()` `@Deprecated` pointing to profile hook | 1 annotation | Zero |
+
+### Long-Term
+
+| Change | Cost |
+|---|---|
+| `BrowserSession extends VOID` -- separate browser navigation API from session contract | Medium refactor of VOID.java |
+| Remove `By`-returning resolution paths | Delete ~5 methods after callers warned |
+| Remove `ExecutionContext`, `HookedAction`, `Interactions` (3.0 removal) | Delete ~300 lines |
+| `ActionHandler<E extends Engine>` generalization | Medium -- breaking for hook implementors |
+| `void-ai-tools` module: LLM integration, JSON schema, code generator | High implementation, zero runtime risk |
+| Publish `LocatorDescriptor` JSON schema for external tooling | Low |
+
+---
+
+*Supersedes: domain-agnostic-runtime-audit-2026-06-revised.md,
+domain-agnostic-runtime-audit-2026-06-stress-test.md,
+domain-agnostic-runtime-remediation-2026-06.md.
+All source findings verified against branch `initiative/engine-decoupling`.*
