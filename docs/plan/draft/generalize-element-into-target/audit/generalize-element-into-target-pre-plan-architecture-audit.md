@@ -1,7 +1,7 @@
 # Architecture Audit: Generalize Element into Target
 
 Audit date: 2026-07-20
-Conducted after: `feature/engine-decoupling` completion
+Conducted after: `initiative/engine-decoupling` completion
 
 ---
 

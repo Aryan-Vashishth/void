@@ -2,7 +2,7 @@
 
 **Scope:** P8 only (`UIEngineFactory` switch -> registry)
 **Run:** before starting Phase 4 implementation
-**Depends on:** `feature/engine-decoupling` Phases 1 and 2 merged to `main`
+**Depends on:** `initiative/engine-decoupling` Phases 1 and 2 merged to `main`
 
 ---
 

@@ -2,7 +2,7 @@
 
 Identified: 2026-07-15 interface audit.
 Supersedes: `action-layer-ocp-violations.md` (covered P1/P3/P4/P6/P7 as an earlier partial draft — fully absorbed here).
-Branch target: `feature/element-api-simplification` or a follow-on branch cut from it.
+Branch target: `initiative/oop-violations-remediation`
 
 ---
 

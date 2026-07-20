@@ -10,3 +10,4 @@ Files here define the question, scope, and method for a future audit pass. They 
 - `domain-agnostic-runtime-audit-2026-06-revised.md` -- revised scope for the domain-agnostic audit
 - `domain-agnostic-runtime-audit-2026-06-stress-test.md` -- stress-test variant: concrete substitution exercises for the domain-agnostic question
 - `domain-agnostic-runtime-remediation-2026-06.md` -- proposed remediation path if domain-agnostic audit surfaces coupling
+- `violations/` -- individual OOP violation reports discovered incidentally during development; candidates for the next remediation initiative phase
