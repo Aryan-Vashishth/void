@@ -42,11 +42,11 @@ The initiative (core-utils-engine-agnostic) scoped I1-C to the By-based public A
 Angular CDK selector fields. This overload was treated as an internal dispatch utility and
 left non-deprecated. It was surfaced during the post-implementation audit.
 
-## Recommended fix
+## Resolution
 
-Add `@Deprecated(forRemoval = true)`. Javadoc should point callers to:
-- `waitForCondition(String, Duration, Duration, Supplier<Boolean>)` for engine-agnostic condition checks
-- UIEngine wait methods (`waitForVisible`, `waitForAbsence`, `waitForClickable`) for element-specific waits
+Fixed as an incidental fix during unit test authoring for the core-utils-engine-agnostic
+initiative. `@Deprecated(forRemoval = true)` with pointing Javadoc added to
+`WaitUtils.java:71`. Surfaced by `CoreUtilsDeprecationTest.waitUtils_byBasedPublicMethodsAreDeprecated`.
 
-**Estimated cost:** Minimal -- annotation + Javadoc only.
+**Status: Resolved.**
 See also [[waitutils-waitforcondition-internal-webdriver-coupling]].

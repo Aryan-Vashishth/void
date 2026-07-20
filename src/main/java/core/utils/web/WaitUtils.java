@@ -68,6 +68,13 @@ public class WaitUtils {
                 .ignoring(StaleElementReferenceException.class);
     }
 
+    /**
+     * @deprecated Accepts Selenium types ({@link WebDriver}, {@link ExpectedCondition}, {@link By}) directly,
+     *             violating ADR-007. Use {@link core.engine.UIEngine} wait methods or
+     *             {@link #waitForCondition(String, java.time.Duration, java.time.Duration, java.util.function.Supplier)}
+     *             for engine-agnostic condition waits.
+     */
+    @Deprecated(forRemoval = true)
     public static <T> T waitForCondition(
             WebDriver driver,
             ExpectedCondition<T> condition,

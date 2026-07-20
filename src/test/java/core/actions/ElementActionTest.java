@@ -81,6 +81,9 @@ public class ElementActionTest {
         @Override public byte[] takeScreenshot() { return new byte[0]; }
         @Override public void highlight(LocatorDescriptor locator, String color) {}
         @Override public void hover(LocatorDescriptor locator) {}
+        @Override public void switchToFrame(LocatorDescriptor locator) {}
+        @Override public void switchToDefaultContent() {}
+        @Override public void sendKeys(CharSequence... keys) {}
         @Override public Object getNativeDriver() { return null; }
         @Override public String getEngineName() { return "TestEngine"; }
     }
