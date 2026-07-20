@@ -56,9 +56,8 @@ public final class SeleniumEngine implements UIEngine {
     }
 
     /**
-     * Compatibility bridge for: {@code Interactions(WebDriver)} and the Phase 1
-     * {@code EngineBootstrap.FromDriver} path.  Kept until
-     * {@code Interactions(WebDriver)} and {@code EngineBootstrap.FromDriver} are removed.
+     * Compatibility bridge for {@code Interactions(WebDriver)}.
+     * Kept until {@code Interactions(WebDriver)} is removed.
      *
      * @param driver active WebDriver instance (already created by caller)
      * @deprecated use {@link #SeleniumEngine(DriverFactory.Profile)} via the factory
