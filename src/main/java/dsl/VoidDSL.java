@@ -1,5 +1,6 @@
 package dsl;
 
+import core.engine.LocatorDescriptor;
 import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
 
@@ -10,8 +11,6 @@ import core.utils.ResolvableEnum;
 import core.interactions.hooks.ActionHandler;
 import core.interactions.Interactions;
 import core.utils.EnumResolver;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
@@ -301,7 +300,7 @@ public record VoidDSL(Interactions engine) {
             try {
                 ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
                 Element el = (Element) resolved;
-                By locator = LocatorResolvers.strict().resolve(LocatorRequest.of(el.getExternalFileName(), el.getPrimaryLocator(), el.getArgs()));
+                LocatorDescriptor locator = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(el.getExternalFileName(), el.getPrimaryLocator(), el.getArgs()));
                 String displayText = resolved.getLabel();
 
                 boolean visible = engine.isAnyDisplayed(locator);
