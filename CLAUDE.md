@@ -2,8 +2,39 @@
 
 Project-level instructions for Claude Code. These override default behavior.
 
-Read relevant docs before starting any task. Code without its architectural context is
-incomplete information.
+## Core Principles
+
+- Architecture before implementation.
+- Documentation is the source of truth.
+- Prefer extension over modification.
+- Preserve engine neutrality.
+- Keep abstractions minimal and intentional.
+
+---
+
+## Instruction Precedence
+
+When guidance conflicts, follow this order:
+
+1. Current initiative plan (`docs/plan/draft/<initiative>/`)
+2. Accepted ADRs -- and pending-review ADRs on the current initiative branch
+3. Architecture invariants (this file)
+4. Coding conventions
+
+If two documents conflict, report the inconsistency before proceeding rather than choosing
+arbitrarily.
+
+---
+
+## Before Modifying Architecture
+
+Understand the current design before changing it.
+
+- Read the governing ADR(s) for the subsystem being touched.
+- Read the active initiative plan if the subsystem is mid-initiative.
+- Check `docs/audits/ongoing/` for open findings in the affected area.
+
+Do not design from code alone.
 
 ---
 
@@ -169,6 +200,7 @@ Full protocol and file format: `docs/contributing/architecture-rules.md`.
 - Ask one concise clarification instead of listing multiple assumptions.
 - Do not repeat previous phase summaries when continuing an initiative.
 - Preserve context budget on long initiatives: read only the docs relevant to the current phase.
+- Do not regenerate plans or documentation that already exist. Reference them instead.
 
 ---
 
@@ -188,6 +220,6 @@ Full protocol and file format: `docs/contributing/architecture-rules.md`.
 
 ## Memory
 
-Project memory: `C:\Users\AryanVashishth\.claude\projects\D--void-framework\memory\`
-
-Check `MEMORY.md` in that directory for the index of saved context.
+Project memory is stored in the project's Claude memory directory (environment-specific
+path). Check `MEMORY.md` in that directory for the index of saved context before relying
+on information from previous sessions.
