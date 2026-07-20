@@ -1,7 +1,7 @@
 # ADR-019 -- SeleniumLocatorBridge Isolation
 
 **Date:** 2026-07-20
-**Status:** Pending review (`feature/engine-decoupling`)
+**Status:** Pending review (`initiative/engine-decoupling`)
 
 ---
 

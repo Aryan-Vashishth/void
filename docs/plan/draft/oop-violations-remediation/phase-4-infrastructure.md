@@ -3,7 +3,7 @@
 Violations: **P8**, **P9**, **P11**
 No upstream dependencies within this plan -- can be done after any phase or in parallel with Phase 3.
 
-> **External dependency (P8 only)**: `feature/engine-decoupling` Phases 1 and 2 must be merged
+> **External dependency (P8 only)**: `initiative/engine-decoupling` Phases 1 and 2 must be merged
 > before P8 is applied. Phase 1 changes `UIEngineFactory.create()` to accept `EngineBootstrap`
 > instead of `WebDriver`; Phase 2 deletes `EngineBootstrap.FromDriver`. By the time P8 runs,
 > the factory input is `EngineBootstrap` (containing only `FromProfile`). See the P8 section

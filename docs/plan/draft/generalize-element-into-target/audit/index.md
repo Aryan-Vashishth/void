@@ -5,7 +5,7 @@ Pre-plan architecture audit for the generalize-element-into-target initiative.
 ## Contents
 
 - `generalize-element-into-target-pre-plan-architecture-audit.md` -- 11-question
-  architectural analysis conducted after `feature/engine-decoupling` completed;
+  architectural analysis conducted after `initiative/engine-decoupling` completed;
   evaluates naming, method placement, locator ownership, hierarchy options, package
   structure, engine compatibility, Clean Architecture alignment, DDD fit, risks,
   alternatives, and final verdict

@@ -1,7 +1,7 @@
 # Engine Decoupling — Selenium Hotswap Enablement
 
 Identified: 2026-07-15 bootstrap coupling analysis.
-Branch target: `feature/engine-decoupling` cut from `main`.
+Branch target: `initiative/engine-decoupling` cut from `main`.
 
 ---
 

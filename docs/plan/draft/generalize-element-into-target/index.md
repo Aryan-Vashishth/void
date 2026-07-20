@@ -1,7 +1,7 @@
 # Generalize Element into Target
 
 Identified: 2026-07-20 post-engine-decoupling domain model audit.
-Branch target: cut from `feature/engine-decoupling` once merged.
+Branch target: cut from `initiative/engine-decoupling` once merged.
 
 ---
 

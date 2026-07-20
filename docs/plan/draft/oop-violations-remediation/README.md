@@ -1,7 +1,7 @@
 # OOP Violations Remediation
 
 **Status:** Draft -- planned, not yet implemented
-**Branch target:** `feature/action-package-refactor`
+**Branch target:** `initiative/oop-violations-remediation`
 
 4-phase plan to eliminate all `instanceof`-dispatch chains, unguarded `(Enum<?>) this` casts, and `switch`-on-string patterns identified as OOP violations in the codebase.
 
