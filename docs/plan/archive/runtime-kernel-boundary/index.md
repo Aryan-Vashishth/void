@@ -1,9 +1,13 @@
 # Runtime Kernel Boundary
 
-> **SUPERSEDED (2026-07-20)** by [`../runtime-redesign/`](../runtime-redesign/index.md).
-> Phase mapping: phase 1 -> runtime-redesign 0.1; phase 2 -> 4.1 + 4.2;
-> phase 3 -> 2.1; phase 4 -> 3.1 + 3.2. This draft is retained for traceability
-> and will be archived at runtime-redesign phase 9.5. Do not implement from here.
+> **SCRAPPED (2026-07-20)** -- superseded in full by
+> [`../../draft/runtime-redesign/`](../../draft/runtime-redesign/index.md).
+> **Reason**: this draft was created as a holding initiative for the 2026-07 audit's
+> Critical findings before the master roadmap existed; every one of its four phases
+> was absorbed by runtime-redesign (phase 1 -> 0.1; phase 2 -> 4.1 + 4.2;
+> phase 3 -> 2.1; phase 4 -> 3.1 + 3.2), so implementing it would duplicate that
+> work under a second source of truth. Archived for traceability only.
+> **Do not implement from here.**
 
 Identified: 2026-07-20 domain model architecture audit and ontology review
 (`docs/audits/ongoing/architecture-audit-2026-07-domain-model.md`, findings D1-D18 and O1-O9).
@@ -158,7 +162,7 @@ speculatively.
 
 ## Versioning (CHANGELOG.md)
 
-Superseded -- no release of its own. Changelog entries for its content ship with
-the runtime-redesign releases that absorbed the phases: phase 1 (ADR-021) is
+Scrapped -- no release of its own, ever. Changelog entries for its content ship
+with the runtime-redesign releases that absorbed the phases: phase 1 (ADR-021) is
 docs-only, no entry; phases 3 and 4 (hooks, vocabularies) under **0.5.0** (M2);
 phase 2 (engine contract) under **0.6.0** (M3).

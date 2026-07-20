@@ -131,9 +131,12 @@ All commits follow Conventional Commits format. No em dashes. Imperative present
 
 ## Versioning (CHANGELOG.md)
 
-Target release: **minor bump at whatever version is current when it merges**
-(independent of the runtime-redesign milestone train; branch cut from `main`).
-`## [Unreleased]` entries as phases land:
+Target release: **0.8.0** (default slot in the pinned sequence, after
+runtime-redesign M4/0.7.0 and before 1.0.0). Independent of the milestone train
+(branch cut from `main`), so it may land earlier -- in that case it takes the next
+free minor at merge time and later numbers shift up. Only scheduling constraint:
+not alongside runtime-redesign phase 7.3. `## [Unreleased]` entries as phases
+land:
 
 - `### Added` -- **`void.bat` / `void.sh`** -- developer convenience wrappers
   (Phase 1)

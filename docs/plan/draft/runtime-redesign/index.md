@@ -61,7 +61,7 @@ that deletes it. No shim ships without a scheduled death.
 | Draft | Verdict | Rationale |
 |---|---|---|
 | `generalize-element-into-target/` | **MERGE** | Becomes Initiative I1 Phases 1.1-1.3 verbatim (its three phases are already correctly scoped). Its "future watch" items (Engine superinterface, role generalization) are absorbed by I4.3 and I7. Draft index gains a merged-into notice; no content is lost. |
-| `runtime-kernel-boundary/` | **SUPERSEDE** | Created as the Critical-findings holding initiative before this roadmap existed. Its four phases map to 0.1 (ADR-021), 2.1 (hooks), 4.1+4.2 (engine contract), 3.1+3.2 (vocabularies). This roadmap is its superset; keeping both would create two sources of truth for the same phases. Draft index gains a superseded notice. |
+| `runtime-kernel-boundary/` | **SUPERSEDE** | Created as the Critical-findings holding initiative before this roadmap existed. Its four phases map to 0.1 (ADR-021), 2.1 (hooks), 4.1+4.2 (engine contract), 3.1+3.2 (vocabularies). This roadmap is its superset; keeping both would create two sources of truth for the same phases. Scrapped and moved to `docs/plan/archive/runtime-kernel-boundary/`. |
 | `oop-violations-remediation/` | **SPLIT** | Phases 1-3 (P1-P7, P10): KEEP as an independent prerequisite work stream; they stabilize the Action and Element surfaces this roadmap re-types, and nothing here may run against an unstable capability surface. Phase 4: P8 is MERGED into 4.1 (engine registry) -- one owner, this roadmap; P11 (Via helpers) is absorbed by 9.3 (Via deletion); P9 stays in the original draft as an independent low-priority fix. |
 | `locator-sync-trigger/` | **KEEP** | Developer tooling around locator file sync. Orthogonal: it consumes locator file formats, which this roadmap does not change (I7 changes ownership and strategy sets, not file formats). Only coordination point: its Maven/CLI phases should not land in the same window as 7.3 (By-path deletion) to avoid rebase churn. |
 
@@ -220,10 +220,13 @@ Per CONTRIBUTING.md: SemVer + Keep a Changelog; entries accrue under
 | M4 (I5-I7) | 0.7.0 | Added: Session, domain registration, probe domain. Changed: bootstrap no longer requires `driver.properties`; open locator strategy set. Removed: By-returning resolver path |
 | M5 (I8-I9) | 1.0.0 | Removed: `Interactions`, `Via`, `UIContext`, `ExecutionContext`, bridges, deprecated aliases. Changed: vocabulary renames (Action -> Interaction) with migration guide. Added: Result contract, multi-subject binding |
 
-Assumes 0.3.0 ships `initiative/engine-decoupling` and 0.4.0 ships
-`oop-violations-remediation` Phases 1-3 before M2. If those shift, the version
-numbers here shift with them; the stable part is the mapping itself: one minor
-bump per milestone, major at M5.
+The release train is now pinned by the plan-level sequence in
+`docs/plan/draft/README.md`: 0.3.0 ships `initiative/engine-decoupling`, 0.4.0
+ships `oop-violations-remediation` Phases 1-3, then one minor bump per milestone
+(0.5.0 = M2, 0.6.0 = M3, 0.7.0 = M4) and the major at M5 (1.0.0).
+`locator-sync-trigger` holds the flexible 0.8.0 slot by default; if it lands
+earlier it takes the next free minor and the later numbers shift up -- the stable
+part is the mapping: one minor per milestone, major at M5.
 
 ---
 

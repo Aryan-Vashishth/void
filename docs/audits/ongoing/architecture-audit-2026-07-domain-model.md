@@ -22,7 +22,8 @@ This document has two parts:
 
 This audit is descriptive. It proposes no renames, no package moves, and no designs.
 It exists to ground the future domain-neutral runtime redesign. The initiative seeded
-from it is `docs/plan/draft/runtime-kernel-boundary/`.
+from it is `docs/plan/draft/runtime-redesign/` (initially via the interim
+`runtime-kernel-boundary` draft, since scrapped to `docs/plan/archive/`).
 
 Finding IDs in this document use the `D` prefix (D1..D18) to avoid collision with the
 C/H/M series in `architecture-audit-2026-05.md`.
@@ -996,7 +997,8 @@ scope limit. Nothing else.
 
 ## Cross-references
 
-- Seeded initiative: `docs/plan/draft/runtime-kernel-boundary/`
+- Seeded initiative: `docs/plan/draft/runtime-redesign/` (initially via the interim
+  `runtime-kernel-boundary` draft, since scrapped to `docs/plan/archive/`)
 - Overlapping drafts: `docs/plan/draft/generalize-element-into-target/` (D1 partial;
   its `Target` root aligns with the ontology's Target concept),
   `docs/plan/draft/oop-violations-remediation/` (P8 covers part of D2)
