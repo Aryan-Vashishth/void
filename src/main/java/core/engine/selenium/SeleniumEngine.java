@@ -477,6 +477,27 @@ public final class SeleniumEngine implements UIEngine {
         info.hover("Hovered: " + labelFor(locator));
     }
 
+    @Override
+    public void switchToFrame(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement frame = new WebDriverWait(driver, defaultTimeout)
+                .until(ExpectedConditions.presenceOfElementLocated(by));
+        driver.switchTo().frame(frame);
+        debug.log("[SeleniumEngine] Switched to frame: " + labelFor(locator));
+    }
+
+    @Override
+    public void switchToDefaultContent() {
+        driver.switchTo().defaultContent();
+        debug.log("[SeleniumEngine] Switched to default content.");
+    }
+
+    @Override
+    public void sendKeys(CharSequence... keys) {
+        new Actions(driver).sendKeys(keys).perform();
+        debug.log("[SeleniumEngine] Sent global keys.");
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // CONTEXT / ESCAPE HATCH
     // ─────────────────────────────────────────────────────────────────────
