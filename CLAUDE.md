@@ -216,6 +216,60 @@ src/
 
 ---
 
+## OOP Principles
+
+Apply OOP principles in all production code. These are not style preferences -- violations
+are tracked as architectural debt and addressed through remediation initiatives.
+
+### Open/Closed Principle (highest priority)
+
+Classes and interfaces must be open for extension, closed for modification. Concretely:
+
+- **No `instanceof` dispatch chains.** A method that branches on the runtime type of its
+  argument is a violation. Use polymorphism: put the behavior on the type.
+- **No `switch`-on-string for type selection.** A `switch (engineName)` that grows with
+  every new engine is a closed registry. Replace with an open registration map
+  (`Map<String, Supplier<UIEngine>>`).
+- **No unguarded `(Enum<?>) this` casts.** Casts that assume every implementor is an enum
+  encode a convention as a runtime assumption. Use a utility (`ElementSupport`) or a
+  type-safe interface method instead.
+- **New behavior through extension, not modification.** Adding a new engine, capability, or
+  action type should require adding a new class -- not editing an existing one.
+
+### Single Responsibility Principle
+
+Each class has one reason to change. A class that manages driver lifecycle should not also
+parse locators. A factory that creates engines should not configure logging.
+
+### Liskov Substitution Principle
+
+Subtypes must be substitutable for their base type without changing program correctness.
+Do not override a method in a way that weakens the contract or throws where the base does
+not.
+
+### Interface Segregation Principle
+
+Prefer narrow, focused interfaces over broad ones. A class that implements an interface
+should use every method it declares. If an implementor leaves methods empty or throws
+`UnsupportedOperationException`, the interface is too broad.
+
+### Dependency Inversion Principle
+
+High-level modules must not depend on low-level modules. Both should depend on abstractions.
+`VOID` depends on `UIEngine`, not on `SeleniumEngine`. `Interactions` depends on `UIEngine`,
+not on `WebDriver`.
+
+### When you encounter a violation
+
+Do not silently work around it. If a task requires introducing or deepening an OOP violation:
+1. Note the violation explicitly.
+2. Ask whether to address it now (inline) or add it to the open violations list in
+   `docs/plan/draft/oop-violations-remediation/`.
+3. Never introduce a new `instanceof` dispatch chain, `switch`-on-string type selector, or
+   unguarded `(Enum<?>) this` cast without flagging it.
+
+---
+
 ## Code Rules
 
 - Java 17. Use records, sealed classes, pattern matching where appropriate.
