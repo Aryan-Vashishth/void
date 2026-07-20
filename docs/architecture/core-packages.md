@@ -148,6 +148,16 @@ core/
 
 ---
 
+### `core.bridge.selenium` — Selenium Compatibility Bridge *(deprecated)*
+
+**Purpose:** Temporary adapter that converts Selenium `By` instances to `LocatorDescriptor` for deprecated `Interactions` method overloads. Deleted together with those overloads.
+
+**Key Class:** `SeleniumLocatorBridge` *(deprecated, `forRemoval = true`)*
+
+**Rule:** No new call sites. Do not import in engine-agnostic layers (`core.runtime`, `core.interactions` active paths, `dsl`).
+
+---
+
 ### `core.context` — Per-Session Execution Context
 
 **Purpose:** Immutable, explicitly-passed context objects replacing global state.
@@ -316,22 +326,26 @@ core/
 
 ### `core.runtime` — Framework Entry Point
 
-**Purpose:** The VOID façade — main entry point for starting and managing sessions.
+**Purpose:** The VOID façade -- main entry point for starting and managing sessions.
 
-**Key Class:** `VOID`
+**Key Classes:** `VOID`, `VOIDBuilder`
 
 **Startup pipeline:**
 ```
-VOID.start()
-  → FrameworkBootstrap.init()          (validate configs)
-  → DriverManager.createDriver()       (create + register WebDriver)
-  → UIEngineFactory.create()           (instantiate engine)
-  → ExecutionContext                   (bind config + driver)
-  → return VOID façade
+VOID.builder()
+  .profile(DriverFactory.Profile.DEFAULT)   (optional -- defaults to DEFAULT)
+  .engine(SeleniumEngine.ID)                (optional -- defaults to config/ENV)
+  .start()
+    → FrameworkBootstrap.init()             (one-time config validation)
+    → UIEngineFactory.create()              (engine selected; driver deferred to engine)
+    → SessionContext                        (bind config + engine)
+    → return VOID façade
 ```
 
 **Public API:**
-- `VOID.start()` / `VOID.start(profile)` — create a session
+- `VOID.builder()` — obtain a `VOIDBuilder` (fluent, single-use per session)
+- `VOID.builder().profile(p).start()` — create a session with a driver profile
+- `VOID.builder().engine(id).profile(p).start()` — create a session with explicit engine override
 - `app.getEngine()` — access the UIEngine for modern usage
 - `app.interaction()` — access the legacy Interactions helper
 - `app.shutdown()` — clean up drivers
@@ -378,7 +392,7 @@ VOID.start()
 ### Legacy Path (Frozen — backward compat only)
 
 ```
-1. VOID.start()      → engine + interactions created
+1. VOID.builder().start() → engine + interactions created
 2. Element           → LocatorResolvers resolve LocatorDescriptor
 3. Before hooks      → Before.* hooks execute
 4. Interactions      → delegates to engine.click(descriptor) / engine.type(descriptor, text)
