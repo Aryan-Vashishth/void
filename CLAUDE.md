@@ -95,6 +95,108 @@ Never use `--` (em dash) in commit messages. Use a plain hyphen or semicolon.
 
 ---
 
+## Reading Docs Before Proceeding
+
+**Always read relevant documentation before starting any task.** The docs directory is the
+authoritative record of architectural intent. Code without its context is incomplete
+information.
+
+### What to read, and when
+
+| Situation | Read first |
+|---|---|
+| Starting or continuing an initiative | `docs/plan/draft/<initiative>/index.md` + the relevant phase doc |
+| Implementing any architectural change | `docs/decisions/accepted/` -- check if an ADR already governs this area |
+| Touching engine, runtime, or session code | `docs/decisions/accepted/007-uiengine-execution-authority.md`, `ADR-011`, `ADR-018` |
+| Touching element or capability code | `docs/decisions/accepted/008-capability-interfaces.md`, `ADR-016`, `ADR-017` |
+| Writing or reviewing a plan | The pre-plan audit in `docs/plan/draft/<initiative>/audit/` |
+| Checking if a plan is still active | `docs/plan/draft/README.md` and `docs/plan/done/README.md` |
+| Any change that may affect architecture | `docs/audits/ongoing/` for open findings |
+
+If a relevant plan, ADR, or audit exists and has not been read, stop and read it before
+proposing or implementing anything. Do not rely on memory of a prior session alone -- the
+docs may have changed.
+
+### Minimum reads for common tasks
+
+**New initiative:**
+1. `docs/plan/draft/README.md` -- confirm the initiative is listed and active
+2. `docs/plan/draft/<initiative>/audit/` -- read the pre-plan audit
+3. `docs/plan/draft/<initiative>/index.md` -- read the full plan
+
+**Continuing an initiative:**
+1. `docs/plan/draft/<initiative>/index.md` -- re-read the phase overview
+2. The specific phase doc for the current phase
+3. Any open audit findings in `docs/audits/ongoing/`
+
+**Adding a method or class to an existing subsystem:**
+1. The ADR(s) that govern that subsystem (`docs/decisions/accepted/`)
+2. The relevant plan phase if the subsystem is mid-initiative
+
+**Writing an ADR:**
+1. `docs/decisions/accepted/README.md` -- check the existing index and numbering
+2. The two or three most recent accepted ADRs to match tone and structure
+
+---
+
+## docs/ Directory Guide
+
+```
+docs/
+  plan/
+    draft/                     -- initiatives that are planned or in progress
+      README.md                -- index of all active draft initiatives
+      <initiative>/
+        audit/                 -- pre-plan and post-plan architecture audits
+        index.md               -- initiative overview: problem, phases, dependency rationale
+        phase-N-<name>.md      -- one file per phase: goal, changes, commits, verification
+    done/
+      README.md                -- index of all completed initiatives
+      <initiative>/            -- plan docs preserved after merge; status updated to Complete
+  decisions/
+    README.md                  -- explains accepted/ and pending-review/ directories
+    accepted/
+      README.md                -- index table of all accepted ADRs
+      NNN-<slug>.md            -- one ADR per architectural decision
+    pending-review/
+      README.md                -- index of ADRs awaiting merge
+      NNN-<slug>.md            -- ADR implemented on an initiative branch, not yet in main
+  architecture/                -- user-facing guides (quick-start, core-packages, etc.)
+  audits/
+    ongoing/                   -- audits with open findings; check before touching related code
+    fulfilled/                 -- audits whose findings have been fully addressed
+```
+
+### How each directory is used
+
+**`docs/plan/draft/`** -- The working space for active initiatives. Every initiative has a
+subdirectory containing an `audit/` folder, an `index.md` overview, and one `phase-N-*.md`
+file per implementation phase. When all phases are complete and the initiative is merged,
+the entire directory moves to `docs/plan/done/` with its status updated.
+
+**`docs/plan/done/`** -- Historical record of completed work. Do not modify these docs
+except to correct factual errors or update status fields. They are reference material, not
+living documents.
+
+**`docs/decisions/accepted/`** -- The canonical record of architectural decisions that are
+live in `main`. Before making any change to a governed subsystem, read the relevant ADR.
+The index in `accepted/README.md` maps ADR numbers to titles and areas.
+
+**`docs/decisions/pending-review/`** -- ADRs for initiatives that are implemented but not
+yet merged. Treat these with the same authority as accepted ADRs when working on the
+corresponding initiative branch. When the initiative merges, move these to `accepted/` and
+update the index.
+
+**`docs/architecture/`** -- User-facing guides. These must stay current with the public API.
+If an initiative changes a public API, update the relevant guide in the same initiative.
+Do not let these fall behind.
+
+**`docs/audits/ongoing/`** -- Open audit findings. Any unresolved finding here is a known
+architectural debt item. Check this directory before touching areas it covers; do not
+introduce changes that would deepen an open finding.
+
+---
+
 ## Project Structure
 
 ```
