@@ -353,7 +353,7 @@ public class LoginTest {
 
     @BeforeClass
     public void setUp() {
-        app = VOID.start();
+        app = VOID.builder().start();
     }
 
     @Test
@@ -381,8 +381,8 @@ public class LoginTest {
 Each `VOID` instance is a fully independent session. `shutdown()` is session-scoped.
 
 ```java
-VOID admin    = VOID.start();
-VOID customer = VOID.start();
+VOID admin    = VOID.builder().start();
+VOID customer = VOID.builder().start();
 
 admin.navigateTo(ADMIN_URL);
 admin.run(adminLoginFlow);
@@ -527,7 +527,7 @@ Example log line:
 ### Session Façade
 
 ```java
-VOID app = VOID.start();
+VOID app = VOID.builder().start();
 
 // Navigation
 app.navigateTo("https://example.com");
@@ -580,8 +580,8 @@ app.shutdown();
 ### Multi-Session
 
 ```java
-VOID admin    = VOID.start();
-VOID customer = VOID.start();
+VOID admin    = VOID.builder().start();
+VOID customer = VOID.builder().start();
 
 admin.navigateTo(ADMIN_URL);
 admin.run(adminLoginFlow);
@@ -633,7 +633,7 @@ mvn test -Dtest=tests.demo.VoidDemo
 
 ### What It Demonstrates
 
-1. **`VOID.start()`** — full framework bootstrap (config validation → driver creation → engine init)
+1. **`VOID.builder().start()`** — full framework bootstrap (config validation → engine selection → driver creation → session init)
 2. **`app.navigateTo(url)`** — session-level navigation via the façade
 3. **`app.run(Flow.of(...))`** — composable Action pipeline via the session façade
 4. **Capability interfaces** — `Typeable.type()`, `Clickable.click()` emitting deferred Actions
