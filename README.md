@@ -1,4 +1,4 @@
-# VOID — Virtual Object Interaction Domain
+# VOID — Virtual Object Interaction-Domain
 
 An interaction runtime for modeling and executing interaction workflows.
 Currently configured for UI automation.
