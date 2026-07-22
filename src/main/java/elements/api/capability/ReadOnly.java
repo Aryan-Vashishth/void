@@ -1,7 +1,7 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.ActionCapabilityProvider;
+
 import core.actions.ReadTextAction;
 import elements.api.Element;
 import elements.meta.ElementRole;
@@ -19,7 +19,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface ReadOnly extends Element, ActionCapabilityProvider {
+public interface ReadOnly extends Element {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TEXT}. */
     default String getTextLocator() { return locatorKeyForRole(ElementRole.TEXT); }
