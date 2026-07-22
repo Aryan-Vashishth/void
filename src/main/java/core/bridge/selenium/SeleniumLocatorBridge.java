@@ -2,6 +2,7 @@ package core.bridge.selenium;
 
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
+import core.logging.CustomLogger;
 import org.openqa.selenium.By;
 
 /**
@@ -21,8 +22,9 @@ public final class SeleniumLocatorBridge {
     /**
      * Converts a Selenium {@link By} into a {@link LocatorDescriptor}.
      *
-     * <p>Parses {@code By.toString()} using the same prefix rules as
-     * {@code SeleniumEngine.fromBy()}. Fallback strategy is CSS.</p>
+     * <p>Recognises four prefixes from {@code By.toString()}: {@code By.xpath:},
+     * {@code By.cssSelector:}, {@code By.id:}, {@code By.name:}. Any unrecognised
+     * prefix falls back to {@link LocatorStrategy#XPATH} and emits a warning.</p>
      *
      * @param by Selenium By locator
      * @return equivalent LocatorDescriptor
@@ -40,6 +42,8 @@ public final class SeleniumLocatorBridge {
         } else if (byString.startsWith("By.name:")) {
             return LocatorDescriptor.of(byString.substring("By.name: ".length()), LocatorStrategy.NAME);
         }
-        return LocatorDescriptor.of(byString, LocatorStrategy.CSS);
+        CustomLogger.warn.log("[SeleniumLocatorBridge] Unrecognised By prefix: '"
+                + byString + "' -- falling back to XPATH. Migrate this call site.");
+        return LocatorDescriptor.of(byString, LocatorStrategy.XPATH);
     }
 }
