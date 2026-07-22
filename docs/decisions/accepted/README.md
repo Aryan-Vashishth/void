@@ -23,3 +23,6 @@ All accepted Architecture Decision Records for VOID.
 | [015](015-capability-self-description.md) | Capability Self-Description via ActionCapabilityProvider | Elements |
 | [016](016-capability-ownership-migration.md) | capability() Ownership Migration | Elements |
 | [017](017-element-support-locator-roles.md) | ElementSupport and LocatorRoles Utility Scope | Elements |
+| [018](018-engine-lifecycle-ownership.md) | Engine Lifecycle Ownership | Engine / Runtime |
+| [019](019-selenium-locator-bridge.md) | SeleniumLocatorBridge Isolation | Engine / Interactions |
+| [020](020-core-utils-selenium-decoupling.md) | Core Utils Selenium Decoupling | Engine / Utils |

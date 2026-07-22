@@ -1,7 +1,7 @@
 # ADR-020 -- Core Utils Selenium Decoupling
 
 **Date:** 2026-07-20
-**Status:** Pending Review
+**Status:** Accepted (merged to main 2026-07-22)
 **Branch:** `initiative/core-utils-engine-agnostic`
 **Supersedes:** Partial remediation of I1-A, I1-B, I1-C violations from the engine-decoupling final audit
 

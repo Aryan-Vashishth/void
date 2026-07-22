@@ -1,7 +1,7 @@
 # ADR-018 -- Engine Lifecycle Ownership
 
 **Date:** 2026-07-20
-**Status:** Pending review (`initiative/engine-decoupling`)
+**Status:** Accepted (`feature/engine-decoupling`, merged to main 2026-07-22)
 
 ---
 
