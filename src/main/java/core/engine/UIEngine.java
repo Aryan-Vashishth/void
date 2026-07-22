@@ -354,7 +354,7 @@ public interface UIEngine {
      * Sends one or more keys globally (not targeted at a specific element).
      * Useful for keyboard shortcuts, ESCAPE, TAB, arrow navigation, etc.
      *
-     * @param keys keys to send (e.g., {@code Keys.ESCAPE}, {@code Keys.TAB})
+     * @param keys keys to send (e.g., the ESCAPE or TAB key, or any {@link CharSequence} key value)
      */
     void sendKeys(CharSequence... keys);
 

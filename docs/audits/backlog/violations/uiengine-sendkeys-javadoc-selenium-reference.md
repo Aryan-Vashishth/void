@@ -1,18 +1,19 @@
 ---
 name: uiengine-sendkeys-javadoc-selenium-reference
-description: UIEngine.sendKeys(CharSequence...) Javadoc example references Keys.ESCAPE (a Selenium type) inside an engine-agnostic interface
+description: RESOLVED -- UIEngine.sendKeys Javadoc example previously referenced Keys.ESCAPE (Selenium type); fixed on feature/engine-decoupling before merge
 metadata:
   type: project
 ---
 
-# UIEngine -- sendKeys Javadoc References Selenium Keys
+# UIEngine -- sendKeys Javadoc References Selenium Keys [RESOLVED]
 
 **Principle:** ADR-018 (engine-agnostic layers Selenium-free) -- documentation only
-**File:** `src/main/java/core/engine/UIEngine.java:357`
+**File:** `src/main/java/core/engine/UIEngine.java`
 **Discovered:** 2026-07-20 (post-implementation audit: core-utils-engine-agnostic)
+**Resolved:** 2026-07-22 (pre-merge cleanup, feature/engine-decoupling)
 **Risk:** Very Low (no compile or runtime impact; doc purity only)
 
-## What it is
+## What it was
 
 ```java
 /**
@@ -21,26 +22,16 @@ metadata:
 void sendKeys(CharSequence... keys);
 ```
 
-The `@param` Javadoc example references `org.openqa.selenium.Keys`, a Selenium-specific
-class, inside `UIEngine` -- an interface designed to be engine-agnostic. The interface
-itself carries no Selenium import; the reference exists only in the comment.
+The `@param` Javadoc example referenced `org.openqa.selenium.Keys` inside `UIEngine`,
+an engine-agnostic interface.
 
-## Why it matters
+## Fix applied
 
-`UIEngine` is the documented contract that all engine implementations must satisfy.
-Referencing Selenium types in its Javadoc implies to readers that callers must use Selenium
-constants. A Playwright or BiDi engine's callers would be confused by this example.
-
-## Recommended fix
-
-Replace the Javadoc example with engine-neutral phrasing:
+Replaced with engine-neutral phrasing:
 
 ```java
 /**
- * @param keys keys to send (e.g., {@code Keys.ESCAPE} or any {@link CharSequence} key value)
+ * @param keys keys to send (e.g., the ESCAPE or TAB key, or any {@link CharSequence} key value)
  */
+void sendKeys(CharSequence... keys);
 ```
-
-Or, if the interface gains an engine-neutral key enum in the future, reference that instead.
-
-**Estimated cost:** Minimal -- one Javadoc line.
