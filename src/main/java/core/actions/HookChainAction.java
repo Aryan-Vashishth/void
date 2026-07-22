@@ -12,7 +12,7 @@ import java.util.Objects;
 /**
  * Internal action wrapper that stores composable before/after hooks.
  */
-final class HookChainAction implements Action, ActionLabeled {
+final class HookChainAction implements Action {
 
     private final Action delegate;
     private final List<ActionHandler> before;
@@ -63,19 +63,12 @@ final class HookChainAction implements Action, ActionLabeled {
 
     @Override
     public String elementLabel() {
-        if (delegate instanceof ActionLabeled l) return l.elementLabel();
-        return "ACTION";
+        return delegate.elementLabel();
     }
 
     @Override
     public String operationLabel() {
-        if (delegate instanceof ActionLabeled l) return l.operationLabel();
-        return switch (capability()) {
-            case CLICKABLE  -> "click";
-            case TYPEABLE   -> "type";
-            case SELECTABLE -> "select";
-            default         -> "perform";
-        };
+        return delegate.operationLabel();
     }
 
     @Override

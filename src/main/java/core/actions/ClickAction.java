@@ -23,6 +23,9 @@ public final class ClickAction extends ClickableElementAction {
     }
 
     @Override
+    public String operationLabel() { return "click"; }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.click(descriptor);
     }

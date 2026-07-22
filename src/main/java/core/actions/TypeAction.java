@@ -26,6 +26,9 @@ public final class TypeAction extends TypeableElementAction {
     }
 
     @Override
+    public String operationLabel() { return "type"; }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.type(descriptor, text);
     }

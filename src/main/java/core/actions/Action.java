@@ -171,6 +171,26 @@ public interface Action {
         return ActionCapability.UNKNOWN;
     }
 
+    /**
+     * Returns a display name for the target element (for trace/logging output).
+     *
+     * <p>Overridden by {@link ElementAction} to return the enum constant name or class simple name.
+     * Lambda actions return {@code "action"} as a neutral fallback.</p>
+     */
+    default String elementLabel() {
+        return "action";
+    }
+
+    /**
+     * Returns a display name for the operation (for trace/logging output).
+     *
+     * <p>Overridden by {@link ElementAction} to derive the label from the concrete class name.
+     * Lambda actions return {@code "perform"} as a neutral fallback.</p>
+     */
+    default String operationLabel() {
+        return "perform";
+    }
+
 
     /**
      * Wraps this action with before/after hooks, returning a new {@link Action}.

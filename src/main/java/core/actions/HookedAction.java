@@ -138,7 +138,7 @@ public class HookedAction implements Action {
 
         long elapsed = System.currentTimeMillis() - start;
         ActionTrace trace = new ActionTrace(
-                elementLabel(), operationLabel(),
+                resolveElementLabel(), resolveOperationLabel(),
                 profileName != null ? profileName : "custom",
                 ranBefore, ranAfter,
                 elapsed, status, failure);
@@ -162,14 +162,12 @@ public class HookedAction implements Action {
         LAST_TRACE.remove();
     }
 
-    private String elementLabel() {
-        if (delegate instanceof ActionLabeled l) return l.elementLabel();
-        return descriptor != null ? descriptor.value() : "ACTION";
+    private String resolveElementLabel() {
+        return delegate.elementLabel();
     }
 
-    private String operationLabel() {
-        if (delegate instanceof ActionLabeled l) return l.operationLabel();
-        return "perform";
+    private String resolveOperationLabel() {
+        return delegate.operationLabel();
     }
 
     @SuppressWarnings("unchecked")

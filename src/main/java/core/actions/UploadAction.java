@@ -25,6 +25,9 @@ public final class UploadAction extends ElementAction {
     }
 
     @Override
+    public String operationLabel() { return "upload"; }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.uploadFile(descriptor, filePath);
     }

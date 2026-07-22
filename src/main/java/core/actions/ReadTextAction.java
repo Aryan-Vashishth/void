@@ -22,6 +22,9 @@ public final class ReadTextAction extends ElementAction {
     }
 
     @Override
+    public String operationLabel() { return "read"; }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.getText(descriptor);
     }
