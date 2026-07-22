@@ -5,6 +5,7 @@ Architecture Decision Records (ADRs) for VOID.
 ## Structure
 
 - `accepted/` -- decisions that have been reviewed and adopted; the current architecture is built on these
+- `pending-review/` -- decisions implemented on a feature branch but not yet merged to `main`; reviewed before moving to `accepted/`
 
 ## How to read an ADR
 

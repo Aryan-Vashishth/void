@@ -1,5 +1,7 @@
 package core.engine.selenium;
 
+import core.driver.DriverContext;
+import core.driver.DriverFactory;
 import core.engine.EngineConfig;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
@@ -16,6 +18,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static core.logging.CustomLogger.*;
 
@@ -32,16 +36,35 @@ import static core.logging.CustomLogger.*;
  */
 public final class SeleniumEngine implements UIEngine {
 
-    private WebDriver driver;
+    /** Engine identifier registered in {@link core.engine.UIEngineFactory}. */
+    public static final String ID = "selenium";
+
+    private final DriverFactory.Profile profile;  // null on legacy path
+    private WebDriver driver;                      // null until initialize() on primary path
     private EngineConfig config;
     private Duration defaultTimeout;
 
     /**
-     * Creates a SeleniumEngine wrapping an existing WebDriver.
+     * Primary constructor: engine manages its own driver lifecycle.
+     * Driver is created during {@link #initialize(EngineConfig)}.
      *
-     * @param driver active WebDriver instance (already created by DriverFactory)
+     * @param profile driver configuration profile
      */
+    public SeleniumEngine(DriverFactory.Profile profile) {
+        this.profile = profile;
+        this.driver = null;
+    }
+
+    /**
+     * Compatibility bridge for {@code Interactions(WebDriver)}.
+     * Kept until {@code Interactions(WebDriver)} is removed.
+     *
+     * @param driver active WebDriver instance (already created by caller)
+     * @deprecated use {@link #SeleniumEngine(DriverFactory.Profile)} via the factory
+     */
+    @Deprecated(forRemoval = true)
     public SeleniumEngine(WebDriver driver) {
+        this.profile = null;
         this.driver = driver;
         this.defaultTimeout = Duration.ofSeconds(10);
     }
@@ -54,6 +77,19 @@ public final class SeleniumEngine implements UIEngine {
     public void initialize(EngineConfig config) {
         this.config = config;
         this.defaultTimeout = config.getDefaultTimeout();
+
+        configureLogging();
+
+        if (this.driver == null) {
+            // Primary path: engine creates and registers its own driver.
+            this.driver = DriverFactory.fromProfile(profile).build();
+            DriverContext.setPrimaryDriver(this.driver);
+            debug.log("[SeleniumEngine] Driver created and registered via profile: " + profile);
+        } else {
+            // Legacy path: driver was provided by caller (Interactions bridge).
+            debug.log("[SeleniumEngine] Driver provided externally (legacy path).");
+        }
+
         debug.log("[SeleniumEngine] Initialized with timeout=" + defaultTimeout.toSeconds() + "s");
     }
 
@@ -65,6 +101,11 @@ public final class SeleniumEngine implements UIEngine {
                 debug.log("[SeleniumEngine] Driver shut down.");
             } catch (Exception e) {
                 warn.log("[SeleniumEngine] Error during shutdown: " + e.getMessage());
+            } finally {
+                if (DriverContext.hasPrimary()) {
+                    DriverContext.removePrimary();
+                    debug.log("[SeleniumEngine] Driver removed from DriverContext.");
+                }
             }
         }
     }
@@ -436,6 +477,27 @@ public final class SeleniumEngine implements UIEngine {
         info.hover("Hovered: " + labelFor(locator));
     }
 
+    @Override
+    public void switchToFrame(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        WebElement frame = new WebDriverWait(driver, defaultTimeout)
+                .until(ExpectedConditions.presenceOfElementLocated(by));
+        driver.switchTo().frame(frame);
+        debug.log("[SeleniumEngine] Switched to frame: " + labelFor(locator));
+    }
+
+    @Override
+    public void switchToDefaultContent() {
+        driver.switchTo().defaultContent();
+        debug.log("[SeleniumEngine] Switched to default content.");
+    }
+
+    @Override
+    public void sendKeys(CharSequence... keys) {
+        new Actions(driver).sendKeys(keys).perform();
+        debug.log("[SeleniumEngine] Sent global keys.");
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // CONTEXT / ESCAPE HATCH
     // ─────────────────────────────────────────────────────────────────────
@@ -489,7 +551,10 @@ public final class SeleniumEngine implements UIEngine {
      *
      * @param by Selenium By locator
      * @return equivalent LocatorDescriptor
+     * @deprecated Use {@link core.bridge.selenium.SeleniumLocatorBridge#fromBy(By)} instead.
+     *             Will be removed with the {@code By}/{@code WebElement} deprecated API workstream.
      */
+    @Deprecated(forRemoval = true)
     public static LocatorDescriptor fromBy(By by) {
         String byString = by.toString();
         if (byString.startsWith("By.xpath:")) {
@@ -577,6 +642,10 @@ public final class SeleniumEngine implements UIEngine {
             }
         }
         return false;
+    }
+
+    private static void configureLogging() {
+        Logger.getLogger("org.openqa.selenium").setLevel(Level.SEVERE);
     }
 
     private static Keys mapKey(String key) {

@@ -20,7 +20,7 @@ Thank you for considering contributing to VOID! This document outlines the stand
 
 ## Getting Started
 
-1. Fork the repository (or create a feature branch if you have write access).
+1. Fork the repository (or create an initiative or bugfix branch if you have write access).
 2. Clone your fork and set up the development environment.
 3. Make your changes following the guidelines below.
 4. Submit a pull request.
@@ -105,22 +105,161 @@ mvn test -Dtest=InteractionsTest#clickOn_clickable_delegatesToSelenium
 
 ## Branching & Workflow
 
-| Branch               | Purpose                                    |
-|----------------------|--------------------------------------------|
-| `main`               | Stable release branch                      |
-| `develop`            | Integration branch for upcoming release    |
-| `feature/<name>`     | New feature work                           |
-| `bugfix/<name>`      | Bug fixes                                  |
-| `chore/<name>`       | Refactors, dependency updates, tooling     |
-| `docs/<name>`        | Documentation-only changes                 |
+### Development Philosophy
 
-### Workflow
+Every significant change to VOID begins with exploration, not implementation. Before any
+code is written, the problem is audited, the design is documented, and the plan is validated.
+This process produces an architecture that survives implementation rather than one that is
+discovered during it.
 
-1. Branch from `develop` (or `main` for hotfixes).
-2. Keep commits atomic and well-described.
-3. Rebase on `develop` before submitting a PR.
-4. Ensure all tests pass (`mvn clean test`).
-5. Request a review.
+```
+Architectural Conversation
+        |
+        v
+Architecture Audit
+        |
+        v
+Implementation Plan
+        |
+        v
+Plan Validation (Post-Plan Audit)
+        |
+        v
+Implementation (Phased)
+        |
+        v
+Full-System Audit
+        |
+        v
+Hotfix Initiative (if required)
+        |
+        v
+Architecture Decision
+        |
+        v
+Merge
+```
+
+| Stage | Purpose |
+|---|---|
+| Architecture Audit | Understand the current state; identify coupling, violations, and risks before any plan is written |
+| Implementation Plan | Define phases, file changes, and commit sequence; make architectural decisions explicit |
+| Plan Validation | Verify the plan is internally consistent and addresses the identified violations before code changes begin |
+| Implementation | Execute phases in order; each phase must compile and pass tests independently |
+| Full-System Audit | After all phases are complete, audit the entire initiative as a coherent system |
+| Hotfix Initiative | If the full-system audit finds integration issues, address them on a scoped hotfix branch before merging |
+| Architecture Decision | Record the decision in `docs/decisions/pending-review/` after the architecture has survived implementation and review |
+
+---
+
+### Branch Types
+
+| Branch | Purpose |
+|---|---|
+| `main` | Stable branch; receives only complete, reviewed architectural work |
+| `initiative/<name>` | Large engineering efforts: multi-phase architectural changes |
+| `hotfix/<name>` | Targeted corrections branched from an initiative; scoped to a specific audit finding |
+| `bugfix/<name>` | Isolated bug fixes that do not require an initiative |
+| `docs/<name>` | Documentation-only changes |
+
+---
+
+### Initiative Branches
+
+Large engineering efforts use the `initiative/` prefix:
+
+```
+initiative/engine-decoupling
+initiative/element-api-simplification
+initiative/oop-remediation
+initiative/target-abstraction
+```
+
+`initiative/` is preferred over `feature/` because most work in VOID is architectural rather
+than additive. An initiative represents a single engineering objective that may span multiple
+phases, touch many files, and produce one or more ADRs. The word "feature" implies adding
+something new; an initiative may also restructure, consolidate, or remove.
+
+---
+
+### Phase-Based Development
+
+An initiative is divided into phases. A phase is a self-contained implementation milestone:
+it leaves the codebase in a compilable, test-passing state and moves the initiative measurably
+forward. Phases are not merge points -- the initiative branch is not merged to `main` until
+all planned phases are complete and the full-system audit passes.
+
+```
+initiative/<name>
+    |-- Phase 1  (committed, compilable, tests pass)
+    |-- Phase 2  (committed, compilable, tests pass)
+    |-- Phase 3  (committed, compilable, tests pass)
+    |-- ...
+    |-- Full-System Audit
+    `-- Merge to main
+```
+
+Each phase should have a corresponding plan document in `docs/plan/draft/<initiative>/`. One
+commit per phase step -- never mix phase changes in a single commit. Phase plan documents
+move to `docs/plan/done/` when the initiative is merged.
+
+---
+
+### Merge Policy
+
+An initiative is merged to `main` only when all of the following are true:
+
+- All planned phases are complete.
+- The full regression suite passes (`mvn clean test`).
+- The full-system audit has been conducted and any findings addressed.
+- No architectural violations remain from the original violation map.
+- Architecture Decision Records for the initiative are written and placed in
+  `docs/decisions/pending-review/`.
+
+`main` receives only production-ready architectural changes. Partial refactors, incomplete
+phase sequences, and work-in-progress initiatives are never merged.
+
+---
+
+### Final Architecture Audit
+
+After all phases are implemented, the initiative is audited as a complete system before merge.
+The purpose is to detect integration issues between phases, identify abstraction leaks that
+only become visible when all changes are in place, and confirm that the original goals were
+achieved.
+
+If the audit finds problems, a scoped hotfix branch is cut from the initiative and addressed
+before merging:
+
+```
+initiative/<name>
+        |
+        v
+hotfix/<name>-final-audit
+        |
+        v
+Re-audit
+        |
+        v
+Merge initiative/<name> to main
+```
+
+The hotfix branch is short-lived and focused. It does not introduce new scope -- only
+corrections to what the initiative already changed.
+
+---
+
+### Guiding Principles
+
+- Think in initiatives, not individual commits.
+- Audit before implementation. Understand the current state before writing a plan.
+- Validate the plan before writing code. A plan that does not survive review will not survive
+  implementation.
+- Merge complete architectural work -- not partial refactors.
+- Decisions are documented only after the architecture has survived implementation and final
+  review.
+- Preserve architectural history, not just source code. Plans, audits, and ADRs are first-class
+  artifacts.
 
 ---
 

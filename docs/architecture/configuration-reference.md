@@ -253,8 +253,8 @@ engine.baseUrl=https://app.example.com
 Engine creation is handled by `UIEngineFactory`:
 
 ```java
-// Automatic engine creation from config
-UIEngine engine = UIEngineFactory.create(config, driver);
+// Automatic engine creation from config (prefer VOID.builder().start() over direct calls)
+UIEngine engine = UIEngineFactory.create(config, EngineBootstrap.fromProfile(profile));
 
 // Engine name resolution
 String name = UIEngineFactory.resolveEngineName(config);  // "selenium" or "playwright"

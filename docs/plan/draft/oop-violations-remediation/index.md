@@ -1,8 +1,14 @@
 # OOP Violations Remediation
 
+> **Coordination note (2026-07-20)**: Phases 1-3 are an independent prerequisite of
+> [`../runtime-redesign/`](../runtime-redesign/index.md) and proceed unchanged.
+> From Phase 4: **P8 is absorbed** by runtime-redesign phase 4.1 (engine registry)
+> and **P11 by phase 9.3** (Via deletion) -- do not implement them here. P9 remains
+> owned by this initiative.
+
 Identified: 2026-07-15 interface audit.
 Supersedes: `action-layer-ocp-violations.md` (covered P1/P3/P4/P6/P7 as an earlier partial draft — fully absorbed here).
-Branch target: `feature/element-api-simplification` or a follow-on branch cut from it.
+Branch target: `initiative/oop-violations-remediation`
 
 ---
 
@@ -134,3 +140,20 @@ grep -n "switch" src/main/java/core/engine/UIEngineFactory.java   # must be empt
 - `LocatorTemplateGenerator` / `OrphanKeyDetector` sync pipeline
 - Public `Element` API surface — Phase 2 adds static helpers and new defaults only
 - `ActionCapability` enum constants — only the dispatch-by-switch is removed, not the enum
+
+---
+
+## Versioning (CHANGELOG.md)
+
+Target release: **0.4.0** (minor; pre-1.0 policy allows documented breaking
+changes). `## [Unreleased]` entries as phases land:
+
+- `### Removed` -- **`HookedAction`**, **`ActionLabeled`**,
+  **`ActionCapabilityProvider`** -- Phase 1-2 deletions, each entry names its
+  replacement
+- `### Changed` -- **`Element`** -- enum-safe default helpers, `capability()`
+  ownership, `Listable.getIndex()` default (Phase 2)
+- Phase 3 (`VoidDSL` dispatch) is a behavior-neutral internal refactor -- entry
+  only if its public surface shifts
+- P8 and P11 entries belong to the runtime-redesign releases that absorbed them
+  (0.6.0 and 1.0.0); P9 is internal, no entry

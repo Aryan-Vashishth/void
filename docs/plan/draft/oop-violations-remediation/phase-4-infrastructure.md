@@ -1,7 +1,13 @@
 # Phase 4 — Infrastructure: Registry, Dedup Helper, Via Cleanup
 
 Violations: **P8**, **P9**, **P11**
-No upstream dependencies — can be done after any phase or in parallel with Phase 3.
+No upstream dependencies within this plan -- can be done after any phase or in parallel with Phase 3.
+
+> **External dependency (P8 only)**: `initiative/engine-decoupling` Phases 1 and 2 must be merged
+> before P8 is applied. Phase 1 changes `UIEngineFactory.create()` to accept `EngineBootstrap`
+> instead of `WebDriver`; Phase 2 deletes `EngineBootstrap.FromDriver`. By the time P8 runs,
+> the factory input is `EngineBootstrap` (containing only `FromProfile`). See the P8 section
+> below for the impact on the registry creator signature.
 
 ---
 
@@ -74,6 +80,17 @@ UIEngineFactory.register(
 );
 ```
 Zero changes to `UIEngineFactory`.
+
+After engine-decoupling Phases 1-2 are merged, the Selenium creator casts to `EngineBootstrap.FromProfile`
+rather than `WebDriver`:
+```java
+static {
+    REGISTRY.put("selenium",
+        host -> new SeleniumEngine(((EngineBootstrap.FromProfile) host).profile()));
+}
+```
+`EngineBootstrap` is passed as `Object` -- the registry type is unchanged. Only the cast inside
+the lambda changes.
 
 `Function<Object, UIEngine>` is sufficient because the creator already knows which engine it
 constructs from the registration itself. Passing the engine name into the creator (as

@@ -9,24 +9,14 @@ import java.util.Properties;
  * Immutable, per-session execution context.
  *
  * <p>Holds the resolved configuration and the active {@link WebDriver} for a
- * single VOID session. Passed explicitly through the call chain — no hidden
+ * single VOID session. Passed explicitly through the call chain -- no hidden
  * static state required.</p>
  *
- * <h3>Why</h3>
- * <ul>
- *   <li>Eliminates global mutable singletons ({@code ConfigLoader.ACTIVE},
- *       {@code DriverContext.setPrimaryDriver(...)}).</li>
- *   <li>Enables parallel execution — each thread / test gets its own context.</li>
- *   <li>Makes dependencies visible at construction time.</li>
- * </ul>
- *
- * <h3>Usage</h3>
- * <pre>
- *   ExecutionContext ctx = new ExecutionContext(config, driver);
- *   ctx.getDriver().get("https://example.com");
- *   String val = ctx.getConfig("some.key");
- * </pre>
+ * @deprecated since 0.2 -- replaced by {@link SessionContext} which holds {@link core.engine.UIEngine}
+ *             rather than a raw {@link WebDriver}. {@code VOID} no longer constructs this class.
+ *             Will be removed when no external callers remain.
  */
+@Deprecated(since = "0.2")
 public final class ExecutionContext {
 
     private final Properties config;

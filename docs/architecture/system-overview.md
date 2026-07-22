@@ -138,6 +138,7 @@ Element → Interactions (frozen orchestrator) → UIEngine (execution)
 - Handles scroll, waits, retries, and fallback internally
 - Each engine (Selenium, Playwright) provides its own implementation
 - Callers must NOT perform scroll, waits, or direct execution
+- Advanced operations: `switchToFrame`, `switchToDefaultContent`, `sendKeys` (global key dispatch), `executeScript`, `hover`, `scrollTo`, `highlight`, `uploadFile`
 
 ---
 
@@ -171,9 +172,9 @@ Element → Interactions (frozen orchestrator) → UIEngine (execution)
 
 | Utility | Description |
 |---|---|
-| `DOMUtils` | JS scroll-to-element, highlight, DOM manipulation. |
-| `WaitUtils` | Fluent waits, Angular CDK overlay stabilisation, flicker detection. |
-| `TableHandler` | Table row/cell read and navigation helpers. |
+| `DOMUtils` | *(deprecated -- use `UIEngine.scrollTo`, `UIEngine.hover`, `UIEngine.switchToFrame`, `UIEngine.switchToDefaultContent`, `UIEngine.sendKeys`)* |
+| `WaitUtils` | Fluent waits and loader stabilisation. By-based public API deprecated -- use `UIEngine.waitForVisible`, `UIEngine.waitForAbsence`, `UIEngine.waitForClickable`, `UIEngine.waitForOverlay`. Internal condition-wait utilities remain. |
+| `TableHandler` | *(deprecated -- no UIEngine table-read API yet; deferred until active callers drive the design)* |
 | `KeyValuePairHandler` | Key-value pair interaction utilities. |
 | `Upload` | File upload support. |
 | `ConfigLoader` | Hierarchical config: System → ENV → classpath → defaults. |
@@ -238,14 +239,20 @@ void-framework/
 │   │   │   └── Flow.java                     ← Composes Actions into sequences
 │   │   ├── executor/
 │   │   │   └── FlowExecutor.java              ← Iterates Flow, calls action.perform(engine)
+│   │   ├── bridge/
+│   │   │   └── selenium/
+│   │   │       └── SeleniumLocatorBridge.java ← *(deprecated)* By → LocatorDescriptor adapter
 │   │   ├── engine/
 │   │   │   ├── UIEngine.java                 ← Execution contract (interface)
+│   │   │   ├── EngineBootstrap.java          ← Engine startup parameter (replaces WebDriver factory param)
+│   │   │   ├── UIEngineFactory.java          ← Engine selection and instantiation
 │   │   │   ├── EngineConfig.java             ← Engine configuration
 │   │   │   ├── LocatorDescriptor.java        ← Engine-agnostic locator descriptor
 │   │   │   └── selenium/
 │   │   │       └── SeleniumEngine.java       ← Selenium implementation of UIEngine
 │   │   ├── runtime/
-│   │   │   └── VOID.java                     ← Framework entry point / façade
+│   │   │   ├── VOID.java                     ← Framework entry point / façade
+│   │   │   └── VOIDBuilder.java              ← Fluent builder for VOID sessions (single-use)
 │   │   ├── interactions/
 │   │   │   ├── Interactions.java             ← Legacy orchestrator (frozen, deprecated)
 │   │   │   ├── Via.java                      ← Static casting / locator helpers
@@ -322,7 +329,7 @@ void-framework/
 ### Primary Path: VOID Session Façade
 
 ```
-1. VOID.start()         → bootstrap → driver → engine → VOID session ready
+1. VOID.builder().start() → bootstrap → engine → VOID session ready
 2. app.navigateTo(url)  → engine.navigateTo(url)
 3. Page enum            → element.click() / element.type("text")     ← returns Action (deferred)
 4. Flow                 → Flow.of(action1, action2, action3)         ← groups Actions
@@ -355,7 +362,7 @@ void-framework/
 import core.flow.Flow;
 import core.runtime.VOID;
 
-VOID app = VOID.start();
+VOID app = VOID.builder().start();
 
 app.navigateTo("https://example.com/login");
 
@@ -374,8 +381,8 @@ app.shutdown();
 ### Multi-Session
 
 ```java
-VOID admin    = VOID.start();
-VOID customer = VOID.start();
+VOID admin    = VOID.builder().start();
+VOID customer = VOID.builder().start();
 
 admin.navigateTo(ADMIN_URL);
 admin.run(adminLoginFlow);
@@ -399,7 +406,7 @@ customer.shutdown();
 
 ```java
 // @Deprecated since 2.1 — use app.run(element.click()) instead
-VOID app = VOID.start();
+VOID app = VOID.builder().start();
 app.interaction().typeInto(LoginPageElements.Credentials.USERNAME_INPUT, "admin@example.com");
 app.interaction().typeInto(LoginPageElements.Credentials.PASSWORD_INPUT, "secret");
 app.interaction().clickOn(LoginPageElements.Actions.SIGN_IN_BUTTON);

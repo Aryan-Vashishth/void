@@ -4,6 +4,7 @@ Implementation plans and design roadmaps for VOID.
 
 ## Structure
 
+- `archive/` -- Scrapped or superseded plans, retained for traceability only. Nothing in this directory is implementable
 - `done/` -- completed plans; all phases merged and verified
 - `draft/` -- active or upcoming plans; phases may be in progress or awaiting implementation
 

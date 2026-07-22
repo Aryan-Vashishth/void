@@ -41,7 +41,19 @@ public class WaitUtils {
 
     private WaitUtils() { /* static utility */ }
 
+    /**
+     * @deprecated Application-specific selector embedded in framework code. Move the Angular
+     *             loader wait to a profile hook in the test project instead.
+     *             See {@link core.interactions.hooks.Before#WAIT_FOR_ANGULAR_LOADER}.
+     */
+    @Deprecated(forRemoval = true)
     public static final By ANGULAR_LOADER = By.tagName("app-loader");
+
+    /**
+     * @deprecated Application-specific selector embedded in framework code. Define spinner
+     *             selectors in the test project and pass via {@link #resolveLoader(By)}.
+     */
+    @Deprecated(forRemoval = true)
     public static final By SPIN_SPINNER_LOADER = By.xpath("//span[contains(@class, 'spin spinner')]");
     private static final int DEFAULT_TIMEOUT_SEC = 20;
     private static final int DEFAULT_POLLING_MS = 200;
@@ -56,6 +68,13 @@ public class WaitUtils {
                 .ignoring(StaleElementReferenceException.class);
     }
 
+    /**
+     * @deprecated Accepts Selenium types ({@link WebDriver}, {@link ExpectedCondition}, {@link By}) directly,
+     *             violating ADR-007. Use {@link core.engine.UIEngine} wait methods or
+     *             {@link #waitForCondition(String, java.time.Duration, java.time.Duration, java.util.function.Supplier)}
+     *             for engine-agnostic condition waits.
+     */
+    @Deprecated(forRemoval = true)
     public static <T> T waitForCondition(
             WebDriver driver,
             ExpectedCondition<T> condition,
@@ -119,19 +138,35 @@ public class WaitUtils {
     }
 
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#waitForVisible(core.engine.LocatorDescriptor, java.time.Duration)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void waitForElementToBeVisible(By locator) {
         waitForCondition(DriverContext.getDriver(), ExpectedConditions.visibilityOfElementLocated(locator), locator, 20, 200, true, "element to be visible: " + locator);
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#waitForAbsence(core.engine.LocatorDescriptor, java.time.Duration)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void waitForElementToDisappear(By locator) {
         waitForCondition(DriverContext.getDriver(), ExpectedConditions.invisibilityOfElementLocated(locator), locator, 20, 200, true, "element to disappear: " + locator);
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#waitForAbsence(core.engine.LocatorDescriptor, java.time.Duration)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void waitForElementToDisappear(ReadOnly element) {
         By locator = LocatorResolvers.strict().resolve(element);
         waitForElementToDisappear(locator);
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#waitForAbsence(core.engine.LocatorDescriptor, java.time.Duration)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static boolean waitForElementToBeAbsent(By locator, int timeoutSeconds) {
         ExpectedCondition<Boolean> condition = ExpectedConditions.invisibilityOfElementLocated(locator);
         Boolean result = waitForCondition(
@@ -147,6 +182,10 @@ public class WaitUtils {
     }
 
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#waitForClickable(core.engine.LocatorDescriptor, java.time.Duration)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void waitForElementToBeClickable(By locator) {
         waitForCondition(DriverContext.getDriver(),
                 ExpectedConditions.elementToBeClickable(locator),
@@ -158,37 +197,55 @@ public class WaitUtils {
         );
     }
 
+    /**
+     * @deprecated Angular CDK-specific concept. Move this wait to a profile hook in the test project.
+     *             See {@link core.engine.UIEngine#waitForOverlay(java.time.Duration)} for overlay waits.
+     */
+    @Deprecated(forRemoval = true)
     public static void resolveAngularLoader() {
         resolveAngularLoader(3000, 20000, 200, true);
     }
 
+    /**
+     * @deprecated Angular CDK-specific concept. Move this wait to a profile hook in the test project.
+     */
+    @Deprecated(forRemoval = true)
     public static void resolveAngularLoader(int waitToAppearMs, int waitToDisappearMs, int pollingMs, boolean handleMultiple) {
         resolveLoader(ANGULAR_LOADER, waitToAppearMs, waitToDisappearMs, pollingMs, handleMultiple);
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#waitForAbsence(core.engine.LocatorDescriptor, java.time.Duration)}
+     *             for absence waits; pass a {@link core.engine.LocatorDescriptor} instead of {@link By}.
+     */
+    @Deprecated(forRemoval = true)
     public static void resolveLoader(@Nonnull By locator) {
         // Use the same default timings as Angular loader
         resolveLoader(locator, 3000, 20000, 200, false);
     }
 
+    /**
+     * @deprecated Use engine-agnostic wait methods on {@link core.engine.UIEngine} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void resolveLoader(@Nonnull By locator, @Nullable boolean handleMultiple) {
         // Use the same default timings as Angular loader
         resolveLoader(locator, 3000, 20000, 200, handleMultiple);
     }
 
+    /**
+     * @deprecated Use engine-agnostic wait methods on {@link core.engine.UIEngine} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void resolveLoader(@Nonnull By locator, int waitToAppearMs, int waitToDisappearMs) {
         resolveLoader(locator, waitToAppearMs, waitToDisappearMs, 200, true);
     }
 
     /**
-     * Waits for a loader (spinner/progress element) to appear and then disappear, with optional flicker/stability checking.
-     *
-     * @param locator            The By locator for the loader element (must not be null).
-     * @param waitToAppearMs     Timeout in milliseconds to wait for the loader to appear.
-     * @param waitToDisappearMs  Timeout in milliseconds to wait for the loader to disappear.
-     * @param pollingMs          Polling interval in milliseconds.
-     * @param handleMultiple     If true, waits for any matching element; if false, only the first.
+     * @deprecated Use engine-agnostic wait methods on {@link core.engine.UIEngine} instead.
+     *             For loader patterns, use {@link core.engine.UIEngine#waitForAbsence(core.engine.LocatorDescriptor, java.time.Duration)}.
      */
+    @Deprecated(forRemoval = true)
     public static void resolveLoader(
             @Nonnull By locator,
             @Nullable Integer waitToAppearMs,
@@ -292,6 +349,10 @@ public class WaitUtils {
         }
     }
 
+    /**
+     * @deprecated Use engine-agnostic retrieval and assertion via {@link core.engine.UIEngine#getText(core.engine.LocatorDescriptor)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static boolean waitForElementTextToBePresent(By locator, String expectedText, int timeoutSeconds) {
         ExpectedCondition<Boolean> condition = driver -> {
             try {
@@ -328,14 +389,26 @@ public class WaitUtils {
         }
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#getText(core.engine.LocatorDescriptor)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static boolean waitForElementTextToBePresent(By locator, String expectedText) {
         return waitForElementTextToBePresent(locator, expectedText, DEFAULT_TIMEOUT_SEC);
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#getText(core.engine.LocatorDescriptor)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static boolean waitForElementTextToBePresent(By locator) {
         return waitForElementTextToBePresent(locator, null, DEFAULT_TIMEOUT_SEC);
     }
 
+    /**
+     * @deprecated Use {@link core.engine.UIEngine#getText(core.engine.LocatorDescriptor)} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static boolean waitForElementTextToBePresent(By locator, int timeoutSeconds) {
         return waitForElementTextToBePresent(locator, null, timeoutSeconds);
     }
@@ -343,6 +416,10 @@ public class WaitUtils {
     // Add near the top of the class for reuse
     private static final int QUICK_OBSERVE_MS = 500; // short, low-risk window
 
+    /**
+     * @deprecated Experimental variant -- use engine-agnostic wait methods on {@link core.engine.UIEngine} instead.
+     */
+    @Deprecated(forRemoval = true)
     public static void resolveLoaderTemp(
             @Nonnull By locator,
             @Nullable Integer waitToAppearMs,

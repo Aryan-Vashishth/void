@@ -44,7 +44,7 @@ public class VoidDemo {
         info.log("==================================================");
 
         info.log("[SETUP] Starting VOID session...");
-        app = VOID.start();
+        app = VOID.builder().start();
         info.success("VOID session started — engine: " + app.getEngine().getEngineName());
     }
 

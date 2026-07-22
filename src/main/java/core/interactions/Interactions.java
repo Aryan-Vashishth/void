@@ -2,6 +2,7 @@ package core.interactions;
 
 import core.engine.UIEngine;
 import core.engine.LocatorDescriptor;
+import core.bridge.selenium.SeleniumLocatorBridge;
 import core.engine.selenium.SeleniumEngine;
 import elements.meta.ElementRole;
 import elements.api.Element;
@@ -16,7 +17,6 @@ import elements.api.capability.MultiSelectable;
 import core.interactions.hooks.ActionHandler;
 import core.interactions.hooks.Before;
 import core.interactions.hooks.After;
-import core.driver.DriverContext;
 import core.resolvers.locator.api.LocatorResolver;
 import core.resolvers.locator.api.LocatorResolvers;
 import core.utils.*;
@@ -64,8 +64,6 @@ public class Interactions {
      */
     public Interactions(UIEngine engine) {
         this.engine = engine;
-        // Backward compat: register native driver in DriverContext for legacy paths
-        DriverContext.setPrimaryDriver((WebDriver) engine.getNativeDriver());
     }
 
     /**
@@ -158,7 +156,7 @@ public class Interactions {
      */
     @Deprecated(forRemoval = true)
     public String getTextByWebElement(By locator) {
-        LocatorDescriptor descriptor = SeleniumEngine.fromBy(locator);
+        LocatorDescriptor descriptor = SeleniumLocatorBridge.fromBy(locator);
         UIContext.setLastLocatorDescriptor(descriptor);
         UIContext.setLastActionTarget(descriptor);
         return getTextByDescriptor(descriptor);
@@ -251,7 +249,7 @@ public class Interactions {
      */
     @Deprecated(forRemoval = true)
     public void clickOn(By locator) {
-        LocatorDescriptor descriptor = SeleniumEngine.fromBy(locator);
+        LocatorDescriptor descriptor = SeleniumLocatorBridge.fromBy(locator);
         clickOn(descriptor);
     }
 
@@ -381,7 +379,7 @@ public class Interactions {
      */
     @Deprecated(forRemoval = true)
     public void selectFromDropdown(By triggerLocator, By optionLocator) {
-        selectFromDropdown(SeleniumEngine.fromBy(triggerLocator), SeleniumEngine.fromBy(optionLocator));
+        selectFromDropdown(SeleniumLocatorBridge.fromBy(triggerLocator), SeleniumLocatorBridge.fromBy(optionLocator));
     }
 
     /**
@@ -619,7 +617,7 @@ public class Interactions {
      */
     @Deprecated(forRemoval = true)
     public void typeInto(By locator, String text) {
-        LocatorDescriptor descriptor = SeleniumEngine.fromBy(locator);
+        LocatorDescriptor descriptor = SeleniumLocatorBridge.fromBy(locator);
         UIContext.setLastLocatorDescriptor(descriptor);
         UIContext.setLastActionTarget(descriptor);
         engine.type(descriptor, text);
@@ -818,7 +816,7 @@ public class Interactions {
      */
     @Deprecated(forRemoval = true)
     public boolean isAnyDisplayed(By locator, Duration timeout, Duration poll) {
-        LocatorDescriptor descriptor = SeleniumEngine.fromBy(locator);
+        LocatorDescriptor descriptor = SeleniumLocatorBridge.fromBy(locator);
         return isAnyDisplayed(descriptor, timeout);
     }
 
@@ -827,7 +825,7 @@ public class Interactions {
      */
     @Deprecated(forRemoval = true)
     public boolean isAnyDisplayed(By locator) {
-        return isAnyDisplayed(SeleniumEngine.fromBy(locator), Duration.ofSeconds(5));
+        return isAnyDisplayed(SeleniumLocatorBridge.fromBy(locator), Duration.ofSeconds(5));
     }
 }
 

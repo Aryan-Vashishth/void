@@ -1,12 +1,15 @@
 # `core.runtime` — Framework Entry Point
 
-The VOID façade — primary entry point for starting and managing automation sessions.
+The VOID facade -- primary entry point for starting and managing automation sessions.
 
 ---
 
 ## Overview
 
-`VOID` is the main façade class that wires together all framework components. It orchestrates the full startup pipeline (bootstrap → driver creation → engine initialisation) and provides access to both the modern UIEngine and the legacy Interactions helper.
+`VOID` is the main facade class. `VOIDBuilder` (returned by `VOID.builder()`) is the
+entry point for creating sessions. The builder collects configuration before anything
+is created; `start()` is the terminal operation that initializes the engine and returns
+a ready-to-use `VOID` instance.
 
 ---
 
@@ -14,20 +17,24 @@ The VOID façade — primary entry point for starting and managing automation se
 
 | Class | Responsibility |
 |-------|----------------|
-| `VOID` | Main façade — session lifecycle, engine access, interaction access |
+| `VOID` | Session facade -- navigation, flow execution, shutdown |
+| `VOIDBuilder` | Fluent builder for session configuration; single-use per session |
 
 ---
 
 ## Startup Pipeline
 
 ```
-VOID.start()
+VOID.builder().profile(profile).start()
   → FrameworkBootstrap.init()          (one-time: validate configs, seed utils)
-  → DriverManager.createDriver()       (create + register WebDriver)
-  → UIEngineFactory.create()           (instantiate engine from config)
-  → ExecutionContext                   (holds config + driver for this session)
-  → return VOID façade                 (thin wrapper, delegates to context)
+  → UIEngineFactory.create()           (engine selected first; driver deferred)
+       └─ SeleniumEngine.initialize()  (creates + registers WebDriver internally)
+  → SessionContext                     (holds config + engine for this session)
+  → return VOID facade                 (thin wrapper, delegates to engine)
 ```
+
+Engine selection happens before driver creation. Setting `engine=playwright` will
+not open a Chrome window.
 
 ---
 
@@ -36,40 +43,60 @@ VOID.start()
 ### Start a Session
 
 ```java
-// Default profile
-VOID app = VOID.start();
+// Default profile -- engine resolved from config / ENV / System property
+VOID app = VOID.builder().start();
 
-// Custom driver profile
-VOID app = VOID.start(DriverFactory.Profile.DEFAULT);
+// Explicit driver profile
+VOID app = VOID.builder()
+        .profile(DriverFactory.Profile.DEFAULT)
+        .start();
+
+// Explicit engine override (prefer the typed constant)
+VOID app = VOID.builder()
+        .engine(SeleniumEngine.ID)
+        .profile(DriverFactory.Profile.DEFAULT)
+        .start();
 ```
 
-### Modern Path: Action / Flow / FlowExecutor
+### Modern Path: Action / Flow
 
 ```java
-VOID app = VOID.start();
-UIEngine engine = app.getEngine();
-FlowExecutor executor = new FlowExecutor(engine);
+VOID app = VOID.builder().start();
 
-executor.run(Flow.of(
+app.navigateTo("https://the-internet.herokuapp.com/login");
+
+app.run(Flow.of(
     LoginPage.USERNAME.type("admin@example.com"),
     LoginPage.PASSWORD.type("secret"),
     LoginPage.SUBMIT.click()
 ));
+
+app.shutdown();
 ```
 
-### Legacy Path: Interactions
+### Multiple Independent Sessions
+
+Each builder call produces an independent session. There is no shared static state
+between instances.
 
 ```java
-VOID app = VOID.start();
-app.interaction().clickOn(MyPage.SUBMIT_BUTTON);
-app.interaction().typeInto(MyPage.EMAIL, "user@example.com");
-app.interaction().selectFrom(MyPage.COUNTRY, "Australia");
+VOID admin    = VOID.builder().profile(DriverFactory.Profile.DEFAULT).start();
+VOID customer = VOID.builder().profile(DriverFactory.Profile.DEFAULT).start();
+
+admin.navigateTo(ADMIN_URL);
+admin.run(adminLoginFlow);
+
+customer.navigateTo(APP_URL);
+customer.run(customerLoginFlow);
+
+admin.shutdown();    // does NOT affect the customer session
+customer.shutdown();
 ```
 
 ### Shutdown
 
 ```java
-app.shutdown();  // quits all drivers for the current thread
+app.shutdown();  // engine quits the driver and cleans up its registry entry
 ```
 
 ---
@@ -78,18 +105,27 @@ app.shutdown();  // quits all drivers for the current thread
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `VOID.start()` | `VOID` | Start session with DEFAULT profile |
-| `VOID.start(profile)` | `VOID` | Start session with specified profile |
+| `VOID.builder()` | `VOIDBuilder` | Create a new session builder |
+| `VOIDBuilder.profile(Profile)` | `VOIDBuilder` | Set the driver configuration profile |
+| `VOIDBuilder.engine(String)` | `VOIDBuilder` | Override engine selection for this session |
+| `VOIDBuilder.start()` | `VOID` | Build and start the session (single-use) |
+| `VOID.start()` | `VOID` | *Deprecated since 0.3* -- delegates to `builder().start()` |
+| `VOID.start(Profile)` | `VOID` | *Deprecated since 0.3* -- delegates to `builder().profile(p).start()` |
 | `getEngine()` | `UIEngine` | Access the active execution engine |
-| `interaction()` | `Interactions` | Access the legacy interaction helper (cached) |
-| `shutdown()` | `void` | Quit all drivers, end session |
+| `run(Flow)` | `void` | Execute a flow |
+| `run(Action)` | `void` | Execute a single action |
+| `navigateTo(String)` | `void` | Navigate to a URL |
+| `getCurrentUrl()` | `String` | Current page URL |
+| `getTitle()` | `String` | Current page title |
+| `refresh()` | `void` | Reload the current page |
+| `shutdown()` | `void` | Quit the engine and end the session |
 
 ### Protected (for subclasses)
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `getContext()` | `ExecutionContext` | Access config + driver without re-fetching |
-| `getDriver()` | `WebDriver` | Convenience access to the active WebDriver |
+| `getContext()` | `SessionContext` | Access config + engine without re-fetching |
+| `getDriver()` | `WebDriver` | *Deprecated* -- Selenium-specific escape hatch; use `getEngine().getNativeDriver()` |
 
 ---
 
@@ -114,10 +150,16 @@ app.shutdown();  // quits all drivers for the current thread
 
 ```java
 public class MyAppVoid extends VOID {
-    protected MyAppVoid(ExecutionContext ctx, UIEngine engine) {
+    protected MyAppVoid(SessionContext ctx, UIEngine engine) {
         super(ctx, engine);
     }
-    
+
+    public static MyAppVoid start() {
+        // Use the builder so the startup pipeline is correct
+        VOID base = VOID.builder().start();
+        return new MyAppVoid(base.getContext(), base.getEngine());
+    }
+
     public MyCustomDSL dsl() {
         return new MyCustomDSL(getContext());
     }
@@ -128,11 +170,11 @@ public class MyAppVoid extends VOID {
 
 ## See Also
 
-- `core.bootstrap.FrameworkBootstrap` — the init gate called during startup
-- `core.driver.DriverManager` — creates the WebDriver
-- `core.engine.UIEngine` — the execution engine
-- `core.engine.UIEngineFactory` — creates engines from config
-- `core.context.ExecutionContext` — the session context
-- `core.interactions.Interactions` — legacy orchestrator
-- `dsl.VoidDSL` — BDD DSL layer (extends VOID)
-
+- `core.bootstrap.FrameworkBootstrap` -- the init gate called during startup
+- `core.engine.UIEngine` -- the execution engine contract
+- `core.engine.UIEngineFactory` -- creates engines from config
+- `core.engine.EngineBootstrap` -- initialization token passed to the factory
+- `core.engine.selenium.SeleniumEngine` -- Selenium engine implementation
+- `core.context.SessionContext` -- per-session context (config + engine)
+- `core.context.ExecutionContext` -- *deprecated since 0.2*; replaced by `SessionContext`
+- `core.interactions.Interactions` -- legacy orchestrator (frozen)

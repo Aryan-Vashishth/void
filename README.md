@@ -1,4 +1,4 @@
-# VOID — Virtual Object Interaction Domain
+# VOID (Virtual Object Interaction-Domain) Runtime System
 
 An interaction runtime for modeling and executing interaction workflows.
 Currently configured for UI automation.
@@ -44,7 +44,7 @@ import core.flow.Flow;
 import core.runtime.VOID;
 import tests.demo.pages.DemoLoginPage;
 
-VOID app = VOID.start();
+VOID app = VOID.builder().start();
 
 app.navigateTo("https://the-internet.herokuapp.com/login");
 
@@ -262,7 +262,7 @@ import core.flow.Flow;
 import core.runtime.VOID;
 import tests.demo.pages.DemoLoginPage;
 
-VOID app = VOID.start();
+VOID app = VOID.builder().start();
 
 app.navigateTo("https://the-internet.herokuapp.com/login");
 
@@ -504,7 +504,7 @@ The execution model is in place and the session façade is wired.
 A typical test looks like this:
 
 ```java
-VOID app = VOID.start();
+VOID app = VOID.builder().start();
 
 app.navigateTo("https://the-internet.herokuapp.com/login");
 
@@ -518,8 +518,8 @@ app.shutdown();
 Multi-session tests are fully supported:
 
 ```java
-VOID admin    = VOID.start();
-VOID customer = VOID.start();
+VOID admin    = VOID.builder().start();
+VOID customer = VOID.builder().start();
 
 admin.navigateTo(ADMIN_URL);
 admin.run(adminLoginFlow);
@@ -542,6 +542,15 @@ customer.shutdown();
 Each `VOID` instance is its own isolated session.
 `admin.shutdown()` only quits the admin browser.
 
+> **Caveat -- deprecated APIs and multi-session:** `DriverContext` is a ThreadLocal that
+> holds one primary driver per thread. Legacy deprecated utilities (`DOMUtils`, `WaitUtils`,
+> `TableHandler`, `Interactions(WebDriver)`) read from it directly and will see only the
+> most recently started session's driver. All modern paths (`VOID.builder()` + engine-level
+> calls) route through the `UIEngine` instance and are unaffected. Avoid mixing deprecated
+> utilities with multi-session code. Full thread-safe session isolation is planned under
+> the runtime-redesign initiative (Initiative I5 -- Session Model,
+> [`docs/plan/draft/runtime-redesign/initiative-5-session-model.md`](docs/plan/draft/runtime-redesign/initiative-5-session-model.md)).
+
 ---
 
 ## Minimal example with the demo page
@@ -553,7 +562,7 @@ import tests.demo.pages.DemoLoginPage;
 
 public class Example {
     public static void main(String[] args) {
-        VOID app = VOID.start();
+        VOID app = VOID.builder().start();
 
         try {
             app.navigateTo("https://the-internet.herokuapp.com/login");

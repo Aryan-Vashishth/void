@@ -84,6 +84,9 @@ public class ConcreteActionsTest {
         @Override public void scrollTo(LocatorDescriptor d) {}
         @Override public byte[] takeScreenshot()                                        { return new byte[0]; }
         @Override public void highlight(LocatorDescriptor d, String c) {}
+        @Override public void switchToFrame(LocatorDescriptor d)                         { ops.add("switchToFrame"); }
+        @Override public void switchToDefaultContent()                                   { ops.add("switchToDefaultContent"); }
+        @Override public void sendKeys(CharSequence... keys)                             { ops.add("sendKeys"); }
         @Override public Object getNativeDriver()                                        { return null; }
         @Override public String getEngineName()                                         { return "test"; }
     }
