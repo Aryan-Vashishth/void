@@ -181,8 +181,7 @@ public final class LocatorResolver {
         Class<?> cls = element.getClass();
         String simpleName = cls.getSimpleName();
         if (simpleName.isEmpty()) {
-            // Anonymous subclass (e.g. enum constant with body) -- display text is sufficient
-            return element.getDisplayText();
+            return null;
         }
         Class<?> page = cls.getDeclaringClass();
         String prefix = page != null ? page.getSimpleName() + " > " : "";

@@ -97,11 +97,12 @@ public interface Element {
         String[] tokens = ElementSupport.nameOf(this).split("_");
         StringBuilder sb = new StringBuilder();
         for (String token : tokens) {
+            if (token.isEmpty()) continue;
             if (!sb.isEmpty()) sb.append(' ');
             sb.append(Character.toUpperCase(token.charAt(0)));
             if (token.length() > 1) sb.append(token.substring(1).toLowerCase());
         }
-        return sb.toString();
+        return sb.isEmpty() ? "element" : sb.toString();
     }
 
     /**

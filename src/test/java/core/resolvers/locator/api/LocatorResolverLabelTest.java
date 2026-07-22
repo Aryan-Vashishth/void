@@ -16,7 +16,7 @@ import static org.testng.Assert.*;
  * when resolving elements that are Java enum constants.
  *
  * The label is derived by {@code labelOf(Element)} via reflection:
- *   enclosingClass.getSimpleName() + " > " + enumClass.getSimpleName() + " > " + name()
+ *   enclosingClass.getSimpleName() + " > " + enumClass.getSimpleName() + " > " + getDisplayText()
  *
  * Coverage:
  * - resolveDescriptorBest: enum element → label has all three segments
@@ -61,7 +61,7 @@ public class LocatorResolverLabelTest {
         assertNotNull(d.label(), "label must be set for an enum Element");
     }
 
-    @Test(description = "resolveDescriptorBest label has format 'Page > EnumClass > CONSTANT'")
+    @Test(description = "resolveDescriptorBest label has format 'Page > EnumClass > DisplayText'")
     public void resolveDescriptorBest_enumElement_labelFormat() {
         LocatorDescriptor d = LocatorResolvers.strict()
                 .resolveDescriptorBest(DemoLoginPage.Credentials.USERNAME_INPUT);
@@ -72,8 +72,8 @@ public class LocatorResolverLabelTest {
                 "label must include the enclosing page name; got: " + label);
         assertTrue(label.contains("Credentials"),
                 "label must include the enum class name; got: " + label);
-        assertTrue(label.contains("USERNAME_INPUT"),
-                "label must include the enum constant name; got: " + label);
+        assertTrue(label.contains("Username Input"),
+                "label must include the element display text; got: " + label);
     }
 
     @Test(description = "resolveDescriptorBest label uses ' > ' as separator between all three segments")
@@ -81,7 +81,7 @@ public class LocatorResolverLabelTest {
         LocatorDescriptor d = LocatorResolvers.strict()
                 .resolveDescriptorBest(DemoLoginPage.Credentials.USERNAME_INPUT);
 
-        assertEquals(d.label(), "DemoLoginPage > Credentials > USERNAME_INPUT");
+        assertEquals(d.label(), "DemoLoginPage > Credentials > Username Input");
     }
 
     @Test(description = "resolveDescriptorBest label reflects the correct constant for PASSWORD_INPUT")
@@ -89,7 +89,7 @@ public class LocatorResolverLabelTest {
         LocatorDescriptor d = LocatorResolvers.strict()
                 .resolveDescriptorBest(DemoLoginPage.Credentials.PASSWORD_INPUT);
 
-        assertEquals(d.label(), "DemoLoginPage > Credentials > PASSWORD_INPUT");
+        assertEquals(d.label(), "DemoLoginPage > Credentials > Password Input");
     }
 
     @Test(description = "resolveDescriptorBest label uses the correct enum class name when sibling enums exist")
@@ -97,7 +97,7 @@ public class LocatorResolverLabelTest {
         LocatorDescriptor d = LocatorResolvers.strict()
                 .resolveDescriptorBest(DemoLoginPage.Buttons.SUBMIT_BUTTON);
 
-        assertEquals(d.label(), "DemoLoginPage > Buttons > SUBMIT_BUTTON");
+        assertEquals(d.label(), "DemoLoginPage > Buttons > Submit Button");
     }
 
     // ── resolveDescriptorBest: non-enum element has no label ─────────────────
@@ -125,7 +125,7 @@ public class LocatorResolverLabelTest {
                         ElementRole.TRIGGER);
 
         assertNotNull(d.label(), "label must be set even when resolving with an explicit role");
-        assertEquals(d.label(), "DemoLoginPage > Credentials > USERNAME_INPUT");
+        assertEquals(d.label(), "DemoLoginPage > Credentials > Username Input");
     }
 
     // ── locator value is still correct alongside the label ───────────────────
