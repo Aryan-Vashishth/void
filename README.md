@@ -542,6 +542,14 @@ customer.shutdown();
 Each `VOID` instance is its own isolated session.
 `admin.shutdown()` only quits the admin browser.
 
+> **Caveat -- deprecated APIs and multi-session:** `DriverContext` is a ThreadLocal that
+> holds one primary driver per thread. Legacy deprecated utilities (`DOMUtils`, `WaitUtils`,
+> `TableHandler`, `Interactions(WebDriver)`) read from it directly and will see only the
+> most recently started session's driver. All modern paths (`VOID.builder()` + engine-level
+> calls) route through the `UIEngine` instance and are unaffected. Avoid mixing deprecated
+> utilities with multi-session code. Full thread-safe session isolation is planned under
+> the runtime-redesign initiative (Initiative I5 -- Session Model).
+
 ---
 
 ## Minimal example with the demo page
