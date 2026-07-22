@@ -20,14 +20,14 @@ final class HookChainAction implements Action, ActionLabeled {
     @Nullable private final String profileName;
 
     HookChainAction(Action delegate,
-                    @Nullable List<ActionHandler> before,
-                    @Nullable List<ActionHandler> after) {
+                    @Nullable List<? extends ActionHandler> before,
+                    @Nullable List<? extends ActionHandler> after) {
         this(delegate, before, after, null);
     }
 
     private HookChainAction(Action delegate,
-                            @Nullable List<ActionHandler> before,
-                            @Nullable List<ActionHandler> after,
+                            @Nullable List<? extends ActionHandler> before,
+                            @Nullable List<? extends ActionHandler> after,
                             @Nullable String profileName) {
         this.delegate    = Objects.requireNonNull(delegate, "delegate action must not be null");
         this.before      = normalize(before);
@@ -35,14 +35,20 @@ final class HookChainAction implements Action, ActionLabeled {
         this.profileName = profileName;
     }
 
-    HookChainAction withAdditionalHooks(@Nullable List<ActionHandler> additionalBefore,
-                                        @Nullable List<ActionHandler> additionalAfter) {
+    @Override
+    public Action mergeHooks(List<? extends ActionHandler> additionalBefore,
+                             List<? extends ActionHandler> additionalAfter) {
         return new HookChainAction(
                 delegate,
                 concat(before, additionalBefore),
                 concat(after, additionalAfter),
                 profileName
         );
+    }
+
+    @Override
+    public Action withProfile(ActionProfile profile) {
+        return withProfileName(profile.name());
     }
 
     HookChainAction withProfileName(String name) {
@@ -82,7 +88,7 @@ final class HookChainAction implements Action, ActionLabeled {
         return delegate.capability();
     }
 
-    private static List<ActionHandler> normalize(@Nullable List<ActionHandler> hooks) {
+    private static List<ActionHandler> normalize(@Nullable List<? extends ActionHandler> hooks) {
         if (hooks == null || hooks.isEmpty()) {
             return List.of();
         }
@@ -98,7 +104,7 @@ final class HookChainAction implements Action, ActionLabeled {
     }
 
     private static List<ActionHandler> concat(List<ActionHandler> existing,
-                                               @Nullable List<ActionHandler> additional) {
+                                               @Nullable List<? extends ActionHandler> additional) {
         if (additional == null || additional.isEmpty()) {
             return existing;
         }
