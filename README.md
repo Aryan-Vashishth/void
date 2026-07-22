@@ -548,7 +548,8 @@ Each `VOID` instance is its own isolated session.
 > most recently started session's driver. All modern paths (`VOID.builder()` + engine-level
 > calls) route through the `UIEngine` instance and are unaffected. Avoid mixing deprecated
 > utilities with multi-session code. Full thread-safe session isolation is planned under
-> the runtime-redesign initiative (Initiative I5 -- Session Model).
+> the runtime-redesign initiative (Initiative I5 -- Session Model,
+> [`docs/plan/draft/runtime-redesign/initiative-5-session-model.md`](docs/plan/draft/runtime-redesign/initiative-5-session-model.md)).
 
 ---
 
