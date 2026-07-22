@@ -42,12 +42,10 @@ public interface SearchField extends Typeable, Clickable {
 
     @Override
     default java.util.Map<ElementRole, String> getAllLocatorRoles() {
-        java.util.Map<ElementRole, String> roles = new java.util.LinkedHashMap<>();
-        String input = getSearchInputLocator();
-        if (input != null && !input.isBlank()) roles.put(ElementRole.SEARCH_INPUT, input);
-        String btn = getSearchButtonLocator();
-        if (btn != null && !btn.isBlank() && !btn.equals(input)) roles.put(ElementRole.SEARCH_BUTTON, btn);
-        return roles;
+        return LocatorRoles.roleMap(
+            LocatorRoles.role(ElementRole.SEARCH_INPUT,  getSearchInputLocator()),
+            LocatorRoles.role(ElementRole.SEARCH_BUTTON, getSearchButtonLocator())
+        );
     }
 
     @Override
