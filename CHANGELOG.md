@@ -8,6 +8,82 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **`VOID.builder()` -- fluent session startup (ADR-018, engine-decoupling Phase 2)**
+  - `VOID.builder()` returns a new `VOIDBuilder` for fluent session configuration
+  - `VOIDBuilder.profile(Profile)` -- set the driver configuration profile
+  - `VOIDBuilder.engine(String)` -- override engine selection for the session
+  - `VOIDBuilder.start()` -- terminal operation; selects the engine first, then defers
+    driver creation to `SeleniumEngine.initialize()`; returns a ready VOID session
+  - `VOIDBuilder` is single-use -- calling `start()` twice throws `IllegalStateException`;
+    call `VOID.builder()` for each new session
+  - Multiple independent sessions (e.g., `admin` and `customer`) are now safe to run
+    concurrently -- each session owns its own `SessionContext`, engine, and driver
+
+- **`EngineBootstrap` -- engine-agnostic factory contract (ADR-018, Phase 1)**
+  - `EngineBootstrap` sealed interface decouples `UIEngineFactory.create()` from
+    Selenium-specific types; replaces the `WebDriver` parameter
+  - `EngineBootstrap.fromProfile(Profile)` -- current variant; engine creates and
+    manages its own driver during `initialize()`
+
+- **`SeleniumLocatorBridge` -- isolated By-to-descriptor conversion (ADR-019, Phase 3)**
+  - `core.bridge.selenium.SeleniumLocatorBridge.fromBy(By)` -- converts a Selenium
+    `By` to `LocatorDescriptor`; recognises `By.xpath:`, `By.cssSelector:`, `By.id:`,
+    `By.name:` prefixes; unrecognised prefixes fall back to XPATH and emit a WARN log
+  - Isolated in `core.bridge.selenium`; the entire package is `@Deprecated(forRemoval=true)`
+    and will be removed alongside the deprecated `By`-parameter methods in `Interactions`
+
+- **`UIEngine` -- three new contract methods (core-utils-engine-agnostic, Phase 1)**
+  - `UIEngine.switchToFrame(LocatorDescriptor)` -- switch browser context into an iframe
+  - `UIEngine.switchToDefaultContent()` -- return to the top-level document
+  - `UIEngine.sendKeys(CharSequence...)` -- send global key events (keyboard shortcuts,
+    ESCAPE, TAB, arrow navigation); `SeleniumEngine` implements all three
+
+- **`SeleniumEngine.ID` constant** -- `"selenium"`; prefer this over raw string literals
+  when overriding engine selection via `VOIDBuilder.engine(SeleniumEngine.ID)`
+
+### Changed
+
+- **`UIEngineFactory.create()` signature** -- parameter changed from `WebDriver driver`
+  to `EngineBootstrap bootstrap`; the factory no longer receives or owns a pre-built driver
+- **`SeleniumEngine` driver lifecycle** -- `SeleniumEngine(DriverFactory.Profile)` is the
+  primary constructor; the engine creates and registers its own `WebDriver` during
+  `initialize()` and removes it from `DriverContext` during `shutdown()`
+- **Selenium JUL logger suppression** -- moved from `FrameworkBootstrap.init()` to
+  `SeleniumEngine.initialize()`; a non-Selenium session no longer touches Selenium internals
+  during bootstrap (ADR-018, Phase 4)
+- **`VOID` session context** -- `VOID` now holds `SessionContext` (engine-typed) instead
+  of `ExecutionContext` (WebDriver-typed); `VOID.shutdown()` fully delegates to
+  `engine.shutdown()`
+- **`VoidDSL.verifyElementsAreVisible`** -- active execution path no longer passes through
+  a Selenium `By`; uses `LocatorDescriptor` end-to-end
+
+### Deprecated
+
+The following are deprecated with `forRemoval = true`:
+
+| API | Replacement |
+|---|---|
+| `VOID.start()` | `VOID.builder().start()` |
+| `VOID.start(Profile)` | `VOID.builder().profile(profile).start()` |
+| `ExecutionContext` | `SessionContext` (already used internally) |
+| `DOMUtils` (class + all methods) | equivalent `UIEngine` methods |
+| `WaitUtils` By-parameter methods + `ANGULAR_LOADER` / `SPIN_SPINNER_LOADER` fields | `UIEngine` wait methods |
+| `TableHandler` (class + all methods) | `UIEngine` + `LocatorDescriptor` |
+| `SeleniumEngine(WebDriver)` constructor | `SeleniumEngine(DriverFactory.Profile)` via factory |
+| `SeleniumEngine.fromBy(By)` | `SeleniumLocatorBridge.fromBy(By)` (itself deprecated; migrate to element-based resolution) |
+| `SeleniumLocatorBridge.fromBy(By)` | element-based or string-based locator resolution |
+
+### Migration
+
+| Old | New |
+|---|---|
+| `VOID.start()` | `VOID.builder().start()` |
+| `VOID.start(DriverFactory.Profile.CHROME)` | `VOID.builder().profile(DriverFactory.Profile.CHROME).start()` |
+| `VOID.builder().engine("selenium")` | `VOID.builder().engine(SeleniumEngine.ID)` |
+| `new UIEngineFactory.create(config, driver)` | `UIEngineFactory.create(config, EngineBootstrap.fromProfile(profile))` |
+
 ---
 
 ## [0.3.0] - 2026-07-17
