@@ -10,7 +10,7 @@ import static org.testng.Assert.*;
 /**
  * Unit tests for {@link SeleniumLocatorBridge#fromBy(By)}.
  *
- * Verifies the four recognised prefix mappings, the CSS fallback for unknown prefixes,
+ * Verifies the four recognised prefix mappings, the XPATH fallback for unknown prefixes,
  * and value extraction. No browser opened -- {@link By} instances are constructed and
  * inspected in-process only.
  */
@@ -53,13 +53,22 @@ public class SeleniumLocatorBridgeTest {
     // ── Fallback ──────────────────────────────────────────────────────────────
 
     @Test
-    public void fromBy_unknownPrefixBy_fallsBackToCss() {
+    public void fromBy_unknownPrefixBy_fallsBackToXpath() {
         // By.linkText produces "By.linkText: foo" which matches none of the four prefixes.
-        // Contract: fall back to CSS with the full toString() as the value.
+        // Contract: fall back to XPATH (safer for raw expression strings) and emit a warning.
         LocatorDescriptor d = SeleniumLocatorBridge.fromBy(By.linkText("foo"));
 
-        assertEquals(d.strategy(), LocatorStrategy.CSS,
-                "Unknown prefix must fall back to CSS strategy");
+        assertEquals(d.strategy(), LocatorStrategy.XPATH,
+                "Unknown prefix must fall back to XPATH strategy");
+    }
+
+    @Test
+    public void fromBy_unknownPrefixBy_preservesRawByStringAsValue() {
+        // The full By.toString() is used as the locator value so nothing is silently dropped.
+        LocatorDescriptor d = SeleniumLocatorBridge.fromBy(By.linkText("foo"));
+
+        assertTrue(d.value().contains("foo"),
+                "Fallback value must contain the original locator text");
     }
 
     // ── Value round-trip ──────────────────────────────────────────────────────

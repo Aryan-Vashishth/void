@@ -90,7 +90,7 @@ early plan draft but was replaced by `EngineBootstrap.FromProfile` before implem
 | `VOIDBuilder` | `VOIDBuilderTest` | 10 | Fluent API, field assignment, `resolvedConfig()`, single-use guard |
 | `SeleniumEngine.toBy` | `SeleniumEngineToByTest` | 8 | All four strategies, round-trip, label isolation, null guards |
 | `DOMUtils`, `WaitUtils`, `TableHandler` | `CoreUtilsDeprecationTest` | 8 | Deprecation annotation regression guard |
-| `SeleniumLocatorBridge.fromBy` | `SeleniumLocatorBridgeTest` | 7 | All four strategies, CSS fallback, complex expression preservation |
+| `SeleniumLocatorBridge.fromBy` | `SeleniumLocatorBridgeTest` | 8 | All four strategies, XPATH fallback (with warning), raw value preservation, complex expression preservation |
 
 No browser-dependent tests were added; all cases use reflection or in-process Selenium type construction.
 
