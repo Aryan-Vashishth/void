@@ -1,5 +1,8 @@
 package core.actions;
 
+import core.actions.trace.ActionTrace;
+import core.actions.trace.ActionTraceLogger;
+import core.actions.trace.TraceStatus;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import core.interactions.hooks.ActionHandler;
@@ -11,8 +14,14 @@ import java.util.Objects;
 
 /**
  * Internal action wrapper that stores composable before/after hooks.
+ *
+ * <p>Owns the hook pipeline: resolves the descriptor once, runs before hooks,
+ * executes the delegate, then runs after hooks. Emits an {@link ActionTrace}
+ * for each execution.</p>
  */
 final class HookChainAction implements Action {
+
+    private static final ThreadLocal<ActionTrace> LAST_TRACE = new ThreadLocal<>();
 
     private final Action delegate;
     private final List<ActionHandler> before;
@@ -57,8 +66,118 @@ final class HookChainAction implements Action {
 
     @Override
     public void perform(UIEngine engine) {
+        performAndTrace(engine);
+    }
+
+    /**
+     * Executes the full hook pipeline and returns a trace of the execution.
+     * Package-private -- exposed for unit testing only.
+     */
+    ActionTrace performAndTrace(UIEngine engine) {
         LocatorDescriptor descriptor = delegate.resolve(engine);
-        new HookedAction(delegate, descriptor, before, after, profileName).perform(engine);
+
+        long start = System.currentTimeMillis();
+        List<String> ranBefore = new ArrayList<>();
+        List<String> ranAfter  = new ArrayList<>();
+        TraceStatus  status    = TraceStatus.SUCCESS;
+        Throwable    failure   = null;
+
+        for (ActionHandler hook : before) {
+            if (hook == null) continue;
+            ranBefore.add(ActionTraceLogger.nameOf(hook));
+            if (failure == null) {
+                try {
+                    hook.execute(engine, descriptor);
+                } catch (RuntimeException | Error t) {
+                    status  = TraceStatus.HOOK_FAILED;
+                    failure = t;
+                }
+            }
+        }
+
+        if (failure == null) {
+            try {
+                delegate.perform(engine);
+            } catch (RuntimeException | Error t) {
+                status  = TraceStatus.FAILED;
+                failure = t;
+            }
+        }
+
+        if (failure == null) {
+            for (ActionHandler hook : after) {
+                if (hook == null) continue;
+                ranAfter.add(ActionTraceLogger.nameOf(hook));
+                if (failure == null) {
+                    try {
+                        hook.execute(engine, descriptor);
+                    } catch (RuntimeException | Error t) {
+                        status  = TraceStatus.HOOK_FAILED;
+                        failure = t;
+                    }
+                }
+            }
+        }
+
+        long elapsed = System.currentTimeMillis() - start;
+        ActionTrace trace = new ActionTrace(
+                elementLabel(), operationLabel(),
+                profileName != null ? profileName : "custom",
+                ranBefore, ranAfter,
+                elapsed, status, failure);
+
+        LAST_TRACE.set(trace);
+        ActionTraceLogger.emit(trace);
+
+        if (failure != null) {
+            sneakyThrow(failure);
+        }
+        return trace;
+    }
+
+    /** Returns the most-recently emitted trace on this thread (for testing). */
+    static ActionTrace lastTrace() {
+        return LAST_TRACE.get();
+    }
+
+    /** Clears the thread-local trace (call in @BeforeMethod / @AfterMethod). */
+    static void clearLastTrace() {
+        LAST_TRACE.remove();
+    }
+
+    /**
+     * Test factory -- creates a HookChainAction with a pinned descriptor.
+     *
+     * <p>Wraps {@code delegate} so that {@code resolve(engine)} returns the supplied
+     * {@code descriptor} instead of querying the engine. Use in unit tests that need
+     * to control the descriptor without a real element binding.</p>
+     *
+     * @deprecated Internal testing API. Do not use in production code.
+     */
+    @Deprecated(since = "0.3", forRemoval = true)
+    static HookChainAction forTesting(Action delegate,
+                                      @Nullable LocatorDescriptor descriptor,
+                                      @Nullable List<ActionHandler> before,
+                                      @Nullable List<ActionHandler> after) {
+        Objects.requireNonNull(delegate, "delegate action must not be null");
+        Action pinned = new Action() {
+            @Override public void perform(UIEngine engine)            { delegate.perform(engine); }
+            @Override public LocatorDescriptor resolve(UIEngine e)    { return descriptor; }
+            @Override public ActionCapability capability()            { return delegate.capability(); }
+            @Override public String elementLabel()                    { return delegate.elementLabel(); }
+            @Override public String operationLabel()                  { return delegate.operationLabel(); }
+        };
+        return new HookChainAction(pinned, before, after);
+    }
+
+    @Override
+    public LocatorDescriptor resolve(UIEngine engine) {
+        return delegate.resolve(engine);
+    }
+
+    @Override
+    public ActionCapability capability() {
+        return delegate.capability();
     }
 
     @Override
@@ -71,14 +190,9 @@ final class HookChainAction implements Action {
         return delegate.operationLabel();
     }
 
-    @Override
-    public LocatorDescriptor resolve(UIEngine engine) {
-        return delegate.resolve(engine);
-    }
-
-    @Override
-    public ActionCapability capability() {
-        return delegate.capability();
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void sneakyThrow(Throwable t) throws T {
+        throw (T) t;
     }
 
     private static List<ActionHandler> normalize(@Nullable List<? extends ActionHandler> hooks) {
@@ -113,4 +227,3 @@ final class HookChainAction implements Action {
         return merged.isEmpty() ? List.of() : List.copyOf(merged);
     }
 }
-

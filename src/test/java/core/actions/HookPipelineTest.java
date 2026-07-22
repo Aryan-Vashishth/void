@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.testng.Assert.*;
 
 /**
- * Unit tests for the hook pipeline: {@link HookedAction}, {@link ElementActions},
+ * Unit tests for the hook pipeline: {@link HookChainAction}, {@link ElementActions},
  * {@link Action#withHooks}, {@link ActionHandler}, and {@link FlowExecutor}.
  *
  * <p>Uses a minimal stub {@link UIEngine} via {@link Proxy} — no real browser needed.
@@ -88,7 +88,7 @@ public class HookPipelineTest {
     }
 
     // ═════════════════════════════════════════════════════════════════════
-    // HookedAction — core orchestration
+    // HookChainAction -- core orchestration
     // ═════════════════════════════════════════════════════════════════════
 
     @Test
@@ -99,7 +99,7 @@ public class HookPipelineTest {
         ActionHandler after2  = (e, d) -> executionLog.add("after2");
         Action delegate       = (e)    -> executionLog.add("action");
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 delegate, STUB_DESCRIPTOR,
                 List.of(before1, before2),
                 List.of(after1, after2));
@@ -116,7 +116,7 @@ public class HookPipelineTest {
         AtomicReference<LocatorDescriptor> beforeReceived = new AtomicReference<>();
         AtomicReference<LocatorDescriptor> afterReceived  = new AtomicReference<>();
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> {}, STUB_DESCRIPTOR,
                 List.of((e, d) -> beforeReceived.set(d)),
                 List.of((e, d) -> afterReceived.set(d)));
@@ -133,7 +133,7 @@ public class HookPipelineTest {
     public void hookedAction_passesEngineToHooks() {
         AtomicReference<UIEngine> capturedEngine = new AtomicReference<>();
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> {}, STUB_DESCRIPTOR,
                 List.of((e, d) -> capturedEngine.set(e)),
                 null);
@@ -149,7 +149,7 @@ public class HookPipelineTest {
         AtomicBoolean actionRan = new AtomicBoolean(false);
         AtomicBoolean afterRan  = new AtomicBoolean(false);
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> actionRan.set(true), STUB_DESCRIPTOR,
                 List.of((e, d) -> { throw new RuntimeException("before failed"); }),
                 List.of((e, d) -> afterRan.set(true)));
@@ -163,7 +163,7 @@ public class HookPipelineTest {
     public void hookedAction_afterHookThrows_propagates() {
         AtomicBoolean actionRan = new AtomicBoolean(false);
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> actionRan.set(true), STUB_DESCRIPTOR,
                 null,
                 List.of((e, d) -> { throw new RuntimeException("after failed"); }));
@@ -176,7 +176,7 @@ public class HookPipelineTest {
     public void hookedAction_nullHookLists_treatedAsEmpty() {
         AtomicBoolean actionRan = new AtomicBoolean(false);
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> actionRan.set(true), STUB_DESCRIPTOR,
                 null, null);
 
@@ -192,7 +192,7 @@ public class HookPipelineTest {
         withNull.add(null);
         withNull.add((e, d) -> executionLog.add("valid"));
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> actionRan.set(true), STUB_DESCRIPTOR,
                 withNull, null);
 
@@ -206,7 +206,7 @@ public class HookPipelineTest {
     public void hookedAction_nullDescriptor_passedToHooks() {
         AtomicReference<LocatorDescriptor> received = new AtomicReference<>(STUB_DESCRIPTOR);
 
-        HookedAction hooked = HookedAction.forTesting(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> {}, null,  // null descriptor (legacy path)
                 List.of((e, d) -> received.set(d)),
                 null);
@@ -218,7 +218,7 @@ public class HookPipelineTest {
 
     @Test(expectedExceptions = NullPointerException.class)
     public void hookedAction_nullDelegate_throwsNPE() {
-        HookedAction.forTesting(null, STUB_DESCRIPTOR, null, null);
+        HookChainAction.forTesting(null, STUB_DESCRIPTOR, null, null);
     }
 
     // ═════════════════════════════════════════════════════════════════════
