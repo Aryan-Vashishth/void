@@ -39,6 +39,37 @@ abstraction; one hypothetical future case does not.
 
 ---
 
+## Architecture Fitness Checks (the Ratchet)
+
+Kernel boundary rules are enforced automatically by `KernelBoundaryRulesTest` (and the
+existing `FacadeBoundaryRulesTest`, `ElementStructureRulesTest`) in `src/test/java/core/architecture/`.
+These run as part of `mvn test`. A check that fails means a boundary regression -- do not
+suppress it, fix the regression.
+
+### How to tighten the ratchet when a phase wins a boundary
+
+When an initiative phase cleans a new package of a forbidden dependency:
+
+1. Add a rule to `KernelBoundaryRulesTest` (or a new `*RulesTest` class if the boundary
+   is conceptually distinct) that encodes the newly-won boundary.
+2. Verify the rule FAILS when the forbidden import is temporarily added back. Commit the
+   mutation test evidence in the phase document under "Validation".
+3. Verify the rule PASSES on the clean state. Commit the new rule as part of the phase commit.
+4. Update the relevant ADR's Consequences section to reference the new check.
+
+The ratchet never loosens. Once a boundary is encoded, it is a non-negotiable invariant
+for all future work.
+
+### Current ratchet baseline (Phase 0.2, ADR-021)
+
+| Check class | Boundary encoded |
+|---|---|
+| `FacadeBoundaryRulesTest` | Test classes must not hold UIEngine fields or construct FlowExecutor directly |
+| `ElementStructureRulesTest` | Element enums must be nested inside a page class |
+| `KernelBoundaryRulesTest` | core.logging, core.flow, core.actions, elements.* are Selenium-free; core.runtime holds no WebDriver/DriverContext fields; LocatorDescriptor has no Selenium dependency |
+
+---
+
 ## OOP Violation Protocol
 
 When work surfaces an OOP violation, apply this decision tree. Do not silently work around
