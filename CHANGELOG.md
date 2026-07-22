@@ -8,6 +8,27 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Internal
+
+- **ADR-021 -- Kernel boundary, ontology, and open decisions (runtime-redesign I0)**
+  - Resolves the three open architectural decisions from the 2026-07 audit: AD1 (one
+    session binds one domain), AD2 (execution owner named `Executor`; `UIEngine` is the
+    web domain's refinement), AD3 (capability validation at dispatch time)
+  - Establishes the closed kernel membership list and two neutrality axes (engine vs domain)
+  - Formally adopts the five-concept ontology (Runtime, Session, Interaction, Capability,
+    Target, Domain) as the framework's design vocabulary
+
+- **Architecture fitness checks -- kernel boundary ratchet (Phase 0.2)**
+  - `KernelBoundaryRulesTest`: seven ArchUnit rules encoding boundaries already true
+    as of ADR-021: `core.logging`, `core.flow`, `core.actions`, `elements.*` verified
+    Selenium-free; `core.runtime` verified free of WebDriver/DriverContext fields;
+    `LocatorDescriptor` verified Selenium-free
+  - `docs/contributing/architecture-rules.md` gains the ratchet-tightening protocol
+
+- **Development workflow -- multi-initiative program branching documented (Phase 0.3)**
+  - `docs/contributing/workflow.md` documents per-initiative branch topology for
+    multi-phase programs; includes the full runtime-redesign reference table (I0-I9)
+
 ---
 
 ## [0.3.1] - 2026-07-22
