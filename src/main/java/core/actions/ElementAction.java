@@ -208,8 +208,7 @@ public abstract class ElementAction implements Action {
      */
     @Override
     public String elementLabel() {
-        if (element instanceof Enum<?> e) return e.name();
-        return element.getClass().getSimpleName();
+        return element.getDisplayText();
     }
 
     /**
