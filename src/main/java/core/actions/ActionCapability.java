@@ -9,7 +9,7 @@ package core.actions;
  * <p>{@code UNKNOWN} is the fallback for actions not bound to a specific element capability
  * (e.g., raw lambda actions).</p>
  *
- * @see ActionCapabilityProvider
+ * @see core.actions.Action#capability()
  */
 public enum ActionCapability {
     CLICKABLE,

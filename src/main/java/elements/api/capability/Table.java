@@ -1,7 +1,7 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.ActionCapabilityProvider;
+
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -18,7 +18,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Table extends Element, ActionCapabilityProvider {
+public interface Table extends Element {
 
     String getTableLocator();
 

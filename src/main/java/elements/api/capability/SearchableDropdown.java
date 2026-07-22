@@ -56,16 +56,12 @@ public interface SearchableDropdown extends Selectable, Searchable {
 
     @Override
     default java.util.Map<ElementRole, String> getAllLocatorRoles() {
-        java.util.Map<ElementRole, String> roles = new java.util.LinkedHashMap<>();
-        String trigger = getTriggerLocator();
-        if (trigger != null && !trigger.isBlank()) roles.put(ElementRole.TRIGGER, trigger);
-        String input = getSearchInputLocator();
-        if (input != null && !input.isBlank() && !input.equals(trigger)) roles.put(ElementRole.SEARCH_INPUT, input);
-        String button = getSearchButtonLocator();
-        if (button != null && !button.isBlank() && !button.equals(trigger) && !button.equals(input)) roles.put(ElementRole.SEARCH_BUTTON, button);
-        String list = getListLocator();
-        if (list != null && !list.isBlank() && !list.equals(trigger) && !list.equals(input) && !list.equals(button)) roles.put(ElementRole.SEARCH_RESULT, list);
-        return roles;
+        return LocatorRoles.roleMap(
+            LocatorRoles.role(ElementRole.TRIGGER,       getTriggerLocator()),
+            LocatorRoles.role(ElementRole.SEARCH_INPUT,  getSearchInputLocator()),
+            LocatorRoles.role(ElementRole.SEARCH_BUTTON, getSearchButtonLocator()),
+            LocatorRoles.role(ElementRole.SEARCH_RESULT, getListLocator())
+        );
     }
 
     @Override

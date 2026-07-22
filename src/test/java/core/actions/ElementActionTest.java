@@ -424,7 +424,7 @@ public class ElementActionTest {
     // ═════════════════════════════════════════════════════════════════════
 
     @Test
-    public void elementLabel_enumElement_returnsEnumName() {
+    public void elementLabel_enumElement_returnsDisplayText() {
         enum TestElement implements Element {
             LOGIN_BUTTON;
 
@@ -452,7 +452,7 @@ public class ElementActionTest {
             protected void execute(UIEngine engine, LocatorDescriptor descriptor) {}
         };
 
-        assertEquals(action.elementLabel(), "LOGIN_BUTTON");
+        assertEquals(action.elementLabel(), "Login");
     }
 
     @Test
