@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Immutable record of a single action execution — element, hooks, timing, and outcome.
  *
- * <p>Produced by the instrumented execution path in {@code HookedAction} and emitted
+ * <p>Produced by {@code HookChainAction#performAndTrace} and emitted
  * via {@code ActionTraceLogger} at DEBUG level. Not stored in memory.</p>
  */
 public final class ActionTrace {

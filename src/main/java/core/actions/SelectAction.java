@@ -34,6 +34,9 @@ public final class SelectAction extends SelectableElementAction {
     }
 
     @Override
+    public String operationLabel() { return "select"; }
+
+    @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
         engine.click(descriptor);
         engine.waitForOverlay(Duration.ofSeconds(5));

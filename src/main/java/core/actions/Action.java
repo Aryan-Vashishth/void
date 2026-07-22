@@ -71,16 +71,43 @@ public interface Action {
     }
 
     /**
+     * Extension hook: merges before/after hook lists into this action.
+     *
+     * <p>The default wraps this action in a new {@link HookChainAction}. Composable
+     * wrappers (e.g. {@code RetryAction}) override this to re-apply themselves around
+     * the merged result so their own state is preserved. Overrides must delegate first
+     * then re-wrap: {@code new RetryAction(delegate.mergeHooks(b, a), retryCount)}.</p>
+     *
+     * <p>Framework consumers should use {@link #before}/{@link #after}/{@link #withHooks}
+     * rather than calling this directly.</p>
+     */
+    default Action mergeHooks(List<? extends ActionHandler> before,
+                              List<? extends ActionHandler> after) {
+        return new HookChainAction(this, before, after);
+    }
+
+    /**
+     * Extension hook: attaches a profile name to this action.
+     *
+     * <p>The default wraps this action in a new {@link HookChainAction} carrying the
+     * profile name. {@link HookChainAction} overrides this to set the name on itself
+     * without adding another wrapper layer.</p>
+     *
+     * <p>Framework consumers should use {@link #using} rather than calling this directly.</p>
+     */
+    default Action withProfile(ActionProfile profile) {
+        return new HookChainAction(this, List.of(), List.of())
+                .withProfileName(profile.name());
+    }
+
+    /**
      * Adds before-hooks to this action.
      *
      * @param hooks hooks to run before the core action
      * @return action with appended before-hooks
      */
     default Action before(@Nullable BeforeActionHandler... hooks) {
-        if (this instanceof HookChainAction chain) {
-            return chain.withAdditionalHooks(toList(hooks), null);
-        }
-        return new HookChainAction(this, toList(hooks), null);
+        return mergeHooks(toList(hooks), List.of());
     }
 
     /**
@@ -90,10 +117,7 @@ public interface Action {
      * @return action with appended after-hooks
      */
     default Action after(@Nullable AfterActionHandler... hooks) {
-        if (this instanceof HookChainAction chain) {
-            return chain.withAdditionalHooks(null, toList(hooks));
-        }
-        return new HookChainAction(this, null, toList(hooks));
+        return mergeHooks(List.of(), toList(hooks));
     }
 
     /**
@@ -134,17 +158,10 @@ public interface Action {
             return this;
         }
 
-        Action profiled = this;
-        if (beforeHooks != null && !beforeHooks.isEmpty()) {
-            profiled = profiled.before(beforeHooks.toArray(new BeforeActionHandler[0]));
-        }
-        if (afterHooks != null && !afterHooks.isEmpty()) {
-            profiled = profiled.after(afterHooks.toArray(new AfterActionHandler[0]));
-        }
-        if (profiled instanceof HookChainAction chain) {
-            profiled = chain.withProfileName(profile.name());
-        }
-        return profiled;
+        return mergeHooks(
+                beforeHooks != null ? beforeHooks : List.of(),
+                afterHooks  != null ? afterHooks  : List.of()
+        ).withProfile(profile);
     }
 
     /**
@@ -152,6 +169,26 @@ public interface Action {
      */
     default ActionCapability capability() {
         return ActionCapability.UNKNOWN;
+    }
+
+    /**
+     * Returns a display name for the target element (for trace/logging output).
+     *
+     * <p>Overridden by {@link ElementAction} to return the enum constant name or class simple name.
+     * Lambda actions return {@code "action"} as a neutral fallback.</p>
+     */
+    default String elementLabel() {
+        return "action";
+    }
+
+    /**
+     * Returns a display name for the operation (for trace/logging output).
+     *
+     * <p>Overridden by {@link ElementAction} to derive the label from the concrete class name.
+     * Lambda actions return {@code "perform"} as a neutral fallback.</p>
+     */
+    default String operationLabel() {
+        return "perform";
     }
 
 
@@ -177,10 +214,9 @@ public interface Action {
     @Deprecated(forRemoval = false, since = "0.1")
     default Action withHooks(@Nullable List<ActionHandler> before,
                              @Nullable List<ActionHandler> after) {
-        if (this instanceof HookChainAction chain) {
-            return chain.withAdditionalHooks(before, after);
-        }
-        return new HookChainAction(this, before, after);
+        return mergeHooks(
+                before != null ? before : List.of(),
+                after  != null ? after  : List.of());
     }
 
     private static List<ActionHandler> toList(@Nullable ActionHandler... hooks) {
