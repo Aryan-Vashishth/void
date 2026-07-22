@@ -23,11 +23,10 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 
 /**
- * Verifies that each of the 14 capability interfaces self-describes through
- * {@link ActionCapabilityProvider#capability()} and returns the expected
- * {@link ActionCapability} constant.
+ * Verifies that each capability interface returns the expected {@link ActionCapability}
+ * constant through {@code element.capability()} (now on {@link elements.api.Element}).
  *
- * <p>Uses anonymous inner classes — no Mockito or engine required.</p>
+ * <p>Uses anonymous inner classes -- no Mockito or engine required.</p>
  */
 public class ActionCapabilityProviderTest {
 
@@ -124,13 +123,10 @@ public class ActionCapabilityProviderTest {
     // ── Provider pattern ──────────────────────────────────────────────────
 
     @Test
-    public void actionCapabilityProvider_resolvesClickableWithoutRegistry() {
-        Object element = stubClickable();
-        // Simulates the intended metadata-only usage pattern.
-        ActionCapability resolved = (element instanceof ActionCapabilityProvider p)
-                ? p.capability()
-                : ActionCapability.UNKNOWN;
-        assertSame(resolved, ActionCapability.CLICKABLE);
+    public void element_capabilityResolvesWithoutRegistry() {
+        elements.api.Element element = stubClickable();
+        // capability() is now on Element -- no separate provider interface needed.
+        assertSame(element.capability(), ActionCapability.CLICKABLE);
     }
 
     @Test
