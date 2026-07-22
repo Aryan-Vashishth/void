@@ -78,6 +78,51 @@ may restructure, consolidate, or remove.
 
 ---
 
+## Multi-Initiative Programs
+
+When a roadmap spans many sequential and parallel initiatives (e.g. the runtime-redesign
+program targeting v1.0.0), the branching topology follows these rules.
+
+**Each initiative is its own branch.** There is no umbrella branch spanning all initiatives.
+`main` is the integration point; each initiative branch is created from `main` after its
+prerequisites merge, and merges back to `main` on completion.
+
+**Phases are commits, not branches.** Within `initiative/target-model`, phase 1.1, 1.2,
+1.3, and 1.4 are commits. No sub-branch is created per phase.
+
+**Sequential initiatives branch from main after the prior merges.** The chain
+I1 -> I2 -> I3 -> I4 means `initiative/kernel-extraction` is created only after
+`initiative/target-model` merges to `main`.
+
+**Parallel initiatives branch from the same base.** When two initiatives can execute
+concurrently (e.g. I5 + I7, which operate on disjoint files), both are created from the
+same `main` commit (after their shared prerequisite I4 merges). They must not depend on
+each other's in-progress state.
+
+**Milestone tags go on main.** At each milestone-closing merge, `main` receives a version
+tag. The milestone-closing initiative is the one whose merge pushes the milestone to `main`.
+
+### runtime-redesign program branching (reference)
+
+| Initiative | Branch | Base | Merges to | Milestone |
+|---|---|---|---|---|
+| I0 Foundations | `initiative/runtime-redesign` (this branch) | `feature/engine-decoupling` | `main` | M1 (no version) |
+| oop P1-P3 | `initiative/oop-violations-remediation` | `main` | `main` | 0.4.0 |
+| I1 Target Model | `initiative/target-model` | `main` after I0 + oop | `main` | -- |
+| I2 Kernel Extraction | `initiative/kernel-extraction` | `main` after I1 | `main` | -- |
+| I3 Capability Model | `initiative/capability-model` | `main` after I2 | `main` | M2 (0.5.0) |
+| I4 Execution Boundary | `initiative/execution-boundary` | `main` after I3 | `main` | M3 (0.6.0) |
+| I5 Session Model | `initiative/session-model` | `main` after I4 | `main` | -- |
+| I7 Locator Generalization | `initiative/locator-generalization` | `main` after I4 | `main` | -- |
+| I6 Domain Registration | `initiative/domain-registration` | `main` after I5 + I7 | `main` | M4 (0.7.0) |
+| I8 Interaction Semantics | `initiative/interaction-semantics` | `main` after I6 | `main` | -- |
+| I9 Legacy Removal | `initiative/legacy-removal` | `main` after I8 | `main` | M5 (1.0.0) |
+
+I5 and I7 branch from the same I4 merge point and run in parallel (disjoint files).
+I6 waits for both I5 and I7 to merge before branching.
+
+---
+
 ## Phase-Based Development
 
 An initiative is divided into phases. A phase is a self-contained implementation milestone:
