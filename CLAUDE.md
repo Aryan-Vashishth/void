@@ -127,6 +127,17 @@ test(runtime): add VOIDBuilderTest covering fluent API and single-use guard
 
 ---
 
+## Release Checklist
+
+When cutting a new version:
+
+1. Bump `<version>` in `pom.xml`.
+2. Update `version.json` at the repo root -- the README.md VOID badge reads from that
+   file automatically via shields.io.
+3. Add a `## [x.y.z] - YYYY-MM-DD` entry in `CHANGELOG.md`.
+
+---
+
 ## Architecture Invariants
 
 Non-negotiable. Raise a violation explicitly before working around one.

@@ -4,6 +4,9 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow [Semantic Versioning](https://semver.org/).
 
+> **Release checklist:** when cutting a new version, update `version.json` at the repo
+> root -- the README.md version badge reads from that file automatically.
+
 ---
 
 ## [Unreleased]
@@ -53,6 +56,48 @@ Versions follow [Semantic Versioning](https://semver.org/).
   - `Via` capability cast helpers (`clickable()`, `typeable()`, `selectable()`, `readOnly()`, `searchable()`, `searchableDropdown()`, `multiSelectable()`, `checkable()`, `hoverable()`) and predicates (`isClickable()`, `isTypeable()`, `isSelectable()`, `isReadOnly()`, `isSearchable()`, `isCheckable()`) removed -- zero call sites; use `instanceof` patterns directly
 
   **Deferred:** P8 (`UIEngineFactory` registry) to runtime-redesign I4.1; P11 (`Via` full deletion) to runtime-redesign I9.3.
+
+---
+
+## [0.4.1] - 2026-07-23
+
+### Fixed
+
+- **`LogActions.logMultiline` -- appender-routing regressions (hotfix/debug-trace-caller-chain)**
+
+  Three bugs caused `debug-trace` and `partial-trace` log files to be identical:
+
+  1. *DEBUG entries absent from debug-trace when root logger is INFO* --
+     `isLogLevelEnabled()` checked only the root logger (default `INFO`), so
+     `debug`-level `CustomLogger` calls returned early before reaching any file
+     appender. Fixed by computing per-appender enablement (`rootOk` / `debugOk`)
+     and only exiting early when neither appender accepts the level.
+
+  2. *DEBUG entries incorrectly appearing in partial-trace* -- once (1) was fixed, the
+     single unguarded method body wrote to partial-trace for all levels the debug-trace
+     logger accepted. Fixed by gating console + partial-trace writes on `rootOk` and
+     debug-trace writes on `debugOk`; each appender now respects its own level
+     independently.
+
+  3. *Caller chain missing from debug-trace when root logger is INFO* --
+     `rawCaller` (the `Callee.method` suffix) was gated on `isDebugEnabled()` which
+     also checked the root logger, so it was always empty at the default level.
+     Fixed by computing `rawCaller = getCallerString()` unconditionally before the
+     per-appender blocks and reusing the result rather than calling
+     `getCallerString()` twice.
+
+- **`emitGitHubWorkflowNotice` redundant guard removed** -- the `isLogLevelEnabled()`
+  check inside the method was unreachable (the method is only called after the outer
+  per-appender gate has passed). Replaced `isLogLevelEnabled()` with `resolveLevel()`
+  which returns the typed `Level` value used for the `isEnabled()` queries.
+
+### Tests
+
+- **`LogAppenderRoutingTest`** -- 11 deterministic unit tests covering all three regressions:
+  programmatic `CapturingAppender`s attached to the named Log4j2 loggers; root logger
+  level is pinned to `INFO` per test and restored on teardown so the suite is
+  order-independent. `CallerChainHelper` (in `tests.*`) provides a project-frame
+  call-site so the caller chain can be asserted without modifying production filter rules.
 
 ---
 
