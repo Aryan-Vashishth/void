@@ -106,6 +106,10 @@ Unless the user requests otherwise:
 
 Use `initiative/` not `feature/`.
 
+**Never commit or push directly to `main`.** Every change, including single-line
+documentation fixes, must go through a branch and be merged via `--no-ff`. `main`
+is the integration point only.
+
 ---
 
 ## Commit Format
@@ -124,6 +128,17 @@ refactor(runtime): replace ExecutionContext with SessionContext in VOID
 docs(decisions): add ADR-018 engine lifecycle ownership
 test(runtime): add VOIDBuilderTest covering fluent API and single-use guard
 ```
+
+---
+
+## Release Checklist
+
+When cutting a new version:
+
+1. Bump `<version>` in `pom.xml`.
+2. Update `version.json` at the repo root -- the README.md VOID badge reads from that
+   file automatically via shields.io.
+3. Add a `## [x.y.z] - YYYY-MM-DD` entry in `CHANGELOG.md`.
 
 ---
 

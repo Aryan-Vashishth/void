@@ -283,50 +283,64 @@ public class LogActions {
 
     protected void logMultiline(String actionColor, String actionLabel,
                                 String message, boolean showCaller, LogIntent intent) {
-        if (!isLogLevelEnabled()) return;
+        Level level       = resolveLevel();
+        boolean rootOk    = LoggerContext.getLogger().isEnabled(level);
+        boolean debugOk   = LoggerContext.getDebugTraceLogger().isEnabled(level);
+        if (!rootOk && !debugOk) return;
+
         if (message == null) message = "null";
         LogConfig cfg = LogConfig.current();
-        String ts         = java.time.LocalDateTime.now().format(cfg.getTsFormat());
-        String callerText = showCaller ? getCallerString() : "";
-        String fullChain  = getProjectCallChain();
-        String[] lines    = message.split("\\R", -1);
-        boolean ansi      = cfg.isAnsiEnabled();
+        String ts            = java.time.LocalDateTime.now().format(cfg.getTsFormat());
+        // compute caller once; suppress on console/partial-trace when showCaller is false
+        String rawCaller     = getCallerString();
+        String callerText    = showCaller ? rawCaller : "";
+        String fullChain     = getProjectCallChain();
+        String[] lines       = message.split("\\R", -1);
+        boolean ansi         = cfg.isAnsiEnabled();
 
         String div = cfg.getSegmentDivider();
         for (int i = 0; i < lines.length; i++) {
             String body = ts + div + actionLabel + div + lines[i];
-            String out;
-            if (ansi) {
-                if (i == 0 && !callerText.isEmpty() && cfg.isCallerColorEnabled()) {
-                    out = actionColor + body + RESET
-                        + div + BuiltInThemes.getColors().callerFg() + callerText + RESET;
+
+            if (rootOk) {
+                String out;
+                if (ansi) {
+                    if (i == 0 && !callerText.isEmpty() && cfg.isCallerColorEnabled()) {
+                        out = actionColor + body + RESET
+                            + div + BuiltInThemes.getColors().callerFg() + callerText + RESET;
+                    } else {
+                        String cp = (i == 0 && !callerText.isEmpty()) ? div + callerText : "";
+                        out = actionColor + body + cp + RESET;
+                    }
                 } else {
                     String cp = (i == 0 && !callerText.isEmpty()) ? div + callerText : "";
-                    out = actionColor + body + cp + RESET;
+                    out = body + cp;
                 }
-            } else {
-                String cp = (i == 0 && !callerText.isEmpty()) ? div + callerText : "";
-                out = body + cp;
-            }
-            switch (logLevel) {
-                case "ERROR" -> LoggerContext.getLogger().error(out);
-                case "WARN"  -> LoggerContext.getLogger().warn(out);
-                case "INFO"  -> LoggerContext.getLogger().info(out);
-                default      -> LoggerContext.getLogger().debug(out);
+                switch (logLevel) {
+                    case "ERROR" -> LoggerContext.getLogger().error(out);
+                    case "WARN"  -> LoggerContext.getLogger().warn(out);
+                    case "INFO"  -> LoggerContext.getLogger().info(out);
+                    default      -> LoggerContext.getLogger().debug(out);
+                }
+                switch (logLevel) {
+                    case "ERROR" -> LoggerContext.getPartialTraceLogger().error(body);
+                    case "WARN"  -> LoggerContext.getPartialTraceLogger().warn(body);
+                    case "INFO"  -> LoggerContext.getPartialTraceLogger().info(body);
+                    default      -> LoggerContext.getPartialTraceLogger().debug(body);
+                }
+                if (IS_GITHUB_ACTIONS) {
+                    emitGitHubWorkflowNotice(ts + div + lines[i], intent);
+                }
             }
 
-            switch (logLevel) {
-                case "ERROR" -> LoggerContext.getDebugTraceLogger().error(out);
-                case "WARN"  -> LoggerContext.getDebugTraceLogger().warn(out);
-                case "INFO"  -> LoggerContext.getDebugTraceLogger().info(out);
-                default      -> LoggerContext.getDebugTraceLogger().debug(out);
-            }
-
-            switch (logLevel) {
-                case "ERROR" -> LoggerContext.getPartialTraceLogger().error(body);
-                case "WARN"  -> LoggerContext.getPartialTraceLogger().warn(body);
-                case "INFO"  -> LoggerContext.getPartialTraceLogger().info(body);
-                default      -> LoggerContext.getPartialTraceLogger().debug(body);
+            if (debugOk) {
+                String debugOut = (i == 0 && !rawCaller.isEmpty()) ? body + div + rawCaller : body;
+                switch (logLevel) {
+                    case "ERROR" -> LoggerContext.getDebugTraceLogger().error(debugOut);
+                    case "WARN"  -> LoggerContext.getDebugTraceLogger().warn(debugOut);
+                    case "INFO"  -> LoggerContext.getDebugTraceLogger().info(debugOut);
+                    default      -> LoggerContext.getDebugTraceLogger().debug(debugOut);
+                }
             }
 
             String traceLine = body;
@@ -334,18 +348,10 @@ public class LogActions {
                 traceLine = traceLine + div + "[CHAIN] " + fullChain;
             }
             LoggerContext.getTraceLogger().info(traceLine);
-
-            if (IS_GITHUB_ACTIONS) {
-                emitGitHubWorkflowNotice(ts + div + lines[i], intent);
-            }
         }
     }
 
     private void emitGitHubWorkflowNotice(String plainLine, LogIntent intent) {
-        // Only emit GitHub workflow notices if the log level is actually enabled
-        if (!isLogLevelEnabled()) {
-            return;
-        }
         String command = null;
         if ("ERROR".equals(logLevel) || LogIntent.ALERT.equals(intent)) {
             command = "error";
@@ -359,16 +365,14 @@ public class LogActions {
         System.out.println("::" + command + "::" + escapeGitHubWorkflowText(plainLine));
     }
 
-    /** Helper: check if this log level is enabled in Log4j 2. */
-    private boolean isLogLevelEnabled() {
-        Level level = switch (logLevel) {
+    private Level resolveLevel() {
+        return switch (logLevel) {
             case "ERROR" -> Level.ERROR;
             case "WARN"  -> Level.WARN;
             case "INFO"  -> Level.INFO;
             case "DEBUG" -> Level.DEBUG;
             default      -> Level.INFO;
         };
-        return LoggerContext.getLogger().isEnabled(level);
     }
 
     private static String escapeGitHubWorkflowText(String text) {
