@@ -371,7 +371,8 @@ public class LogActions {
             case "DEBUG" -> Level.DEBUG;
             default      -> Level.INFO;
         };
-        return LoggerContext.getLogger().isEnabled(level);
+        return LoggerContext.getLogger().isEnabled(level)
+            || LoggerContext.getDebugTraceLogger().isEnabled(level);
     }
 
     private static String escapeGitHubWorkflowText(String text) {
