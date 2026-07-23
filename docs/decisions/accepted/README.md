@@ -20,7 +20,7 @@ All accepted Architecture Decision Records for VOID.
 | [012](012-elementactions-factory-scope.md) | ElementActions Factory Scope | Actions |
 | [013](013-architectural-layering-principle.md) | Architectural Layering Principle | Architecture |
 | [014](014-concrete-actions-over-lambdas.md) | Concrete Actions over Anonymous Lambdas | Actions |
-| [015](015-capability-self-description.md) | Capability Self-Description via ActionCapabilityProvider | Elements |
+| [015](015-capability-self-description.md) | Capability Self-Description via ActionCapabilityProvider (Superseded by ADR-016) | Elements |
 | [016](016-capability-ownership-migration.md) | capability() Ownership Migration | Elements |
 | [017](017-element-support-locator-roles.md) | ElementSupport and LocatorRoles Utility Scope | Elements |
 | [018](018-engine-lifecycle-ownership.md) | Engine Lifecycle Ownership | Engine / Runtime |

@@ -29,6 +29,31 @@ Versions follow [Semantic Versioning](https://semver.org/).
   - `docs/contributing/workflow.md` documents per-initiative branch topology for
     multi-phase programs; includes the full runtime-redesign reference table (I0-I9)
 
+- **OOP violations remediation -- Phases 1-4 (P1-P7, P9, P10)**
+
+  *Phase 1 -- Action layer (P1, P3, P4):*
+  - `Action` gains four defaults: `mergeHooks()`, `withProfile()`, `elementLabel()`, `operationLabel()`; all `instanceof HookChainAction` checks in the existing defaults removed
+  - `ActionLabeled` deleted -- `elementLabel()` and `operationLabel()` are now on `Action` directly
+  - `HookedAction` deleted -- full hook pipeline (`performAndTrace()`, `LAST_TRACE` ThreadLocal, `lastTrace()`, `clearLastTrace()`, `forTesting()`) absorbed into `HookChainAction`
+
+  *Phase 2 -- Element interface safety + capability (P5, P6, P7, P10):*
+  - `ElementSupport` (package-private, `elements.api`) introduced: `nameOf()`, `declaringClassOf()`, `ordinalOf()` centralise all `(Enum<?>) this` casts; `Element` defaults use it exclusively
+  - `Element.capability()` default added (returns `ActionCapability.UNKNOWN`); `ActionCapabilityProvider` deleted -- `capability()` ownership lives on `Element`
+  - All 8 capability interfaces (`Clickable`, `Typeable`, `Selectable`, `Hoverable`, `Checkable`, `Uploadable`, `MultiSelectable`, `ReadOnly`) drop `implements ActionCapabilityProvider`; each keeps its own `capability()` override
+  - `Listable.getIndex()` default added (delegates to enum ordinal; throws for non-enum implementors)
+
+  *Phase 3 -- DSL capability dispatch (P2):*
+  - `VoidDSL.selectFromDropdownByContext` and `triggerDropdownByContext` -- two ordering-sensitive `instanceof` chains replaced with `element.capability()` enum comparison
+  - `Element.getDisplayText()` gains empty-token guard (prevents `StringIndexOutOfBoundsException` for anonymous-class elements)
+  - `LocatorResolver.labelOf()` returns `null` for anonymous-class elements (was calling `getDisplayText()` which threw)
+
+  *Phase 4 -- Infrastructure (P9):*
+  - `LocatorRoles` (package-private, `elements.api.capability`) introduced: `roleMap(RoleEntry...)` eliminates O(n^2) equality chains in `getAllLocatorRoles()`
+  - `SearchableDropdown.getAllLocatorRoles()` and `SearchField.getAllLocatorRoles()` both use `LocatorRoles.roleMap()`
+  - `Via` capability cast helpers (`clickable()`, `typeable()`, `selectable()`, `readOnly()`, `searchable()`, `searchableDropdown()`, `multiSelectable()`, `checkable()`, `hoverable()`) and predicates (`isClickable()`, `isTypeable()`, `isSelectable()`, `isReadOnly()`, `isSearchable()`, `isCheckable()`) removed -- zero call sites; use `instanceof` patterns directly
+
+  **Deferred:** P8 (`UIEngineFactory` registry) to runtime-redesign I4.1; P11 (`Via` full deletion) to runtime-redesign I9.3.
+
 ---
 
 ## [0.3.1] - 2026-07-22
@@ -187,7 +212,7 @@ The following are deprecated with `forRemoval = true`:
 
 ### Planned
 
-- OOP violations remediation Phases 1-4 (see `docs/plan/draft/oop-violations-remediation/`)
+- OOP violations remediation Phases 1-4 -- **Complete (2026-07-23)** (see `docs/plan/done/oop-violations-remediation/`)
   - Phase 1: remove `instanceof HookChainAction` from `Action` defaults; promote label methods
   - Phase 2: replace `(Enum<?>) this` casts in `Element`; move `capability()` to `Element`; default `Listable.getIndex()`
   - Phase 3: replace `instanceof` dispatch chains in `VoidDSL` with typed overloads and `EnumMap` dispatch

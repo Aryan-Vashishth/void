@@ -1,3 +1,5 @@
+> **Status: Complete.** All phases merged to `initiative/runtime-redesign` (2026-07-23). P8 reallocated to runtime-redesign I4.1; P11 to runtime-redesign I9.3.
+
 # OOP Violations Remediation
 
 > **Coordination note (2026-07-20)**: Phases 1-3 are an independent prerequisite of
@@ -7,7 +9,7 @@
 > owned by this initiative.
 
 Identified: 2026-07-15 interface audit.
-Supersedes: `action-layer-ocp-violations.md` (covered P1/P3/P4/P6/P7 as an earlier partial draft — fully absorbed here).
+Supersedes: `action-layer-ocp-violations.md` (covered P1/P3/P4/P6/P7 as an earlier partial draft -- fully absorbed here).
 Branch target: `initiative/oop-violations-remediation`
 
 ---
@@ -24,7 +26,7 @@ Branch target: `initiative/oop-violations-remediation`
 | P6  | MEDIUM   | DRY, LSP  | 2     | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` |
 | P7  | MEDIUM   | ISP, OCP  | 2     | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` |
 | P8  | MEDIUM   | OCP       | 4     | `switch` on engine name string in `UIEngineFactory` |
-| P9  | LOW      | OCP       | 4     | O(n²) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` |
+| P9  | LOW      | OCP       | 4     | O(n^2) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` |
 | P10 | LOW      | ISP       | 2     | Forced abstract `getIndex()` in `Listable` with no default |
 | P11 | LOW      | OCP       | 4     | Per-capability static helpers in `Via` growing with capability count |
 
@@ -36,27 +38,27 @@ Branch target: `initiative/oop-violations-remediation`
 |-------|---------------------------------------------|-----------------|----------------------------------------------------|
 | 1     | Action layer: extension hooks + label promo | P1, P3, P4      | `ActionLabeled.java`, `HookedAction.java`          |
 | 2     | Element interface safety + capability       | P5, P6, P7, P10 | `ActionCapabilityProvider.java`                    |
-| 3     | DSL: capability-driven dispatch             | P2              | —                                                  |
+| 3     | DSL: capability-driven dispatch             | P2              | --                                                  |
 | 4     | Infrastructure: registry + helpers          | P8, P9, P11     | `Via.java` (or reduced to 1 generic method)        |
 
 Phase docs:
-- [Phase 1 — Action layer](phase-1-action-layer.md)
-- [Phase 2 — Element interface](phase-2-element-interface.md)
-- [Phase 3 — DSL dispatch](phase-3-dsl-dispatch.md)
-- [Phase 4 — Infrastructure](phase-4-infrastructure.md)
+- [Phase 1 -- Action layer](phase-1-action-layer.md)
+- [Phase 2 -- Element interface](phase-2-element-interface.md)
+- [Phase 3 -- DSL dispatch](phase-3-dsl-dispatch.md)
+- [Phase 4 -- Infrastructure](phase-4-infrastructure.md)
 
 ---
 
 ## Dependency rationale
 
-P3 and P4 share one root fix (label methods on `Action`) — do them in the same commit as P1.
+P3 and P4 share one root fix (label methods on `Action`) -- do them in the same commit as P1.
 P6 depends on Phase 1: `ElementAction.elementLabel()` delegates to `Action.elementLabel()`,
 which must exist before the call site can be simplified.
-P7 requires `capability()` on `Element` — grouped with the other `Element` changes (P5) in
+P7 requires `capability()` on `Element` -- grouped with the other `Element` changes (P5) in
 Phase 2 so all `Element` defaults are stabilised in one pass.
-P2 is isolated to the DSL layer — interfaces must be stable first (Phase 2), then the DSL
+P2 is isolated to the DSL layer -- interfaces must be stable first (Phase 2), then the DSL
 is safe to refactor without risk of re-touching the same interfaces.
-P8, P9, P11 have no cross-cutting dependencies — they are self-contained and go in Phase 4.
+P8, P9, P11 have no cross-cutting dependencies -- they are self-contained and go in Phase 4.
 
 **Rule:** nothing in Phase N depends on Phase N+1. Each phase compiles and passes
 `mvn compile -q` on its own before the next phase begins. Never mix phases in one commit.
@@ -119,7 +121,7 @@ grep -r "HookedAction"  src/   # must be empty
 mvn compile -q
 grep -r "ActionCapabilityProvider" src/   # must be empty
 mvn compile -q && mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli "-Dexec.args=--sync tests.demo.pages.DemoLoginPage --prune"
-# Expected: [sync] Done — DemoLoginPage is in sync.
+# Expected: [sync] Done -- DemoLoginPage is in sync.
 
 # After Phase 3
 mvn test -Dtest=DemoLoginTest -q
@@ -138,8 +140,8 @@ grep -n "switch" src/main/java/core/engine/UIEngineFactory.java   # must be empt
 - `LocatorFamily`, `AdvancedLocatorFamily`, `SwitchLocatorFamily`
 - Page object enums (`DemoLoginPage`, etc.)
 - `LocatorTemplateGenerator` / `OrphanKeyDetector` sync pipeline
-- Public `Element` API surface — Phase 2 adds static helpers and new defaults only
-- `ActionCapability` enum constants — only the dispatch-by-switch is removed, not the enum
+- Public `Element` API surface -- Phase 2 adds static helpers and new defaults only
+- `ActionCapability` enum constants -- only the dispatch-by-switch is removed, not the enum
 
 ---
 

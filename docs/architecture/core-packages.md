@@ -8,7 +8,7 @@
 
 ```
 core/
-├── actions/          ← Deferred execution model (Action, HookedAction)
+├── actions/          ← Deferred execution model (Action, HookChainAction)
 ├── adapters/         ← External framework adapters (Cucumber)
 │   └── cucumber/     ← BDD step definitions
 ├── annotations/      ← Stability-tier markers (@Beta, @Internal)
@@ -70,7 +70,7 @@ core/
 | `ActionProfiles` | Package-private: 8 capability-specific safe/reliable constants (`CLICKABLE_SAFE`, `CLICKABLE_RELIABLE`, `TYPEABLE_SAFE`, `TYPEABLE_RELIABLE`, `SELECTABLE_SAFE`, `SELECTABLE_RELIABLE`, `DEFAULT_SAFE`, `DEFAULT_RELIABLE`) |
 | `Profiles` | Public presets: RAW, DEBUG, FAST, VISUAL — applied via `action.using(Profiles.X)` |
 | `ElementActions` | `@Internal` factory — custom-operation actions for test infrastructure only (ADR-012) |
-| `HookedAction` | Decorator: applies before/after hooks around a delegate `Action`, sharing a single resolved descriptor |
+| `HookChainAction` | Decorator: applies before/after hooks around a delegate `Action`, sharing a single resolved descriptor; owns the full trace pipeline (`performAndTrace()`, `LAST_TRACE`, `lastTrace()`, `clearLastTrace()`) |
 
 **How it works:**
 1. Capability interfaces (e.g., `Clickable.click()`) emit **typed concrete action subclasses** — `new ClickAction(this)`.
@@ -80,7 +80,7 @@ core/
 5. Actions are composed into `Flow` sequences.
 6. `FlowExecutor` iterates and calls `action.perform(engine)`.
 7. `perform()` calls `resolve(engine)` then `execute(engine, descriptor)` — resolution is deferred to execution time.
-8. `HookedAction` wraps an action with before/after hooks, sharing a single resolved descriptor.
+8. `HookChainAction` wraps an action with before/after hooks, sharing a single resolved descriptor.
 
 **Layering rule (ADR-013):** Execution policy (hooks, waits, retries) lives in actions, never in capability interfaces. Capabilities describe structure; actions describe execution.
 
@@ -227,7 +227,7 @@ core/
 **Design:**
 - Intentionally "dumb" — only iterates and calls `action.perform(engine)`.
 - All smart execution logic lives in UIEngine.
-- Hook orchestration is in `HookedAction`, not here.
+- Hook orchestration is in `HookChainAction`, not here.
 
 **Stability:** `@Beta`
 
