@@ -106,6 +106,10 @@ Unless the user requests otherwise:
 
 Use `initiative/` not `feature/`.
 
+**Never commit or push directly to `main`.** Every change, including single-line
+documentation fixes, must go through a branch and be merged via `--no-ff`. `main`
+is the integration point only.
+
 ---
 
 ## Commit Format

@@ -156,6 +156,10 @@ An initiative is merged to `main` only when:
 
 `main` receives only production-ready architectural changes.
 
+**Never commit or push directly to `main`.** Every change must arrive via a branch
+merged with `--no-ff`. This applies without exception to all change types, including
+single-line documentation fixes.
+
 ---
 
 ## Reading Docs Before Proceeding
