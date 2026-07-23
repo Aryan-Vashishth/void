@@ -2,7 +2,7 @@ package elements.api.capability;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
-import core.actions.ActionCapabilityProvider;
+
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -19,7 +19,7 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface MultiSelectable extends Element, ActionCapabilityProvider {
+public interface MultiSelectable extends Element {
 
     String getTriggerLocator();
 

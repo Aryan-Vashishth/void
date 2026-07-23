@@ -124,6 +124,29 @@ public class ElementInterfaceDefaultsTest {
         assertEquals(DynamicElement.PRODUCT_ROW.getDisplayText(), "Product Row");
     }
 
+    @Test
+    public void getDisplayText_anonymousElement_returnsFallbackLabel() {
+        // Anonymous class has empty getSimpleName(), split("_") returns [""], all tokens empty.
+        // The guard must skip blank tokens and return the "element" fallback.
+        Element anon = new Element() {
+            @Override public String getExternalFileName() { return null; }
+            @Override public String getPrimaryLocator()   { return "//div"; }
+            @Override public Object[] getArgs()           { return new Object[0]; }
+        };
+        assertEquals(anon.getDisplayText(), "element");
+    }
+
+    @Test
+    public void capability_default_returnsUnknown() {
+        // The Element interface default capability() must return UNKNOWN for untyped elements.
+        Element anon = new Element() {
+            @Override public String getExternalFileName() { return null; }
+            @Override public String getPrimaryLocator()   { return "//x"; }
+            @Override public Object[] getArgs()           { return new Object[0]; }
+        };
+        assertEquals(anon.capability(), core.actions.ActionCapability.UNKNOWN);
+    }
+
     // ---------- Element.effectiveArgs ----------
 
     @Test

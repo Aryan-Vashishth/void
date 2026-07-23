@@ -1,7 +1,7 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.ActionCapabilityProvider;
+
 import elements.api.Element;
 import elements.meta.ElementRole;
 
@@ -18,12 +18,24 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Listable extends Element, ActionCapabilityProvider {
+public interface Listable extends Element {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.LIST}. */
     default String getListLocator() { return locatorKeyForRole(ElementRole.LIST); }
 
-    int getIndex();
+    /**
+     * Returns the zero-based index of this element in its parent list.
+     *
+     * <p>Default: delegates to the enum ordinal. Non-enum implementors that lack ordinal
+     * semantics must override explicitly -- the default throws rather than silently
+     * returning {@code 0} to avoid undetected wrong offsets.</p>
+     */
+    default int getIndex() {
+        if (this instanceof Enum<?> en) return en.ordinal();
+        throw new UnsupportedOperationException(
+            getClass().getSimpleName() +
+            " implements Listable but has no ordinal semantics. Override Listable.getIndex().");
+    }
 
     @Override
     default String getDisplayText() {

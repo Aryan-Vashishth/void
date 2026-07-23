@@ -178,10 +178,14 @@ public final class LocatorResolver {
     }
 
     private static String labelOf(Element element) {
-        if (!(element instanceof Enum<?> en)) return null;
-        Class<?> page = en.getClass().getDeclaringClass();
+        Class<?> cls = element.getClass();
+        String simpleName = cls.getSimpleName();
+        if (simpleName.isEmpty()) {
+            return null;
+        }
+        Class<?> page = cls.getDeclaringClass();
         String prefix = page != null ? page.getSimpleName() + " > " : "";
-        return prefix + en.getClass().getSimpleName() + " > " + en.name();
+        return prefix + simpleName + " > " + element.getDisplayText();
     }
 
     // ─── Strategy inference helpers ─────────────────────────────────────────

@@ -53,8 +53,7 @@ public final class ElementActions {
     }
 
     private static ActionCapability capabilityFor(Element element) {
-        if (element instanceof ActionCapabilityProvider p) return p.capability();
-        return ActionCapability.UNKNOWN;
+        return element.capability();
     }
 }
 

@@ -15,9 +15,9 @@
  *   <li>{@link core.actions.ElementActions} — internal factory that creates element-bound
  *       Actions supporting descriptor resolution. Not part of the public DSL — capability
  *       interfaces use it internally to emit actions.</li>
- *   <li>{@link core.actions.HookedAction} — decorator that wraps an Action with
- *       before/after {@link core.interactions.hooks.ActionHandler} hooks. Execution order:
- *       before hooks → delegate action → after hooks.</li>
+ *   <li>{@code HookChainAction} — internal wrapper that stores before/after
+ *       {@link core.interactions.hooks.ActionHandler} hooks and emits an
+ *       {@link core.actions.trace.ActionTrace} on each execution.</li>
  * </ul>
  *
  * <h3>Execution path</h3>

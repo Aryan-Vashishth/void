@@ -43,7 +43,7 @@ import java.util.Objects;
  * </pre>
  */
 @Beta(since = "0.2", note = "Phase 13 refactor — ElementAction ownership model")
-public abstract class ElementAction implements Action, ActionLabeled {
+public abstract class ElementAction implements Action {
 
     protected final Element element;
     protected final ElementRole role;
@@ -208,8 +208,7 @@ public abstract class ElementAction implements Action, ActionLabeled {
      */
     @Override
     public String elementLabel() {
-        if (element instanceof Enum<?> e) return e.name();
-        return element.getClass().getSimpleName();
+        return element.getDisplayText();
     }
 
     /**

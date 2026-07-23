@@ -1,7 +1,7 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.ActionCapabilityProvider;
+
 import core.actions.AppendTypeAction;
 import core.actions.ClearAction;
 import core.actions.TypeAction;
@@ -23,7 +23,7 @@ import elements.meta.ElementRole;
  * <p>Emits deferred {@link core.actions.Action} objects for type, clear, append, and typeAndPress.
  * Contains NO execution logic. Elements emit Action (intent), engine executes.</p>
  */
-public interface Typeable extends Element, ActionCapabilityProvider {
+public interface Typeable extends Element {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.INPUT}. */
     default String getInputLocator() { return locatorKeyForRole(ElementRole.INPUT); }

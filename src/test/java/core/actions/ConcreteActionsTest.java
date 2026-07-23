@@ -397,6 +397,11 @@ public class ConcreteActionsTest {
     }
 
     @Test
+    public void uploadAction_operationLabel_returnsUpload() {
+        assertEquals(new UploadAction(stubUploadable(), "/tmp/f.csv").operationLabel(), "upload");
+    }
+
+    @Test
     public void uploadAction_perform_callsUploadFile_withPath() {
         RecordingEngine engine = new RecordingEngine();
         new UploadAction(stubUploadable(), "/files/report.pdf").perform(engine);
@@ -463,6 +468,11 @@ public class ConcreteActionsTest {
     public void readTextAction_capability_isReadOnly() {
         // READ_ONLY is the only capability that covers non-interactive text elements
         assertEquals(new ReadTextAction(stubReadOnly()).capability(), ActionCapability.READ_ONLY);
+    }
+
+    @Test
+    public void readTextAction_operationLabel_returnsRead() {
+        assertEquals(new ReadTextAction(stubReadOnly()).operationLabel(), "read");
     }
 
     @Test

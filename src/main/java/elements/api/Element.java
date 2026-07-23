@@ -1,5 +1,8 @@
 package elements.api;
+
+import core.actions.ActionCapability;
 import elements.meta.ElementRole;
+
 import javax.annotation.Nullable;
 
 /**
@@ -36,8 +39,7 @@ public interface Element {
      */
     @Nullable
     default String getExternalFileName() {
-        Enum<?> e = (Enum<?>) this;
-        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> enumClass = ElementSupport.declaringClassOf(this);
         Class<?> pageClass = enumClass.getEnclosingClass();
         Class<?> target = pageClass != null ? pageClass : enumClass;
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -59,12 +61,12 @@ public interface Element {
     default String getPrimaryLocator() {
         java.util.Map<ElementRole, String> roles = getAllLocatorRoles();
         if (!roles.isEmpty()) return roles.values().iterator().next();
-        Enum<?> e = (Enum<?>) this;
-        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> enumClass = ElementSupport.declaringClassOf(this);
         Class<?> pageClass = enumClass.getEnclosingClass();
+        String name = ElementSupport.nameOf(this);
         return pageClass != null
-            ? pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + e.name()
-            : enumClass.getSimpleName() + "." + e.name();
+            ? pageClass.getSimpleName() + "." + enumClass.getSimpleName() + "." + name
+            : enumClass.getSimpleName() + "." + name;
     }
 
     /** @return secondary fallback locator key, or null if not applicable. */
@@ -92,14 +94,15 @@ public interface Element {
      * Capability interfaces override this to incorporate dynamic args when present.</p>
      */
     default String getDisplayText() {
-        String[] tokens = ((Enum<?>) this).name().split("_");
+        String[] tokens = ElementSupport.nameOf(this).split("_");
         StringBuilder sb = new StringBuilder();
         for (String token : tokens) {
+            if (token.isEmpty()) continue;
             if (!sb.isEmpty()) sb.append(' ');
             sb.append(Character.toUpperCase(token.charAt(0)));
             if (token.length() > 1) sb.append(token.substring(1).toLowerCase());
         }
-        return sb.toString();
+        return sb.isEmpty() ? "element" : sb.toString();
     }
 
     /**
@@ -126,13 +129,27 @@ public interface Element {
     default String templateFamilyKey() { return null; }
 
     static String qualifiedLocatorKey(Element element, ElementRole role) {
-        Enum<?> e = (Enum<?>) element;
-        Class<?> enumClass = e.getDeclaringClass();
+        Class<?> enumClass = ElementSupport.declaringClassOf(element);
         Class<?> pageClass = enumClass.getEnclosingClass();
         String prefix = (pageClass != null)
             ? pageClass.getSimpleName() + "." + enumClass.getSimpleName()
             : enumClass.getSimpleName();
-        return prefix + "." + e.name() + "." + role.name();
+        return prefix + "." + ElementSupport.nameOf(element) + "." + role.name();
+    }
+
+    /**
+     * Returns the capability category of this element.
+     *
+     * <p>Each element represents exactly one interaction kind. Capability interfaces
+     * override this to return their specific constant. Elements that do not participate
+     * in the Action/Flow pipeline return {@link ActionCapability#UNKNOWN}.</p>
+     *
+     * <p><b>Invariant:</b> one capability per element. An element that extends both
+     * {@code Clickable} and {@code Typeable} is a modelling error -- the method cannot
+     * represent two capabilities simultaneously.</p>
+     */
+    default ActionCapability capability() {
+        return ActionCapability.UNKNOWN;
     }
 
     /**

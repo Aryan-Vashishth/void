@@ -1,7 +1,9 @@
 # ADR-015 — Capability Self-Description via ActionCapabilityProvider
 
 **Date:** 2026-07-08  
-**Status:** Accepted
+**Status:** Superseded by ADR-016
+
+> **Status: Superseded by ADR-016.** `ActionCapabilityProvider` has been deleted. `capability()` now lives on `elements.api.Element` as a default method. This ADR is preserved for historical context.
 
 ---
 

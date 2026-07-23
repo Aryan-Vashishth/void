@@ -178,19 +178,19 @@ Full details: `docs/contributing/coding-standards.md`.
 
 Violations are tracked as P-IDs. Reference the ID when naming or logging a violation.
 
-| ID | Principle | Summary |
-|---|---|---|
-| P1 | OCP, DIP | `instanceof HookChainAction` in 4 `Action` default methods |
-| P2 | OCP | Sequential `instanceof` chains in `VoidDSL` dispatch |
-| P3 | OCP | `switch (ActionCapability)` in `HookChainAction.operationLabel` |
-| P4 | LSP, DIP | `instanceof ActionLabeled` fallback in `HookChainAction` |
-| P5 | LSP | `(Enum<?>) this` hard cast in `Element` interface defaults |
-| P6 | LSP | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` |
-| P7 | ISP, OCP | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` |
-| P8 | OCP | `switch` on engine name string in `UIEngineFactory` |
-| P9 | OCP | O(n) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` |
-| P10 | ISP | Forced abstract `getIndex()` in `Listable` with no default |
-| P11 | OCP | Per-capability static helpers in `Via` growing with capability count |
+| ID | Principle | Summary | Status |
+|---|---|---|---|
+| P1 | OCP, DIP | `instanceof HookChainAction` in 4 `Action` default methods | Fixed |
+| P2 | OCP | Sequential `instanceof` chains in `VoidDSL` dispatch | Fixed |
+| P3 | OCP | `switch (ActionCapability)` in `HookChainAction.operationLabel` | Fixed |
+| P4 | LSP, DIP | `instanceof ActionLabeled` fallback in `HookChainAction` | Fixed |
+| P5 | LSP | `(Enum<?>) this` hard cast in `Element` interface defaults | Fixed |
+| P6 | LSP | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` | Fixed |
+| P7 | ISP, OCP | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` | Fixed |
+| P8 | OCP | `switch` on engine name string in `UIEngineFactory` | Deferred -- runtime-redesign I4.1 |
+| P9 | OCP | O(n) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` | Fixed |
+| P10 | ISP | Forced abstract `getIndex()` in `Listable` with no default | Fixed |
+| P11 | OCP | Per-capability static helpers in `Via` growing with capability count | Deferred -- runtime-redesign I9.3 |
 
 Full SOLID reference with code examples: `docs/architecture/oop-principles.md`.
 

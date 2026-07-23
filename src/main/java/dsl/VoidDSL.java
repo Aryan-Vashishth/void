@@ -6,6 +6,7 @@ import core.resolvers.locator.api.LocatorResolvers;
 
 import elements.meta.EnumClassRegistry;
 import elements.api.Element;
+import core.actions.ActionCapability;
 import elements.api.capability.*;
 import core.utils.ResolvableEnum;
 import core.interactions.hooks.ActionHandler;
@@ -189,19 +190,20 @@ public record VoidDSL(Interactions engine) {
         String resolvedContextLabel = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
-        if (resolved instanceof MultiSelectable multiDropdownOption) {
-            engine.selectFromDropdown(dropdownIndex, multiDropdownOption);
+        ActionCapability cap = ((Element) resolved).capability();
+        if (cap == ActionCapability.MULTI_SELECTABLE) {
+            engine.selectFromDropdown(dropdownIndex, (MultiSelectable) resolved);
             return;
         }
-        if (resolved instanceof Selectable singleDropdownOption) {
+        if (cap == ActionCapability.SELECTABLE) {
             warn.log("Context '" + resolvedContextLabel + "' resolved to a singleton Selectable; index "
                     + dropdownIndex + " will be ignored.");
-            engine.selectFromDropdown(singleDropdownOption);
+            engine.selectFromDropdown((Selectable) resolved);
             return;
         }
 
         throw new IllegalArgumentException(
-                "Enum for context '" + resolvedContextLabel + "' must implement MultipleDropdown or Selectable. " +
+                "Enum for context '" + resolvedContextLabel + "' must implement MultiSelectable or Selectable. " +
                         "Got: " + resolved.getClass().getSimpleName()
         );
     }
@@ -214,13 +216,14 @@ public record VoidDSL(Interactions engine) {
         Class<?> enumClass = CONTEXT_MAP.get(resolvedContextLabel);
         Enum<?> first = getFirstEnumConstant(enumClass, resolvedContextLabel);
 
-        if (first instanceof MultiSelectable multiDropdown) {
-            engine.triggerDropdown(multiDropdown, dropdownIndex);
-        } else if (first instanceof Selectable singleDropdown) {
-            engine.triggerDropdown(singleDropdown);
+        ActionCapability cap = ((Element) first).capability();
+        if (cap == ActionCapability.MULTI_SELECTABLE) {
+            engine.triggerDropdown((MultiSelectable) first, dropdownIndex);
+        } else if (cap == ActionCapability.SELECTABLE) {
+            engine.triggerDropdown((Selectable) first);
         } else {
             throw new IllegalArgumentException(
-                    "Enum does not implement Selectable or MultipleDropdown: " + enumClass.getSimpleName());
+                    "Enum does not implement MultiSelectable or Selectable: " + enumClass.getSimpleName());
         }
     }
 

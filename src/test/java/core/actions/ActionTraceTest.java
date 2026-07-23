@@ -21,10 +21,10 @@ import java.util.List;
 import static org.testng.Assert.*;
 
 /**
- * Unit tests for the action execution trace ({@link HookedAction#performAndTrace}).
+ * Unit tests for the action execution trace ({@link HookChainAction#performAndTrace}).
  *
  * <p>Verifies that the trace data model captures hook order, timing, status,
- * and failure information correctly — and that raw() executes without
+ * and failure information correctly -- and that raw() executes without
  * going through the traced path.</p>
  */
 public class ActionTraceTest {
@@ -48,25 +48,24 @@ public class ActionTraceTest {
 
     @BeforeMethod
     public void setUp() {
-        HookedAction.clearLastTrace();
+        HookChainAction.clearLastTrace();
         stubEngine = buildEngine();
     }
 
     @AfterMethod
     public void tearDown() {
-        HookedAction.clearLastTrace();
+        HookChainAction.clearLastTrace();
     }
 
     // ── Successful trace ──────────────────────────────────────────────────────
 
     @Test
     public void safeClickTrace_recordsCorrectHookNamesAndStatus() {
-        HookedAction hooked = new HookedAction(
+        HookChainAction hooked = new HookChainAction(
                 ElementActions.of(CLICKABLE, ElementRole.TRIGGER, (e, d) -> {}),
-                STUB_DESCRIPTOR,
                 List.of(Before.WAIT_FOR_ELEMENT_CLICKABLE),
-                List.of(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT),
-                "SAFE");
+                List.of(After.WAIT_FOR_ANGULAR_LOADER, After.HIGHLIGHT_ELEMENT))
+                .withProfileName("SAFE");
 
         ActionTrace trace = hooked.performAndTrace(stubEngine);
 
@@ -80,12 +79,11 @@ public class ActionTraceTest {
 
     @Test
     public void safeTypeTrace_recordsElementAndOperation() {
-        Action base = new TypeAction(TYPEABLE, "");
-        HookedAction hooked = new HookedAction(
-                base, STUB_DESCRIPTOR,
+        HookChainAction hooked = new HookChainAction(
+                new TypeAction(TYPEABLE, ""),
                 List.of(Before.CLEAR_FIELD, Before.WAIT_FOR_ELEMENT_VISIBLE),
-                List.of(After.HIGHLIGHT_ELEMENT),
-                "SAFE");
+                List.of(After.HIGHLIGHT_ELEMENT))
+                .withProfileName("SAFE");
 
         ActionTrace trace = hooked.performAndTrace(stubEngine);
 
@@ -98,16 +96,16 @@ public class ActionTraceTest {
     @Test
     public void beforeHookThrows_recordsHookFailedStatus() {
         RuntimeException boom = new RuntimeException("hook exploded");
-        HookedAction hooked = new HookedAction(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> fail("action must not run"),
                 STUB_DESCRIPTOR,
                 List.of((e, d) -> { throw boom; }),
-                List.of(),
-                "SAFE");
+                List.of())
+                .withProfileName("SAFE");
 
         assertThrows(RuntimeException.class, () -> hooked.performAndTrace(stubEngine));
 
-        ActionTrace trace = HookedAction.lastTrace();
+        ActionTrace trace = HookChainAction.lastTrace();
         assertNotNull(trace);
         assertEquals(trace.status(), TraceStatus.HOOK_FAILED);
         assertSame(trace.failure(), boom);
@@ -118,16 +116,16 @@ public class ActionTraceTest {
     @Test
     public void afterHookThrows_recordsHookFailedStatus() {
         RuntimeException boom = new RuntimeException("after hook exploded");
-        HookedAction hooked = new HookedAction(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> {},
                 STUB_DESCRIPTOR,
                 List.of(),
-                List.of((e, d) -> { throw boom; }),
-                "SAFE");
+                List.of((e, d) -> { throw boom; }))
+                .withProfileName("SAFE");
 
         assertThrows(RuntimeException.class, () -> hooked.performAndTrace(stubEngine));
 
-        ActionTrace trace = HookedAction.lastTrace();
+        ActionTrace trace = HookChainAction.lastTrace();
         assertNotNull(trace);
         assertEquals(trace.status(), TraceStatus.HOOK_FAILED);
         assertSame(trace.failure(), boom);
@@ -138,16 +136,16 @@ public class ActionTraceTest {
     @Test
     public void actionThrows_recordsFailedStatus() {
         RuntimeException boom = new RuntimeException("action failed");
-        HookedAction hooked = new HookedAction(
+        HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> { throw boom; },
                 STUB_DESCRIPTOR,
                 List.of(Before.HIGHLIGHT_ELEMENT),
-                List.of(After.HIGHLIGHT_ELEMENT),
-                "SAFE");
+                List.of(After.HIGHLIGHT_ELEMENT))
+                .withProfileName("SAFE");
 
         assertThrows(RuntimeException.class, () -> hooked.performAndTrace(stubEngine));
 
-        ActionTrace trace = HookedAction.lastTrace();
+        ActionTrace trace = HookChainAction.lastTrace();
         assertNotNull(trace);
         assertEquals(trace.status(), TraceStatus.FAILED);
         assertSame(trace.failure(), boom);
@@ -169,8 +167,8 @@ public class ActionTraceTest {
     public void raw_executesWithoutEmittingTrace() {
         CLICKABLE.click().raw().perform(stubEngine);
 
-        assertNull(HookedAction.lastTrace(),
-                "raw() must not emit a trace — no HookedAction is involved");
+        assertNull(HookChainAction.lastTrace(),
+                "raw() must not emit a trace -- no HookChainAction is involved");
     }
 
     // ── Hook naming ───────────────────────────────────────────────────────────
@@ -197,7 +195,7 @@ public class ActionTraceTest {
     public void safely_threadsSafeProfileNameIntoTrace() {
         CLICKABLE.click().safely().perform(stubEngine);
 
-        ActionTrace trace = HookedAction.lastTrace();
+        ActionTrace trace = HookChainAction.lastTrace();
         assertNotNull(trace);
         assertEquals(trace.profileName(), "SAFE");
     }
@@ -206,7 +204,7 @@ public class ActionTraceTest {
     public void debug_threadsDebugProfileNameIntoTrace() {
         TYPEABLE.type("test").debug().perform(stubEngine);
 
-        ActionTrace trace = HookedAction.lastTrace();
+        ActionTrace trace = HookChainAction.lastTrace();
         assertNotNull(trace);
         assertEquals(trace.profileName(), "DEBUG");
     }

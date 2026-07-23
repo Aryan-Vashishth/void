@@ -119,7 +119,7 @@ capability interface should provide it. The switch disappears.
 
 ```java
 // elements/api/capability/Clickable.java -- correct OCP pattern
-public interface Clickable extends Element, ActionCapabilityProvider {
+public interface Clickable extends Element {
     default ActionCapability capability() { return ActionCapability.CLICKABLE; }
     default ClickAction click() { return new ClickAction(this); }
     // adding a new capability = adding a new interface; no existing code changes
@@ -157,7 +157,7 @@ default String getPrimaryLocator() {
 
 A non-enum implementor of `Element` throws `ClassCastException` on any default method call.
 
-**The fix:** `ElementSupport` (planned) centralises the cast:
+**The fix:** `ElementSupport` centralises the cast:
 `ElementSupport.nameOf(e)`, `ElementSupport.declaringClassOf(e)`.
 
 ---
@@ -178,6 +178,8 @@ public String elementLabel() {
 **The fix:** Promote `elementLabel()` and `operationLabel()` to `Action` with defaults.
 No secondary interface or runtime check needed.
 
+> **FIXED:** `ActionLabeled` is deleted. `elementLabel()` and `operationLabel()` are now default methods on `Action` directly.
+
 ---
 
 ## Interface Segregation Principle
@@ -189,10 +191,12 @@ A class that implements an interface should use every method it declares.
 ##### Example
 
 ```java
-// core/actions/ActionLabeled.java -- correct ISP (narrow, focused)
-interface ActionLabeled {
-    String elementLabel();    // used by every implementor
-    String operationLabel();  // used by every implementor
+// core/actions/Action.java -- correct ISP (narrow, focused defaults)
+// Note: ActionLabeled was deleted; elementLabel() and operationLabel() are now
+// default methods on Action directly.
+interface Action {
+    default String elementLabel() { ... }    // used by every action
+    default String operationLabel() { ... }  // used by every action
 }
 ```
 
@@ -285,16 +289,16 @@ references `WebDriver` or `DriverContext`.
 
 | ID | Priority | Principle | Phase | Summary |
 |---|---|---|---|---|
-| P1 | CRITICAL | DIP, OCP | 1 | `instanceof HookChainAction` in 4 `Action` default methods |
-| P2 | CRITICAL | OCP | 3 | Sequential `instanceof` chains in `VoidDSL` dispatch |
-| P3 | HIGH | OCP | 1 | `switch (ActionCapability)` in `HookChainAction.operationLabel` |
-| P4 | HIGH | LSP, DIP | 1 | `instanceof ActionLabeled` in `HookChainAction` |
-| P5 | HIGH | LSP | 2 | `(Enum<?>) this` hard cast in `Element` interface defaults |
-| P6 | MEDIUM | DRY, LSP | 2 | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` |
-| P7 | MEDIUM | ISP, OCP | 2 | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` |
+| P1 | CRITICAL | DIP, OCP | 1 | `instanceof HookChainAction` in 4 `Action` default methods (FIXED) |
+| P2 | CRITICAL | OCP | 3 | Sequential `instanceof` chains in `VoidDSL` dispatch (FIXED) |
+| P3 | HIGH | OCP | 1 | `switch (ActionCapability)` in `HookChainAction.operationLabel` (FIXED) |
+| P4 | HIGH | LSP, DIP | 1 | `instanceof ActionLabeled` in `HookChainAction` (FIXED) |
+| P5 | HIGH | LSP | 2 | `(Enum<?>) this` hard cast in `Element` interface defaults (FIXED) |
+| P6 | MEDIUM | DRY, LSP | 2 | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` (FIXED) |
+| P7 | MEDIUM | ISP, OCP | 2 | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` (FIXED) |
 | P8 | MEDIUM | OCP | 4 | `switch` on engine name string in `UIEngineFactory` |
-| P9 | LOW | OCP | 4 | O(n) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` |
-| P10 | LOW | ISP | 2 | Forced abstract `getIndex()` in `Listable` with no default |
+| P9 | LOW | OCP | 4 | O(n) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` (FIXED) |
+| P10 | LOW | ISP | 2 | Forced abstract `getIndex()` in `Listable` with no default (FIXED) |
 | P11 | LOW | OCP | 4 | Per-capability static helpers in `Via` growing with capability count |
 
 Full phase assignments and remediation plan: `docs/plan/draft/oop-violations-remediation/index.md`.
