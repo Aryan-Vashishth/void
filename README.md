@@ -13,6 +13,7 @@ The runtime handles execution.
 
 Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
+![VOID](https://img.shields.io/badge/VOID-v0.3.0-5f2d9c)
 [![CI](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml)
 [![VoidDemo](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml)
 ![Java](https://img.shields.io/badge/Java-17+-blue?logo=openjdk)
