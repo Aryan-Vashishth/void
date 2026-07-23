@@ -287,8 +287,10 @@ public class LogActions {
         if (message == null) message = "null";
         LogConfig cfg = LogConfig.current();
         String ts         = java.time.LocalDateTime.now().format(cfg.getTsFormat());
-        String callerText = showCaller ? getCallerString() : "";
-        String fullChain  = getProjectCallChain();
+        String callerText      = showCaller ? getCallerString() : "";
+        // debug-trace always includes caller chain regardless of root log level
+        String debugCallerText = callerText.isEmpty() ? getCallerString() : callerText;
+        String fullChain       = getProjectCallChain();
         String[] lines    = message.split("\\R", -1);
         boolean ansi      = cfg.isAnsiEnabled();
 
@@ -315,11 +317,12 @@ public class LogActions {
                 default      -> LoggerContext.getLogger().debug(out);
             }
 
+            String debugOut = (i == 0 && !debugCallerText.isEmpty()) ? body + div + debugCallerText : body;
             switch (logLevel) {
-                case "ERROR" -> LoggerContext.getDebugTraceLogger().error(out);
-                case "WARN"  -> LoggerContext.getDebugTraceLogger().warn(out);
-                case "INFO"  -> LoggerContext.getDebugTraceLogger().info(out);
-                default      -> LoggerContext.getDebugTraceLogger().debug(out);
+                case "ERROR" -> LoggerContext.getDebugTraceLogger().error(debugOut);
+                case "WARN"  -> LoggerContext.getDebugTraceLogger().warn(debugOut);
+                case "INFO"  -> LoggerContext.getDebugTraceLogger().info(debugOut);
+                default      -> LoggerContext.getDebugTraceLogger().debug(debugOut);
             }
 
             switch (logLevel) {
