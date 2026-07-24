@@ -201,6 +201,83 @@ as a second axis; it does not replace the engine neutrality work already done.
 
 ---
 
+## Addendum (2026-07-24) -- Physical Package Topology
+
+An architecture-conversation review proposed adopting `domain.automation.*` as a
+physical package tree (`domain.automation.web`, with `mobile`/`api`/`database` as
+future siblings). This addendum resolves how that proposal integrates with the
+kernel/domain boundary this ADR already established, expanding Initiative I6
+(Domain Registration), phase 6.2.
+
+### Decision
+
+**`domain.automation.*` is adopted as the physical package root for domain-owned
+code.** Web is the first occupant: web-owned vocabulary and implementations
+(`UIElement`, UI capabilities, concrete UI interactions, roles, `UIEngine`,
+`SeleniumEngine`, locator resolution) relocate to `domain.automation.web.*`,
+sub-packaged by logical vs. implementation ownership per 6.2's existing
+distinction (guardrail rule 8).
+
+**Kernel-neutral code does not move under `domain.automation`.** `Executor`,
+`Session`, `Flow`/`FlowExecutor`, `Interaction`/`Action`, `ActionCapability`,
+`ActionTrace`, hook contracts, and the `VOID`/`VOIDBuilder` runtime facade stay
+outside the domain tree, in a neutral root. This ADR does not pre-name that root
+(e.g. whether it stays `core.*`, or is renamed for symmetry with
+`domain.automation`) -- that is an ownership-audit output, not a decision made
+from first principles here. A neutral package existing merely to mirror
+`domain.automation`'s shape is exactly the "empty speculative abstraction" the
+roadmap's stability rules already forbid.
+
+**Relocation is ownership-audit-driven, not mechanical.** No file moves under
+`core.*`, `elements.*`, or `core.actions` until phase 6.2 produces a Class
+Migration Matrix (current type, current package, target package, visibility,
+reason) for every affected type. A blanket move of "everything currently under
+`core`/`elements`" is explicitly not authorized by this addendum; only types the
+audit assigns to the Web domain move to `domain.automation.web`.
+
+**Vocabulary is unchanged and enforced.** The execution seam is `Executor` (AD2).
+No document, ADR, or code may introduce a synonym for it ("Engine Contract" or
+similar) or use `UIEngine` as if it were the neutral name -- `UIEngine` remains
+exactly what AD2 already says: the web domain's concrete refinement of
+`Executor`.
+
+### Consequences
+
+- I6 gains a fourth phase (6.4) for the physical relocation itself, sequenced
+  after the ownership audit/matrix (6.2) and the probe domain (6.3), and aligned
+  with the M5/1.0.0 breaking-change boundary alongside I9.4's vocabulary reclaim
+  -- one mechanical-rename wave, not two.
+- The roadmap's phase count updates from 37 to 38; the I6 row and versioning
+  table in `runtime-redesign/index.md` are updated in the same commit as this
+  addendum.
+- `core-packages.md` and `system-overview.md` gain a physical-topology section
+  once 6.4 lands; not before (docs describe what exists, not the plan for what
+  will exist -- that lives in the roadmap).
+- This addendum does not touch AD1-AD3 or the kernel membership list; it resolves
+  only where kernel and web-domain code physically live once I6 assembles the Web
+  domain.
+- **`core/driver` absorption.** The pre-existing open backlog finding
+  `docs/audits/backlog/violations/core-driver-package-selenium-coupling.md`
+  (Medium risk, ADR-018 + package cohesion: `core/driver` is Selenium-only
+  content misleadingly placed as if it were neutral framework infrastructure) is
+  absorbed into 6.4 rather than left to spawn its own initiative. Its own text
+  already gates this correctly -- "do not start the initiative without" resolving
+  the `DriverFactory.Profile` API-surface question -- so that resolution is a
+  precondition of 6.4, not an implementation detail decided mid-phase:
+
+  **Decision (open, must resolve before 6.4 begins):** `DriverFactory.Profile` is
+  currently public via `VOIDBuilder.profile(DriverFactory.Profile)`. Before 6.4
+  relocates `DriverFactory` to `domain.automation.web.selenium.driver` (renamed
+  `SeleniumDriverFactory`), either (a) `Profile` is re-exposed through a stable
+  neutral type in the kernel (e.g. `SessionProfile`) that `SeleniumDriverFactory`
+  implements against, or (b) the breaking change is accepted outright under the
+  1.0.0 boundary's normal deprecation window. I4 or I5 (session/bootstrap work)
+  is the natural place to resolve this, since both already touch `VOIDBuilder`'s
+  public surface; 6.4 consumes whichever this ADR or a phase-level decision
+  records, it does not decide it.
+
+---
+
 ## Related
 
 - Architecture audit: `docs/audits/ongoing/architecture-audit-2026-07-domain-model.md`
