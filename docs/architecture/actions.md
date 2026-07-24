@@ -7,16 +7,17 @@ The `core.actions` package is VOID's **deferred execution model** — a typed hi
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Class Hierarchy](#class-hierarchy)
-3. [Template Method Pattern](#template-method-pattern)
-4. [Concrete Action Families](#concrete-action-families)
-5. [ActionProfiles — Profile Constants](#actionprofiles--profile-constants)
-6. [Profiles — Public Presets](#profiles--public-presets)
-7. [operationLabel Derivation](#operationlabel-derivation)
-8. [ActionCapability — Metadata Enum](#actioncapability--metadata-enum)
-9. [ElementActions Factory](#elementactions-factory)
-10. [Custom Hook Libraries](#custom-hook-libraries)
-11. [Extension Guide](#extension-guide)
+2. [Kernel / UI-Domain Boundary](#kernel--ui-domain-boundary)
+3. [Class Hierarchy](#class-hierarchy)
+4. [Template Method Pattern](#template-method-pattern)
+5. [Concrete Action Families](#concrete-action-families)
+6. [ActionProfiles — Profile Constants](#actionprofiles--profile-constants)
+7. [Profiles — Public Presets](#profiles--public-presets)
+8. [operationLabel Derivation](#operationlabel-derivation)
+9. [ActionCapability — Metadata Enum](#actioncapability--metadata-enum)
+10. [ElementActions Factory](#elementactions-factory)
+11. [Custom Hook Libraries](#custom-hook-libraries)
+12. [Extension Guide](#extension-guide)
 
 ---
 
@@ -29,6 +30,39 @@ The action layer is governed by three ADRs:
 - **ADR-012 (ElementActions Factory Scope)** — `ElementActions.of()` is `@Internal`; only test infrastructure may use it.
 - **ADR-013 (Architectural Layering Principle)** — Capabilities describe structure; actions declare execution policy. Hooks, waits, and retries live in the action layer, never in capability interfaces.
 - **ADR-014 (Concrete Actions over Anonymous Lambdas)** — Every UI operation is a named, typed class — not an `Action` lambda. Named classes produce traceable operations, profileable behavior, and meaningful labels in observability output.
+
+---
+
+## Kernel / UI-Domain Boundary
+
+`core.actions` currently holds two populations, per ADR-021's kernel membership list and
+the `runtime-redesign` roadmap's Initiative I2 (Kernel Extraction):
+
+- **Kernel types** (domain-neutral, per ADR-021): `Action`, `ActionCapability`,
+  `ActionProfile`, `ActionProfiles`, `Profile`, `Profiles`, `HookChainAction`. These
+  reference `core.target.Target` at most — never `elements.api.UIElement` — so the kernel
+  can be pointed at without dragging the UI element model along.
+- **UI-domain content** (physically co-located here pending I2.2's package split):
+  `ElementAction` and its three abstract family intermediaries
+  (`ClickableElementAction`, `TypeableElementAction`, `SelectableElementAction`), the 17
+  concrete leaf action classes, and the `ElementActions` factory. These are genuinely
+  UI-specific — `ElementAction.resolve()` calls `UIEngine.resolve(UIElement, ElementRole,
+  ...)`, which requires the UI-domain locator model — and are exempted from the kernel's
+  neutrality boundary rather than being forced into a false generality.
+
+This split was formalized in `runtime-redesign` Initiative I1, phase 1.4 ("kernel
+target-neutrality"): auditing the package found the kernel types were already
+`UIElement`-free (a consequence of I1's earlier `Target` extraction), so the phase's
+deliverable was encoding the invariant as a permanent, automated ratchet rather than
+changing code. `KernelBoundaryRulesTest` (`src/test/java/core/architecture/`) enforces
+it: `core.actions.trace`, `core.executor`, and `core.flow` may never depend on
+`UIElement`; within `core.actions` itself, only classes assignable to `ElementAction` or
+`ElementActions` are permitted to.
+
+The physical package split -- moving `ElementAction` and its family out of `core.actions`
+into UI-domain packages -- is Initiative I2's job (phase 2.2), not this phase's. This
+section documents the boundary as it exists *today*: one package, two populations, a
+test-enforced line between them.
 
 ---
 

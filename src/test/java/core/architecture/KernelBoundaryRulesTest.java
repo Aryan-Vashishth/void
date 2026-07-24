@@ -2,7 +2,10 @@ package core.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
+import core.actions.ElementAction;
+import core.actions.ElementActions;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -33,6 +36,7 @@ public class KernelBoundaryRulesTest {
     @BeforeClass
     public void importClasses() {
         allClasses = new ClassFileImporter()
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("core", "elements", "dsl");
     }
 
@@ -137,6 +141,64 @@ public class KernelBoundaryRulesTest {
                 .that().haveFullyQualifiedName("core.engine.LocatorDescriptor")
                 .should().dependOnClassesThat().resideInAPackage(SELENIUM)
                 .because("LocatorDescriptor must not import Selenium types. ADR-019 + ADR-021.");
+
+        rule.check(allClasses);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Domain neutrality -- kernel target-neutrality (ADR-021, I1 phase 1.4)
+    //
+    // Kernel action types must reference only core.target.Target, never
+    // elements.api.UIElement. ElementAction and its family (the 3 abstract
+    // intermediaries and the 17 concrete UI actions, all assignable to
+    // ElementAction) plus the ElementActions factory are UI-domain content
+    // still physically co-located in core.actions pending I2.2's package
+    // split -- they are exempted here, not excused from the boundary.
+    // ─────────────────────────────────────────────────────────────────────
+
+    private static final String UI_ELEMENT = "elements.api.UIElement";
+
+    @Test(description = "core.actions kernel types depend only on Target, never UIElement")
+    public void actionsKernelIsTargetNeutral() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.actions")
+                .and().areNotAssignableTo(ElementAction.class)
+                .and().areNotAssignableTo(ElementActions.class)
+                .should().dependOnClassesThat().haveFullyQualifiedName(UI_ELEMENT)
+                .because(
+                    "Action, ActionCapability, ActionProfile, ActionProfiles, Profile, Profiles, " +
+                    "and HookChainAction are kernel types (ADR-021) and must not know UI vocabulary. " +
+                    "runtime-redesign I1.4.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.actions.trace has no UIElement dependency")
+    public void traceIsTargetNeutral() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.actions.trace..")
+                .should().dependOnClassesThat().haveFullyQualifiedName(UI_ELEMENT)
+                .because("Trace records carry only String labels for observability. ADR-021, I1.4.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.executor has no UIElement dependency")
+    public void executorIsTargetNeutral() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.executor..")
+                .should().dependOnClassesThat().haveFullyQualifiedName(UI_ELEMENT)
+                .because("FlowExecutor iterates and dispatches only; it must not know UI vocabulary. ADR-021, I1.4.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.flow has no UIElement dependency")
+    public void flowIsTargetNeutral() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.flow..")
+                .should().dependOnClassesThat().haveFullyQualifiedName(UI_ELEMENT)
+                .because("Flow composes Actions only; it must not know UI vocabulary. ADR-021, I1.4.");
 
         rule.check(allClasses);
     }
