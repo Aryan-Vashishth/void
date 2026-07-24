@@ -192,3 +192,40 @@ stability rules already forbid.
   topology; ADR-021 addendum marked executed.
 - **Migration notes**: 1.0.0 migration guide gains the package FQN mapping table
   (old path -> new path per relocated type), authored here and finalized in 9.5.
+
+### Absorbed backlog findings (checked 2026-07-24 per CLAUDE.md's "check
+docs/audits/ongoing for open findings" rule, missed in the initial expansion)
+
+- **`core-driver-package-selenium-coupling.md`** (Medium, ADR-018 + package
+  cohesion): `core/driver/` is Selenium-only content misleadingly placed at the
+  top level. Its recommended fix is absorbed into 6.4 verbatim rather than
+  spawned as its own `initiative/selenium-driver-relocation`: relocate to
+  `domain.automation.web.selenium.driver`; rename `DriverContext` ->
+  `SeleniumDriverContext`, `DriverFactory` -> `SeleniumDriverFactory`,
+  `DriverManager` -> `SeleniumDriverManager`; rename `driver.properties` ->
+  `selenium-webdriver.properties` and update `ConfigPaths`. The backlog file's
+  own precondition applies as a hard gate here: **6.4 may not begin** until the
+  API-surface decision on `DriverFactory.Profile` (currently public via
+  `VOIDBuilder.profile(DriverFactory.Profile)`) is resolved -- either re-exposed
+  via a stable neutral type (e.g. `SessionProfile` in the kernel) or accepted as
+  a breaking change under the normal deprecation window. This decision is
+  recorded in the ADR-021 addendum, not inferred during 6.4.
+- **`oop-driverfactory-instanceof-preference-dispatch.md`** (Low, OCP,
+  `DriverFactory.java:722-724`): per CLAUDE.md's violation protocol, a minimal-
+  cost fix touched incidentally during a phase is fixed inline in a dedicated
+  commit and recorded under "Incidental fixes." 6.4 touches `DriverFactory` for
+  the rename/relocation anyway, so this is fixed inline as part of that same
+  initiative, in its own commit -- not folded into the relocation commit itself
+  (relocation stays pure-rename per guardrail rule 1).
+- **`waiter-returns-webdriverwait.md`** (Medium, ADR-007, `Waiter.java`): **not**
+  fixed in 6.4 -- it is a behavior change (three non-deprecated callers migrate
+  off `WebDriverWait` to `UIEngine` wait methods), and 6.4 is relocation-only.
+  The file moves with its package; its violation-report path reference updates
+  in the same commit so the tracker does not go stale. Two of its three callers
+  (`Upload.java`, `KeyValuePairHandler.java` in `core/utils/web`) are **not**
+  covered by I9.2's ADR-020 graveyard deletion (only `DOMUtils`, `WaitUtils`'s
+  By-surface, and `TableHandler` are on that list) -- this violation remains open
+  after 6.4 and is not silently resolved by this roadmap; it stays logged for a
+  dedicated fix.
+- `uiengine-sendkeys-javadoc-selenium-reference.md` is already resolved
+  (2026-07-22); no action, only its file path updates when `UIEngine` relocates.

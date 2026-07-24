@@ -256,6 +256,25 @@ exactly what AD2 already says: the web domain's concrete refinement of
 - This addendum does not touch AD1-AD3 or the kernel membership list; it resolves
   only where kernel and web-domain code physically live once I6 assembles the Web
   domain.
+- **`core/driver` absorption.** The pre-existing open backlog finding
+  `docs/audits/backlog/violations/core-driver-package-selenium-coupling.md`
+  (Medium risk, ADR-018 + package cohesion: `core/driver` is Selenium-only
+  content misleadingly placed as if it were neutral framework infrastructure) is
+  absorbed into 6.4 rather than left to spawn its own initiative. Its own text
+  already gates this correctly -- "do not start the initiative without" resolving
+  the `DriverFactory.Profile` API-surface question -- so that resolution is a
+  precondition of 6.4, not an implementation detail decided mid-phase:
+
+  **Decision (open, must resolve before 6.4 begins):** `DriverFactory.Profile` is
+  currently public via `VOIDBuilder.profile(DriverFactory.Profile)`. Before 6.4
+  relocates `DriverFactory` to `domain.automation.web.selenium.driver` (renamed
+  `SeleniumDriverFactory`), either (a) `Profile` is re-exposed through a stable
+  neutral type in the kernel (e.g. `SessionProfile`) that `SeleniumDriverFactory`
+  implements against, or (b) the breaking change is accepted outright under the
+  1.0.0 boundary's normal deprecation window. I4 or I5 (session/bootstrap work)
+  is the natural place to resolve this, since both already touch `VOIDBuilder`'s
+  public surface; 6.4 consumes whichever this ADR or a phase-level decision
+  records, it does not decide it.
 
 ---
 
