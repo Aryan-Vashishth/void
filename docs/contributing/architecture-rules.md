@@ -65,7 +65,7 @@ for all future work.
 | Check class | Boundary encoded |
 |---|---|
 | `FacadeBoundaryRulesTest` | Test classes must not hold UIEngine fields or construct FlowExecutor directly |
-| `ElementStructureRulesTest` | Element enums must be nested inside a page class |
+| `ElementStructureRulesTest` | UIElement enums must be nested inside a page class |
 | `KernelBoundaryRulesTest` | core.logging, core.flow, core.actions, elements.* are Selenium-free; core.runtime holds no WebDriver/DriverContext fields; LocatorDescriptor has no Selenium dependency |
 
 ---

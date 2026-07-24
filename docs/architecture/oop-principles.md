@@ -119,7 +119,7 @@ capability interface should provide it. The switch disappears.
 
 ```java
 // elements/api/capability/Clickable.java -- correct OCP pattern
-public interface Clickable extends Element {
+public interface Clickable extends UIElement {
     default ActionCapability capability() { return ActionCapability.CLICKABLE; }
     default ClickAction click() { return new ClickAction(this); }
     // adding a new capability = adding a new interface; no existing code changes
@@ -135,14 +135,14 @@ works for specific implementors.
 
 ### Violation: unguarded (Enum<?>) this cast (P5)
 
-`Element.java` default methods cast `this` to `Enum<?>` without verifying the type:
+`UIElement.java` default methods cast `this` to `Enum<?>` without verifying the type:
 
 ##### Examples
 
 ```java
-// elements/api/Element.java -- P5 violation (4 sites)
+// elements/api/UIElement.java -- P5 violation (4 sites)
 default String getExternalFileName() {
-    Enum<?> e = (Enum<?>) this;            // throws ClassCastException for any non-enum Element
+    Enum<?> e = (Enum<?>) this;            // throws ClassCastException for any non-enum UIElement
     Class<?> enumClass = e.getDeclaringClass();
     ...
 }
@@ -155,7 +155,7 @@ default String getPrimaryLocator() {
 }
 ```
 
-A non-enum implementor of `Element` throws `ClassCastException` on any default method call.
+A non-enum implementor of `UIElement` throws `ClassCastException` on any default method call.
 
 **The fix:** `ElementSupport` centralises the cast:
 `ElementSupport.nameOf(e)`, `ElementSupport.declaringClassOf(e)`.
@@ -211,19 +211,19 @@ relevant to that capability.
 
 ```java
 // core/interactions/Via.java -- P11 violation (grows with every new capability)
-public static Clickable          clickable(Element e)          { ... }
-public static Typeable           typeable(Element e)           { ... }
-public static Selectable         selectable(Element e)         { ... }
-public static ReadOnly           readOnly(Element e)           { ... }
-public static Searchable         searchable(Element e)         { ... }
-public static SearchableDropdown searchableDropdown(Element e) { ... }
-public static MultiSelectable    multiSelectable(Element e)    { ... }
-public static Checkable          checkable(Element e)          { ... }
-public static Hoverable          hoverable(Element e)          { ... }
+public static Clickable          clickable(UIElement e)          { ... }
+public static Typeable           typeable(UIElement e)           { ... }
+public static Selectable         selectable(UIElement e)         { ... }
+public static ReadOnly           readOnly(UIElement e)           { ... }
+public static Searchable         searchable(UIElement e)         { ... }
+public static SearchableDropdown searchableDropdown(UIElement e) { ... }
+public static MultiSelectable    multiSelectable(UIElement e)    { ... }
+public static Checkable          checkable(UIElement e)          { ... }
+public static Hoverable          hoverable(UIElement e)          { ... }
 ```
 
 **The fix:** One generic cast helper:
-`public static <T extends Element> T as(Element e, Class<T> type)`.
+`public static <T extends UIElement> T as(UIElement e, Class<T> type)`.
 
 ---
 
@@ -293,7 +293,7 @@ references `WebDriver` or `DriverContext`.
 | P2 | CRITICAL | OCP | 3 | Sequential `instanceof` chains in `VoidDSL` dispatch (FIXED) |
 | P3 | HIGH | OCP | 1 | `switch (ActionCapability)` in `HookChainAction.operationLabel` (FIXED) |
 | P4 | HIGH | LSP, DIP | 1 | `instanceof ActionLabeled` in `HookChainAction` (FIXED) |
-| P5 | HIGH | LSP | 2 | `(Enum<?>) this` hard cast in `Element` interface defaults (FIXED) |
+| P5 | HIGH | LSP | 2 | `(Enum<?>) this` hard cast in `UIElement` interface defaults (FIXED) |
 | P6 | MEDIUM | DRY, LSP | 2 | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` (FIXED) |
 | P7 | MEDIUM | ISP, OCP | 2 | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` (FIXED) |
 | P8 | MEDIUM | OCP | 4 | `switch` on engine name string in `UIEngineFactory` |

@@ -22,7 +22,7 @@ import java.util.Objects;
  *
  * <h3>Single execution path</h3>
  * <pre>
- *   Element → Action → Flow → FlowExecutor → UIEngine
+ *   UIElement → Action → Flow → FlowExecutor → UIEngine
  * </pre>
  *
  * <h3>Hook support</h3>

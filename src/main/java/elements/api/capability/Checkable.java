@@ -12,7 +12,7 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Clickable → Checkable
+ *   UIElement → Clickable → Checkable
  * </pre>
  *
  * <h3>Action emission</h3>

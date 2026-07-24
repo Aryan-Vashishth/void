@@ -157,7 +157,8 @@ HookChainAction  (final -- wraps any Action with before/after pipeline)
 | `ElementAction` | `core.actions` | abstract class | Template method: resolve locator then execute |
 | `HookChainAction` | `core.actions` | final class | Wraps any Action with a before/after hook pipeline |
 | `ClickAction` etc. | `core.actions` | concrete classes | Leaf operations that delegate to UIEngine methods |
-| `Element` | `elements.api` | interface | Page object descriptor: locator keys, roles, args |
+| `Target` | `core.target` | interface | Domain-neutral root: display text, args, effective-args |
+| `UIElement` | `elements.api` | interface | Page object descriptor: locator keys, roles, external file; extends `Target` |
 | `ElementRole` | `elements.meta` | enum | Locator slot selector (PRIMARY, SECONDARY, ...) |
 | `LocatorDescriptor` | `core.engine` | record | Engine-agnostic resolved locator passed to UIEngine |
 | `LocatorResolver` | `core.resolvers` | class | Loads, formats, and parses locator templates |
@@ -177,15 +178,16 @@ HookChainAction  (final -- wraps any Action with before/after pipeline)
 | `VOIDBuilder` | `FrameworkBootstrap`, `SessionContext`, `UIEngineFactory`, `EngineBootstrap`, `UIEngine`, `DriverFactory.Profile` |
 | `SessionContext` | `UIEngine`, `Properties` |
 | `UIEngineFactory` | `UIEngine`, `SeleniumEngine`, `EngineBootstrap`, `EngineConfig`, `Properties` |
-| `UIEngine` | `LocatorDescriptor`, `EngineConfig`, `Element`, `ElementRole` |
+| `UIEngine` | `LocatorDescriptor`, `EngineConfig`, `UIElement`, `ElementRole` |
 | `FlowExecutor` | `UIEngine`, `Action`, `Flow` |
 | `Flow` | `Action[]` |
 | `Action` | `UIEngine`, `LocatorDescriptor`, `ActionCapability`, `ActionHandler`, `ActionProfile` |
-| `ElementAction` | `Element`, `ElementRole`, `ActionCapability`, `UIEngine`, `LocatorDescriptor` |
+| `ElementAction` | `UIElement`, `ElementRole`, `ActionCapability`, `UIEngine`, `LocatorDescriptor` |
 | `HookChainAction` | `Action`, `ActionHandler[]`, `LocatorDescriptor`, `ActionTrace` |
-| `LocatorResolver` | `LocatorSourceRegistry`, `LocatorTemplate.Policy`, `ByParser`, `Element`, `ElementRole`, `LocatorDescriptor` |
-| `Interactions` | `UIEngine`, `LocatorResolver`, `Element`, `ElementRole`, `ActionHandler` |
-| `VoidDSL` | `Interactions`, `EnumClassRegistry`, `Element`, `ResolvableEnum`, `ActionHandler` |
+| `UIElement` | `Target` |
+| `LocatorResolver` | `LocatorSourceRegistry`, `LocatorTemplate.Policy`, `ByParser`, `UIElement`, `ElementRole`, `LocatorDescriptor` |
+| `Interactions` | `UIEngine`, `LocatorResolver`, `UIElement`, `ElementRole`, `ActionHandler` |
+| `VoidDSL` | `Interactions`, `EnumClassRegistry`, `UIElement`, `ResolvableEnum`, `ActionHandler` |
 
 ---
 

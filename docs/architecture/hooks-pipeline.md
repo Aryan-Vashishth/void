@@ -20,7 +20,7 @@ VOID's hook system allows you to compose reusable pre- and post-action behaviors
 4. [Built-In Before Hooks](#built-in-before-hooks)
 5. [Built-In After Hooks](#built-in-after-hooks)
 6. [Using Hooks in Interactions](#using-hooks-in-interactions)
-7. [UIContext and Element State](#uicontext-and-element-state)
+7. [UIContext and UIElement State](#uicontext-and-element-state)
 8. [Writing Custom Hooks](#writing-custom-hooks)
 9. [Hooks vs UIEngine Built-In Behavior](#hooks-vs-uiengine-built-in-behavior)
 10. [Patterns and Best Practices](#patterns-and-best-practices)
@@ -52,7 +52,7 @@ Hooks are **composable** — you can chain any number in a list, and they execut
 The execution flow for a hooked interaction is:
 
 ```
-1. Element resolution     → LocatorResolvers resolve the LocatorDescriptor
+1. UIElement resolution     → LocatorResolvers resolve the LocatorDescriptor
 2. UIContext update        → last-resolved descriptor stored in UIContext
 3. Before hooks execute   → each Before.* runs in list order
 4. Core action            → UIEngine executes (click, type, etc.)
@@ -187,7 +187,7 @@ When you call a method without specifying hooks, VOID applies sensible defaults 
 
 ---
 
-## UIContext and Element State
+## UIContext and UIElement State
 
 > ⚠️ **Deprecated:** In the modern Action/Flow/FlowExecutor path, hooks receive the `LocatorDescriptor`
 > directly as a parameter — no need to access `UIContext`. The section below applies only
@@ -308,7 +308,7 @@ For hooks that need runtime state (a specific element, a timeout, a message), us
 public final class AppHooks {
 
     /** Wait for a specific element to disappear before acting. */
-    public static BeforeActionHandler waitForAbsence(Element element, ElementRole role) {
+    public static BeforeActionHandler waitForAbsence(UIElement element, ElementRole role) {
         return (engine, descriptor) -> {
             LocatorDescriptor target = engine.resolve(element, role);
             engine.waitForInvisible(target, Duration.ofSeconds(10));

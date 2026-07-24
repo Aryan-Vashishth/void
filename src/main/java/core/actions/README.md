@@ -9,7 +9,7 @@ The foundation of VOID's primary execution pipeline: **Action / Flow / FlowExecu
 Actions represent **deferred UI operations** (intent). They are produced by element capability interfaces and executed later by a `FlowExecutor`. Both locator resolution and browser execution are deferred until `perform(engine)` is called.
 
 ```
-Element (capability interface)
+UIElement (capability interface)
   → Action (deferred intent)
     → Flow (composition)
       → FlowExecutor (iteration)

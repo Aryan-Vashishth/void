@@ -14,8 +14,8 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Clickable ─┐
- *   Element → Listable  ─┤→ Selectable
+ *   UIElement → Clickable ─┐
+ *   UIElement → Listable  ─┤→ Selectable
  * </pre>
  *
  * <h3>Action emission</h3>

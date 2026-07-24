@@ -12,8 +12,8 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Typeable  ─┐
- *   Element → Clickable ─┤→ SearchField
+ *   UIElement → Typeable  ─┐
+ *   UIElement → Clickable ─┤→ SearchField
  * </pre>
  *
  * <h3>Action emission</h3>
