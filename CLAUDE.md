@@ -199,7 +199,7 @@ Violations are tracked as P-IDs. Reference the ID when naming or logging a viola
 | P2 | OCP | Sequential `instanceof` chains in `VoidDSL` dispatch | Fixed |
 | P3 | OCP | `switch (ActionCapability)` in `HookChainAction.operationLabel` | Fixed |
 | P4 | LSP, DIP | `instanceof ActionLabeled` fallback in `HookChainAction` | Fixed |
-| P5 | LSP | `(Enum<?>) this` hard cast in `Element` interface defaults | Fixed |
+| P5 | LSP | `(Enum<?>) this` hard cast in `UIElement` interface defaults | Fixed |
 | P6 | LSP | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` | Fixed |
 | P7 | ISP, OCP | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` | Fixed |
 | P8 | OCP | `switch` on engine name string in `UIEngineFactory` | Deferred -- runtime-redesign I4.1 |

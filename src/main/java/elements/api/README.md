@@ -4,16 +4,21 @@
 
 This package defines the **element abstraction layer** for the VOID framework.
 Every UI element (button, input, dropdown, table, etc.) is modeled as a **capability interface**
-that extends the base `Element` contract and emits deferred `Action` objects.
+that extends the base `UIElement` contract and emits deferred `Action` objects.
+
+`UIElement` extends the domain-neutral `core.target.Target` root: display text, dynamic
+args, and override-aware arg resolution live on `Target`; `UIElement` adds everything
+UI-specific (locator keys, roles, external locator files).
 
 ```
-Element → Capability → emits Action (intent)
-Action  → UIEngine   (execution)
+Target → UIElement → Capability → emits Action (intent)
+Action                → UIEngine   (execution)
 ```
 
 | Layer | Package | Responsibility |
 |-------|---------|---------------|
-| **Element** | `elements.api` | Base descriptor contract (locator keys, args, display text, role map) |
+| **Target** | `core.target` | Domain-neutral root: display text, args, effective-args |
+| **UIElement** | `elements.api` | Web-domain descriptor contract (locator keys, external file, role map) |
 | **Capability** | `elements.api.capability` | Declares locator structure + emits deferred `Action` objects |
 
 **Key principles:**
@@ -28,7 +33,7 @@ Action  → UIEngine   (execution)
 
 ```
 elements/api/
-├── Element.java                          ← base contract (locator keys, args, roles)
+├── UIElement.java                        ← web-domain contract (locator keys, roles); extends core.target.Target
 ├── KeyValuePair.java                     ← standalone utility for key→value enums
 ├── package-info.java
 │
@@ -54,19 +59,34 @@ elements/api/
 
 ## Core Base
 
-### `Element` (`elements.api.Element`)
+### `Target` (`core.target.Target`)
 
-Root interface for every UI element descriptor in the framework.
+Domain-neutral root above `UIElement` -- carries only the concepts independent of the
+interaction medium. Lives in `core.target`, not this package.
 
 ```java
-public interface Element {
+public interface Target {
+    Object[] NO_ARGS = new Object[0];
+    String getDisplayText();                              // human-friendly label for logs
+    default Object[] getArgs();                            // dynamic args for %s templates
+    default Object[] effectiveArgs(Object... overrides);   // override-aware resolution
+}
+```
+
+### `UIElement` (`elements.api.UIElement`)
+
+Web-domain refinement of `Target`; root interface for every UI element descriptor in the
+framework. Inherits `getDisplayText()`, `getArgs()`, `effectiveArgs()`, and `NO_ARGS` from
+`Target`; overrides `getDisplayText()` to derive the label from the enum constant name.
+
+```java
+public interface UIElement extends Target {
     String getExternalFileName();           // properties file for locator lookup
     String getPrimaryLocator();             // primary locator key
     default String getSecondaryLocator();   // optional fallback key
-    Object[] getArgs();                     // dynamic args for %s templates
-    default Object[] effectiveArgs(Object... overrides); // override-aware resolution
-    default String getDisplayText();        // human-friendly label for logs
+    @Override default String getDisplayText(); // enum-name-split label (overrides Target)
     default Map<ElementRole, String> getAllLocatorRoles(); // ordered role→key map
+    default ActionCapability capability();  // capability category (UNKNOWN by default)
 }
 ```
 
@@ -77,12 +97,12 @@ Not part of the capability hierarchy.
 
 ---
 
-## Element Hierarchies (Detailed)
+## UIElement Hierarchies (Detailed)
 
 ### Click
 
 ```
-Element → Clickable
+UIElement → Clickable
 ```
 
 **`Clickable`** (`elements.api.capability`)
@@ -96,7 +116,7 @@ Element → Clickable
 ### Text Input
 
 ```
-Element → Typeable
+UIElement → Typeable
 ```
 
 **`Typeable`** (`elements.api.capability`)
@@ -113,8 +133,8 @@ Element → Typeable
 ### Dropdown
 
 ```
-Element → Clickable ─┐
-Element → Listable  ─┤→ Selectable
+UIElement → Clickable ─┐
+UIElement → Listable  ─┤→ Selectable
 ```
 
 **`Listable`** (`elements.api.capability`)
@@ -136,7 +156,7 @@ Element → Listable  ─┤→ Selectable
 ### Checkbox
 
 ```
-Element → Clickable → Checkable
+UIElement → Clickable → Checkable
 ```
 
 **`Checkable`** (`elements.api.capability`)
@@ -151,8 +171,8 @@ Element → Clickable → Checkable
 ### Search Field
 
 ```
-Element → Typeable  ─┐
-Element → Clickable ─┤→ SearchField
+UIElement → Typeable  ─┐
+UIElement → Clickable ─┤→ SearchField
 ```
 
 **`SearchField`** (`elements.api.capability`)
@@ -187,7 +207,7 @@ Selectable + Searchable → SearchableDropdown
 ### File Upload
 
 ```
-Element → Uploadable
+UIElement → Uploadable
 ```
 
 **`Uploadable`** (`elements.api.capability`)
@@ -200,7 +220,7 @@ Element → Uploadable
 ### Read-Only (Labels / Static Text)
 
 ```
-Element → ReadOnly
+UIElement → ReadOnly
 ```
 
 **`ReadOnly`** (`elements.api.capability`)
@@ -213,7 +233,7 @@ Element → ReadOnly
 ### Tooltip
 
 ```
-Element → ReadOnly → Hoverable
+UIElement → ReadOnly → Hoverable
 ```
 
 **`Hoverable`** (`elements.api.capability`)
@@ -227,8 +247,8 @@ Element → ReadOnly → Hoverable
 ### Table / Editable Table
 
 ```
-Element → Table
-Element → Table → EditableTable
+UIElement → Table
+UIElement → Table → EditableTable
 ```
 
 **`Table`** (`elements.api.capability`)
@@ -247,7 +267,7 @@ Element → Table → EditableTable
 ### Multi-Instance Dropdown
 
 ```
-Element → MultiSelectable
+UIElement → MultiSelectable
 ```
 
 **`MultiSelectable`** (`elements.api.capability`)
@@ -262,7 +282,7 @@ Element → MultiSelectable
 
 ### ❌ NEVER
 
-- Put execution logic in `Element` or any capability interface
+- Put execution logic in `UIElement` or any capability interface
 - Resolve locators eagerly (outside the Action lambda)
 - Reference `WebElement`, `By`, or `WebDriver` in capability interfaces
 - Add scroll, wait, or retry logic to Action methods — engine handles these
@@ -353,10 +373,10 @@ executor.run(LoginButton.SUBMIT.click());
 
 ---
 
-## How to Add a New Element Type
+## How to Add a New UIElement Type
 
 1. **Create capability** in `elements/api/capability/`:
-   - Extend `Element` (or another capability if composite)
+   - Extend `UIElement` (or another capability if composite)
    - Declare locator key method(s) (e.g., `getMyLocator()`)
    - Override `getPrimaryLocator()`, `getDisplayText()`, `getAllLocatorRoles()`
    - Add appropriate `ElementRole` if new (update `ElementRole` enum)

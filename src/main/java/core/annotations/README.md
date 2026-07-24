@@ -40,7 +40,7 @@ Marks a type or method as **framework infrastructure** — exists only for plumb
 
 ```java
 @Internal
-public static Action wrap(Action delegate, Element element, ...) { ... }
+public static Action wrap(Action delegate, UIElement element, ...) { ... }
 ```
 
 **Rules:**
@@ -55,7 +55,7 @@ public static Action wrap(Action delegate, Element element, ...) { ... }
 | Tier | Annotation | Guarantees | Examples |
 |------|------------|------------|----------|
 | Stable (frozen) | `@Deprecated` | No changes, no new features | `Interactions` |
-| Stable (user-facing) | *(none)* | Backward-compatible evolution | `UIEngine`, `Clickable`, `Element` |
+| Stable (user-facing) | *(none)* | Backward-compatible evolution | `UIEngine`, `Clickable`, `UIElement` |
 | Beta | `@Beta` | May change without notice | `Action`, `Flow`, `FlowExecutor` |
 | Internal | `@Internal` | No guarantees | `ElementActions`, adapters |
 

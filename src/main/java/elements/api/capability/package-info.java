@@ -7,7 +7,7 @@
  *
  * <p>Contains NO execution logic. Elements emit Action (intent), engine executes.</p>
  *
- * <p>Hierarchy: {@code Element → Capability}</p>
+ * <p>Hierarchy: {@code UIElement → Capability}</p>
  */
 package elements.api.capability;
 

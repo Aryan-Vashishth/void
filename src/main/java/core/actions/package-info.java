@@ -22,7 +22,7 @@
  *
  * <h3>Execution path</h3>
  * <pre>
- *   Element (capability interface)
+ *   UIElement (capability interface)
  *     → Action (deferred intent)
  *       → Flow (composition)
  *         → FlowExecutor (iteration)

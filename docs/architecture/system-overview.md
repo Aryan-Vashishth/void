@@ -8,7 +8,7 @@ VOID is an **interaction runtime for modeling and executing interaction workflow
 
 VOID separates interaction modeling from execution:
 - **Intent** (Action) — what should happen
-- **Structure** (Element + Capability) — what UI elements exist and what roles they play
+- **Structure** (UIElement + Capability) — what UI elements exist and what roles they play
 - **Execution** (FlowExecutor + UIEngine) — how interactions physically happen
 
 Elements emit actions. Actions compose flows. Flows are executed by the VOID Runtime through interchangeable engines that own waits, retries, locator resolution, synchronization, and native automation concerns.
@@ -78,11 +78,12 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - `HookedAction` decorates an Action with before/after hooks, sharing a single resolved descriptor.
 - `ElementActions` (`@Internal`) provides a custom-operation factory for test infrastructure only (see ADR-012).
 
-### 🧩 Capability-Based Element Model
+### 🧩 Capability-Based UIElement Model
 
 | Interface | Package | Description |
 |-----------|---------|-------------|
-| `Element` | `elements.api` | Root contract — locator keys, args, display text, role map. |
+| `Target` | `core.target` | Domain-neutral root — display text, args, effective-args. |
+| `UIElement` | `elements.api` | Web-domain root contract, extends `Target` — locator keys, external file, role map. |
 | `Clickable` | `elements.api.capability` | Clickable UI components (buttons, links). Emits `click()`. |
 | `Typeable` | `elements.api.capability` | Text input fields. Emits `type()`, `clear()`, `append()`. |
 | `Selectable` | `elements.api.capability` | Trigger + list locators for single-value dropdowns. Emits `open()`, `select()`. |
@@ -109,19 +110,19 @@ Architecture in this document is projected from accepted decisions under `docs/d
 ```
 VOID (session) → FlowExecutor → UIEngine
      ↑
-Element → Action (intent) → Flow (composition)
+UIElement → Action (intent) → Flow (composition)
 ```
 
 Full expansion:
 
 ```
-Element → Action → Flow → VOID.run() → FlowExecutor → UIEngine
+UIElement → Action → Flow → VOID.run() → FlowExecutor → UIEngine
 ```
 
 **Legacy path (backward compat):**
 
 ```
-Element → Interactions (frozen orchestrator) → UIEngine (execution)
+UIElement → Interactions (frozen orchestrator) → UIEngine (execution)
 ```
 
 **`VOID`** is the primary test-facing session object:
@@ -203,7 +204,7 @@ Locators live under `src/main/resources/locators/` in two formats:
 ## 📂 Project Structure
 
 > For detailed documentation on each `core/` sub-package, see [Core Package Architecture](core-packages.md).
-> For the element and capability layer, see [Element Layer Architecture](elements.md).
+> For the element and capability layer, see [UIElement Layer Architecture](elements.md).
 
 ```
 void-framework/
@@ -280,6 +281,8 @@ void-framework/
 │   │   │   ├── template/                     ← LocatorTemplate substitution
 │   │   │   └── json/                         ← JSON migration tools
 │   │   ├── runtime/                          ← Runtime lifecycle
+│   │   ├── target/
+│   │   │   └── Target.java                   ← Domain-neutral root (display text, args, effective-args)
 │   │   └── utils/
 │   │       ├── ConfigLoader.java
 │   │       ├── EnumResolver.java
@@ -291,7 +294,7 @@ void-framework/
 │   │   └── VoidDSL.java                      ← BDD/context-driven DSL layer
 │   ├── elements/
 │   │   ├── api/
-│   │   │   ├── Element.java                  ← Root element contract
+│   │   │   ├── UIElement.java                ← Web-domain root contract, extends core.target.Target
 │   │   │   ├── KeyValuePair.java
 │   │   │   └── capability/                   ← All capability interfaces
 │   │   │       ├── Clickable.java
@@ -345,7 +348,7 @@ void-framework/
 
 ```
 1. VOID instantiation → UIEngine created, wrapped in Interactions
-2. Element resolution → LocatorResolvers resolve LocatorDescriptor
+2. UIElement resolution → LocatorResolvers resolve LocatorDescriptor
 3. Hook pipeline      → Before.* hooks execute
 4. Action execution   → Interactions delegates to engine.click(descriptor) / engine.type(descriptor, text)
 5. Hook pipeline      → After.* hooks execute
@@ -498,7 +501,7 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 ## 🧠 Design Philosophy
 
 > *VOID is a structured, engine-agnostic execution model for UI automation.*
-> It separates intent (Action), structure (Element), and execution (UIEngine).
+> It separates intent (Action), structure (UIElement), and execution (UIEngine).
 > Every line of code is designed for introspection — enabling you to see not only what failed, but **why** and **how**.
 
 ### Architecture Invariants
@@ -512,7 +515,7 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 - **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
 - **`VOID` is the primary session object** — tests navigate, run flows, and teardown through it
 - **`FlowExecutor` is internal** — test code calls `app.run()`, not `new FlowExecutor(engine)`
-- **One execution path**: Element → Action → Flow → `VOID.run()` → FlowExecutor → UIEngine
+- **One execution path**: UIElement → Action → Flow → `VOID.run()` → FlowExecutor → UIEngine
 - **No compile-time code generation** — all behavior is visible and debuggable
 
 ---
@@ -524,7 +527,7 @@ VOID uses explicit stability tiers to control how the architecture evolves. Each
 | Tier | Scope | Guarantees | Rules |
 |------|-------|------------|-------|
 | **Stable (frozen)** | `Interactions` | No breaking changes. No new features. | Will not evolve further. |
-| **Stable (user-facing)** | Capability interfaces (`Clickable`, `Typeable`, etc.), `Element`, `UIEngine`, `ActionHandler`, `Before`, `After` | No breaking changes. May gain new methods. | Backward-compatible evolution only. |
+| **Stable (user-facing)** | Capability interfaces (`Clickable`, `Typeable`, etc.), `UIElement`, `UIEngine`, `ActionHandler`, `Before`, `After` | No breaking changes. May gain new methods. | Backward-compatible evolution only. |
 | **Beta** | `Action`, `Flow`, `FlowExecutor`, `HookedAction` | May change without notice between releases. | Must not be used inside stable modules. |
 | **Internal** | `ElementActions`, migration bridges, adapters, helper classes | No guarantees. May be changed, moved, or removed at any time. | External consumers must not depend on these. |
 

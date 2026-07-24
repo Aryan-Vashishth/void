@@ -19,7 +19,7 @@ The original implementation was a single ~300-line monolith (`JsonLocatorMigrato
 | [`JsonNodeLookup`](JsonNodeLookup.java) | Pure traversal helpers for Jackson `JsonNode` trees. Supports **dot-path** lookup (`a.b.c`), **deep-find** fallback, and **text coercion**. |
 | [`JsonLocatorMigrator`](JsonLocatorMigrator.java) | Public façade for building and persisting resolved JSON locator files. Provides `buildResolvedJson`, `writeResolvedJson`, and `writeJsonString` APIs. |
 | [`JsonTreeBuilder`](JsonTreeBuilder.java) | Recursive class-tree walker that produces a Jackson `ObjectNode` mirroring the nested-enum structure of a root element class. Delegates enum scanning to `EnumLocatorScanner`. |
-| [`EnumLocatorScanner`](EnumLocatorScanner.java) | Scans enum constants implementing `Element` and emits JSON entries per constant — simple strings for single-role elements, nested objects for multi-role elements (e.g. `Dropdown` with `TRIGGER` / `LIST`). |
+| [`EnumLocatorScanner`](EnumLocatorScanner.java) | Scans enum constants implementing `UIElement` and emits JSON entries per constant — simple strings for single-role elements, nested objects for multi-role elements (e.g. `Dropdown` with `TRIGGER` / `LIST`). |
 | [`PropertiesIndex`](PropertiesIndex.java) | Per-migration-run cache of `.properties` files. Loads and merges TEST-over-MAIN classpath layers (TEST wins on conflict). Replaces the former `ThreadLocal` approach. |
 | [`JsonMigratorCli`](JsonMigratorCli.java) | Command-line entry point for running migrations outside the test harness. |
 

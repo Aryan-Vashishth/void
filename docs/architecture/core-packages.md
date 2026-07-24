@@ -393,7 +393,7 @@ VOID.builder()
 
 ```
 1. VOID.builder().start() → engine + interactions created
-2. Element           → LocatorResolvers resolve LocatorDescriptor
+2. UIElement           → LocatorResolvers resolve LocatorDescriptor
 3. Before hooks      → Before.* hooks execute
 4. Interactions      → delegates to engine.click(descriptor) / engine.type(descriptor, text)
 5. After hooks       → After.* hooks execute

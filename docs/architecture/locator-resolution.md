@@ -64,9 +64,9 @@ Both paths use the same underlying sources, templates, and files. The difference
 ### Legacy Path (LocatorResolvers)
 
 ```
-1. Element.getExternalFileName()   → "login-page-elements.properties"
-2. Element.getPrimaryLocator()     → "USERNAME_INPUT"    (locator key)
-3. Element.getArgs()               → ["admin"]           (template args)
+1. UIElement.getExternalFileName()   → "login-page-elements.properties"
+2. UIElement.getPrimaryLocator()     → "USERNAME_INPUT"    (locator key)
+3. UIElement.getArgs()               → ["admin"]           (template args)
          ↓
 4. LocatorRequest.of(file, key, args)
          ↓
@@ -124,8 +124,8 @@ Each engine translates `LocatorDescriptor` into its native locator:
 public enum LocatorStrategy {
     XPATH,   // XPath expression
     CSS,     // CSS selector
-    ID,      // Element ID
-    NAME;    // Element name attribute
+    ID,      // HTML element id attribute
+    NAME;    // HTML element name attribute
 
     public static LocatorStrategy infer(String locatorValue) {
         // Starts with // or (// → XPATH
@@ -228,8 +228,8 @@ request.isHardcoded()  // true when fileName == null → key IS the template
 
 | Role              | Used By                                   | Description                               |
 |-------------------|-------------------------------------------|-------------------------------------------|
-| `PRIMARY`         | `Element`                                 | Primary locator (first attempt)           |
-| `SECONDARY`       | `Element`                                 | Fallback locator                          |
+| `PRIMARY`         | `UIElement`                                 | Primary locator (first attempt)           |
+| `SECONDARY`       | `UIElement`                                 | Fallback locator                          |
 | `TRIGGER`         | `Clickable`, `Selectable`, `Checkable`    | Clickable trigger (button/icon)           |
 | `INPUT`           | `Typeable`, `Uploadable`                  | Text or file input field                  |
 | `LIST`            | `Selectable`, `Listable`                  | Options panel / list container            |
@@ -419,7 +419,7 @@ USER_ROW=//tr[@data-user='%s']//td[@class='%s']
 ```
 
 ```java
-// Element provides args
+// UIElement provides args
 @Override public Object[] getArgs() { return new Object[]{"john.doe", "email"}; }
 
 // Resolved: //tr[@data-user='john.doe']//td[@class='email']
@@ -437,7 +437,7 @@ USER_ROW=//tr[@data-user='%s']//td[@class='%s']
 Elements support override args via `effectiveArgs()`:
 
 ```java
-// Element's own args used by default
+// UIElement's own args used by default
 element.getArgs()           // → ["john.doe"]
 
 // Override args take precedence when non-empty
@@ -478,7 +478,7 @@ default Action click() {
 
 ```java
 // Resolve from element + role
-LocatorDescriptor resolve(Element element, ElementRole role, Object... args);
+LocatorDescriptor resolve(UIElement element, ElementRole role, Object... args);
 
 // Resolve from raw file + key
 LocatorDescriptor resolve(String fileName, String key, Object... args);
@@ -608,7 +608,7 @@ mvn test -Dlocator.json.base.path=custom/locators/json/
 
 **Named files** (opt-in via `getExternalFileName()`):
 
-| Element Interface                 | Properties File                          | JSON File                            |
+| UIElement Interface                 | Properties File                          | JSON File                            |
 |-----------------------------------|------------------------------------------|--------------------------------------|
 | `LoginPageElements`               | `locators/properties/login-page-elements.properties` | `locators/json/login-page-elements.json` |
 | `ManageUsersElements`             | `locators/properties/manage-users-elements.properties` | `locators/json/manage-users-elements.json` |
@@ -637,7 +637,7 @@ mvn test -Dlocator.json.base.path=custom/locators/json/
 
 ### Locator Resolved from Wrong File
 
-**Symptoms**: Element uses a locator value from a different file than expected.
+**Symptoms**: UIElement uses a locator value from a different file than expected.
 
 **Check**:
 1. Verify `getExternalFileName()` returns the correct file name.
