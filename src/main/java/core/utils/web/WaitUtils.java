@@ -2,7 +2,6 @@ package core.utils.web;
 
 import core.resolvers.locator.api.LocatorResolvers;
 
-import elements.api.Element;
 import elements.api.capability.ReadOnly;
 import javax.annotation.Nullable;
 import javax.annotation.Nonnull;

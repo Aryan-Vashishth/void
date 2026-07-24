@@ -1,6 +1,6 @@
 package elements.api.capability;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;

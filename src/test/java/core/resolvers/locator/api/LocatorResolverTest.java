@@ -4,7 +4,7 @@ import core.resolvers.locator.parser.ByParser;
 import core.resolvers.locator.source.LocatorSourceRegistry;
 import core.resolvers.locator.template.LocatorTemplate;
 import elements.api.capability.Clickable;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
@@ -17,8 +17,8 @@ public class LocatorResolverTest {
     private static final String PROP_FILE = "test-locators.properties";
     private static final String JSON_FILE = "test-locators.json";
 
-    private static Element hardcoded(String tpl, Object... args) {
-        return new Element() {
+    private static UIElement hardcoded(String tpl, Object... args) {
+        return new UIElement() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getPrimaryLocator()   { return tpl; }
             @Override public Object[] getArgs()           { return args; }
@@ -92,7 +92,7 @@ public class LocatorResolverTest {
 
     @Test
     public void resolve_element_usesPrimaryLocator() {
-        Element e = hardcoded("//button[@type='submit']");
+        UIElement e = hardcoded("//button[@type='submit']");
         By by = LocatorResolvers.strict().resolve(e);
         assertEquals(by.toString(), By.xpath("//button[@type='submit']").toString());
     }
@@ -110,7 +110,7 @@ public class LocatorResolverTest {
 
     @Test
     public void resolveBest_overrideArgsTakePrecedence() {
-        Element e = hardcoded("//x[@v='%s']", "default");
+        UIElement e = hardcoded("//x[@v='%s']", "default");
         By by = LocatorResolvers.strict().resolveBest(e, "override");
         assertEquals(by.toString(), By.xpath("//x[@v='override']").toString());
     }

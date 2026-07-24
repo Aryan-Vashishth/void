@@ -2,7 +2,7 @@ package elements.api.capability;
 
 import core.actions.ActionCapability;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 /**
@@ -12,13 +12,13 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Table
+ *   UIElement → Table
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
  */
-public interface Table extends Element {
+public interface Table extends UIElement {
 
     String getTableLocator();
 

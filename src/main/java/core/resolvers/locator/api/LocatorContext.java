@@ -1,6 +1,6 @@
 package core.resolvers.locator.api;
 
-import elements.api.Element;
+import elements.api.UIElement;
 
 import javax.annotation.Nullable;
 
@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
  * <p>Decouples {@link LocatorResolver} from the specific convention or override
  * mechanism used to locate a page's repository. The resolver delegates all
  * "where is the file?" decisions to this interface rather than calling
- * {@link Element#getExternalFileName()} directly.</p>
+ * {@link UIElement#getExternalFileName()} directly.</p>
  *
  * <h3>Resolution contract</h3>
  * <p>Returns the classpath-relative file name compatible with
@@ -31,5 +31,5 @@ public interface LocatorContext {
      * or {@code null} if the element's locator is hardcoded (no external file).
      */
     @Nullable
-    String resolveFileName(Element element);
+    String resolveFileName(UIElement element);
 }

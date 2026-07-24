@@ -1,6 +1,6 @@
 package tests.demo.pages;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.api.capability.*;
 import core.utils.ResolvableEnum;
 

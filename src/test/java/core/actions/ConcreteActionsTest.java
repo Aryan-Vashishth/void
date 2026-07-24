@@ -4,7 +4,7 @@ import core.engine.EngineConfig;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.api.capability.Checkable;
 import elements.api.capability.Clickable;
 import elements.api.capability.Hoverable;
@@ -61,7 +61,7 @@ public class ConcreteActionsTest {
         @Override public boolean getCheckboxState(LocatorDescriptor d)                  { return checkboxState; }
         @Override public String getText(LocatorDescriptor d)                            { ops.add("getText"); return ""; }
 
-        @Override public LocatorDescriptor resolve(Element e, ElementRole r, Object... a) { return stub(); }
+        @Override public LocatorDescriptor resolve(UIElement e, ElementRole r, Object... a) { return stub(); }
         @Override public LocatorDescriptor resolve(String f, String k, Object... a)       { return stub(); }
         private static LocatorDescriptor stub() { return new LocatorDescriptor("//stub", LocatorStrategy.XPATH); }
 

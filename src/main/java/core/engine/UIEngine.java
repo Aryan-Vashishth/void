@@ -1,6 +1,6 @@
 package core.engine;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 import java.time.Duration;
 
@@ -33,7 +33,7 @@ import java.time.Duration;
  *
  * <h3>Single execution path</h3>
  * <pre>
- *   Element → Action → Flow → FlowExecutor → UIEngine
+ *   UIElement → Action → Flow → FlowExecutor → UIEngine
  * </pre>
  *
  * @see LocatorDescriptor
@@ -93,12 +93,12 @@ public interface UIEngine {
      * This is the single resolution authority — elements call this
      * rather than importing resolver infrastructure directly.
      *
-     * @param element the element descriptor (enum implementing Element)
+     * @param element the element descriptor (enum implementing UIElement)
      * @param role    the locator role to resolve (e.g., TRIGGER, INPUT)
      * @param args    optional format arguments for parameterized locators
      * @return resolved locator descriptor
      */
-    LocatorDescriptor resolve(Element element, ElementRole role, Object... args);
+    LocatorDescriptor resolve(UIElement element, ElementRole role, Object... args);
 
     /**
      * Resolves a {@link LocatorDescriptor} from a raw file name, key, and args.

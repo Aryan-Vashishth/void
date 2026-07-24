@@ -6,7 +6,7 @@ import core.resolvers.locator.parser.ByParser;
 import core.resolvers.locator.source.LocatorSource;
 import core.resolvers.locator.source.LocatorSourceRegistry;
 import core.resolvers.locator.template.LocatorTemplate;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 import org.openqa.selenium.By;
 
@@ -139,13 +139,13 @@ public final class LocatorResolver {
         return resolveDescriptor(LocatorRequest.of(fileName, key, args));
     }
 
-    /** Resolve descriptor for the primary locator of an {@link Element}. */
-    public LocatorDescriptor resolveDescriptor(Element e) {
+    /** Resolve descriptor for the primary locator of an {@link UIElement}. */
+    public LocatorDescriptor resolveDescriptor(UIElement e) {
         return resolveDescriptorBest(e);
     }
 
-    /** Resolve descriptor for a specific role on an {@link Element}. */
-    public LocatorDescriptor resolveDescriptor(Element e, ElementRole role, Object... overrideArgs) {
+    /** Resolve descriptor for a specific role on an {@link UIElement}. */
+    public LocatorDescriptor resolveDescriptor(UIElement e, ElementRole role, Object... overrideArgs) {
         Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
         String key = roles.get(role);
         if (isBlank(key)) {
@@ -157,7 +157,7 @@ public final class LocatorResolver {
     }
 
     /** Resolve the best-available descriptor: PRIMARY → SECONDARY → first non-blank role. */
-    public LocatorDescriptor resolveDescriptorBest(Element e, Object... overrideArgs) {
+    public LocatorDescriptor resolveDescriptorBest(UIElement e, Object... overrideArgs) {
         String file  = locatorContext.resolveFileName(e);
         Object[] args = e.effectiveArgs(overrideArgs);
         String label = labelOf(e);
@@ -177,7 +177,7 @@ public final class LocatorResolver {
         return resolveDescriptor(file, key, args).withLabel(label);
     }
 
-    private static String labelOf(Element element) {
+    private static String labelOf(UIElement element) {
         Class<?> cls = element.getClass();
         String simpleName = cls.getSimpleName();
         if (simpleName.isEmpty()) {
@@ -211,16 +211,16 @@ public final class LocatorResolver {
     }
 
     // ---------------------------------------------------------------------
-    // Element-based resolution
+    // UIElement-based resolution
     // ---------------------------------------------------------------------
 
-    /** Resolve the primary locator for an {@link Element}. */
-    public By resolve(Element e) {
+    /** Resolve the primary locator for an {@link UIElement}. */
+    public By resolve(UIElement e) {
         return resolveBest(e);
     }
 
-    /** Resolve a specific role for an {@link Element}; throws if the role is not declared. */
-    public By resolve(Element e, ElementRole role, Object... overrideArgs) {
+    /** Resolve a specific role for an {@link UIElement}; throws if the role is not declared. */
+    public By resolve(UIElement e, ElementRole role, Object... overrideArgs) {
         Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
         String key = roles.get(role);
         if (isBlank(key)) {
@@ -233,7 +233,7 @@ public final class LocatorResolver {
     /**
      * Resolve the best available locator: PRIMARY → SECONDARY → first non-blank role value.
      */
-    public By resolveBest(Element e, Object... overrideArgs) {
+    public By resolveBest(UIElement e, Object... overrideArgs) {
         String file = locatorContext.resolveFileName(e);
         Object[] args = e.effectiveArgs(overrideArgs);
 

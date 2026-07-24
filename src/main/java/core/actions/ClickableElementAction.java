@@ -1,6 +1,6 @@
 package core.actions;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 /**
@@ -27,7 +27,7 @@ import elements.meta.ElementRole;
  */
 abstract class ClickableElementAction extends ElementAction {
 
-    protected ClickableElementAction(Element element, ElementRole role, ActionCapability capability) {
+    protected ClickableElementAction(UIElement element, ElementRole role, ActionCapability capability) {
         super(element, role, capability);
     }
 

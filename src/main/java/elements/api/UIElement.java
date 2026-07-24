@@ -1,6 +1,7 @@
 package elements.api;
 
 import core.actions.ActionCapability;
+import core.target.Target;
 import elements.meta.ElementRole;
 
 import javax.annotation.Nullable;
@@ -8,12 +9,15 @@ import javax.annotation.Nullable;
 /**
  * Core abstraction for every UI element descriptor in the framework.
  * <p>
- * Responsibilities:
+ * Extends {@link core.target.Target}: inherits {@code getDisplayText()}, {@code getArgs()},
+ * {@code effectiveArgs()}, and the {@code NO_ARGS} constant. The enum-name-split default for
+ * {@code getDisplayText()} is overridden here to preserve existing behavior.
+ * </p>
+ * <p>
+ * Responsibilities beyond {@link core.target.Target}:
  * <ul>
  *   <li>Expose an external properties filename (if locators are stored in property bundles).</li>
  *   <li>Provide a <b>primary</b> locator key and optional <b>secondary</b> locator key for fallback.</li>
- *   <li>Supply optional dynamic arguments (e.g., row index, label text) for templated locator strings.</li>
- *   <li>Offer a human friendly display text for logging/reporting.</li>
  *   <li>Publish an ordered map of locator roles via {@link #getAllLocatorRoles()} used by resolution pipelines.</li>
  * </ul>
  * </p>
@@ -27,7 +31,7 @@ import javax.annotation.Nullable;
  * {@link ElementRole} for type-safe role access.
  * </p>
  */
-public interface Element {
+public interface UIElement extends Target {
     /**
      * Returns the conventional classpath path of the external locator resource for this element,
      * or {@code null} if the locator is hardcoded.
@@ -72,27 +76,13 @@ public interface Element {
     /** @return secondary fallback locator key, or null if not applicable. */
     default String getSecondaryLocator(){ return null; }
 
-    /** Shared empty-args constant — signals that this element requires no locator arguments. */
-    Object[] NO_ARGS = new Object[0];
-
-    /** @return dynamic arguments used to format locator templates containing %s tokens. */
-    default Object[] getArgs() { return NO_ARGS; }
-
-    /**
-     * Returns {@code overrides} when it is non-null and non-empty; otherwise returns {@link #getArgs()}.
-     * <p>Centralises the "override args take precedence over the element's own args" rule that used to
-     * be repeated as a ternary in every resolver call site.</p>
-     */
-    default Object[] effectiveArgs(Object... overrides) {
-        return (overrides != null && overrides.length > 0) ? overrides : getArgs();
-    }
-
     /**
      * Returns a human-readable label derived from the enum constant name.
      * <p>Transformation: {@code SAVE_AS_DRAFT} → {@code Save As Draft}.
      * Tokens are split on underscores; each token is capitalised with the rest lowercased.
      * Capability interfaces override this to incorporate dynamic args when present.</p>
      */
+    @Override
     default String getDisplayText() {
         String[] tokens = ElementSupport.nameOf(this).split("_");
         StringBuilder sb = new StringBuilder();
@@ -128,7 +118,7 @@ public interface Element {
      */
     default String templateFamilyKey() { return null; }
 
-    static String qualifiedLocatorKey(Element element, ElementRole role) {
+    static String qualifiedLocatorKey(UIElement element, ElementRole role) {
         Class<?> enumClass = ElementSupport.declaringClassOf(element);
         Class<?> pageClass = enumClass.getEnclosingClass();
         String prefix = (pageClass != null)

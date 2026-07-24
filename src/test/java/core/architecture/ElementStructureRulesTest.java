@@ -3,18 +3,18 @@ package core.architecture;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
-import elements.api.Element;
+import elements.api.UIElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
- * Architecture rules enforcing the Element API nested enum structure.
+ * Architecture rules enforcing the UIElement API nested enum structure.
  *
  * <h3>Policy (from Phase 15 — Element API Simplification)</h3>
  * <ul>
- *   <li>Every enum that implements {@link Element} must be declared as a member of an
+ *   <li>Every enum that implements {@link UIElement} must be declared as a member of an
  *       enclosing page class or container — never as a top-level class.</li>
  * </ul>
  *
@@ -33,24 +33,24 @@ public class ElementStructureRulesTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // Rule 1 — Element enums must be nested inside a page class
+    // Rule 1 — UIElement enums must be nested inside a page class
     // ─────────────────────────────────────────────────────────────────────
 
     /**
-     * Every enum that implements {@link Element} must be a member class of an enclosing
+     * Every enum that implements {@link UIElement} must be a member class of an enclosing
      * page container — not a standalone top-level class.
      *
      * <p>Permitted: {@code DemoLoginPage.Credentials}, {@code AccountMappingElements.Header}<br>
-     * Forbidden: a top-level {@code Credentials} enum that happens to implement Element.</p>
+     * Forbidden: a top-level {@code Credentials} enum that happens to implement UIElement.</p>
      */
-    @Test(description = "Element enums must be nested inside a page class")
+    @Test(description = "UIElement enums must be nested inside a page class")
     public void elementEnumsMustBeNested() {
         ArchRule rule = noClasses()
                 .that().areEnums()
-                .and().implement(Element.class)
+                .and().implement(UIElement.class)
                 .should().beTopLevelClasses()
                 .because(
-                    "Element enums must be declared as members of an enclosing page class so " +
+                    "UIElement enums must be declared as members of an enclosing page class so " +
                     "that they are discovered via PageName.Group.CONSTANT autocomplete. " +
                     "A top-level element enum breaks IDE navigation and loses the capability " +
                     "grouping context. See Phase 15 — Preserve Nested Enum Organization."

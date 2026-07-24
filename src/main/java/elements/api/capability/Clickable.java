@@ -4,7 +4,7 @@ import core.actions.Action;
 import core.actions.ActionCapability;
 
 import core.actions.ClickAction;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 /**
@@ -17,14 +17,14 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Clickable
+ *   UIElement → Clickable
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Produces deferred {@link Action} objects via {@link #click()}.
  * Resolution happens <b>inside</b> the lambda — never eagerly.</p>
  */
-public interface Clickable extends Element {
+public interface Clickable extends UIElement {
 
     /** @return fully-qualified role-suffixed locator key, e.g. {@code PageName.EnumName.CONSTANT.TRIGGER}. */
     default String getTriggerLocator() { return locatorKeyForRole(ElementRole.TRIGGER); }
@@ -32,7 +32,7 @@ public interface Clickable extends Element {
     @Override
     default String getDisplayText() {
         Object[] args = getArgs();
-        return args.length > 0 ? args[0].toString() : Element.super.getDisplayText();
+        return args.length > 0 ? args[0].toString() : UIElement.super.getDisplayText();
     }
 
     @Override

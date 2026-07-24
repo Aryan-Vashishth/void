@@ -1,7 +1,7 @@
 package core.resolvers.locator.api;
 
 import core.engine.LocatorDescriptor;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.api.capability.Clickable;
 import elements.meta.ElementRole;
 
@@ -15,13 +15,13 @@ import static org.testng.Assert.*;
  * Tests that {@link LocatorResolver} populates {@link LocatorDescriptor#label()} correctly
  * when resolving elements that are Java enum constants.
  *
- * The label is derived by {@code labelOf(Element)} via reflection:
+ * The label is derived by {@code labelOf(UIElement)} via reflection:
  *   enclosingClass.getSimpleName() + " > " + enumClass.getSimpleName() + " > " + getDisplayText()
  *
  * Coverage:
  * - resolveDescriptorBest: enum element → label has all three segments
  * - resolveDescriptorBest: non-enum element → label is null
- * - resolveDescriptor(Element, role, args): enum element → label attached
+ * - resolveDescriptor(UIElement, role, args): enum element → label attached
  * - labelOf handles enum with no declaring class (top-level enum) → prefix omitted
  */
 public class LocatorResolverLabelTest {
@@ -53,12 +53,12 @@ public class LocatorResolverLabelTest {
 
     // ── resolveDescriptorBest: enum element gets a label ──────────────────────
 
-    @Test(description = "resolveDescriptorBest attaches a label for an enum Element")
+    @Test(description = "resolveDescriptorBest attaches a label for an enum UIElement")
     public void resolveDescriptorBest_enumElement_labelIsSet() {
         LocatorDescriptor d = LocatorResolvers.strict()
                 .resolveDescriptorBest(DemoLoginPage.Credentials.USERNAME_INPUT);
 
-        assertNotNull(d.label(), "label must be set for an enum Element");
+        assertNotNull(d.label(), "label must be set for an enum UIElement");
     }
 
     @Test(description = "resolveDescriptorBest label has format 'Page > EnumClass > DisplayText'")
@@ -102,10 +102,10 @@ public class LocatorResolverLabelTest {
 
     // ── resolveDescriptorBest: non-enum element has no label ─────────────────
 
-    @Test(description = "resolveDescriptorBest returns null label for a non-enum Element (anonymous class)")
+    @Test(description = "resolveDescriptorBest returns null label for a non-enum UIElement (anonymous class)")
     public void resolveDescriptorBest_nonEnumElement_labelIsNull() {
         // Anonymous class — not an enum, so labelOf returns null
-        Element anon = new Element() {
+        UIElement anon = new UIElement() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getPrimaryLocator()   { return "//div[@id='content']"; }
             @Override public Object[] getArgs()           { return new Object[0]; }
@@ -115,7 +115,7 @@ public class LocatorResolverLabelTest {
         assertNull(d.label(), "Non-enum element must not produce a label");
     }
 
-    // ── resolveDescriptor(Element, role, args): enum element gets a label ─────
+    // ── resolveDescriptor(UIElement, role, args): enum element gets a label ─────
 
     @Test(description = "resolveDescriptor with explicit role also attaches label from enum reflection")
     public void resolveDescriptor_withRole_enumElement_labelIsSet() {

@@ -1,6 +1,6 @@
 package core.actions;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 /**
@@ -28,7 +28,7 @@ import elements.meta.ElementRole;
  */
 abstract class SelectableElementAction extends ElementAction {
 
-    protected SelectableElementAction(Element element, ElementRole role, ActionCapability capability) {
+    protected SelectableElementAction(UIElement element, ElementRole role, ActionCapability capability) {
         super(element, role, capability);
     }
 

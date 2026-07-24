@@ -6,7 +6,7 @@ import elements.api.capability.ReadOnly;
 import elements.api.capability.Typeable;
 
 /**
- * Element definitions for the-internet.herokuapp.com/login demo page.
+ * UIElement definitions for the-internet.herokuapp.com/login demo page.
  * Follows the Quick Start Guide pattern: capability interfaces + external locators.
  */
 public interface DemoLoginPage {

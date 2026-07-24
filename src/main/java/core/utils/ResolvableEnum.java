@@ -9,7 +9,7 @@ import java.util.Map;
  * (e.g., step definition parameters) to enum constants.
  * </p>
  * <p><b>This is NOT a locator interface.</b> Enums that also need locator
- * behaviour should additionally implement the appropriate {@link elements.api.Element}
+ * behaviour should additionally implement the appropriate {@link elements.api.UIElement}
  * sub-interface ({@code Clickable}, {@code TextInputField}, etc.).</p>
  * <p>Default label formatting: transforms ENUM_CONSTANT → "Enum Constant".</p>
  */

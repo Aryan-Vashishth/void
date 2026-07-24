@@ -2,7 +2,7 @@ package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import core.resolvers.locator.api.ConventionalLocatorPath;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 import java.util.Map;
@@ -13,7 +13,7 @@ import static core.logging.CustomLogger.warn;
 
 /**
  * Scans an enum class and emits one JSON entry per enum constant. For each constant
- * that implements {@link Element}, the constant's {@code name()} becomes the JSON key
+ * that implements {@link UIElement}, the constant's {@code name()} becomes the JSON key
  * and its resolved locator(s) become the value, always in nested role-object form:
  * {@code "CONSTANT_NAME" : { "ROLE" : "resolvedLocator" }}.
  *
@@ -48,7 +48,7 @@ public final class EnumLocatorScanner {
 
         int added = 0, resolved = 0, raw = 0;
         for (Object constant : constants) {
-            if (!(constant instanceof Element element)) continue;
+            if (!(constant instanceof UIElement element)) continue;
             String constantName = ((Enum<?>) constant).name();
             Map<ElementRole, String> roles = element.getAllLocatorRoles();
 
@@ -100,7 +100,7 @@ public final class EnumLocatorScanner {
 
         // Fallback: honour explicit getExternalFileName() only when it names a .properties file
         for (Object c : constants) {
-            if (c instanceof Element e) {
+            if (c instanceof UIElement e) {
                 try {
                     String pf = e.getExternalFileName();
                     if (pf != null && !pf.isBlank() && pf.endsWith(".properties")) {

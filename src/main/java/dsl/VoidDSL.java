@@ -5,7 +5,7 @@ import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
 
 import elements.meta.EnumClassRegistry;
-import elements.api.Element;
+import elements.api.UIElement;
 import core.actions.ActionCapability;
 import elements.api.capability.*;
 import core.utils.ResolvableEnum;
@@ -190,7 +190,7 @@ public record VoidDSL(Interactions engine) {
         String resolvedContextLabel = resolveKeyUsingPrefixAndSuffix(keyPrefix, keySuffix);
         ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
 
-        ActionCapability cap = ((Element) resolved).capability();
+        ActionCapability cap = ((UIElement) resolved).capability();
         if (cap == ActionCapability.MULTI_SELECTABLE) {
             engine.selectFromDropdown(dropdownIndex, (MultiSelectable) resolved);
             return;
@@ -216,7 +216,7 @@ public record VoidDSL(Interactions engine) {
         Class<?> enumClass = CONTEXT_MAP.get(resolvedContextLabel);
         Enum<?> first = getFirstEnumConstant(enumClass, resolvedContextLabel);
 
-        ActionCapability cap = ((Element) first).capability();
+        ActionCapability cap = ((UIElement) first).capability();
         if (cap == ActionCapability.MULTI_SELECTABLE) {
             engine.triggerDropdown((MultiSelectable) first, dropdownIndex);
         } else if (cap == ActionCapability.SELECTABLE) {
@@ -302,7 +302,7 @@ public record VoidDSL(Interactions engine) {
         for (String unresolvedEnumName : unresolvedEnumNames) {
             try {
                 ResolvableEnum resolved = resolveByContext(unresolvedEnumName, resolvedContextLabel);
-                Element el = (Element) resolved;
+                UIElement el = (UIElement) resolved;
                 LocatorDescriptor locator = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(el.getExternalFileName(), el.getPrimaryLocator(), el.getArgs()));
                 String displayText = resolved.getLabel();
 
@@ -310,9 +310,9 @@ public record VoidDSL(Interactions engine) {
 
                 if (!visible) {
                     allVisible = false;
-                    error.failed("Element not visible: " + displayText + " | " + locator);
+                    error.failed("UIElement not visible: " + displayText + " | " + locator);
                 } else {
-                    info.success("Element visible: " + displayText);
+                    info.success("UIElement visible: " + displayText);
                 }
 
             } catch (Exception e) {

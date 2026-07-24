@@ -1,6 +1,6 @@
 package core.resolvers.locator.sync;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ final class LocatorTemplateGenerator {
 
     /**
      * Returns all expected keys in declaration order.
-     * Constants that are not {@link Element} instances are skipped.
+     * Constants that are not {@link UIElement} instances are skipped.
      */
     List<LocatorKey> generateKeys(Class<?> pageClass) {
         String pageSimple = pageClass.getSimpleName();
@@ -42,7 +42,7 @@ final class LocatorTemplateGenerator {
             String enumSimple = nested.getSimpleName();
 
             for (Object constant : nested.getEnumConstants()) {
-                if (!(constant instanceof Element element)) continue;
+                if (!(constant instanceof UIElement element)) continue;
 
                 // Family-locator pattern: one shared template key covers all constants.
                 String familyKey = element.templateFamilyKey();
@@ -61,7 +61,7 @@ final class LocatorTemplateGenerator {
                     .toList();
 
                 if (capabilityRoles.isEmpty()) {
-                    // Plain Element without a capability interface — no role suffix
+                    // Plain UIElement without a capability interface — no role suffix
                     result.add(new LocatorKey(enumSimple,
                         pageSimple + "." + enumSimple + "." + constantName));
                 } else {

@@ -3,7 +3,7 @@ package core.actions;
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 import java.util.Objects;
@@ -45,7 +45,7 @@ import java.util.Objects;
 @Beta(since = "0.2", note = "Phase 13 refactor — ElementAction ownership model")
 public abstract class ElementAction implements Action {
 
-    protected final Element element;
+    protected final UIElement element;
     protected final ElementRole role;
     protected final ActionCapability capability;
 
@@ -57,7 +57,7 @@ public abstract class ElementAction implements Action {
      * @param capability the capability category for profile resolution
      * @throws NullPointerException if element or role is null
      */
-    protected ElementAction(Element element,
+    protected ElementAction(UIElement element,
                            ElementRole role,
                            ActionCapability capability) {
         this.element = Objects.requireNonNull(element, "element must not be null");
@@ -202,7 +202,7 @@ public abstract class ElementAction implements Action {
     }
 
     /**
-     * Element label for trace/logging output.
+     * UIElement label for trace/logging output.
      *
      * @return element name or class simplename
      */

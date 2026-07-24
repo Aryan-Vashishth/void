@@ -6,7 +6,7 @@ import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.api.capability.Clickable;
 import elements.api.capability.Selectable;
 import elements.api.capability.Typeable;
@@ -26,7 +26,7 @@ import static org.testng.Assert.*;
  */
 public class ElementActionTest {
 
-    private Element stubElement;
+    private UIElement stubElement;
     private UIEngine stubEngine;
     private LocatorDescriptor stubDescriptor;
 
@@ -35,7 +35,7 @@ public class ElementActionTest {
     // ════════════════════════════════════════════════════════════════════
 
     abstract static class UIEngineStub implements UIEngine {
-        protected LocatorDescriptor resolve(Element element, ElementRole role) {
+        protected LocatorDescriptor resolve(UIElement element, ElementRole role) {
             return new LocatorDescriptor("//stub", LocatorStrategy.XPATH);
         }
 
@@ -45,11 +45,11 @@ public class ElementActionTest {
         @Override public String getCurrentUrl() { return "http://example.com"; }
         @Override public String getTitle() { return "Example"; }
         @Override public void refresh() {}
-        @Override public LocatorDescriptor resolve(Element element, ElementRole role, Object... args) {
+        @Override public LocatorDescriptor resolve(UIElement element, ElementRole role, Object... args) {
             return resolve(element, role);
         }
          @Override public LocatorDescriptor resolve(String fileName, String key, Object... args) {
-             return this.resolve(new Element() {
+             return this.resolve(new UIElement() {
                  @Override public String getExternalFileName() { return null; }
                  @Override public String getPrimaryLocator() { return null; }
                  @Override public Object[] getArgs() { return new Object[0]; }
@@ -327,7 +327,7 @@ public class ElementActionTest {
     }
 
     // ═════════════════════════════════════════════════════════════════════
-    // Capability & Element Storage
+    // Capability & UIElement Storage
     // ═════════════════════════════════════════════════════════════════════
 
     @Test
@@ -380,12 +380,12 @@ public class ElementActionTest {
 
     @Test
     public void resolve_callsEngineResolveWithElementAndRole() {
-        AtomicReference<Element> resolvedElement = new AtomicReference<>();
+        AtomicReference<UIElement> resolvedElement = new AtomicReference<>();
         AtomicReference<ElementRole> resolvedRole = new AtomicReference<>();
 
         UIEngine recordingEngine = new UIEngineStub() {
             @Override
-            public LocatorDescriptor resolve(Element element, ElementRole role, Object... args) {
+            public LocatorDescriptor resolve(UIElement element, ElementRole role, Object... args) {
                 resolvedElement.set(element);
                 resolvedRole.set(role);
                 return stubDescriptor;
@@ -425,7 +425,7 @@ public class ElementActionTest {
 
     @Test
     public void elementLabel_enumElement_returnsDisplayText() {
-        enum TestElement implements Element {
+        enum TestElement implements UIElement {
             LOGIN_BUTTON;
 
             @Override
@@ -581,8 +581,8 @@ public class ElementActionTest {
     // Helper Methods
     // ═════════════════════════════════════════════════════════════════════
 
-    private Element createStubElement() {
-        return new Element() {
+    private UIElement createStubElement() {
+        return new UIElement() {
             @Override
             public String getExternalFileName() { return null; }
 
@@ -590,7 +590,7 @@ public class ElementActionTest {
             public String getPrimaryLocator() { return "//button"; }
 
             @Override
-            public String getDisplayText() { return "Test Element"; }
+            public String getDisplayText() { return "Test UIElement"; }
 
             @Override
             public Object[] getArgs() { return new Object[0]; }
@@ -634,7 +634,7 @@ public class ElementActionTest {
     private UIEngine createStubEngine(final LocatorDescriptor descriptor) {
         return new UIEngineStub() {
             @Override
-            public LocatorDescriptor resolve(Element element, ElementRole role, Object... args) {
+            public LocatorDescriptor resolve(UIElement element, ElementRole role, Object... args) {
                 return descriptor;
             }
 

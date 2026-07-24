@@ -1,6 +1,6 @@
 package core.actions;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 /**
@@ -29,7 +29,7 @@ import elements.meta.ElementRole;
  */
 abstract class TypeableElementAction extends ElementAction {
 
-    protected TypeableElementAction(Element element, ElementRole role, ActionCapability capability) {
+    protected TypeableElementAction(UIElement element, ElementRole role, ActionCapability capability) {
         super(element, role, capability);
     }
 

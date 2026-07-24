@@ -17,7 +17,7 @@ import java.util.Map;
  * {@link #getSecondaryLocator()} if the displayed key/value are not actual property keys.
  * </p>
  */
-public interface KeyValuePair<K, V>  extends Element{
+public interface KeyValuePair<K, V>  extends UIElement{
     /** @return logical key component (often the enum constant name or internal identifier). */
     K getKey();
     /** @return logical value component (often human readable label). */
@@ -28,7 +28,7 @@ public interface KeyValuePair<K, V>  extends Element{
     /** @return alias to {@link #toEntry()} for semantic clarity in streaming contexts. */
     default Map.Entry<K, V> keyValuePair() { return toEntry(); }
 
-    // bridging helpers (Element defaults for KeyValuePair implementors)
+    // bridging helpers (UIElement defaults for KeyValuePair implementors)
     default String getExternalFileName() { return null; }
     default String getSecondaryLocator() { return getValue() == null ? null : getValue().toString(); }
     default Object[] getArgs() { return new Object[0]; }

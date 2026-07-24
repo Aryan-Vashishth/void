@@ -24,7 +24,7 @@ import static org.testng.Assert.assertSame;
 
 /**
  * Verifies that each capability interface returns the expected {@link ActionCapability}
- * constant through {@code element.capability()} (now on {@link elements.api.Element}).
+ * constant through {@code element.capability()} (now on {@link elements.api.UIElement}).
  *
  * <p>Uses anonymous inner classes -- no Mockito or engine required.</p>
  */
@@ -124,8 +124,8 @@ public class ActionCapabilityProviderTest {
 
     @Test
     public void element_capabilityResolvesWithoutRegistry() {
-        elements.api.Element element = stubClickable();
-        // capability() is now on Element -- no separate provider interface needed.
+        elements.api.UIElement element = stubClickable();
+        // capability() is now on UIElement -- no separate provider interface needed.
         assertSame(element.capability(), ActionCapability.CLICKABLE);
     }
 

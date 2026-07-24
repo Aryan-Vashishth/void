@@ -3,7 +3,7 @@ package core.actions;
 import core.annotations.Internal;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 import java.util.function.BiConsumer;
@@ -37,7 +37,7 @@ public final class ElementActions {
      * @param op      the action logic — receives engine and resolved descriptor
      * @return an ElementAction that supports both perform() and resolve()
      */
-    public static Action of(Element element, ElementRole role,
+    public static Action of(UIElement element, ElementRole role,
                             BiConsumer<UIEngine, LocatorDescriptor> op) {
         ActionCapability capability = capabilityFor(element);
 
@@ -52,7 +52,7 @@ public final class ElementActions {
         return ActionProfiles.applyConfiguredDefault(base);
     }
 
-    private static ActionCapability capabilityFor(Element element) {
+    private static ActionCapability capabilityFor(UIElement element) {
         return element.capability();
     }
 }

@@ -1,12 +1,12 @@
 package tests.demo.pages;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.api.capability.*;
 
 /**
  * Complex page-element catalogue for the Account Mapping page.
  *
- * <p>Exercises <b>every</b> {@link Element} sub-interface with deep nesting,
+ * <p>Exercises <b>every</b> {@link UIElement} sub-interface with deep nesting,
  * properties-backed resolution, and dynamic {@code %s} locator templates.
  * Purpose-built to stress-test {@code JsonLocatorMigrator} output.</p>
  *
