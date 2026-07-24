@@ -33,7 +33,7 @@ the legacy surface that anchors Selenium vocabulary in the core. At every milest
 the framework builds, tests pass, and existing test suites written against the
 stable tiers keep compiling.
 
-Ten initiatives, 37 phases, five milestones:
+Ten initiatives, 38 phases, five milestones:
 
 | Milestone | Meaning | Initiatives |
 |---|---|---|
@@ -131,7 +131,7 @@ Sequencing rules:
 | I3 | Capability Model | Open, declarative capability set; no silent fallbacks | 3 | [initiative-3-capability-model.md](initiative-3-capability-model.md) |
 | I4 | Execution Boundary | Sealed engine contract; neutral execution-owner contract; kernel retyped | 5 | [initiative-4-execution-boundary.md](initiative-4-execution-boundary.md) |
 | I5 | Session Model | Session as first-class neutral concept; bootstrap de-Seleniumized | 4 | [initiative-5-session-model.md](initiative-5-session-model.md) |
-| I6 | Domain Registration | Domain as registration unit; Web assembled as first Domain; probe domain gate | 3 | [initiative-6-domain-registration.md](initiative-6-domain-registration.md) |
+| I6 | Domain Registration | Domain as registration unit; Web assembled as first Domain with its own physical package root; probe domain gate | 4 | [initiative-6-domain-registration.md](initiative-6-domain-registration.md) |
 | I7 | Locator Generalization | Open strategy set; descriptor ownership moved domain-side; By-path deleted | 3 | [initiative-7-locator-generalization.md](initiative-7-locator-generalization.md) |
 | I8 | Interaction Semantics | Description/occurrence split, multi-subject binding, Result contract | 3 | [initiative-8-interaction-semantics.md](initiative-8-interaction-semantics.md) |
 | I9 | Legacy Removal & Public API | DSL re-founded, legacy deleted, vocabulary reclaimed, tiers re-declared | 5 | [initiative-9-legacy-removal.md](initiative-9-legacy-removal.md) |
@@ -186,6 +186,13 @@ may be added to this ledger without a deletion phase.
    prove neutrality WITHOUT building REST/CLI for real. Building a production second
    domain inside this roadmap would double its length; it is explicitly out of scope
    and becomes its own initiative after M4.
+8. **Physical package relocation (6.4) landing without a complete ownership audit.**
+   The ADR-021 addendum is explicit that relocation follows the 6.2 matrix, not
+   inference during implementation; the mitigation is structural, not just
+   discipline: 6.4's dependency on 6.2 requires zero unassigned rows before any file
+   moves, and the phase forbids widening visibility to work around a compile error
+   caused by the move (guardrail addition below) -- a widened-by-accident member is
+   the same failure mode as risk #2's churn, one level down at the member scope.
 
 ---
 
@@ -201,7 +208,7 @@ may be added to this ledger without a deletion phase.
 | 6 | 5.1 -> 5.2 (parallel: 7.1 -> 7.2) | |
 | 7 | 5.3 -> 5.4; 6.1 -> 6.2 -> 6.3 (parallel: 7.3) | M4 |
 | 8 | 8.1 -> 8.2 | |
-| 9 | 9.1 -> 9.2 -> 9.3 -> 9.4 (with 8.3) -> 9.5 | M5 |
+| 9 | 6.4 (with 9.4); 9.1 -> 9.2 -> 9.3 -> 9.4 (with 8.3, 6.4) -> 9.5 | M5 |
 
 ---
 
@@ -217,8 +224,8 @@ Per CONTRIBUTING.md: SemVer + Keep a Changelog; entries accrue under
 | M1 (I0) | none | Docs-only; no changelog entry per CONTRIBUTING |
 | M2 (I1-I3) | 0.5.0 | Added: `Target` root. Changed: `Element` renamed to `UIElement` (deprecated alias), capability set opened. Removed: UNKNOWN silent profile fallback. Deprecated: old hook package location (2.1 bridges) |
 | M3 (I4) | 0.6.0 | Added: neutral execution-owner contract, engine registry. Deprecated: UIEngine-typed bridge overloads |
-| M4 (I5-I7) | 0.7.0 | Added: Session, domain registration, probe domain. Changed: bootstrap no longer requires `driver.properties`; open locator strategy set. Removed: By-returning resolver path |
-| M5 (I8-I9) | 1.0.0 | Removed: `Interactions`, `Via`, `UIContext`, `ExecutionContext`, bridges, deprecated aliases. Changed: vocabulary renames (Action -> Interaction) with migration guide. Added: Result contract, multi-subject binding |
+| M4 (I5-I7) | 0.7.0 | Added: Session, domain registration (6.1), Web domain declared with its Class Migration Matrix (6.2, docs/planning only), probe domain. Changed: bootstrap no longer requires `driver.properties`; open locator strategy set. Removed: By-returning resolver path |
+| M5 (I8-I9) | 1.0.0 | Removed: `Interactions`, `Via`, `UIContext`, `ExecutionContext`, bridges, deprecated aliases. Changed: vocabulary renames (Action -> Interaction) with migration guide; web-owned code physically relocated to `domain.automation.web.*` (6.4) with published FQN mapping. Added: Result contract, multi-subject binding |
 
 The release train is now pinned by the plan-level sequence in
 `docs/plan/draft/README.md`: 0.3.0 ships `initiative/engine-decoupling`, 0.4.0
@@ -245,9 +252,11 @@ At M5 the conceptual chain holds end to end, with enforcement, not intention:
 - **Capability**: an open, declarative set; a new domain introduces capabilities
   without editing runtime-owned types; no silent UNKNOWN behavior remains (I3).
 - **Domain**: a registration unit that defines vocabulary and ships execution
-  owners; Web is the first registered Domain (6.2); the probe domain (6.3) is the
-  standing proof that a domain integrates with zero runtime modification -- it runs
-  in CI forever as a regression test for neutrality.
+  owners; Web is the first registered Domain (6.2), physically rooted at
+  `domain.automation.web.*` (6.4) per an audited migration matrix rather than a
+  mechanical move; the probe domain (6.3) is the standing proof that a domain
+  integrates with zero runtime modification -- it runs in CI forever as a
+  regression test for neutrality.
 - **Runtime**: orchestration, session lifecycle, validation, and observation only;
   no Selenium import, no UI vocabulary, no closed enumerations of domain concepts;
   bootstrap starts without `driver.properties` when no web domain is in play (5.2).
@@ -284,3 +293,13 @@ repair identified as D11.
    executors, resolution, platform internals). A second implementation of an
    existing medium (Playwright) joins the existing domain's implementation layer;
    it never becomes a sibling domain.
+9. No physical package relocation without a committed ownership audit naming
+   every moved type first (the 6.2 Class Migration Matrix pattern). A phase that
+   relocates files it did not first enumerate and justify is inference, not audit,
+   and is out of process.
+10. A compile error caused by a package move is never resolved by widening
+    visibility. Widen only after tracing why the dependency crosses the new
+    package boundary and confirming no narrower fix (same-package placement,
+    an explicit abstraction, composition) applies -- the same discipline
+    Section 6 already requires for ordinary relocation, restated because package
+    moves are where it is most tempting to skip.

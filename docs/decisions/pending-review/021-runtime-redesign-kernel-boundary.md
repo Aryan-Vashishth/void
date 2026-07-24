@@ -201,6 +201,64 @@ as a second axis; it does not replace the engine neutrality work already done.
 
 ---
 
+## Addendum (2026-07-24) -- Physical Package Topology
+
+An architecture-conversation review proposed adopting `domain.automation.*` as a
+physical package tree (`domain.automation.web`, with `mobile`/`api`/`database` as
+future siblings). This addendum resolves how that proposal integrates with the
+kernel/domain boundary this ADR already established, expanding Initiative I6
+(Domain Registration), phase 6.2.
+
+### Decision
+
+**`domain.automation.*` is adopted as the physical package root for domain-owned
+code.** Web is the first occupant: web-owned vocabulary and implementations
+(`UIElement`, UI capabilities, concrete UI interactions, roles, `UIEngine`,
+`SeleniumEngine`, locator resolution) relocate to `domain.automation.web.*`,
+sub-packaged by logical vs. implementation ownership per 6.2's existing
+distinction (guardrail rule 8).
+
+**Kernel-neutral code does not move under `domain.automation`.** `Executor`,
+`Session`, `Flow`/`FlowExecutor`, `Interaction`/`Action`, `ActionCapability`,
+`ActionTrace`, hook contracts, and the `VOID`/`VOIDBuilder` runtime facade stay
+outside the domain tree, in a neutral root. This ADR does not pre-name that root
+(e.g. whether it stays `core.*`, or is renamed for symmetry with
+`domain.automation`) -- that is an ownership-audit output, not a decision made
+from first principles here. A neutral package existing merely to mirror
+`domain.automation`'s shape is exactly the "empty speculative abstraction" the
+roadmap's stability rules already forbid.
+
+**Relocation is ownership-audit-driven, not mechanical.** No file moves under
+`core.*`, `elements.*`, or `core.actions` until phase 6.2 produces a Class
+Migration Matrix (current type, current package, target package, visibility,
+reason) for every affected type. A blanket move of "everything currently under
+`core`/`elements`" is explicitly not authorized by this addendum; only types the
+audit assigns to the Web domain move to `domain.automation.web`.
+
+**Vocabulary is unchanged and enforced.** The execution seam is `Executor` (AD2).
+No document, ADR, or code may introduce a synonym for it ("Engine Contract" or
+similar) or use `UIEngine` as if it were the neutral name -- `UIEngine` remains
+exactly what AD2 already says: the web domain's concrete refinement of
+`Executor`.
+
+### Consequences
+
+- I6 gains a fourth phase (6.4) for the physical relocation itself, sequenced
+  after the ownership audit/matrix (6.2) and the probe domain (6.3), and aligned
+  with the M5/1.0.0 breaking-change boundary alongside I9.4's vocabulary reclaim
+  -- one mechanical-rename wave, not two.
+- The roadmap's phase count updates from 37 to 38; the I6 row and versioning
+  table in `runtime-redesign/index.md` are updated in the same commit as this
+  addendum.
+- `core-packages.md` and `system-overview.md` gain a physical-topology section
+  once 6.4 lands; not before (docs describe what exists, not the plan for what
+  will exist -- that lives in the roadmap).
+- This addendum does not touch AD1-AD3 or the kernel membership list; it resolves
+  only where kernel and web-domain code physically live once I6 assembles the Web
+  domain.
+
+---
+
 ## Related
 
 - Architecture audit: `docs/audits/ongoing/architecture-audit-2026-07-domain-model.md`
