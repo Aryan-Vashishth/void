@@ -1,11 +1,11 @@
 package core.actions;
 
+import core.actions.hooks.ActionHandler;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
 import core.executor.FlowExecutor;
 import core.flow.Flow;
-import core.interactions.hooks.ActionHandler;
 import elements.api.UIElement;
 import elements.meta.ElementRole;
 

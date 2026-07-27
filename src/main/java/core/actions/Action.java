@@ -1,11 +1,11 @@
 package core.actions;
 
+import core.actions.hooks.ActionHandler;
+import core.actions.hooks.AfterActionHandler;
+import core.actions.hooks.BeforeActionHandler;
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
-import core.interactions.hooks.ActionHandler;
-import core.interactions.hooks.AfterActionHandler;
-import core.interactions.hooks.BeforeActionHandler;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;

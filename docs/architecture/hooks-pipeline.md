@@ -17,13 +17,14 @@ VOID's hook system allows you to compose reusable pre- and post-action behaviors
 1. [Overview](#overview)
 2. [How Hooks Work](#how-hooks-work)
 3. [ActionHandler Interface](#actionhandler-interface)
-4. [Built-In Before Hooks](#built-in-before-hooks)
-5. [Built-In After Hooks](#built-in-after-hooks)
-6. [Using Hooks in Interactions](#using-hooks-in-interactions)
-7. [UIContext and UIElement State](#uicontext-and-element-state)
-8. [Writing Custom Hooks](#writing-custom-hooks)
-9. [Hooks vs UIEngine Built-In Behavior](#hooks-vs-uiengine-built-in-behavior)
-10. [Patterns and Best Practices](#patterns-and-best-practices)
+4. [Kernel Ownership](#kernel-ownership)
+5. [Built-In Before Hooks](#built-in-before-hooks)
+6. [Built-In After Hooks](#built-in-after-hooks)
+7. [Using Hooks in Interactions](#using-hooks-in-interactions)
+8. [UIContext and UIElement State](#uicontext-and-element-state)
+9. [Writing Custom Hooks](#writing-custom-hooks)
+10. [Hooks vs UIEngine Built-In Behavior](#hooks-vs-uiengine-built-in-behavior)
+11. [Patterns and Best Practices](#patterns-and-best-practices)
 
 ---
 
@@ -97,6 +98,34 @@ static ActionHandler legacy(Consumer<UIEngine> handler) {
     return (engine, descriptor) -> handler.accept(engine);
 }
 ```
+
+---
+
+## Kernel Ownership
+
+The hook **contract** -- `ActionHandler`, `BeforeActionHandler`, `AfterActionHandler` --
+lives in `core.actions.hooks`, not `core.interactions.hooks`. It moved there in
+`runtime-redesign` Initiative I2, phase 2.1 ("hooks ownership", ADR-021, audit D4):
+`core.interactions` is the frozen legacy orchestrator zone, and the kernel (`Action`,
+`HookChainAction`, `ActionProfile`) must not import through it.
+
+`core.interactions.hooks.ActionHandler`/`BeforeActionHandler`/`AfterActionHandler` still
+exist as `@Deprecated(forRemoval = true)` bridges (old interface extends new) so existing
+imports and implementations keep compiling. They carry no behavior of their own and are
+scheduled for deletion in I9.3. New code should import from `core.actions.hooks`.
+
+**What did not move:** `Before` and `After` -- the pre-built constant libraries -- stay in
+`core.interactions.hooks`. They are UI-domain content (locator waits, scroll, highlight
+via `UIEngine`), not the neutral contract, and are deferred to a later relocation (I2.2's
+kernel/UI action split touches the same category of content, e.g. `ActionProfiles`' and
+`Profiles`' capability-specific default hook lists, which also still reference `Before`/
+`After` directly and are documented as deferred, not fixed, by 2.1).
+
+This boundary is enforced by `KernelBoundaryRulesTest`
+(`src/test/java/core/architecture/`): `core.actions.hooks` may never depend on
+`core.interactions`; within `core.actions` itself, only `ActionProfiles` and `Profiles`
+(by name, for the reason above) and the `ElementAction` family (UI-domain content
+pending I2.2) are exempted.
 
 ---
 
@@ -259,9 +288,9 @@ Use `AfterActionHandler` or `BeforeActionHandler` as the field type (not the raw
 ```java
 package tests.your.hooks;
 
+import core.actions.hooks.AfterActionHandler;
+import core.actions.hooks.BeforeActionHandler;
 import core.engine.LocatorDescriptor;
-import core.interactions.hooks.AfterActionHandler;
-import core.interactions.hooks.BeforeActionHandler;
 import your.pages.SomePage;
 import elements.meta.ElementRole;
 import java.time.Duration;

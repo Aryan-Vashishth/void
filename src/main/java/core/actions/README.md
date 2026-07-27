@@ -194,5 +194,6 @@ External consumers interact with Actions **opaquely** — they pass them to `Flo
 - `core.flow` — composes Actions into sequences
 - `core.executor` — iterates and executes flows
 - `core.engine.UIEngine` — performs the actual browser interaction
-- `core.interactions.hooks` — ActionHandler, Before, After hook constants
+- `core.actions.hooks` — kernel-owned hook contract: `ActionHandler`, `BeforeActionHandler`, `AfterActionHandler`
+- `core.interactions.hooks` — domain-specific hook payload libraries: `Before`, `After` (deprecated bridges of the old contract types remain here until I9.3)
 

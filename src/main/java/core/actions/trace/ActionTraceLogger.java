@@ -1,10 +1,10 @@
 package core.actions.trace;
 
-import core.interactions.hooks.ActionHandler;
-import core.interactions.hooks.After;
-import core.interactions.hooks.Before;
+import core.actions.hooks.ActionHandler;
 
 import java.lang.reflect.Field;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static core.logging.CustomLogger.debug;
 
@@ -19,6 +19,29 @@ public final class ActionTraceLogger {
     private ActionTraceLogger() {}
 
     /**
+     * Constant-holder classes searched by {@link #nameOf(ActionHandler)} for a matching
+     * field name. Populated via {@link #registerNameSource(Class)} rather than a hardcoded
+     * reference, so this kernel-owned class (ADR-021, runtime-redesign I2.1) does not need
+     * to import domain-specific hook payload libraries (e.g. {@code core.interactions.hooks
+     * .Before}/{@code .After}) to name their constants.
+     */
+    private static final List<Class<?>> NAME_SOURCES = new CopyOnWriteArrayList<>();
+
+    /**
+     * Registers a constant-holder class whose {@code public static final} fields should be
+     * searched by {@link #nameOf(ActionHandler)}.
+     *
+     * <p>Domain-specific hook libraries call this (typically from a static initializer) to
+     * make their constants resolve to a readable name in trace output instead of falling
+     * back to {@code "lambda"}.</p>
+     *
+     * @param holder a class whose public static fields hold {@link ActionHandler} constants
+     */
+    public static void registerNameSource(Class<?> holder) {
+        NAME_SOURCES.add(holder);
+    }
+
+    /**
      * Emit a formatted trace block via the DEBUG logger.
      *
      * @param trace the completed action trace
@@ -30,14 +53,15 @@ public final class ActionTraceLogger {
     /**
      * Resolves a human-readable name for a hook instance.
      *
-     * <p>For named constants in {@link Before} / {@link After}, returns the field name
-     * (e.g. {@code "HIGHLIGHT_ELEMENT"}). For lambdas, returns {@code "lambda"}.</p>
+     * <p>Searches classes registered via {@link #registerNameSource(Class)} for a matching
+     * constant, returning its field name (e.g. {@code "HIGHLIGHT_ELEMENT"}). For lambdas or
+     * unregistered constants, returns {@code "lambda"}.</p>
      *
      * @param handler the hook to name
      * @return best-effort display name
      */
     public static String nameOf(ActionHandler handler) {
-        for (Class<?> cls : new Class<?>[]{ Before.class, After.class }) {
+        for (Class<?> cls : NAME_SOURCES) {
             for (Field field : cls.getFields()) {
                 try {
                     if (field.get(null) == handler) return field.getName();

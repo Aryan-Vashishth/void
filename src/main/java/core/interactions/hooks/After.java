@@ -1,5 +1,6 @@
 package core.interactions.hooks;
 
+import core.actions.hooks.AfterActionHandler;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 
@@ -34,6 +35,10 @@ import static core.logging.CustomLogger.debug;
  * Compatible with both Interactions and Action/Flow/FlowExecutor pipelines.
  */
 public final class After {
+
+    static {
+        core.actions.trace.ActionTraceLogger.registerNameSource(After.class);
+    }
 
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
 

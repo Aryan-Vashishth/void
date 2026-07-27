@@ -1,5 +1,6 @@
 package core.interactions.hooks;
 
+import core.actions.hooks.BeforeActionHandler;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 
@@ -32,6 +33,10 @@ import static core.logging.CustomLogger.debug;
  * Compatible with both Interactions and Action/Flow/FlowExecutor pipelines.
  */
 public final class Before {
+
+    static {
+        core.actions.trace.ActionTraceLogger.registerNameSource(Before.class);
+    }
 
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
 

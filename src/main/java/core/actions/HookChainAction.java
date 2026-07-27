@@ -1,11 +1,11 @@
 package core.actions;
 
+import core.actions.hooks.ActionHandler;
 import core.actions.trace.ActionTrace;
 import core.actions.trace.ActionTraceLogger;
 import core.actions.trace.TraceStatus;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
-import core.interactions.hooks.ActionHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

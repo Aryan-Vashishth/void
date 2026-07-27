@@ -202,4 +202,47 @@ public class KernelBoundaryRulesTest {
 
         rule.check(allClasses);
     }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Domain neutrality -- kernel hook ownership (ADR-021, I2 phase 2.1)
+    //
+    // The hook contract (ActionHandler, BeforeActionHandler, AfterActionHandler)
+    // moved to core.actions.hooks so the kernel no longer imports through the
+    // frozen core.interactions zone (audit D4). ActionProfiles and Profiles are
+    // excluded by name (both package-private/public but not assignable to a
+    // common test-visible type) -- they still hold capability-specific default
+    // hook constants (Before.*/After.*), which are UI-domain content deferred
+    // to I2.2's kernel/UI action split, not this phase's move.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "core.actions.hooks has no core.interactions dependency")
+    public void kernelHooksPackageDoesNotImportLegacyInteractions() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.actions.hooks..")
+                .should().dependOnClassesThat().resideInAPackage("core.interactions..")
+                .because(
+                    "The hook contract is kernel-owned as of I2.1; it must not import through " +
+                    "the frozen core.interactions zone. ADR-021, audit D4.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.actions kernel types (excluding the deferred ActionProfiles/Profiles"
+            + " default-hook constants) have no core.interactions dependency")
+    public void actionsKernelDoesNotImportLegacyInteractions() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.actions")
+                .and().areNotAssignableTo(ElementAction.class)
+                .and().areNotAssignableTo(ElementActions.class)
+                .and().haveNameNotMatching("core\\.actions\\.ActionProfiles(\\$.*)?")
+                .and().haveNameNotMatching("core\\.actions\\.Profiles(\\$.*)?")
+                .should().dependOnClassesThat().resideInAPackage("core.interactions..")
+                .because(
+                    "Action, HookChainAction, ActionCapability, and ActionProfile are kernel " +
+                    "types (ADR-021) and must not import the frozen core.interactions zone. " +
+                    "ActionProfiles/Profiles are excluded: their capability-specific default " +
+                    "hook constants are UI-domain content, deferred to I2.2. runtime-redesign I2.1.");
+
+        rule.check(allClasses);
+    }
 }

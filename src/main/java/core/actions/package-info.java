@@ -10,13 +10,13 @@
  *   <li>{@link core.actions.Action} — functional interface representing a single deferred
  *       UI operation. Produced by capability interfaces (e.g., {@code element.click()},
  *       {@code element.type("text")}). Supports directional hook composition via
- *       {@link core.actions.Action#before(core.interactions.hooks.BeforeActionHandler...)} and
- *       {@link core.actions.Action#after(core.interactions.hooks.AfterActionHandler...)}.</li>
+ *       {@link core.actions.Action#before(core.actions.hooks.BeforeActionHandler...)} and
+ *       {@link core.actions.Action#after(core.actions.hooks.AfterActionHandler...)}.</li>
  *   <li>{@link core.actions.ElementActions} — internal factory that creates element-bound
  *       Actions supporting descriptor resolution. Not part of the public DSL — capability
  *       interfaces use it internally to emit actions.</li>
  *   <li>{@code HookChainAction} — internal wrapper that stores before/after
- *       {@link core.interactions.hooks.ActionHandler} hooks and emits an
+ *       {@link core.actions.hooks.ActionHandler} hooks and emits an
  *       {@link core.actions.trace.ActionTrace} on each execution.</li>
  * </ul>
  *
@@ -46,7 +46,7 @@
  * @see core.flow.Flow
  * @see core.executor.FlowExecutor
  * @see core.engine.UIEngine
- * @see core.interactions.hooks.ActionHandler
+ * @see core.actions.hooks.ActionHandler
  */
 package core.actions;
 

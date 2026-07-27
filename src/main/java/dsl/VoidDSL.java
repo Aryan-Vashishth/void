@@ -9,7 +9,7 @@ import elements.api.UIElement;
 import core.actions.ActionCapability;
 import elements.api.capability.*;
 import core.utils.ResolvableEnum;
-import core.interactions.hooks.ActionHandler;
+import core.actions.hooks.ActionHandler;
 import core.interactions.Interactions;
 import core.utils.EnumResolver;
 

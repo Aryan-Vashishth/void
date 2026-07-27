@@ -14,7 +14,7 @@ import elements.api.capability.Selectable;
 import elements.api.capability.Checkable;
 import elements.api.capability.Searchable;
 import elements.api.capability.MultiSelectable;
-import core.interactions.hooks.ActionHandler;
+import core.actions.hooks.ActionHandler;
 import core.interactions.hooks.Before;
 import core.interactions.hooks.After;
 import core.resolvers.locator.api.LocatorResolver;

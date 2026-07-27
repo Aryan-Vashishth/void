@@ -57,6 +57,42 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
   **Deferred:** P8 (`UIEngineFactory` registry) to runtime-redesign I4.1; P11 (`Via` full deletion) to runtime-redesign I9.3.
 
+- **Target Model -- runtime-redesign Initiative I1 (phases 1.1-1.4)**
+  - `core.target.Target` introduced: domain-neutral root carrying `getDisplayText()`,
+    `getArgs()`, `effectiveArgs()`, `NO_ARGS` -- zero UI or Selenium imports
+  - `elements.api.Element` renamed to `elements.api.UIElement`, now `extends Target`;
+    `getArgs`/`effectiveArgs`/`NO_ARGS` removed from `UIElement` (inherited from `Target`);
+    `getDisplayText()` kept as an `@Override` default preserving the enum-name-split label
+  - `UIEngine.resolve()` / `SeleniumEngine.resolve()` retyped to `UIElement`; all capability
+    interfaces, page object enums, and demo/test sources updated (pure rename, no logic change)
+  - Kernel audited against ADR-021's membership list and found already `UIElement`-free;
+    `KernelBoundaryRulesTest` gains four ratchet checks so this cannot regress:
+    `core.actions.trace`, `core.executor`, `core.flow`, and `core.actions` kernel types
+    (excluding the `ElementAction` family, UI-domain content pending I2.2) may never
+    depend on `UIElement`
+  - **BREAKING CHANGE:** `Element` is removed. Replace `implements Element` with
+    `implements UIElement`
+
+- **Hooks ownership -- runtime-redesign Initiative I2, phase 2.1**
+  - The hook contract (`ActionHandler`, `BeforeActionHandler`, `AfterActionHandler`) moves
+    from `core.interactions.hooks` to the kernel-owned `core.actions.hooks`, so the kernel
+    no longer imports through the frozen `core.interactions` legacy zone (audit D4)
+  - `core.interactions.hooks.ActionHandler`/`BeforeActionHandler`/`AfterActionHandler` remain
+    as `@Deprecated(forRemoval = true)` bridges (old interface extends new); existing
+    imports and implementations keep compiling until removal in I9.3
+  - `Before`/`After` (the pre-built, domain-specific hook constant libraries) stay in
+    `core.interactions.hooks` -- they are UI-domain content, not the neutral contract
+  - `ActionTraceLogger.nameOf()` no longer imports `Before`/`After` directly: gains a
+    `registerNameSource(Class)` registry that `Before`/`After` populate via a static
+    initializer, removing a real kernel-to-domain coupling with no behavior change
+  - `KernelBoundaryRulesTest` gains two ratchet checks: `core.actions.hooks` and (with a
+    documented, named exclusion for `ActionProfiles`/`Profiles`, deferred to I2.2)
+    `core.actions` may never depend on `core.interactions`
+  - New `HookBridgeCompatibilityTest` verifies old-typed hook implementors (not just
+    lambdas) still work against the new-typed `Action.before()`/`after()` call sites
+  - **Deprecated:** `core.interactions.hooks.ActionHandler`, `BeforeActionHandler`,
+    `AfterActionHandler` -- use `core.actions.hooks.*` instead; scheduled for removal in I9.3
+
 ---
 
 ## [0.4.1] - 2026-07-23
