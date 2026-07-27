@@ -142,6 +142,26 @@ Versions follow [Semantic Versioning](https://semver.org/).
     on `elements.*`) and `docs/architecture/actions.md` (documents the three-stage split
     across I1.4, I2.2, I2.3)
 
+- **Kernel purity gate -- runtime-redesign Initiative I2, phase 2.4 (closes I2)**
+  - Consolidates the I2.1-I2.3 negative ("must not depend on X") checks into one named,
+    positive-allowlist boundary: `KernelBoundaryRulesTest.kernelPurity` asserts the kernel
+    depends only on JDK/javax, `core.logging`, `core.annotations`, `core.target`, itself
+    (`core.actions`/`.trace`/`.hooks`, `core.flow`, `core.executor`, `core.context` minus
+    the legacy `ExecutionContext`, `core.runtime`, `core.bootstrap`), and a short,
+    explicitly documented list of temporary exceptions, each cross-referenced to its
+    closing phase (`core.engine.UIEngine`/`LocatorDescriptor` close at I4;
+    `EngineBootstrap`/`UIEngineFactory` at 4.2; `DriverFactory`/`DriverFactory.Profile` at
+    I6.4; `core.interactions.hooks.Before`/`After` and `core.interactions.Interactions`/
+    `WebDriver` at I9.3; `ConfigLoader`/`ConfigPaths` unscheduled, narrow utility use)
+  - Mutation demo recorded (`docs/contributing/architecture-rules.md`): a temporary
+    disallowed dependency added to `core.actions.Action` was confirmed to fail the check
+    with a precise violation message, then reverted; full suite re-verified green before
+    the phase commit
+  - `CLAUDE.md`'s Architecture Invariants table gains an Axis column (engine / domain /
+    scope, per ADR-021's two neutrality axes) retrofitted onto existing rows, plus the new
+    kernel purity row (axis: domain)
+  - This closes runtime-redesign Initiative I2 (Kernel Extraction) -- all 4 phases done
+
 ---
 
 ## [0.4.1] - 2026-07-23

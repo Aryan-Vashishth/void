@@ -1,5 +1,7 @@
 package core.architecture;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -7,6 +9,9 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.Set;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
@@ -306,6 +311,104 @@ public class KernelBoundaryRulesTest {
                     "The kernel/UI-domain dependency direction is one-way: elements.api and " +
                     "elements.api.actions may depend on the kernel, never the reverse. Audit D1; " +
                     "runtime-redesign I2.3.");
+
+        rule.check(allClasses);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // Axis: Domain neutrality -- kernel purity gate (ADR-021, I2 phase 2.4)
+    //
+    // Consolidates I2.1-I2.3 into one named, positive-allowlist boundary,
+    // rather than the scattered negative ("must not depend on X") checks above.
+    // The kernel may depend on: JDK/javax, core.logging, core.annotations,
+    // core.target, itself (core.actions/.trace/.hooks, core.flow, core.executor,
+    // core.context minus the legacy ExecutionContext, core.runtime,
+    // core.bootstrap -- ADR-021 groups FrameworkBootstrap into "Runtime"), and
+    // NOTHING ELSE except the short, explicitly named list below.
+    //
+    // Every entry in KERNEL_PURITY_TEMPORARY_EXCEPTIONS is a real, currently-live
+    // dependency, not a hypothetical -- each is load-bearing today and closes on
+    // a specific later phase:
+    //
+    //   core.engine.UIEngine, core.engine.LocatorDescriptor
+    //       Action.perform()/resolve() and HookChainAction are typed against
+    //       UIEngine/LocatorDescriptor because the neutral Executor contract
+    //       (ADR-021 AD2) does not exist yet. Closes: I4 (Executor introduced;
+    //       these become bridge overloads per the Migration Ledger, deleted I9.4).
+    //   core.engine.EngineBootstrap, core.engine.UIEngineFactory
+    //       VOID/VOIDBuilder's engine-selection wiring. Already in the
+    //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
+    //       closes 4.2).
+    //   core.driver.DriverFactory
+    //       VOIDBuilder.profile(DriverFactory.Profile). Tracked in the ADR-021
+    //       addendum / core-driver-package-selenium-coupling backlog finding,
+    //       absorbed into I6.4; the DriverFactory.Profile API-surface decision
+    //       gates that phase, not this one.
+    //   core.utils.ConfigLoader, core.utils.ConfigPaths
+    //       Config-driven default profile selection (ActionProfiles) and
+    //       bootstrap config paths (FrameworkBootstrap). Narrow, non-domain
+    //       utility dependency -- not yet slated for closure by a specific
+    //       phase; revisit if core.utils.web's ADR-020 work ever generalizes.
+    //   core.interactions.hooks.Before, core.interactions.hooks.After
+    //       ActionProfiles/Profiles' default hook constants -- already
+    //       documented and excluded by name in the I2.1/I2.2 checks above.
+    //   core.interactions.Interactions, org.openqa.selenium.WebDriver
+    //       VOID.interaction() and VOID.getDriver() -- both already
+    //       @Deprecated(forRemoval = true) bridges to the legacy path, tracked
+    //       in the Migration Ledger, closing I9.3.
+    //
+    // Risk (per the phase's own risk note): a check with silent, undocumented
+    // exceptions is a false-pass ratchet -- it would look green while hiding the
+    // real remaining gaps. Every exception here is named, reasoned, and
+    // cross-referenced so the check stays honest about what "kernel purity"
+    // actually means today versus the roadmap's end state.
+    // ═════════════════════════════════════════════════════════════════════
+
+    private static final Set<String> KERNEL_PURITY_TEMPORARY_EXCEPTIONS = Set.of(
+            "core.engine.UIEngine",
+            "core.engine.LocatorDescriptor",
+            "core.engine.EngineBootstrap",
+            "core.engine.UIEngineFactory",
+            "core.driver.DriverFactory",
+            "core.driver.DriverFactory$Profile",
+            "core.utils.ConfigLoader",
+            "core.utils.ConfigPaths",
+            "core.interactions.hooks.Before",
+            "core.interactions.hooks.After",
+            "core.interactions.Interactions",
+            "org.openqa.selenium.WebDriver"
+    );
+
+    private static final DescribedPredicate<JavaClass> KERNEL_PURITY_ALLOWED_DEPENDENCIES =
+            JavaClass.Predicates.resideInAnyPackage(
+                    "java..", "javax..",
+                    "core.logging..", "core.annotations..", "core.target..",
+                    "core.actions", "core.actions.trace..", "core.actions.hooks..",
+                    "core.flow..", "core.executor..", "core.runtime..", "core.bootstrap..")
+            .or(DescribedPredicate.describe(
+                    "is core.context.SessionContext (the kernel's own Session member, ADR-021)",
+                    javaClass -> javaClass.getFullName().equals("core.context.SessionContext")))
+            .or(DescribedPredicate.describe(
+                    "is a documented kernel-purity temporary exception (see class javadoc)",
+                    javaClass -> KERNEL_PURITY_TEMPORARY_EXCEPTIONS.contains(javaClass.getFullName())));
+
+    @Test(description = "kernel purity: kernel depends only on JDK/logging/annotations/target/itself,"
+            + " plus documented temporary exceptions")
+    public void kernelPurity() {
+        ArchRule rule = classes()
+                .that().resideInAnyPackage(
+                        "core.actions", "core.actions.trace..", "core.actions.hooks..",
+                        "core.flow..", "core.executor..", "core.context..", "core.runtime..",
+                        "core.bootstrap..")
+                .and().haveNameNotMatching("core\\.context\\.ExecutionContext")
+                .should().onlyDependOnClassesThat(KERNEL_PURITY_ALLOWED_DEPENDENCIES)
+                .because(
+                    "Consolidates I2.1-I2.3 into one named boundary (runtime-redesign I2.4): the " +
+                    "kernel may depend only on JDK, core.logging, core.annotations, core.target, " +
+                    "itself, and the short, explicitly documented list of temporary exceptions in " +
+                    "KERNEL_PURITY_TEMPORARY_EXCEPTIONS. core.context.ExecutionContext is excluded " +
+                    "from the subject set -- it is frozen legacy content (Migration Ledger, deleted " +
+                    "I9.3), not a kernel member. ADR-021.");
 
         rule.check(allClasses);
     }

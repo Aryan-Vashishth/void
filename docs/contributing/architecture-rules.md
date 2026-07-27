@@ -60,13 +60,33 @@ When an initiative phase cleans a new package of a forbidden dependency:
 The ratchet never loosens. Once a boundary is encoded, it is a non-negotiable invariant
 for all future work.
 
-### Current ratchet baseline (Phase 0.2, ADR-021)
+### Current ratchet baseline (Phase 0.2, ADR-021; consolidated I2.4)
 
 | Check class | Boundary encoded |
 |---|---|
 | `FacadeBoundaryRulesTest` | Test classes must not hold UIEngine fields or construct FlowExecutor directly |
 | `ElementStructureRulesTest` | UIElement enums must be nested inside a page class |
-| `KernelBoundaryRulesTest` | core.logging, core.flow, core.actions, elements.* are Selenium-free; core.runtime holds no WebDriver/DriverContext fields; LocatorDescriptor has no Selenium dependency |
+| `KernelBoundaryRulesTest` | core.logging, core.flow, core.actions, elements.* are Selenium-free; core.runtime holds no WebDriver/DriverContext fields; LocatorDescriptor has no Selenium dependency; core.actions/.trace/.hooks/core.flow/core.executor/core.context/core.runtime have no UIElement/ElementRole/capability/elements.* dependency (I1.4, I2.2, I2.3); `core.actions.hooks` and core.actions (excluding ActionProfiles/Profiles) have no core.interactions dependency (I2.1, I2.2); **`kernelPurity`** (I2.4) consolidates all of the above into one named, positive-allowlist boundary: the kernel may depend only on JDK/javax, core.logging, core.annotations, core.target, itself, and a short list of documented temporary exceptions (each cross-referenced to its closing phase in the test's own javadoc) |
+
+#### Mutation demo evidence (I2.4, `kernelPurity`)
+
+Recorded per this section's own protocol ("verify the rule FAILS when the forbidden
+import is temporarily added back"). Procedure: added a temporary
+`default DriverContext mutationDemoOnly() { return null; }` method to
+`core.actions.Action` (a disallowed dependency -- `core.driver.DriverContext` is not in
+the kernel purity allowlist or its temporary-exceptions list). Ran
+`mvn test -Dtest=KernelBoundaryRulesTest#kernelPurity`:
+
+```
+Architecture Violation [Priority: MEDIUM] - Rule 'classes that reside in any package
+[...] should only depend on classes that reside in any package [...]' was violated (1 times):
+Method <core.actions.Action.mutationDemoOnly()> has return type <core.driver.DriverContext>
+in (Action.java:0)
+```
+
+The rule failed precisely, naming the offending method and type. The mutation was then
+reverted (`git diff` confirmed zero remaining changes to `Action.java`) and the full
+suite re-run green (1191 tests, 0 failures) before the phase commit.
 
 ---
 
