@@ -127,6 +127,21 @@ Versions follow [Semantic Versioning](https://semver.org/).
     directly (capability interfaces return them opaquely per ADR-014), so breakage is
     limited to any code importing them by name.
 
+- **Cycle break -- runtime-redesign Initiative I2, phase 2.3**
+  - Audit D1 (the `elements.api` <-> kernel mutual dependency was proof the two packages
+    were one bounded context): verified that after 2.2's physical relocation, no
+    kernel-owned package (`core.actions`, `core.actions.trace`, `core.actions.hooks`,
+    `core.flow`, `core.executor`, `core.context`, `core.runtime`) imports anything from
+    `elements.*` -- the cycle was already gone as a side effect of 2.2's move; no
+    production code changed in this phase
+  - `KernelBoundaryRulesTest` gains `kernelPackagesDoNotDependOnElements`: a permanent
+    ratchet forbidding any kernel package from depending on `elements.*` at all, broader
+    than the existing type-specific checks -- the dependency direction between the
+    kernel and the UI domain is now enforced as one-way by construction
+  - Updates `docs/architecture/elements.md` (new invariant #7: the kernel never depends
+    on `elements.*`) and `docs/architecture/actions.md` (documents the three-stage split
+    across I1.4, I2.2, I2.3)
+
 ---
 
 ## [0.4.1] - 2026-07-23

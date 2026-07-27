@@ -279,4 +279,34 @@ public class KernelBoundaryRulesTest {
 
         rule.check(allClasses);
     }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Domain neutrality -- cycle break (ADR-021, I2 phase 2.3)
+    //
+    // Audit D1: the elements.api <-> kernel mutual dependency was proof the two
+    // packages were one bounded context. After I2.2 physically moved
+    // ElementAction and its family to elements.api.actions, the kernel->elements
+    // edge was already gone in practice (verified: zero elements.* imports in
+    // any kernel package). This is the permanent ratchet that makes D1
+    // unrecurrable -- broader than the individual UIElement/ElementRole/
+    // capability checks above, it forbids the kernel from depending on
+    // elements.* at all, full stop, across every kernel-owned package
+    // (ADR-021 membership: core.actions, core.actions.trace, core.actions.hooks,
+    // core.flow, core.executor, core.context, core.runtime).
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "no kernel package depends on elements.* (cycle break, D1 unrecurrable)")
+    public void kernelPackagesDoNotDependOnElements() {
+        ArchRule rule = noClasses()
+                .that().resideInAnyPackage(
+                        "core.actions", "core.actions.trace..", "core.actions.hooks..",
+                        "core.flow..", "core.executor..", "core.context..", "core.runtime..")
+                .should().dependOnClassesThat().resideInAPackage("elements..")
+                .because(
+                    "The kernel/UI-domain dependency direction is one-way: elements.api and " +
+                    "elements.api.actions may depend on the kernel, never the reverse. Audit D1; " +
+                    "runtime-redesign I2.3.");
+
+        rule.check(allClasses);
+    }
 }

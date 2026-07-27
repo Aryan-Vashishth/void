@@ -312,6 +312,13 @@ These invariants are enforced by `ElementStructureRulesTest` and must not be vio
 6. **`getAllLocatorRoles()` returns an ordered map.** The first entry is the primary locator.
    `getPrimaryLocator()` relies on iteration order. Use `LinkedHashMap`-backed maps only.
 
+7. **The kernel never depends on `elements.*`.** `elements.api` and `elements.api.actions`
+   depend on the kernel (`core.actions.Action`, `ActionCapability`, `ActionProfile`,
+   `ActionProfiles`) — never the reverse. This was audit finding D1 (the two packages'
+   mutual dependency was proof they were one bounded context); `KernelBoundaryRulesTest`'s
+   `kernelPackagesDoNotDependOnElements` (runtime-redesign I2.3) makes it a permanent,
+   enforced ratchet rather than a one-time cleanup that could silently regress.
+
 ---
 
 ## Extension Guide

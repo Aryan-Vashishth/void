@@ -50,7 +50,7 @@ membership list and the `runtime-redesign` roadmap's Initiative I2 (Kernel Extra
   genuinely UI-specific — `ElementAction.resolve()` calls `UIEngine.resolve(UIElement,
   ElementRole, ...)`, which requires the UI-domain locator model.
 
-This split happened in two stages:
+This split happened in three stages:
 
 1. **`runtime-redesign` I1, phase 1.4** ("kernel target-neutrality"): auditing
    `core.actions` found the kernel types were already `UIElement`-free (a consequence of
@@ -63,12 +63,21 @@ This split happened in two stages:
    etc.) extracted into the new `elements.api.actions.CapabilityProfiles`, leaving
    `ActionProfiles` with only the domain-neutral `DEFAULT_SAFE`/`DEFAULT_RELIABLE` and
    the config-driven default-selection mechanism.
+3. **`runtime-redesign` I2, phase 2.3** ("cycle break", audit D1): verified that after
+   2.2's physical move, no kernel package (`core.actions`, `core.actions.trace`,
+   `core.actions.hooks`, `core.flow`, `core.executor`, `core.context`, `core.runtime`)
+   imports anything from `elements.*` at all -- the mutual dependency the audit
+   identified as proof the two packages were one bounded context was already gone as a
+   side effect of 2.2's relocation. The phase's contribution is the permanent ratchet
+   (`kernelPackagesDoNotDependOnElements`) rather than a code change: the dependency
+   direction is now enforced as one-way, kernel-neutral by construction going forward.
 
 `KernelBoundaryRulesTest` (`src/test/java/core/architecture/`) enforces the boundary with
-no exemptions needed anymore: `core.actions` (root package) may never depend on
-`UIElement`, `ElementRole`, or `elements.api.capability`; `core.actions.trace`,
-`core.executor`, and `core.flow` may never depend on `UIElement` either;
-`elements.api.actions` must stay Selenium-free.
+no exemptions needed anymore: no kernel-owned package may depend on `elements.*` at all
+(the broad I2.3 ratchet), with narrower checks retained for specific types
+(`core.actions` may never depend on `UIElement`, `ElementRole`, or
+`elements.api.capability`; `core.actions.trace`, `core.executor`, and `core.flow` may
+never depend on `UIElement`); `elements.api.actions` must stay Selenium-free.
 
 **What remains a documented, deliberate gap (not fixed by 2.2):** `ActionProfiles` and
 `Profiles` still import `core.interactions.hooks.Before`/`After` directly for their
