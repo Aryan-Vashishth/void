@@ -2,10 +2,10 @@ package elements.api.capability;
 
 import core.actions.ActionCapability;
 
-import core.actions.AppendTypeAction;
-import core.actions.ClearAction;
-import core.actions.TypeAction;
-import core.actions.TypeAndPressAction;
+import elements.api.actions.AppendTypeAction;
+import elements.api.actions.ClearAction;
+import elements.api.actions.TypeAction;
+import elements.api.actions.TypeAndPressAction;
 import elements.api.UIElement;
 import elements.meta.ElementRole;
 

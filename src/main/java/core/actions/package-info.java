@@ -1,29 +1,39 @@
 /**
- * {@code core.actions} — Deferred execution model for UI interactions.
+ * {@code core.actions} — Kernel-owned deferred execution model.
  *
- * <p>This package defines the <b>Action/Flow/FlowExecutor</b> pipeline that forms VOID's
- * primary execution path. Actions represent deferred UI operations (intent) that are
- * composed into flows and executed later by a {@link core.executor.FlowExecutor}.</p>
+ * <p>This package defines the domain-neutral <b>Action</b> contract that forms the
+ * kernel side of VOID's primary execution path. Actions represent deferred operations
+ * (intent) that are composed into flows and executed later by a
+ * {@link core.executor.FlowExecutor}.</p>
+ *
+ * <p>As of runtime-redesign I2, phase 2.2 (kernel/UI action split, ADR-021), the
+ * concrete UI action types -- {@code ElementAction} and its family (the three abstract
+ * intermediaries, the 17 concrete leaf classes, and the {@code ElementActions} factory)
+ * -- live in {@link elements.api.actions}, not here. This package retains only the
+ * types on ADR-021's kernel membership list; it has zero dependency on
+ * {@link elements.api.UIElement}, {@link elements.meta.ElementRole}, or
+ * {@link elements.api.capability}.</p>
  *
  * <h3>Key types</h3>
  * <ul>
  *   <li>{@link core.actions.Action} — functional interface representing a single deferred
- *       UI operation. Produced by capability interfaces (e.g., {@code element.click()},
- *       {@code element.type("text")}). Supports directional hook composition via
+ *       operation. Concrete UI action subclasses (produced by capability interfaces, e.g.
+ *       {@code element.click()}, {@code element.type("text")}) live in
+ *       {@link elements.api.actions}. Supports directional hook composition via
  *       {@link core.actions.Action#before(core.actions.hooks.BeforeActionHandler...)} and
  *       {@link core.actions.Action#after(core.actions.hooks.AfterActionHandler...)}.</li>
- *   <li>{@link core.actions.ElementActions} — internal factory that creates element-bound
- *       Actions supporting descriptor resolution. Not part of the public DSL — capability
- *       interfaces use it internally to emit actions.</li>
  *   <li>{@code HookChainAction} — internal wrapper that stores before/after
  *       {@link core.actions.hooks.ActionHandler} hooks and emits an
  *       {@link core.actions.trace.ActionTrace} on each execution.</li>
+ *   <li>{@link core.actions.ActionProfiles} — domain-neutral default safe/reliable
+ *       profiles and config-driven default-profile selection. Capability-specific
+ *       profile constants live in {@link elements.api.actions.CapabilityProfiles}.</li>
  * </ul>
  *
  * <h3>Execution path</h3>
  * <pre>
  *   UIElement (capability interface)
- *     → Action (deferred intent)
+ *     → Action (deferred intent; concrete UI actions in elements.api.actions)
  *       → Flow (composition)
  *         → FlowExecutor (iteration)
  *           → UIEngine (physical execution)
@@ -33,7 +43,8 @@
  * <ul>
  *   <li>Actions are <b>deferred</b> — locator resolution happens inside
  *       {@link core.actions.Action#perform}, never eagerly.</li>
- *   <li>Actions never reference {@code WebDriver}, {@code WebElement}, or {@code By} directly.</li>
+ *   <li>Kernel action types never reference {@code WebDriver}, {@code WebElement},
+ *       {@code By}, {@code UIElement}, {@code ElementRole}, or capability interfaces.</li>
  *   <li>Hook composition is optional and fluent:
  *       {@code element.click().before(...).after(...)}</li>
  * </ul>
@@ -47,6 +58,6 @@
  * @see core.executor.FlowExecutor
  * @see core.engine.UIEngine
  * @see core.actions.hooks.ActionHandler
+ * @see elements.api.actions
  */
 package core.actions;
-

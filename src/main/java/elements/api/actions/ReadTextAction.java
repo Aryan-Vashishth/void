@@ -1,4 +1,5 @@
-package core.actions;
+package elements.api.actions;
+import core.actions.ActionCapability;
 
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
@@ -12,7 +13,7 @@ import elements.meta.ElementRole;
  * <p>Emitted by {@code ReadOnly.readText()}. Resolves the TEXT locator, then delegates
  * to {@link UIEngine#getText}.</p>
  *
- * <p>Safe profile: {@link ActionProfiles#DEFAULT_SAFE} — waits for element visibility before.</p>
+ * <p>Safe profile: {@link core.actions.ActionProfiles#DEFAULT_SAFE} — waits for element visibility before.</p>
  */
 @Beta(since = "0.2", note = "Phase 19 — concrete action subclass for ReadOnly")
 public final class ReadTextAction extends ElementAction {

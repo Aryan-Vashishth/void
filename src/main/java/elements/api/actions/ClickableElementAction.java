@@ -1,12 +1,14 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.ActionCapability;
+import core.actions.ActionProfile;
 import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 /**
  * Abstract base for click-family actions ({@link ClickAction}, {@link ToggleAction}, {@link CheckAction}).
  *
- * <p>Owns the {@link ActionProfiles#CLICKABLE_SAFE} and {@link ActionProfiles#CLICKABLE_RELIABLE}
+ * <p>Owns the {@link CapabilityProfiles#CLICKABLE_SAFE} and {@link CapabilityProfiles#CLICKABLE_RELIABLE}
  * profile constants shared by all click-family actions. Subclasses declare their own constructor
  * and {@link #execute} implementation — no profile override is needed.</p>
  *
@@ -33,11 +35,11 @@ abstract class ClickableElementAction extends ElementAction {
 
     @Override
     protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.CLICKABLE_SAFE;
+        return CapabilityProfiles.CLICKABLE_SAFE;
     }
 
     @Override
     protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.CLICKABLE_RELIABLE;
+        return CapabilityProfiles.CLICKABLE_RELIABLE;
     }
 }

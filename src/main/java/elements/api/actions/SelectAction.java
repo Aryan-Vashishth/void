@@ -1,4 +1,5 @@
-package core.actions;
+package elements.api.actions;
+import core.actions.ActionCapability;
 
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
@@ -23,7 +24,7 @@ import java.time.Duration;
  * To select by text or value attribute, use {@link SelectByTextAction} or
  * {@link SelectByValueAction}.</p>
  *
- * <p>Safe profile: {@link ActionProfiles#SELECTABLE_SAFE} — waits for visibility,
+ * <p>Safe profile: {@link CapabilityProfiles#SELECTABLE_SAFE} — waits for visibility,
  * clickability, and Angular loader before; highlights after.</p>
  */
 @Beta(since = "0.2", note = "Phase 14 — concrete action subclass")

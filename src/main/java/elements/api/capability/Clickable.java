@@ -3,7 +3,7 @@ package elements.api.capability;
 import core.actions.Action;
 import core.actions.ActionCapability;
 
-import core.actions.ClickAction;
+import elements.api.actions.ClickAction;
 import elements.api.UIElement;
 import elements.meta.ElementRole;
 

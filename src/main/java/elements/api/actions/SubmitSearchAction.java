@@ -1,4 +1,5 @@
-package core.actions;
+package elements.api.actions;
+import core.actions.ActionCapability;
 
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
@@ -12,7 +13,7 @@ import elements.meta.ElementRole;
  * <p>Emitted by {@code SearchField.submitSearch()}. Resolves the SEARCH_BUTTON locator,
  * then delegates to {@link UIEngine#click}.</p>
  *
- * <p>Safe profile: {@link ActionProfiles#TYPEABLE_SAFE} — clears field and waits for
+ * <p>Safe profile: {@link CapabilityProfiles#TYPEABLE_SAFE} — clears field and waits for
  * visibility before; highlights after. Inherits SEARCH_FIELD capability.</p>
  */
 @Beta(since = "0.2", note = "Phase 14 — concrete action subclass")

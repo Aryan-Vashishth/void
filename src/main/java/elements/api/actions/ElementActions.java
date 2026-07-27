@@ -1,5 +1,8 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionProfiles;
 import core.annotations.Internal;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;

@@ -93,6 +93,40 @@ Versions follow [Semantic Versioning](https://semver.org/).
   - **Deprecated:** `core.interactions.hooks.ActionHandler`, `BeforeActionHandler`,
     `AfterActionHandler` -- use `core.actions.hooks.*` instead; scheduled for removal in I9.3
 
+- **Kernel/UI action split -- runtime-redesign Initiative I2, phase 2.2**
+  - `ElementAction` and its family (the 3 abstract intermediaries, the 17 concrete leaf
+    action classes, and the `ElementActions` factory) move from `core.actions` to the
+    new `elements.api.actions` package -- UI-domain content that was physically
+    co-located with the kernel, per audit Part I's bounded-context finding
+  - `ActionProfiles`' 6 capability-specific constants (`CLICKABLE_SAFE`,
+    `CLICKABLE_RELIABLE`, `TYPEABLE_SAFE`, `TYPEABLE_RELIABLE`, `SELECTABLE_SAFE`,
+    `SELECTABLE_RELIABLE`) extract into the new `elements.api.actions.CapabilityProfiles`
+    (package-private); `core.actions.ActionProfiles` keeps only the domain-neutral
+    `DEFAULT_SAFE`/`DEFAULT_RELIABLE` and the config-driven default-selection mechanism
+  - `ActionProfiles` becomes public (was package-private): the class itself,
+    `DEFAULT_SAFE`, `DEFAULT_RELIABLE`, and `applyConfiguredDefault()` -- required for
+    `elements.api.actions.ElementAction`/`ElementActions` to call across the new
+    kernel/UI-domain package boundary; `configuredDefault()` and `DEFAULT_PROFILE_KEY`
+    stay package-private (no external caller crosses the boundary for them)
+  - `KernelBoundaryRulesTest`'s ADR-021 kernel-membership checks tighten: `core.actions`
+    (root) now has zero exemptions for `UIElement`/`ElementRole`/capability-interface
+    dependencies (previously exempted `ElementAction`/`ElementActions`, which no longer
+    live there); gains checks for `ElementRole` and `elements.api.capability` directly,
+    plus a Selenium-freedom check for the new `elements.api.actions` package
+  - `core.actions` now contains exactly the ADR-021 kernel list: `Action`,
+    `ActionCapability`, `ActionProfile`, `ActionProfiles`, `Profile`, `Profiles`,
+    `HookChainAction` -- 8 files total (including `package-info.java`)
+  - **BREAKING CHANGE (Beta tier):** every concrete UI action class and `ElementAction`/
+    `ElementActions` move package. Import table (old → new), all under `core.actions` →
+    `elements.api.actions`: `ElementAction`, `ClickableElementAction`,
+    `TypeableElementAction`, `SelectableElementAction`, `ElementActions`, `ClickAction`,
+    `ToggleAction`, `CheckAction`, `TypeAction`, `ClearAction`, `AppendTypeAction`,
+    `TypeAndPressAction`, `TypeSearchAction`, `SubmitSearchAction`, `OpenAction`,
+    `SelectAction`, `SelectByTextAction`, `SelectByValueAction`, `SearchAndSelectAction`,
+    `HoverAction`, `UploadAction`, `ReadTextAction`. External code rarely names these
+    directly (capability interfaces return them opaquely per ADR-014), so breakage is
+    limited to any code importing them by name.
+
 ---
 
 ## [0.4.1] - 2026-07-23

@@ -1,8 +1,8 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.SubmitSearchAction;
-import core.actions.TypeSearchAction;
+import elements.api.actions.SubmitSearchAction;
+import elements.api.actions.TypeSearchAction;
 import elements.meta.ElementRole;
 
 /**

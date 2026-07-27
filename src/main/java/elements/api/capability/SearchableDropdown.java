@@ -1,7 +1,7 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.SearchAndSelectAction;
+import elements.api.actions.SearchAndSelectAction;
 import elements.meta.ElementRole;
 
 /**

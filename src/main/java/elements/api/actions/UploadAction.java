@@ -1,4 +1,5 @@
-package core.actions;
+package elements.api.actions;
+import core.actions.ActionCapability;
 
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
@@ -12,7 +13,7 @@ import elements.meta.ElementRole;
  * <p>Emitted by {@code Uploadable.upload(String)}. Resolves the INPUT locator,
  * then delegates to {@link UIEngine#uploadFile}.</p>
  *
- * <p>Safe profile: {@link ActionProfiles#DEFAULT_SAFE} — waits for element visibility before.</p>
+ * <p>Safe profile: {@link core.actions.ActionProfiles#DEFAULT_SAFE} — waits for element visibility before.</p>
  */
 @Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
 public final class UploadAction extends ElementAction {

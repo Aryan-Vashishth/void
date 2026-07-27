@@ -1,5 +1,7 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.ActionCapability;
+import core.actions.ActionProfile;
 import elements.api.UIElement;
 import elements.meta.ElementRole;
 
@@ -7,7 +9,7 @@ import elements.meta.ElementRole;
  * Abstract base for select-family actions ({@link OpenAction}, {@link SelectAction},
  * {@link SelectByTextAction}, {@link SelectByValueAction}, {@link SearchAndSelectAction}).
  *
- * <p>Owns the {@link ActionProfiles#SELECTABLE_SAFE} and {@link ActionProfiles#SELECTABLE_RELIABLE}
+ * <p>Owns the {@link CapabilityProfiles#SELECTABLE_SAFE} and {@link CapabilityProfiles#SELECTABLE_RELIABLE}
  * profile constants shared by all select-family actions. Subclasses declare their own constructor
  * and {@link #execute} implementation — no profile override is needed.</p>
  *
@@ -34,11 +36,11 @@ abstract class SelectableElementAction extends ElementAction {
 
     @Override
     protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.SELECTABLE_SAFE;
+        return CapabilityProfiles.SELECTABLE_SAFE;
     }
 
     @Override
     protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.SELECTABLE_RELIABLE;
+        return CapabilityProfiles.SELECTABLE_RELIABLE;
     }
 }

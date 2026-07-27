@@ -1,6 +1,6 @@
 # Action Layer Architecture
 
-The `core.actions` package is VOID's **deferred execution model** — a typed hierarchy of composable `Action` objects that represent UI operations without executing them. Actions are the primary abstraction between element declaration (what exists) and engine execution (how the browser interaction happens).
+VOID's **deferred execution model** — a typed hierarchy of composable `Action` objects that represent UI operations without executing them — is split across two packages: `core.actions` (kernel contracts) and `elements.api.actions` (concrete UI actions). Actions are the primary abstraction between element declaration (what exists) and engine execution (how the browser interaction happens).
 
 ---
 
@@ -35,53 +35,69 @@ The action layer is governed by three ADRs:
 
 ## Kernel / UI-Domain Boundary
 
-`core.actions` currently holds two populations, per ADR-021's kernel membership list and
-the `runtime-redesign` roadmap's Initiative I2 (Kernel Extraction):
+The action layer is physically split across two packages, per ADR-021's kernel
+membership list and the `runtime-redesign` roadmap's Initiative I2 (Kernel Extraction):
 
-- **Kernel types** (domain-neutral, per ADR-021): `Action`, `ActionCapability`,
+- **`core.actions`** (kernel, domain-neutral, per ADR-021): `Action`, `ActionCapability`,
   `ActionProfile`, `ActionProfiles`, `Profile`, `Profiles`, `HookChainAction`. These
-  reference `core.target.Target` at most — never `elements.api.UIElement` — so the kernel
-  can be pointed at without dragging the UI element model along.
-- **UI-domain content** (physically co-located here pending I2.2's package split):
-  `ElementAction` and its three abstract family intermediaries
-  (`ClickableElementAction`, `TypeableElementAction`, `SelectableElementAction`), the 17
-  concrete leaf action classes, and the `ElementActions` factory. These are genuinely
-  UI-specific — `ElementAction.resolve()` calls `UIEngine.resolve(UIElement, ElementRole,
-  ...)`, which requires the UI-domain locator model — and are exempted from the kernel's
-  neutrality boundary rather than being forced into a false generality.
+  reference `core.target.Target` at most — never `elements.api.UIElement`,
+  `elements.meta.ElementRole`, or `elements.api.capability` — so the kernel can be
+  pointed at without dragging the UI element model along.
+- **`elements.api.actions`** (UI-domain): `ElementAction` and its three abstract family
+  intermediaries (`ClickableElementAction`, `TypeableElementAction`,
+  `SelectableElementAction`), the 17 concrete leaf action classes, the `ElementActions`
+  factory, and `CapabilityProfiles` (capability-specific profile constants). These are
+  genuinely UI-specific — `ElementAction.resolve()` calls `UIEngine.resolve(UIElement,
+  ElementRole, ...)`, which requires the UI-domain locator model.
 
-This split was formalized in `runtime-redesign` Initiative I1, phase 1.4 ("kernel
-target-neutrality"): auditing the package found the kernel types were already
-`UIElement`-free (a consequence of I1's earlier `Target` extraction), so the phase's
-deliverable was encoding the invariant as a permanent, automated ratchet rather than
-changing code. `KernelBoundaryRulesTest` (`src/test/java/core/architecture/`) enforces
-it: `core.actions.trace`, `core.executor`, and `core.flow` may never depend on
-`UIElement`; within `core.actions` itself, only classes assignable to `ElementAction` or
-`ElementActions` are permitted to.
+This split happened in two stages:
 
-The physical package split -- moving `ElementAction` and its family out of `core.actions`
-into UI-domain packages -- is Initiative I2's job (phase 2.2), not this phase's. This
-section documents the boundary as it exists *today*: one package, two populations, a
-test-enforced line between them.
+1. **`runtime-redesign` I1, phase 1.4** ("kernel target-neutrality"): auditing
+   `core.actions` found the kernel types were already `UIElement`-free (a consequence of
+   I1's earlier `Target` extraction), so the phase encoded the invariant as an automated
+   ratchet rather than moving code. At that point the UI-domain content was still
+   physically co-located in `core.actions`, exempted from the ratchet by name.
+2. **`runtime-redesign` I2, phase 2.2** ("kernel/UI action split"): the physical
+   relocation. `ElementAction` and its entire family moved to `elements.api.actions`;
+   `ActionProfiles`' capability-specific constants (`CLICKABLE_SAFE`, `TYPEABLE_SAFE`,
+   etc.) extracted into the new `elements.api.actions.CapabilityProfiles`, leaving
+   `ActionProfiles` with only the domain-neutral `DEFAULT_SAFE`/`DEFAULT_RELIABLE` and
+   the config-driven default-selection mechanism.
+
+`KernelBoundaryRulesTest` (`src/test/java/core/architecture/`) enforces the boundary with
+no exemptions needed anymore: `core.actions` (root package) may never depend on
+`UIElement`, `ElementRole`, or `elements.api.capability`; `core.actions.trace`,
+`core.executor`, and `core.flow` may never depend on `UIElement` either;
+`elements.api.actions` must stay Selenium-free.
+
+**What remains a documented, deliberate gap (not fixed by 2.2):** `ActionProfiles` and
+`Profiles` still import `core.interactions.hooks.Before`/`After` directly for their
+domain-neutral `DEFAULT_SAFE`/`DEFAULT_RELIABLE` and `RAW`/`DEBUG`/`FAST`/`VISUAL`
+presets. This is a separate, smaller tension (the kernel's one universal default profile
+happens to be implemented with a UI-domain hook constant) than the capability-specific
+constants 2.2 moved out; it is excluded by name from `KernelBoundaryRulesTest`'s
+`core.interactions` check, same as before 2.2.
 
 ---
 
 ## Class Hierarchy
 
+All classes below live in `elements.api.actions`, not `core.actions`.
+
 ```
 ElementAction (abstract, public)
-├── ClickableElementAction (abstract, package-private)       ← NEW in this branch
+├── ClickableElementAction (abstract, package-private)
 │   ├── ClickAction (public final)
 │   ├── ToggleAction (public final)
 │   └── CheckAction (public final)
-├── TypeableElementAction (abstract, package-private)        ← NEW in this branch
+├── TypeableElementAction (abstract, package-private)
 │   ├── TypeAction (public final)
 │   ├── ClearAction (public final)
 │   ├── AppendTypeAction (public final)
 │   ├── TypeAndPressAction (public final)
 │   ├── TypeSearchAction (public final)
 │   └── SubmitSearchAction (public final)
-├── SelectableElementAction (abstract, package-private)      ← NEW in this branch
+├── SelectableElementAction (abstract, package-private)
 │   ├── OpenAction (public final)
 │   ├── SelectAction (public final)
 │   ├── SelectByTextAction (public final)
@@ -182,31 +198,40 @@ Profiles: `ActionProfiles.DEFAULT_SAFE` / `ActionProfiles.DEFAULT_RELIABLE`
 
 ## ActionProfiles — Profile Constants
 
-`ActionProfiles` is **package-private** — only classes inside `core.actions` reference it. It owns 8 `ActionProfile` constants: 4 SAFE and 4 RELIABLE, one pair per action family.
+Profile constants are split across two classes, per the kernel/UI-domain boundary:
+
+- **`core.actions.ActionProfiles`** (public since I2.2, was package-private): owns only
+  the domain-neutral `DEFAULT_SAFE`/`DEFAULT_RELIABLE` pair, plus the config-driven
+  default-selection mechanism. Referenced across the kernel/UI-domain boundary by
+  `elements.api.actions.ElementAction` (defaults) and `ElementActions` (config-driven
+  wrapping).
+- **`elements.api.actions.CapabilityProfiles`** (package-private, new in I2.2): owns the
+  6 capability-specific constants — one SAFE/RELIABLE pair per action family. Referenced
+  only by the 3 abstract family intermediaries in the same package.
 
 ### SAFE Profiles
 
-| Constant | Before hooks | After hooks |
-|----------|-------------|------------|
-| `DEFAULT_SAFE` | `WAIT_FOR_ELEMENT_VISIBLE` | — |
-| `CLICKABLE_SAFE` | `WAIT_FOR_ELEMENT_CLICKABLE` | `WAIT_FOR_ANGULAR_LOADER`, `HIGHLIGHT_ELEMENT` |
-| `TYPEABLE_SAFE` | `CLEAR_FIELD`, `WAIT_FOR_ELEMENT_VISIBLE` | `HIGHLIGHT_ELEMENT` |
-| `SELECTABLE_SAFE` | `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE`, `WAIT_FOR_ANGULAR_LOADER` | `HIGHLIGHT_ELEMENT` |
+| Constant | Owner | Before hooks | After hooks |
+|----------|-------|-------------|------------|
+| `DEFAULT_SAFE` | `core.actions.ActionProfiles` | `WAIT_FOR_ELEMENT_VISIBLE` | — |
+| `CLICKABLE_SAFE` | `CapabilityProfiles` | `WAIT_FOR_ELEMENT_CLICKABLE` | `WAIT_FOR_ANGULAR_LOADER`, `HIGHLIGHT_ELEMENT` |
+| `TYPEABLE_SAFE` | `CapabilityProfiles` | `CLEAR_FIELD`, `WAIT_FOR_ELEMENT_VISIBLE` | `HIGHLIGHT_ELEMENT` |
+| `SELECTABLE_SAFE` | `CapabilityProfiles` | `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE`, `WAIT_FOR_ANGULAR_LOADER` | `HIGHLIGHT_ELEMENT` |
 
 ### RELIABLE Profiles
 
 Reliable profiles extend their SAFE counterpart with loader waits on both sides. All four RELIABLE constants share the same after-hook set.
 
-| Constant | Before hooks | After hooks |
-|----------|-------------|------------|
-| `DEFAULT_RELIABLE` | `WAIT_FOR_ELEMENT_VISIBLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
-| `CLICKABLE_RELIABLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_ELEMENT_CLICKABLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
-| `TYPEABLE_RELIABLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_ELEMENT_VISIBLE`, `CLEAR_FIELD` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
-| `SELECTABLE_RELIABLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
+| Constant | Owner | Before hooks | After hooks |
+|----------|-------|-------------|------------|
+| `DEFAULT_RELIABLE` | `core.actions.ActionProfiles` | `WAIT_FOR_ELEMENT_VISIBLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
+| `CLICKABLE_RELIABLE` | `CapabilityProfiles` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_ELEMENT_CLICKABLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
+| `TYPEABLE_RELIABLE` | `CapabilityProfiles` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_ELEMENT_VISIBLE`, `CLEAR_FIELD` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
+| `SELECTABLE_RELIABLE` | `CapabilityProfiles` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_ELEMENT_VISIBLE`, `WAIT_FOR_ELEMENT_CLICKABLE` | `WAIT_FOR_ANGULAR_LOADER`, `WAIT_FOR_SPIN_SPINNER_LOADER`, `HIGHLIGHT_ELEMENT` |
 
 ### Config-Driven Default
 
-`ActionProfiles.applyConfiguredDefault(action)` reads the `void.profile.default` key from `ConfigLoader`. When set to `SAFE`, `RELIABLE`, `DEBUG`, `FAST`, or `VISUAL`, it wraps every outgoing action in that profile automatically. Defaults to `RAW` (no wrapping) when the key is absent or unknown.
+`core.actions.ActionProfiles.applyConfiguredDefault(action)` reads the `void.profile.default` key from `ConfigLoader`. When set to `SAFE`, `RELIABLE`, `DEBUG`, `FAST`, or `VISUAL`, it wraps every outgoing action in that profile automatically. Defaults to `RAW` (no wrapping) when the key is absent or unknown.
 
 ---
 

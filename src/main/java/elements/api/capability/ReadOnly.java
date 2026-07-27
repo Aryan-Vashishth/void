@@ -2,7 +2,7 @@ package elements.api.capability;
 
 import core.actions.ActionCapability;
 
-import core.actions.ReadTextAction;
+import elements.api.actions.ReadTextAction;
 import elements.api.UIElement;
 import elements.meta.ElementRole;
 

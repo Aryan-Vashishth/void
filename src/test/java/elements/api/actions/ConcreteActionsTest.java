@@ -1,5 +1,8 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionProfiles;
 import core.engine.EngineConfig;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
@@ -10,7 +13,6 @@ import elements.api.capability.Clickable;
 import elements.api.capability.Hoverable;
 import elements.api.capability.ReadOnly;
 import elements.api.capability.SearchField;
-import core.actions.ReadTextAction;
 import elements.api.capability.SearchableDropdown;
 import elements.api.capability.Selectable;
 import elements.api.capability.Typeable;
@@ -555,19 +557,19 @@ public class ConcreteActionsTest {
     @Test
     public void clickAction_defaultSafeProfile_isClickableSafe() {
         assertSame(new ClickAction(stubClickable()).defaultSafeProfile(),
-                ActionProfiles.CLICKABLE_SAFE);
+                CapabilityProfiles.CLICKABLE_SAFE);
     }
 
     @Test
     public void typeAction_defaultSafeProfile_isTypeableSafe() {
         assertSame(new TypeAction(stubTypeable(), "x").defaultSafeProfile(),
-                ActionProfiles.TYPEABLE_SAFE);
+                CapabilityProfiles.TYPEABLE_SAFE);
     }
 
     @Test
     public void selectAction_defaultSafeProfile_isSelectableSafe() {
         assertSame(new SelectAction(stubSelectable()).defaultSafeProfile(),
-                ActionProfiles.SELECTABLE_SAFE);
+                CapabilityProfiles.SELECTABLE_SAFE);
     }
 
     @Test

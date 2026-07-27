@@ -1,10 +1,10 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.OpenAction;
-import core.actions.SelectAction;
-import core.actions.SelectByTextAction;
-import core.actions.SelectByValueAction;
+import elements.api.actions.OpenAction;
+import elements.api.actions.SelectAction;
+import elements.api.actions.SelectByTextAction;
+import elements.api.actions.SelectByValueAction;
 import elements.meta.ElementRole;
 
 /**

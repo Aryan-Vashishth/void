@@ -7,6 +7,8 @@ import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
+import elements.api.actions.ElementActions;
+import elements.api.actions.TypeAction;
 import elements.api.capability.Clickable;
 import elements.api.capability.Typeable;
 import elements.meta.ElementRole;

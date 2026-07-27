@@ -1,5 +1,7 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.ActionCapability;
+import core.actions.ActionProfile;
 import elements.api.UIElement;
 import elements.meta.ElementRole;
 
@@ -8,7 +10,7 @@ import elements.meta.ElementRole;
  * {@link AppendTypeAction}, {@link TypeAndPressAction}, {@link TypeSearchAction},
  * {@link SubmitSearchAction}).
  *
- * <p>Owns the {@link ActionProfiles#TYPEABLE_SAFE} and {@link ActionProfiles#TYPEABLE_RELIABLE}
+ * <p>Owns the {@link CapabilityProfiles#TYPEABLE_SAFE} and {@link CapabilityProfiles#TYPEABLE_RELIABLE}
  * profile constants shared by all type-family actions. Subclasses declare their own constructor
  * and {@link #execute} implementation — no profile override is needed.</p>
  *
@@ -35,11 +37,11 @@ abstract class TypeableElementAction extends ElementAction {
 
     @Override
     protected ActionProfile defaultSafeProfile() {
-        return ActionProfiles.TYPEABLE_SAFE;
+        return CapabilityProfiles.TYPEABLE_SAFE;
     }
 
     @Override
     protected ActionProfile defaultReliableProfile() {
-        return ActionProfiles.TYPEABLE_RELIABLE;
+        return CapabilityProfiles.TYPEABLE_RELIABLE;
     }
 }

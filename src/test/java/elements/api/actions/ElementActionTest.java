@@ -1,5 +1,9 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionProfile;
+import core.actions.Profiles;
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;

@@ -1,8 +1,8 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.CheckAction;
-import core.actions.ToggleAction;
+import elements.api.actions.CheckAction;
+import elements.api.actions.ToggleAction;
 import elements.meta.ElementRole;
 
 /**

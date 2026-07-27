@@ -2,7 +2,7 @@ package elements.api.capability;
 
 import core.actions.ActionCapability;
 
-import core.actions.HoverAction;
+import elements.api.actions.HoverAction;
 import elements.meta.ElementRole;
 
 /**

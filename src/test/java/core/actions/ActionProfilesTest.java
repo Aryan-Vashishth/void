@@ -6,6 +6,7 @@ import core.engine.UIEngine;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import core.utils.ConfigLoader;
+import elements.api.actions.ElementActions;
 import elements.api.capability.Clickable;
 import elements.api.capability.Typeable;
 import elements.meta.ElementRole;

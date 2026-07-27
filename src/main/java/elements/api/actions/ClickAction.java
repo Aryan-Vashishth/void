@@ -1,4 +1,5 @@
-package core.actions;
+package elements.api.actions;
+import core.actions.ActionCapability;
 
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
@@ -12,7 +13,7 @@ import elements.meta.ElementRole;
  * <p>Implements the Template Method pattern: {@code perform()} resolves the TRIGGER
  * locator, then {@code execute()} delegates to {@link UIEngine#click}.</p>
  *
- * <p>Safe profile: {@link ActionProfiles#CLICKABLE_SAFE} — waits for clickability before,
+ * <p>Safe profile: {@link CapabilityProfiles#CLICKABLE_SAFE} — waits for clickability before,
  * waits for Angular loader and highlights after.</p>
  */
 @Beta(since = "0.2", note = "Phase 14 — concrete action subclass")

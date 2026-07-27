@@ -1,5 +1,10 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionProfile;
+import core.actions.ActionProfiles;
+import core.actions.Profiles;
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
@@ -13,7 +18,7 @@ import java.util.Objects;
  *
  * <p>Owns the action lifecycle: {@link #resolve(UIEngine)} → {@link #execute(UIEngine, LocatorDescriptor)}.
  * Provides fluent APIs ({@link #safely()}, {@link #debug()}, {@link #reliable()}, {@link #raw()}) and
- * immutability guarantees (all fluent methods return new instances via {@link HookChainAction}).</p>
+ * immutability guarantees (all fluent methods return new instances via {@code HookChainAction}).</p>
  *
  * <h3>Template Method Pattern</h3>
  * <pre>
@@ -117,7 +122,7 @@ public abstract class ElementAction implements Action {
     /**
      * Applies the framework's SAFE profile to this action.
      *
-     * <p>Final — subclasses cannot override. Uses {@link ActionProfiles#DEFAULT_SAFE}.</p>
+     * <p>Final — subclasses cannot override. Uses {@link core.actions.ActionProfiles#DEFAULT_SAFE}.</p>
      *
      * @return a new action with SAFE profile hooks
      */
@@ -164,9 +169,9 @@ public abstract class ElementAction implements Action {
     /**
      * Default safe profile for this action.
      *
-     * <p>Called by {@link #safely()}. Base implementation returns {@link ActionProfiles#DEFAULT_SAFE}.
+     * <p>Called by {@link #safely()}. Base implementation returns {@link core.actions.ActionProfiles#DEFAULT_SAFE}.
      * Concrete subclasses override this to declare their own safe profile
-     * (e.g., {@code ClickAction} returns {@link ActionProfiles#CLICKABLE_SAFE}).
+     * (e.g., {@code ClickAction} returns {@link CapabilityProfiles#CLICKABLE_SAFE}).
      * Adding a new action type requires no change here — override locally.</p>
      *
      * @return the safe profile for this action
@@ -191,7 +196,7 @@ public abstract class ElementAction implements Action {
     /**
      * Default reliable profile for this action.
      *
-     * <p>Called by {@link #reliable()}. Base implementation returns {@link ActionProfiles#DEFAULT_RELIABLE}.
+     * <p>Called by {@link #reliable()}. Base implementation returns {@link core.actions.ActionProfiles#DEFAULT_RELIABLE}.
      * Concrete subclasses override this to declare their own reliable profile.
      * Adding a new action type requires no change here — override locally.</p>
      *

@@ -1,11 +1,11 @@
 package core.actions.hooks;
 
 import core.actions.Action;
-import core.actions.ElementActions;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
 import elements.api.UIElement;
+import elements.api.actions.ElementActions;
 import elements.meta.ElementRole;
 import org.testng.annotations.Test;
 

@@ -4,8 +4,6 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
-import core.actions.ElementAction;
-import core.actions.ElementActions;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -146,14 +144,16 @@ public class KernelBoundaryRulesTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // Axis: Domain neutrality -- kernel target-neutrality (ADR-021, I1 phase 1.4)
+    // Axis: Domain neutrality -- kernel target-neutrality (ADR-021, I1 phase 1.4;
+    // tightened I2 phase 2.2 after the kernel/UI action split removed the last
+    // UIElement-dependent types from core.actions -- no exemption needed anymore)
     //
     // Kernel action types must reference only core.target.Target, never
-    // elements.api.UIElement. ElementAction and its family (the 3 abstract
-    // intermediaries and the 17 concrete UI actions, all assignable to
-    // ElementAction) plus the ElementActions factory are UI-domain content
-    // still physically co-located in core.actions pending I2.2's package
-    // split -- they are exempted here, not excused from the boundary.
+    // elements.api.UIElement, elements.meta.ElementRole, or elements.api.capability.
+    // ElementAction and its family (the 3 abstract intermediaries, the 17 concrete
+    // UI actions, and the ElementActions factory) physically moved to
+    // elements.api.actions in I2.2 -- core.actions is now UI-vocabulary-free with
+    // no exceptions.
     // ─────────────────────────────────────────────────────────────────────
 
     private static final String UI_ELEMENT = "elements.api.UIElement";
@@ -162,13 +162,45 @@ public class KernelBoundaryRulesTest {
     public void actionsKernelIsTargetNeutral() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("core.actions")
-                .and().areNotAssignableTo(ElementAction.class)
-                .and().areNotAssignableTo(ElementActions.class)
                 .should().dependOnClassesThat().haveFullyQualifiedName(UI_ELEMENT)
                 .because(
                     "Action, ActionCapability, ActionProfile, ActionProfiles, Profile, Profiles, " +
                     "and HookChainAction are kernel types (ADR-021) and must not know UI vocabulary. " +
-                    "runtime-redesign I1.4.");
+                    "runtime-redesign I1.4, tightened I2.2.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.actions kernel types have no elements.meta.ElementRole dependency")
+    public void actionsKernelDoesNotDependOnElementRole() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.actions")
+                .should().dependOnClassesThat().haveFullyQualifiedName("elements.meta.ElementRole")
+                .because(
+                    "ElementRole is UI-domain locator-role vocabulary; the kernel dispatches on " +
+                    "Action/Flow only. runtime-redesign I2.2 exit criterion.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.actions kernel types have no elements.api.capability dependency")
+    public void actionsKernelDoesNotDependOnCapabilityInterfaces() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.actions")
+                .should().dependOnClassesThat().resideInAPackage("elements.api.capability..")
+                .because(
+                    "Capability interfaces are UI-domain vocabulary; the kernel never references " +
+                    "them. runtime-redesign I2.2 exit criterion.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "elements.api.actions (the relocated UI action family) has no Selenium dependency")
+    public void uiActionsAreSeleniumFree() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("elements.api.actions..")
+                .should().dependOnClassesThat().resideInAPackage(SELENIUM)
+                .because("Concrete UI actions delegate to UIEngine, never Selenium directly. ADR-021, I2.2.");
 
         rule.check(allClasses);
     }
@@ -227,21 +259,23 @@ public class KernelBoundaryRulesTest {
         rule.check(allClasses);
     }
 
-    @Test(description = "core.actions kernel types (excluding the deferred ActionProfiles/Profiles"
+    @Test(description = "core.actions kernel types (excluding ActionProfiles/Profiles' domain-neutral"
             + " default-hook constants) have no core.interactions dependency")
     public void actionsKernelDoesNotImportLegacyInteractions() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("core.actions")
-                .and().areNotAssignableTo(ElementAction.class)
-                .and().areNotAssignableTo(ElementActions.class)
                 .and().haveNameNotMatching("core\\.actions\\.ActionProfiles(\\$.*)?")
                 .and().haveNameNotMatching("core\\.actions\\.Profiles(\\$.*)?")
                 .should().dependOnClassesThat().resideInAPackage("core.interactions..")
                 .because(
                     "Action, HookChainAction, ActionCapability, and ActionProfile are kernel " +
                     "types (ADR-021) and must not import the frozen core.interactions zone. " +
-                    "ActionProfiles/Profiles are excluded: their capability-specific default " +
-                    "hook constants are UI-domain content, deferred to I2.2. runtime-redesign I2.1.");
+                    "ActionProfiles/Profiles are excluded: even their now UI-action-split-reduced " +
+                    "DEFAULT_SAFE/DEFAULT_RELIABLE and RAW/DEBUG/FAST/VISUAL presets still " +
+                    "reference Before/After hook constants (core.interactions.hooks), a separate, " +
+                    "already-documented deferral (I2.1/I2.2 notes in hooks-pipeline.md). " +
+                    "Capability-specific constants (CLICKABLE_SAFE etc.) moved to " +
+                    "elements.api.actions.CapabilityProfiles in I2.2 and no longer need this exclusion.");
 
         rule.check(allClasses);
     }

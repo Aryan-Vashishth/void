@@ -1,5 +1,9 @@
-package core.actions;
+package elements.api.actions;
 
+import core.actions.Action;
+import core.actions.ActionCapability;
+import core.actions.ActionProfile;
+import core.actions.ActionProfiles;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import elements.api.capability.Checkable;
