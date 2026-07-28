@@ -1,4 +1,4 @@
-package com.vartopia.utils.dom;
+package core.utils.web;
 
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
