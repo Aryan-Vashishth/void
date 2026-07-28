@@ -106,9 +106,9 @@ Unless the user requests otherwise:
 
 Use `initiative/` not `feature/`.
 
-**Never commit or push directly to `main`.** Every change, including single-line
-documentation fixes, must go through a branch and be merged via `--no-ff`. `main`
-is the integration point only.
+**Never commit or push directly to `main`.** Every change -- including single-line
+documentation fixes, changelog updates, and version bumps -- must go through a branch
+and be merged via `--no-ff`. `main` is the integration point only.
 
 ---
 
@@ -133,12 +133,27 @@ test(runtime): add VOIDBuilderTest covering fluent API and single-use guard
 
 ## Release Checklist
 
+All version-bump changes must go through a branch (e.g. `docs/release-x.y.z`) and be
+merged via `--no-ff` before tagging. Never commit version files directly to `main`.
+
 When cutting a new version:
 
-1. Bump `<version>` in `pom.xml`.
-2. Update `version.json` at the repo root -- the README.md VOID badge reads from that
-   file automatically via shields.io.
-3. Add a `## [x.y.z] - YYYY-MM-DD` entry in `CHANGELOG.md`.
+1. On a release branch, bump all three files atomically:
+   - `pom.xml` -- `<version>x.y.z</version>`
+   - `version.json` -- `{ "version": "x.y.z" }` (README badge reads from this via shields.io)
+   - `CHANGELOG.md` -- promote `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD`; add a new
+     empty `## [Unreleased]` above it
+2. Update the comparison links at the bottom of `CHANGELOG.md`.
+3. Merge the release branch to `main` via `--no-ff`.
+4. Tag the merge commit on `main` and push the tag:
+   ```
+   git tag vx.y.z
+   git push origin vx.y.z
+   ```
+5. Create the GitHub release:
+   ```
+   gh release create vx.y.z --title "vx.y.z" --notes-file <notes-file>
+   ```
 
 ---
 
