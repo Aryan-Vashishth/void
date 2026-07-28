@@ -8,7 +8,7 @@
 
 ```
 core/
-├── actions/          ← Deferred execution model (Action, HookChainAction)
+├── actions/          ← Kernel deferred execution contracts (Action, HookChainAction); concrete UI actions in elements.api.actions
 ├── adapters/         ← External framework adapters (Cucumber)
 │   └── cucumber/     ← BDD step definitions
 ├── annotations/      ← Stability-tier markers (@Beta, @Internal)
@@ -48,15 +48,44 @@ core/
 
 ## Sub-Package Details
 
-### `core.actions` — Deferred Execution Model
+### `core.actions` — Kernel Deferred Execution Model
 
-**Purpose:** Defines the Action/Flow/FlowExecutor pipeline — VOID's primary execution path.
+**Purpose:** Defines the domain-neutral `Action` contract — the kernel side of VOID's
+primary execution path. As of runtime-redesign I2 phase 2.2 (kernel/UI action split,
+ADR-021), this package holds only kernel types; concrete UI actions live in
+`elements.api.actions` (below).
 
 **Key Classes:**
 
 | Class | Role |
 |-------|------|
-| `Action` | Functional interface — a single deferred UI operation |
+| `Action` | Functional interface — a single deferred operation |
+| `ActionCapability` | Metadata enum identifying the capability category of an action |
+| `ActionProfile` / `Profile` | Named hook-bundle contract |
+| `ActionProfiles` | Public (since 2.2): domain-neutral `DEFAULT_SAFE`/`DEFAULT_RELIABLE` and config-driven default-profile selection (`applyConfiguredDefault()`) |
+| `Profiles` | Public presets: RAW, DEBUG, FAST, VISUAL — applied via `action.using(Profiles.X)` |
+| `HookChainAction` | Decorator: applies before/after hooks around a delegate `Action`, sharing a single resolved descriptor; owns the full trace pipeline (`performAndTrace()`, `LAST_TRACE`, `lastTrace()`, `clearLastTrace()`) |
+
+**Rules:**
+- Kernel action types never reference `WebDriver`, `WebElement`, `By`, `UIElement`, `ElementRole`, or capability interfaces (ADR-021; enforced by `KernelBoundaryRulesTest`).
+- `ActionCapability` is metadata only — never used to select execution paths.
+- Hook composition is fluent: `element.click().before(...).after(...)`
+
+**Stability:** `@Beta` — API may change between releases.
+
+---
+
+### `elements.api.actions` — UI-Domain Concrete Action Layer
+
+**Purpose:** Concrete UI actions and the abstract family bases that emit them. Relocated
+from `core.actions` in runtime-redesign I2 phase 2.2 (ADR-021, audit Part I
+bounded-context finding: "the kernel/UI boundary runs through the middle of
+`core.actions`, invisible in the package structure").
+
+**Key Classes:**
+
+| Class | Role |
+|-------|------|
 | `ElementAction` | Abstract base (Template Method): `resolve()` → `execute()`; owns `safely()`, `reliable()`, `debug()`, `raw()`, `before()`, `after()` fluent APIs |
 | `ClickableElementAction` | Package-private abstract: provides `CLICKABLE_SAFE`/`CLICKABLE_RELIABLE` defaults for the 3 click-family classes |
 | `TypeableElementAction` | Package-private abstract: provides `TYPEABLE_SAFE`/`TYPEABLE_RELIABLE` defaults for the 6 type-family classes |
@@ -67,28 +96,24 @@ core/
 | `HoverAction` | Concrete: `engine.hover()`, PRIMARY role, HOVERABLE capability |
 | `ReadTextAction` | Concrete: `engine.getText()`, TEXT role, READ_ONLY capability |
 | *(+ 11 more)* | `ClearAction`, `CheckAction`, `AppendTypeAction`, `TypeAndPressAction`, `UploadAction`, `OpenAction`, `SelectByTextAction`, `SelectByValueAction`, `ToggleAction`, `TypeSearchAction`, `SubmitSearchAction`, `SearchAndSelectAction` |
-| `ActionProfiles` | Package-private: 8 capability-specific safe/reliable constants (`CLICKABLE_SAFE`, `CLICKABLE_RELIABLE`, `TYPEABLE_SAFE`, `TYPEABLE_RELIABLE`, `SELECTABLE_SAFE`, `SELECTABLE_RELIABLE`, `DEFAULT_SAFE`, `DEFAULT_RELIABLE`) |
-| `Profiles` | Public presets: RAW, DEBUG, FAST, VISUAL — applied via `action.using(Profiles.X)` |
+| `CapabilityProfiles` | Package-private: 6 capability-specific safe/reliable constants (`CLICKABLE_SAFE`, `CLICKABLE_RELIABLE`, `TYPEABLE_SAFE`, `TYPEABLE_RELIABLE`, `SELECTABLE_SAFE`, `SELECTABLE_RELIABLE`) |
 | `ElementActions` | `@Internal` factory — custom-operation actions for test infrastructure only (ADR-012) |
-| `HookChainAction` | Decorator: applies before/after hooks around a delegate `Action`, sharing a single resolved descriptor; owns the full trace pipeline (`performAndTrace()`, `LAST_TRACE`, `lastTrace()`, `clearLastTrace()`) |
 
 **How it works:**
 1. Capability interfaces (e.g., `Clickable.click()`) emit **typed concrete action subclasses** — `new ClickAction(this)`.
 2. Each concrete class extends the appropriate abstract intermediary (`ClickableElementAction`, `TypeableElementAction`, `SelectableElementAction`, or `ElementAction` directly) and implements only `execute()`.
-3. Profile defaults (`defaultSafeProfile()` / `defaultReliableProfile()`) are centralized in the intermediary — concrete classes inherit them without any boilerplate.
+3. Profile defaults (`defaultSafeProfile()` / `defaultReliableProfile()`) are centralized in the intermediary — concrete classes inherit them without any boilerplate. Family-specific defaults come from `CapabilityProfiles`; the un-specialized default (`HoverAction`, `UploadAction`, `ReadTextAction`) comes from `core.actions.ActionProfiles`.
 4. Fluent profile APIs (`safely()`, `debug()`, `reliable()`) return a new wrapped action with hooks applied.
-5. Actions are composed into `Flow` sequences.
-6. `FlowExecutor` iterates and calls `action.perform(engine)`.
+5. Actions are composed into `Flow` sequences (kernel, `core.flow`).
+6. `FlowExecutor` (kernel, `core.executor`) iterates and calls `action.perform(engine)`.
 7. `perform()` calls `resolve(engine)` then `execute(engine, descriptor)` — resolution is deferred to execution time.
-8. `HookChainAction` wraps an action with before/after hooks, sharing a single resolved descriptor.
+8. `HookChainAction` (kernel, `core.actions`) wraps an action with before/after hooks, sharing a single resolved descriptor.
 
 **Layering rule (ADR-013):** Execution policy (hooks, waits, retries) lives in actions, never in capability interfaces. Capabilities describe structure; actions describe execution.
 
 **Rules:**
 - Actions never reference `WebDriver`, `WebElement`, or `By`.
-- `ActionCapability` is metadata only — never used to select execution paths.
-- Hook composition is fluent: `element.click().before(...).after(...)`
-- Extension via new action subclasses: extend the appropriate intermediary and implement `execute()`. No changes to `ActionProfiles`, existing action classes, or `ElementAction` are required (OCP).
+- Extension via new action subclasses: extend the appropriate intermediary and implement `execute()`. No changes to `CapabilityProfiles`, existing action classes, or `ElementAction` are required (OCP).
 - For a full breakdown of the hierarchy, all 17 concrete classes, and profile content, see [Action Layer Architecture](actions.md).
 
 **Stability:** `@Beta` — API may change between releases. `ElementAction` subclasses are concrete and stable within a release.
@@ -393,7 +418,7 @@ VOID.builder()
 
 ```
 1. VOID.builder().start() → engine + interactions created
-2. Element           → LocatorResolvers resolve LocatorDescriptor
+2. UIElement           → LocatorResolvers resolve LocatorDescriptor
 3. Before hooks      → Before.* hooks execute
 4. Interactions      → delegates to engine.click(descriptor) / engine.type(descriptor, text)
 5. After hooks       → After.* hooks execute

@@ -3,9 +3,18 @@ name: core-driver-package-selenium-coupling
 description: core/driver package contains Selenium-specific infrastructure under a neutral name -- placement and naming imply engine-agnostic scope, violating ADR-018 intent
 metadata:
   type: project
+  status: absorbed
 ---
 
 # `core/driver` -- Selenium Infrastructure Named and Placed as Framework Infrastructure
+
+> **Status (2026-07-24): absorbed into `docs/plan/draft/runtime-redesign/` Initiative
+> I6, Phase 6.4** (via the ADR-021 addendum, "Physical Package Topology"). The fix
+> below is no longer a standalone `initiative/selenium-driver-relocation` -- it
+> executes as part of 6.4's relocation to `domain.automation.web.selenium.driver`.
+> The "API surface decision required before implementation" section remains the
+> live precondition; it now gates 6.4 rather than a separate initiative. This file
+> stays here as the origin record; do not start a separate initiative from it.
 
 **Principle:** ADR-018 (engine-agnostic layers must be Selenium-free), package cohesion
 **Area:** `src/main/java/core/driver/` and `core/driver/config/driver.properties`

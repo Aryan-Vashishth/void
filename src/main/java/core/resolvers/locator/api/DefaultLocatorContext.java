@@ -1,16 +1,16 @@
 package core.resolvers.locator.api;
 
-import elements.api.Element;
+import elements.api.UIElement;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default {@link LocatorContext} implementation that delegates to
- * {@link Element#getExternalFileName()}.
+ * {@link UIElement#getExternalFileName()}.
  *
  * <p>The convention probing logic (Phase 5 conventional path → Phase 8 simple-name fallback
- * → preferred conventional target) lives in {@code Element.getExternalFileName()}'s default
+ * → preferred conventional target) lives in {@code UIElement.getExternalFileName()}'s default
  * implementation. This class is the resolver-side seam that makes it replaceable and
  * cacheable without further changes to {@link LocatorResolver}.</p>
  *
@@ -41,7 +41,7 @@ public final class DefaultLocatorContext implements LocatorContext {
      * (e.g., some hardcoded, some file-backed).</p>
      */
     @Override
-    public String resolveFileName(Element element) {
+    public String resolveFileName(UIElement element) {
         return FILE_NAME_CACHE
                 .computeIfAbsent(element.getClass(), k -> Optional.ofNullable(element.getExternalFileName()))
                 .orElse(null);

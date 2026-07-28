@@ -1,7 +1,7 @@
 package core.actions;
 
-import core.interactions.hooks.AfterActionHandler;
-import core.interactions.hooks.BeforeActionHandler;
+import core.actions.hooks.AfterActionHandler;
+import core.actions.hooks.BeforeActionHandler;
 
 import java.util.ArrayList;
 import java.util.List;

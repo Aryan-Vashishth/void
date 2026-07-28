@@ -3,7 +3,7 @@
 This directory contains all documentation for VOID (Virtual Object Interaction Domain), an interaction runtime for modeling and executing UI interaction workflows.
 
 Current execution narrative:
-- `Element -> Action -> Flow -> FlowExecutor -> UIEngine`
+- `UIElement -> Action -> Flow -> FlowExecutor -> UIEngine`
 - Test code describes intent; the runtime handles execution.
 - Selenium today, Playwright-ready by contract, engine-agnostic by design.
 
@@ -20,7 +20,7 @@ Current execution narrative:
 ### Architecture
 - `architecture/quick-start.md` -- getting started with elements, actions, and flows
 - `architecture/system-overview.md` -- full system description, capability table, execution flow
-- `architecture/elements.md` -- element layer: Element interface, capability hierarchy, LocatorFamily
+- `architecture/elements.md` -- element layer: UIElement interface, capability hierarchy, LocatorFamily
 - `architecture/actions.md` -- action layer: concrete action types, profiles, hooks, extension guide
 - `architecture/locator-resolution.md` -- locator resolution pipeline and LocatorContext
 - `architecture/hooks-pipeline.md` -- before/after hook engine

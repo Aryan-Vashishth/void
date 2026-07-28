@@ -7,7 +7,7 @@ import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
 import core.resolvers.locator.api.LocatorResolvers;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -137,7 +137,7 @@ public final class SeleniumEngine implements UIEngine {
     // ─────────────────────────────────────────────────────────────────────
 
     @Override
-    public LocatorDescriptor resolve(Element element, ElementRole role, Object... args) {
+    public LocatorDescriptor resolve(UIElement element, ElementRole role, Object... args) {
         return LocatorResolvers.strict().resolveDescriptor(element, role, args);
     }
 

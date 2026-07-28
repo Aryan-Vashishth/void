@@ -6,12 +6,12 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Unit tests for {@link Element} default methods.
+ * Unit tests for {@link UIElement} default methods.
  */
 public class ElementInterfaceDefaultsTest {
 
     /** Minimal enum for testing {@code getPrimaryLocator()} and {@code getArgs()} defaults. */
-    private enum StubElement implements Element {
+    private enum StubElement implements UIElement {
         USERNAME_INPUT,
         LOGIN_BUTTON,
         SAVE_AS_DRAFT,
@@ -22,22 +22,22 @@ public class ElementInterfaceDefaultsTest {
     }
 
     /** Enum that overrides {@code getArgs()} to verify explicit overrides still take precedence. */
-    private enum DynamicElement implements Element {
+    private enum DynamicElement implements UIElement {
         PRODUCT_ROW;
 
         @Override public String getExternalFileName() { return null; }
         @Override public Object[] getArgs()           { return new Object[]{"Laptop"}; }
     }
 
-    private static Element elementWithArgs(Object... args) {
-        return new Element() {
+    private static UIElement elementWithArgs(Object... args) {
+        return new UIElement() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getPrimaryLocator()   { return "//x"; }
             @Override public Object[] getArgs()           { return args; }
         };
     }
 
-    // ---------- Element.getPrimaryLocator ----------
+    // ---------- UIElement.getPrimaryLocator ----------
 
     @Test
     public void getPrimaryLocator_nestedEnum_returnsNamespacedKey() {
@@ -54,7 +54,7 @@ public class ElementInterfaceDefaultsTest {
 
     @Test
     public void getPrimaryLocator_explicitOverride_returnsOverriddenValue() {
-        Element e = new Element() {
+        UIElement e = new UIElement() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getPrimaryLocator()   { return "//custom/xpath"; }
             @Override public Object[] getArgs()           { return new Object[0]; }
@@ -71,11 +71,11 @@ public class ElementInterfaceDefaultsTest {
         };
     }
 
-    // ---------- Element.getArgs ----------
+    // ---------- UIElement.getArgs ----------
 
     @Test
     public void getArgs_noOverride_returnsNoArgs() {
-        assertSame(StubElement.USERNAME_INPUT.getArgs(), Element.NO_ARGS);
+        assertSame(StubElement.USERNAME_INPUT.getArgs(), UIElement.NO_ARGS);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class ElementInterfaceDefaultsTest {
         assertEquals(DynamicElement.PRODUCT_ROW.getArgs(), new Object[]{"Laptop"});
     }
 
-    // ---------- Element.getDisplayText ----------
+    // ---------- UIElement.getDisplayText ----------
 
     @Test
     public void getDisplayText_singleToken_capitalisesWord() {
@@ -120,7 +120,7 @@ public class ElementInterfaceDefaultsTest {
     @Test
     public void getDisplayText_noOverride_usesEnumName_ignoresArgs() {
         // DynamicElement has args but no getDisplayText() override:
-        // the Element default derives from enum name, not args.
+        // the UIElement default derives from enum name, not args.
         assertEquals(DynamicElement.PRODUCT_ROW.getDisplayText(), "Product Row");
     }
 
@@ -128,7 +128,7 @@ public class ElementInterfaceDefaultsTest {
     public void getDisplayText_anonymousElement_returnsFallbackLabel() {
         // Anonymous class has empty getSimpleName(), split("_") returns [""], all tokens empty.
         // The guard must skip blank tokens and return the "element" fallback.
-        Element anon = new Element() {
+        UIElement anon = new UIElement() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getPrimaryLocator()   { return "//div"; }
             @Override public Object[] getArgs()           { return new Object[0]; }
@@ -138,8 +138,8 @@ public class ElementInterfaceDefaultsTest {
 
     @Test
     public void capability_default_returnsUnknown() {
-        // The Element interface default capability() must return UNKNOWN for untyped elements.
-        Element anon = new Element() {
+        // The UIElement interface default capability() must return UNKNOWN for untyped elements.
+        UIElement anon = new UIElement() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getPrimaryLocator()   { return "//x"; }
             @Override public Object[] getArgs()           { return new Object[0]; }
@@ -147,29 +147,29 @@ public class ElementInterfaceDefaultsTest {
         assertEquals(anon.capability(), core.actions.ActionCapability.UNKNOWN);
     }
 
-    // ---------- Element.effectiveArgs ----------
+    // ---------- UIElement.effectiveArgs ----------
 
     @Test
     public void effectiveArgs_returnsOverridesWhenNonEmpty() {
-        Element e = elementWithArgs("base");
+        UIElement e = elementWithArgs("base");
         assertEquals(e.effectiveArgs("override"), new Object[]{"override"});
     }
 
     @Test
     public void effectiveArgs_returnsElementArgsWhenOverridesEmpty() {
-        Element e = elementWithArgs("base");
+        UIElement e = elementWithArgs("base");
         assertEquals(e.effectiveArgs(), new Object[]{"base"});
     }
 
     @Test
     public void effectiveArgs_returnsElementArgsWhenOverridesNull() {
-        Element e = elementWithArgs("base");
+        UIElement e = elementWithArgs("base");
         assertEquals(e.effectiveArgs((Object[]) null), new Object[]{"base"});
     }
 
     @Test
     public void effectiveArgs_supportsMultipleOverrides() {
-        Element e = elementWithArgs("base");
+        UIElement e = elementWithArgs("base");
         assertEquals(e.effectiveArgs("a", "b", "c"), new Object[]{"a", "b", "c"});
     }
 

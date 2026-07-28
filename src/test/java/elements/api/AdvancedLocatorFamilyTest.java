@@ -159,6 +159,6 @@ public class AdvancedLocatorFamilyTest {
 
     @Test
     public void advancedLocatorFamily_isAlsoElement() {
-        assertTrue(VendorPage.Filters.COUNTRY instanceof Element);
+        assertTrue(VendorPage.Filters.COUNTRY instanceof UIElement);
     }
 }

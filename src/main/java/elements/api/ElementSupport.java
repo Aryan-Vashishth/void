@@ -1,7 +1,7 @@
 package elements.api;
 
 /**
- * Package-private utility: structural enum facts for {@link Element} implementations.
+ * Package-private utility: structural enum facts for {@link UIElement} implementations.
  *
  * <p>Scope is intentionally narrow and frozen: exactly three structural helpers.
  * No presentation logic, no resolver-specific formatting. See ADR-017.</p>
@@ -10,11 +10,11 @@ final class ElementSupport {
 
     private ElementSupport() {}
 
-    static String nameOf(Element e) {
+    static String nameOf(UIElement e) {
         return e instanceof Enum<?> en ? en.name() : e.getClass().getSimpleName();
     }
 
-    static Class<?> declaringClassOf(Element e) {
+    static Class<?> declaringClassOf(UIElement e) {
         if (e instanceof Enum<?> en) {
             Class<?> dc = en.getDeclaringClass();
             return dc != null ? dc : en.getClass();
@@ -29,7 +29,7 @@ final class ElementSupport {
      * a silent {@code 0} is indistinguishable from a valid first-position index and would
      * produce wrong list offsets without a visible failure.</p>
      */
-    static int ordinalOf(Element e) {
+    static int ordinalOf(UIElement e) {
         if (e instanceof Enum<?> en) return en.ordinal();
         throw new UnsupportedOperationException(
             e.getClass().getSimpleName() +

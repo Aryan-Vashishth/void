@@ -11,7 +11,48 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [0.5.0] - 2026-07-28
+
 ### Internal
+
+- **Open capability set -- ActionCapability is now an interface (runtime-redesign I3.1)**
+  - `ActionCapability` converted from a closed enum to an open interface; the 15 built-in
+    constants (`CLICKABLE`, `TYPEABLE`, etc.) are preserved as static fields with
+    identical names and string-equality semantics
+  - New domains define capabilities via `ActionCapability.of("MY_CAP")` -- no edits to
+    runtime files required
+  - Equality is name-based (`record NamedCapability` backing); two capabilities with the
+    same name are equal
+  - Extension fitness test added: `ActionCapabilityExtensionTest` proves a custom
+    capability registers and carries through an `Action` with zero runtime edits
+
+  *Migration for existing callers:* `ActionCapability.CONSTANT_NAME` references are
+  unchanged. `.values()`, `.ordinal()`, and `switch (capability)` idioms are no longer
+  valid -- none existed in-repo.
+
+- **UNKNOWN silent fallback removed (runtime-redesign I3.2)**
+  - `Action.safely()` now throws `IllegalStateException` when the action's capability
+    is `ActionCapability.UNKNOWN`; the runtime cannot select browser-wait hooks for an
+    unrecognised capability -- use `.raw()` or declare a specific `ActionCapability`
+  - `ActionProfiles.applyConfiguredDefault()` skips profile application for UNKNOWN
+    capability and emits a `WARN` log naming the configuration remedy
+  - `docs/contributing/configuration-reference.md` created: documents `void.profile.default`
+    and the post-I3.2 UNKNOWN guard behaviour
+
+  *Migration for custom actions relying on silent defaults:* declare a specific
+  `ActionCapability.of("MY_CAP")` on your action, or call `.raw()` explicitly if
+  no browser-wait contract applies.
+
+- **Neutral capability contract; Web-domain ownership declared (runtime-redesign I3.3)**
+  - All 15 capability interfaces (`Clickable`, `Typeable`, ...) gain explicit Web-domain
+    ownership declaration in javadoc and `package-info.java`; the kernel references
+    capabilities solely through the `ActionCapability` interface
+  - `elements.md` capability hierarchy gains an ownership table listing all 15 interfaces,
+    their `ActionCapability` constant, and their domain/package
+  - Fitness check added: `KernelBoundaryRulesTest.kernelCapabilityReferencesAreContractTypedOnly`
+    -- ensures no kernel package ever imports a concrete Web-domain capability type
 
 - **ADR-021 -- Kernel boundary, ontology, and open decisions (runtime-redesign I0)**
   - Resolves the three open architectural decisions from the 2026-07 audit: AD1 (one
@@ -56,6 +97,111 @@ Versions follow [Semantic Versioning](https://semver.org/).
   - `Via` capability cast helpers (`clickable()`, `typeable()`, `selectable()`, `readOnly()`, `searchable()`, `searchableDropdown()`, `multiSelectable()`, `checkable()`, `hoverable()`) and predicates (`isClickable()`, `isTypeable()`, `isSelectable()`, `isReadOnly()`, `isSearchable()`, `isCheckable()`) removed -- zero call sites; use `instanceof` patterns directly
 
   **Deferred:** P8 (`UIEngineFactory` registry) to runtime-redesign I4.1; P11 (`Via` full deletion) to runtime-redesign I9.3.
+
+- **Target Model -- runtime-redesign Initiative I1 (phases 1.1-1.4)**
+  - `core.target.Target` introduced: domain-neutral root carrying `getDisplayText()`,
+    `getArgs()`, `effectiveArgs()`, `NO_ARGS` -- zero UI or Selenium imports
+  - `elements.api.Element` renamed to `elements.api.UIElement`, now `extends Target`;
+    `getArgs`/`effectiveArgs`/`NO_ARGS` removed from `UIElement` (inherited from `Target`);
+    `getDisplayText()` kept as an `@Override` default preserving the enum-name-split label
+  - `UIEngine.resolve()` / `SeleniumEngine.resolve()` retyped to `UIElement`; all capability
+    interfaces, page object enums, and demo/test sources updated (pure rename, no logic change)
+  - Kernel audited against ADR-021's membership list and found already `UIElement`-free;
+    `KernelBoundaryRulesTest` gains four ratchet checks so this cannot regress:
+    `core.actions.trace`, `core.executor`, `core.flow`, and `core.actions` kernel types
+    (excluding the `ElementAction` family, UI-domain content pending I2.2) may never
+    depend on `UIElement`
+  - **BREAKING CHANGE:** `Element` is removed. Replace `implements Element` with
+    `implements UIElement`
+
+- **Hooks ownership -- runtime-redesign Initiative I2, phase 2.1**
+  - The hook contract (`ActionHandler`, `BeforeActionHandler`, `AfterActionHandler`) moves
+    from `core.interactions.hooks` to the kernel-owned `core.actions.hooks`, so the kernel
+    no longer imports through the frozen `core.interactions` legacy zone (audit D4)
+  - `core.interactions.hooks.ActionHandler`/`BeforeActionHandler`/`AfterActionHandler` remain
+    as `@Deprecated(forRemoval = true)` bridges (old interface extends new); existing
+    imports and implementations keep compiling until removal in I9.3
+  - `Before`/`After` (the pre-built, domain-specific hook constant libraries) stay in
+    `core.interactions.hooks` -- they are UI-domain content, not the neutral contract
+  - `ActionTraceLogger.nameOf()` no longer imports `Before`/`After` directly: gains a
+    `registerNameSource(Class)` registry that `Before`/`After` populate via a static
+    initializer, removing a real kernel-to-domain coupling with no behavior change
+  - `KernelBoundaryRulesTest` gains two ratchet checks: `core.actions.hooks` and (with a
+    documented, named exclusion for `ActionProfiles`/`Profiles`, deferred to I2.2)
+    `core.actions` may never depend on `core.interactions`
+  - New `HookBridgeCompatibilityTest` verifies old-typed hook implementors (not just
+    lambdas) still work against the new-typed `Action.before()`/`after()` call sites
+  - **Deprecated:** `core.interactions.hooks.ActionHandler`, `BeforeActionHandler`,
+    `AfterActionHandler` -- use `core.actions.hooks.*` instead; scheduled for removal in I9.3
+
+- **Kernel/UI action split -- runtime-redesign Initiative I2, phase 2.2**
+  - `ElementAction` and its family (the 3 abstract intermediaries, the 17 concrete leaf
+    action classes, and the `ElementActions` factory) move from `core.actions` to the
+    new `elements.api.actions` package -- UI-domain content that was physically
+    co-located with the kernel, per audit Part I's bounded-context finding
+  - `ActionProfiles`' 6 capability-specific constants (`CLICKABLE_SAFE`,
+    `CLICKABLE_RELIABLE`, `TYPEABLE_SAFE`, `TYPEABLE_RELIABLE`, `SELECTABLE_SAFE`,
+    `SELECTABLE_RELIABLE`) extract into the new `elements.api.actions.CapabilityProfiles`
+    (package-private); `core.actions.ActionProfiles` keeps only the domain-neutral
+    `DEFAULT_SAFE`/`DEFAULT_RELIABLE` and the config-driven default-selection mechanism
+  - `ActionProfiles` becomes public (was package-private): the class itself,
+    `DEFAULT_SAFE`, `DEFAULT_RELIABLE`, and `applyConfiguredDefault()` -- required for
+    `elements.api.actions.ElementAction`/`ElementActions` to call across the new
+    kernel/UI-domain package boundary; `configuredDefault()` and `DEFAULT_PROFILE_KEY`
+    stay package-private (no external caller crosses the boundary for them)
+  - `KernelBoundaryRulesTest`'s ADR-021 kernel-membership checks tighten: `core.actions`
+    (root) now has zero exemptions for `UIElement`/`ElementRole`/capability-interface
+    dependencies (previously exempted `ElementAction`/`ElementActions`, which no longer
+    live there); gains checks for `ElementRole` and `elements.api.capability` directly,
+    plus a Selenium-freedom check for the new `elements.api.actions` package
+  - `core.actions` now contains exactly the ADR-021 kernel list: `Action`,
+    `ActionCapability`, `ActionProfile`, `ActionProfiles`, `Profile`, `Profiles`,
+    `HookChainAction` -- 8 files total (including `package-info.java`)
+  - **BREAKING CHANGE (Beta tier):** every concrete UI action class and `ElementAction`/
+    `ElementActions` move package. Import table (old → new), all under `core.actions` →
+    `elements.api.actions`: `ElementAction`, `ClickableElementAction`,
+    `TypeableElementAction`, `SelectableElementAction`, `ElementActions`, `ClickAction`,
+    `ToggleAction`, `CheckAction`, `TypeAction`, `ClearAction`, `AppendTypeAction`,
+    `TypeAndPressAction`, `TypeSearchAction`, `SubmitSearchAction`, `OpenAction`,
+    `SelectAction`, `SelectByTextAction`, `SelectByValueAction`, `SearchAndSelectAction`,
+    `HoverAction`, `UploadAction`, `ReadTextAction`. External code rarely names these
+    directly (capability interfaces return them opaquely per ADR-014), so breakage is
+    limited to any code importing them by name.
+
+- **Cycle break -- runtime-redesign Initiative I2, phase 2.3**
+  - Audit D1 (the `elements.api` <-> kernel mutual dependency was proof the two packages
+    were one bounded context): verified that after 2.2's physical relocation, no
+    kernel-owned package (`core.actions`, `core.actions.trace`, `core.actions.hooks`,
+    `core.flow`, `core.executor`, `core.context`, `core.runtime`) imports anything from
+    `elements.*` -- the cycle was already gone as a side effect of 2.2's move; no
+    production code changed in this phase
+  - `KernelBoundaryRulesTest` gains `kernelPackagesDoNotDependOnElements`: a permanent
+    ratchet forbidding any kernel package from depending on `elements.*` at all, broader
+    than the existing type-specific checks -- the dependency direction between the
+    kernel and the UI domain is now enforced as one-way by construction
+  - Updates `docs/architecture/elements.md` (new invariant #7: the kernel never depends
+    on `elements.*`) and `docs/architecture/actions.md` (documents the three-stage split
+    across I1.4, I2.2, I2.3)
+
+- **Kernel purity gate -- runtime-redesign Initiative I2, phase 2.4 (closes I2)**
+  - Consolidates the I2.1-I2.3 negative ("must not depend on X") checks into one named,
+    positive-allowlist boundary: `KernelBoundaryRulesTest.kernelPurity` asserts the kernel
+    depends only on JDK/javax, `core.logging`, `core.annotations`, `core.target`, itself
+    (`core.actions`/`.trace`/`.hooks`, `core.flow`, `core.executor`, `core.context` minus
+    the legacy `ExecutionContext`, `core.runtime`, `core.bootstrap`), and a short,
+    explicitly documented list of temporary exceptions, each cross-referenced to its
+    closing phase (`core.engine.UIEngine`/`LocatorDescriptor` close at I4;
+    `EngineBootstrap`/`UIEngineFactory` at 4.2; `DriverFactory`/`DriverFactory.Profile` at
+    I6.4; `core.interactions.hooks.Before`/`After` and `core.interactions.Interactions`/
+    `WebDriver` at I9.3; `ConfigLoader`/`ConfigPaths` unscheduled, narrow utility use)
+  - Mutation demo recorded (`docs/contributing/architecture-rules.md`): a temporary
+    disallowed dependency added to `core.actions.Action` was confirmed to fail the check
+    with a precise violation message, then reverted; full suite re-verified green before
+    the phase commit
+  - `CLAUDE.md`'s Architecture Invariants table gains an Axis column (engine / domain /
+    scope, per ADR-021's two neutrality axes) retrofitted onto existing rows, plus the new
+    kernel purity row (axis: domain)
+  - This closes runtime-redesign Initiative I2 (Kernel Extraction) -- all 4 phases done
 
 ---
 

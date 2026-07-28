@@ -12,20 +12,20 @@ import static org.testng.Assert.*;
  */
 public class ElementSupportTest {
 
-    private enum Outer implements Element {
+    private enum Outer implements UIElement {
         FIRST, SECOND, THIRD;
         @Override public String getExternalFileName() { return null; }
     }
 
     interface Page {
-        enum Nested implements Element {
+        enum Nested implements UIElement {
             ALPHA, BETA;
             @Override public String getExternalFileName() { return null; }
         }
     }
 
-    private static Element anonymousElement() {
-        return new Element() {
+    private static UIElement anonymousElement() {
+        return new UIElement() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getPrimaryLocator()   { return "//x"; }
             @Override public Object[] getArgs()           { return new Object[0]; }
@@ -46,7 +46,7 @@ public class ElementSupportTest {
 
     @Test
     public void nameOf_anonymousElement_returnsSimpleName() {
-        Element anon = anonymousElement();
+        UIElement anon = anonymousElement();
         // Anonymous class simple name is empty string
         assertEquals(ElementSupport.nameOf(anon), anon.getClass().getSimpleName());
     }
@@ -70,7 +70,7 @@ public class ElementSupportTest {
 
     @Test
     public void declaringClassOf_anonymousElement_returnsAnonymousClass() {
-        Element anon = anonymousElement();
+        UIElement anon = anonymousElement();
         assertSame(ElementSupport.declaringClassOf(anon), anon.getClass());
     }
 
@@ -98,7 +98,7 @@ public class ElementSupportTest {
 
     @Test
     public void ordinalOf_nonEnumElement_exceptionMessageContainsClassName() {
-        Element anon = anonymousElement();
+        UIElement anon = anonymousElement();
         try {
             ElementSupport.ordinalOf(anon);
             fail("Expected UnsupportedOperationException");

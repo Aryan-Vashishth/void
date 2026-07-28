@@ -25,7 +25,7 @@ import elements.meta.ElementRole;
  *       centralised, compiler-exhaustive mapping is preferred.</li>
  * </ul>
  */
-public interface LocatorFamily extends Element {
+public interface LocatorFamily extends UIElement {
 
     /**
      * Routes every capability role through the family key so no per-enum override
@@ -58,7 +58,7 @@ public interface LocatorFamily extends Element {
 
     /**
      * Derives the runtime locator argument from the constant name using the same
-     * word-transform as {@link Element#getDisplayText()}.
+     * word-transform as {@link UIElement#getDisplayText()}.
      * {@code MANAGE_USERS} → {@code ["Manage Users"]}.
      */
     @Override

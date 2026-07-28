@@ -160,7 +160,7 @@ public class SwitchLocatorFamilyTest {
 
     @Test
     public void switchLocatorFamily_isAlsoElement() {
-        assertTrue(ReportsPage.Sections.OVERVIEW instanceof Element);
+        assertTrue(ReportsPage.Sections.OVERVIEW instanceof UIElement);
     }
 
     @Test

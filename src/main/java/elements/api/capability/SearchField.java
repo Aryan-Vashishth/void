@@ -1,8 +1,8 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.SubmitSearchAction;
-import core.actions.TypeSearchAction;
+import elements.api.actions.SubmitSearchAction;
+import elements.api.actions.TypeSearchAction;
 import elements.meta.ElementRole;
 
 /**
@@ -12,12 +12,16 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Typeable  ─┐
- *   Element → Clickable ─┤→ SearchField
+ *   UIElement → Typeable  ─┐
+ *   UIElement → Clickable ─┤→ SearchField
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
+ *
+ * <p><b>Domain ownership:</b> Web ({@code elements.api.capability}, ADR-021, I3.3).
+ * Not a kernel type. The kernel references capabilities solely through
+ * {@link core.actions.ActionCapability}.</p>
  */
 public interface SearchField extends Typeable, Clickable {
 

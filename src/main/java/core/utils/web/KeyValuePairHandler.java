@@ -1,6 +1,6 @@
 package core.utils.web;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import core.utils.ResolvableEnum;
 import core.driver.DriverContext;
 import core.driver.Waiter;
@@ -23,7 +23,7 @@ import static core.logging.CustomLogger.error;
  * Uses {@link DriverContext} and {@link Waiter} — no instantiation needed.
  *
  * <p>Enums passed here must implement <b>both</b> {@link ResolvableEnum} (for label)
- * and an {@link Element} sub-interface (for locator resolution).</p>
+ * and an {@link UIElement} sub-interface (for locator resolution).</p>
  */
 public class KeyValuePairHandler {
     private KeyValuePairHandler() {
@@ -33,10 +33,10 @@ public class KeyValuePairHandler {
     /**
      * Resolves the UI value for a given element.
      *
-     * @param element enum constant implementing both ResolvableEnum and Element
+     * @param element enum constant implementing both ResolvableEnum and UIElement
      * @return trimmed text value
      */
-    public static <T extends Enum<T> & ResolvableEnum & Element> String getValue(T element) {
+    public static <T extends Enum<T> & ResolvableEnum & UIElement> String getValue(T element) {
         String label = element.getLabel();
         try {
             String file = element.getExternalFileName();
@@ -55,7 +55,7 @@ public class KeyValuePairHandler {
     /**
      * Collect all key→value pairs defined by the enum class.
      */
-    public static <E extends Enum<E> & ResolvableEnum & Element> Map<String, String> collectAll(Class<E> enumClass) {
+    public static <E extends Enum<E> & ResolvableEnum & UIElement> Map<String, String> collectAll(Class<E> enumClass) {
         Map<String, String> map = new HashMap<>();
         for (E element : enumClass.getEnumConstants()) {
             map.put(element.getLabel(), getValue(element));
@@ -67,7 +67,7 @@ public class KeyValuePairHandler {
     /**
      * Verify UI values against expected map (case-insensitive equality).
      */
-    public static <E extends Enum<E> & ResolvableEnum & Element> void verifyValues(Class<E> enumClass, Map<String, String> expected) {
+    public static <E extends Enum<E> & ResolvableEnum & UIElement> void verifyValues(Class<E> enumClass, Map<String, String> expected) {
         Map<String, String> actual = collectAll(enumClass);
         for (Map.Entry<String, String> entry : expected.entrySet()) {
             String key = entry.getKey();
@@ -86,7 +86,7 @@ public class KeyValuePairHandler {
     /**
      * Get values for a list of elements.
      */
-    public static <T extends Enum<T> & ResolvableEnum & Element> List<String> getValues(List<T> elements) {
+    public static <T extends Enum<T> & ResolvableEnum & UIElement> List<String> getValues(List<T> elements) {
         return elements.stream().map(KeyValuePairHandler::getValue).collect(Collectors.toList());
     }
 }

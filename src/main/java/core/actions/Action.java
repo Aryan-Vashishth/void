@@ -1,11 +1,11 @@
 package core.actions;
 
+import core.actions.hooks.ActionHandler;
+import core.actions.hooks.AfterActionHandler;
+import core.actions.hooks.BeforeActionHandler;
 import core.annotations.Beta;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
-import core.interactions.hooks.ActionHandler;
-import core.interactions.hooks.AfterActionHandler;
-import core.interactions.hooks.BeforeActionHandler;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import java.util.Objects;
  *
  * <h3>Single execution path</h3>
  * <pre>
- *   Element → Action → Flow → FlowExecutor → UIEngine
+ *   UIElement → Action → Flow → FlowExecutor → UIEngine
  * </pre>
  *
  * <h3>Hook support</h3>
@@ -124,11 +124,19 @@ public interface Action {
      * Applies the framework's SAFE profile to this action.
      *
      * <p>For {@link ElementAction} subclasses, this is overridden to use the
-     * polymorphic {@code defaultSafeProfile()} path. This default applies
-     * {@link ActionProfiles#DEFAULT_SAFE} (wait-for-visible) as a minimal guard
-     * for plain lambda actions that do not extend {@code ElementAction}.</p>
+     * polymorphic {@code defaultSafeProfile()} path. For any action, calling
+     * {@code safely()} on an action with {@link ActionCapability#UNKNOWN} capability
+     * throws {@link IllegalStateException}: the runtime cannot select browser-wait
+     * hooks for a capability it does not recognise. Declare a specific capability
+     * or call {@link #raw()} instead (runtime-redesign I3.2).</p>
      */
     default Action safely() {
+        if (ActionCapability.UNKNOWN.equals(capability())) {
+            throw new IllegalStateException(
+                "safely() cannot select hooks for an action with UNKNOWN capability. " +
+                "Declare a specific ActionCapability via ActionCapability.of(), " +
+                "or call .raw() for an action that requires no browser-wait contract.");
+        }
         return using(ActionProfiles.DEFAULT_SAFE);
     }
 

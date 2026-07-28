@@ -5,7 +5,7 @@ import core.engine.LocatorDescriptor;
 import core.bridge.selenium.SeleniumLocatorBridge;
 import core.engine.selenium.SeleniumEngine;
 import elements.meta.ElementRole;
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.api.capability.Clickable;
 import elements.api.capability.Typeable;
 import elements.api.capability.ReadOnly;
@@ -14,7 +14,7 @@ import elements.api.capability.Selectable;
 import elements.api.capability.Checkable;
 import elements.api.capability.Searchable;
 import elements.api.capability.MultiSelectable;
-import core.interactions.hooks.ActionHandler;
+import core.actions.hooks.ActionHandler;
 import core.interactions.hooks.Before;
 import core.interactions.hooks.After;
 import core.resolvers.locator.api.LocatorResolver;
@@ -30,7 +30,7 @@ import static core.logging.CustomLogger.*;
  * Interactions — Legacy Orchestrator (Frozen)
  * ————————————————————————————————————————————
  * <b>This class is frozen.</b> No new features should be added here.
- * For new code, use the Action-based pipeline: {@code Element → Action → Flow → FlowExecutor → UIEngine}.
+ * For new code, use the Action-based pipeline: {@code UIElement → Action → Flow → FlowExecutor → UIEngine}.
  *
  * <p>This class is preserved for backward compatibility with existing step definitions
  * and page objects. All execution is delegated to {@link UIEngine}.</p>
@@ -87,9 +87,9 @@ public class Interactions {
     // ====== RESOLUTION HELPERS (to LocatorDescriptor, not By) ======
 
     /**
-     * Resolves a LocatorDescriptor for an Element and tracks it in UIContext.
+     * Resolves a LocatorDescriptor for an UIElement and tracks it in UIContext.
      */
-    private LocatorDescriptor resolveAndTrack(Element element) {
+    private LocatorDescriptor resolveAndTrack(UIElement element) {
         LocatorDescriptor descriptor = LOCATORS.resolveDescriptor(element);
         UIContext.setLastLocatorDescriptor(descriptor);
         UIContext.setLastActionTarget(descriptor);
@@ -97,7 +97,7 @@ public class Interactions {
     }
 
     /** Overload: resolve by role with args and track descriptor. */
-    private LocatorDescriptor resolveAndTrack(Element element, ElementRole role, Object... args) {
+    private LocatorDescriptor resolveAndTrack(UIElement element, ElementRole role, Object... args) {
         LocatorDescriptor descriptor = LOCATORS.resolveDescriptor(element, role, args);
         UIContext.setLastLocatorDescriptor(descriptor);
         UIContext.setLastActionTarget(descriptor);
@@ -114,7 +114,7 @@ public class Interactions {
 
     /**
      * Execute hooks safely.
-     * <p>Legacy path: passes {@code null} as the descriptor. Element-dependent hooks
+     * <p>Legacy path: passes {@code null} as the descriptor. UIElement-dependent hooks
      * will log a warning and return early.  For descriptor-aware hook execution,
      * use {@link core.actions.HookedAction} instead.</p>
      */

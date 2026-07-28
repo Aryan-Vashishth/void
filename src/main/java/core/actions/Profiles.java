@@ -1,9 +1,9 @@
 package core.actions;
 
+import core.actions.hooks.AfterActionHandler;
+import core.actions.hooks.BeforeActionHandler;
 import core.interactions.hooks.After;
-import core.interactions.hooks.AfterActionHandler;
 import core.interactions.hooks.Before;
-import core.interactions.hooks.BeforeActionHandler;
 
 import java.util.List;
 import java.util.Locale;

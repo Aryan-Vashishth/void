@@ -2,7 +2,7 @@ package elements.api.capability;
 
 import core.actions.ActionCapability;
 
-import core.actions.HoverAction;
+import elements.api.actions.HoverAction;
 import elements.meta.ElementRole;
 
 /**
@@ -12,11 +12,15 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → ReadOnly → Hoverable
+ *   UIElement → ReadOnly → Hoverable
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
+ *
+ * <p><b>Domain ownership:</b> Web ({@code elements.api.capability}, ADR-021, I3.3).
+ * Not a kernel type. The kernel references capabilities solely through
+ * {@link core.actions.ActionCapability}.</p>
  */
 public interface Hoverable extends ReadOnly {
 

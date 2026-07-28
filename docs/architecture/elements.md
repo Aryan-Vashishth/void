@@ -1,4 +1,4 @@
-# Element Layer Architecture
+# UIElement Layer Architecture
 
 The `elements` package is VOID's **structural contract layer** -- it describes what UI elements
 exist and what capabilities they support without executing anything. Elements emit typed
@@ -9,9 +9,9 @@ exist and what capabilities they support without executing anything. Elements em
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Element Interface Contract](#element-interface-contract)
+2. [UIElement Interface Contract](#uielement-interface-contract)
 3. [Capability Hierarchy](#capability-hierarchy)
-4. [Enum-Driven Element Model](#enum-driven-element-model)
+4. [Enum-Driven UIElement Model](#enum-driven-uielement-model)
 5. [LocatorFamily -- Shared Locator Patterns](#locatorfamily----shared-locator-patterns)
 6. [ElementSupport -- Enum Reflection Utility](#elementsupport----enum-reflection-utility)
 7. [LocatorRoles -- Role Map Construction](#locatorroles----role-map-construction)
@@ -37,21 +37,29 @@ of an element is an `Action` object.
 
 ---
 
-## Element Interface Contract
+## UIElement Interface Contract
 
-`Element` (in `elements.api`) is the root contract for all UI element descriptors.
+`UIElement` (in `elements.api`) is the web-domain root contract for all UI element
+descriptors. It extends the domain-neutral `core.target.Target`, which carries the
+members with zero UI semantics; `UIElement` adds locator-specific structure on top.
 
-### Core methods
+### Members inherited from `Target`
+
+| Method | Purpose | Default behavior |
+|---|---|---|
+| `getDisplayText()` | Human-readable label for logging | Overridden on `UIElement`, derived from `ElementSupport.nameOf(this)` -- capitalized, underscores to spaces |
+| `getArgs()` | Dynamic `%s` substitution arguments | `NO_ARGS` (empty array) |
+| `effectiveArgs(Object... overrides)` | Returns `overrides` if non-null/non-empty, else falls back to `getArgs()` | Default composition helper on `Target` |
+| `NO_ARGS` | Shared empty-args constant | `core.target.Target.NO_ARGS` |
+
+### Core methods (`UIElement`-specific)
 
 | Method | Purpose | Default behavior |
 |---|---|---|
 | `getExternalFileName()` | Classpath path to the locator resource file | Probes `PageClass/locators.json` then `PageClass/locators.properties`; returns the json path as preferred target |
 | `getPrimaryLocator()` | Namespaced locator key for the element | Delegates to first value of `getAllLocatorRoles()`; falls back to enum-name-derived key |
 | `getSecondaryLocator()` | Fallback locator key | `null` by default |
-| `getArgs()` | Dynamic `%s` substitution arguments | `NO_ARGS` (empty array) |
-| `getDisplayText()` | Human-readable label for logging | Derived from `ElementSupport.nameOf(this)` -- lowercased, underscores to spaces |
 | `getAllLocatorRoles()` | Ordered map of `ElementRole` to locator key | Empty map in the root default; capability interfaces populate this |
-| `withArgs(Object...)` | Returns args if non-null/non-empty, else falls back to `getArgs()` | Provided as a default composition helper |
 | `capability()` | Identity of the capability this element implements | `ActionCapability.UNKNOWN` by default; overridden by each capability interface |
 
 ### Locator key derivation
@@ -68,7 +76,7 @@ the locator value in the JSON or properties file.
 
 ## Capability Hierarchy
 
-All capability interfaces extend `Element`. Each interface:
+All capability interfaces extend `UIElement`. Each interface:
 
 1. Adds role-based locator keys to `getAllLocatorRoles()`
 2. Returns a non-`UNKNOWN` `ActionCapability` constant from `capability()`
@@ -77,7 +85,8 @@ All capability interfaces extend `Element`. Each interface:
 ### Full hierarchy
 
 ```
-Element (root)
+Target (core.target -- domain-neutral root)
+└── UIElement (root)
 ├── Clickable              capability=CLICKABLE;   emits click()
 │   ├── Checkable          capability=CHECKABLE;   emits toggle(), set(boolean)
 │   └── (extended by Selectable, SearchField)
@@ -97,6 +106,33 @@ Element (root)
 └── KeyValuePair           standalone contract; no capability enum entry
 ```
 
+### Capability ownership table
+
+All 15 capability interfaces are **Web-domain vocabulary** (ADR-021, runtime-redesign I3.3).
+They reside in `elements.api.capability` and are never referenced by kernel packages.
+The kernel uses only the neutral `ActionCapability` contract.
+
+| Interface | `ActionCapability` constant | Domain | Package |
+|---|---|---|---|
+| `Clickable` | `CLICKABLE` | Web | `elements.api.capability` |
+| `Typeable` | `TYPEABLE` | Web | `elements.api.capability` |
+| `Selectable` | `SELECTABLE` | Web | `elements.api.capability` |
+| `Hoverable` | `HOVERABLE` | Web | `elements.api.capability` |
+| `Checkable` | `CHECKABLE` | Web | `elements.api.capability` |
+| `Uploadable` | `UPLOADABLE` | Web | `elements.api.capability` |
+| `Searchable` | `SEARCHABLE` | Web | `elements.api.capability` |
+| `SearchField` | `SEARCH_FIELD` | Web | `elements.api.capability` |
+| `SearchableDropdown` | `SEARCHABLE_DROPDOWN` | Web | `elements.api.capability` |
+| `ReadOnly` | `READ_ONLY` | Web | `elements.api.capability` |
+| `Table` | `TABLE` | Web | `elements.api.capability` |
+| `EditableTable` | `EDITABLE_TABLE` | Web | `elements.api.capability` |
+| `Listable` | `LISTABLE` | Web | `elements.api.capability` |
+| `MultiSelectable` | `MULTI_SELECTABLE` | Web | `elements.api.capability` |
+| `KeyValuePair` | (none -- standalone contract) | Web | `elements.api.capability` |
+
+The fitness check `KernelBoundaryRulesTest.kernelCapabilityReferencesAreContractTypedOnly`
+enforces this boundary automatically.
+
 ### Diamond inheritance
 
 `Selectable` extends both `Clickable` and `Listable`, each of which returns a different
@@ -108,7 +144,7 @@ parents with conflicting `capability()` defaults.
 
 ---
 
-## Enum-Driven Element Model
+## Enum-Driven UIElement Model
 
 Every element in VOID is declared as a Java enum constant. This is an architectural
 invariant enforced by `ElementStructureRulesTest`.
@@ -126,7 +162,7 @@ public enum LoginPageElements {
         PASSWORD_INPUT;
 
         @Override
-        public String[] getArgs() { return Element.NO_ARGS; }
+        public String[] getArgs() { return UIElement.NO_ARGS; }
     }
 
     public enum Actions implements Clickable {
@@ -212,9 +248,9 @@ consolidate the `(Enum<?>) this` casts required for enum-based element implement
 
 | Method | Returns | Use case |
 |---|---|---|
-| `nameOf(Element e)` | `String` -- enum constant name | Display text derivation, debug logging |
-| `declaringClassOf(Element e)` | `Class<?>` -- the enum class | Locator key construction, file path derivation |
-| `ordinalOf(Element e)` | `int` -- zero-based enum ordinal | `Listable.getIndex()` default |
+| `nameOf(UIElement e)` | `String` -- enum constant name | Display text derivation, debug logging |
+| `declaringClassOf(UIElement e)` | `Class<?>` -- the enum class | Locator key construction, file path derivation |
+| `ordinalOf(UIElement e)` | `int` -- zero-based enum ordinal | `Listable.getIndex()` default |
 
 ### Scope constraint
 
@@ -271,7 +307,7 @@ switch (element.capability()) {
 ```
 
 The VoidDSL EnumMap dispatch pattern is a bounded exception: it maps `ActionCapability`
-constants to `BiConsumer<Element, String>` lambdas for string-key-resolved DSL methods
+constants to `BiConsumer<UIElement, String>` lambdas for string-key-resolved DSL methods
 where the element type is genuinely unknown at compile time. This is metadata-keyed
 routing, not behavioral dispatch -- the lambda is the same regardless of capability value.
 
@@ -281,7 +317,7 @@ routing, not behavioral dispatch -- the lambda is the same regardless of capabil
 
 These invariants are enforced by `ElementStructureRulesTest` and must not be violated:
 
-1. **Every Element implementation is an enum.** Plain class implementations of `Element`
+1. **Every UIElement implementation is an enum.** Plain class implementations of `UIElement`
    are prohibited. The `(Enum<?>) this` cast in `ElementSupport` is a framework invariant,
    not a runtime check.
 
@@ -303,6 +339,13 @@ These invariants are enforced by `ElementStructureRulesTest` and must not be vio
 6. **`getAllLocatorRoles()` returns an ordered map.** The first entry is the primary locator.
    `getPrimaryLocator()` relies on iteration order. Use `LinkedHashMap`-backed maps only.
 
+7. **The kernel never depends on `elements.*`.** `elements.api` and `elements.api.actions`
+   depend on the kernel (`core.actions.Action`, `ActionCapability`, `ActionProfile`,
+   `ActionProfiles`) — never the reverse. This was audit finding D1 (the two packages'
+   mutual dependency was proof they were one bounded context); `KernelBoundaryRulesTest`'s
+   `kernelPackagesDoNotDependOnElements` (runtime-redesign I2.3) makes it a permanent,
+   enforced ratchet rather than a one-time cleanup that could silently regress.
+
 ---
 
 ## Extension Guide
@@ -310,7 +353,7 @@ These invariants are enforced by `ElementStructureRulesTest` and must not be vio
 ### Adding a new capability interface
 
 1. Create the interface in `elements.api.capability`.
-2. Extend `Element` (not `ActionCapabilityProvider` -- see ADR-016).
+2. Extend `UIElement` (not `ActionCapabilityProvider` -- see ADR-016).
 3. Override `capability()` to return the new `ActionCapability` constant.
 4. If the new interface extends two parents with `capability()`, add an explicit
    `@Override default ActionCapability capability()` resolving the diamond.

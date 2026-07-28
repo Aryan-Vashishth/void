@@ -92,7 +92,7 @@ Result:   //input[@placeholder='username']
 | `JsonLocatorReader` | Runtime reader — loads JSON, returns raw locator for a key |
 | `JsonLocatorMigrator` | Migration façade — builds resolved JSON from enums |
 | `JsonTreeBuilder` | Recursive walker producing Jackson ObjectNode from enum trees |
-| `EnumLocatorScanner` | Scans Element enum constants → emits JSON entries |
+| `EnumLocatorScanner` | Scans UIElement enum constants → emits JSON entries |
 | `JsonNodeLookup` | Jackson JsonNode traversal helpers (dot-path, deep-find) |
 | `PropertiesIndex` | Per-migration cache of .properties files |
 | `JsonMigratorCli` | CLI entry point for migration |

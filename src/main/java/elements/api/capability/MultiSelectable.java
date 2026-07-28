@@ -3,7 +3,7 @@ package elements.api.capability;
 import core.actions.Action;
 import core.actions.ActionCapability;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.meta.ElementRole;
 
 /**
@@ -13,13 +13,17 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → MultiSelectable
+ *   UIElement → MultiSelectable
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
+ *
+ * <p><b>Domain ownership:</b> Web ({@code elements.api.capability}, ADR-021, I3.3).
+ * Not a kernel type. The kernel references capabilities solely through
+ * {@link core.actions.ActionCapability}.</p>
  */
-public interface MultiSelectable extends Element {
+public interface MultiSelectable extends UIElement {
 
     String getTriggerLocator();
 

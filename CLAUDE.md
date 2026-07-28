@@ -146,14 +146,20 @@ When cutting a new version:
 
 Non-negotiable. Raise a violation explicitly before working around one.
 
-| Invariant | Rule |
-|---|---|
-| `UIEngine` is the single execution authority | Nothing outside `UIEngine` implementations calls `WebDriver` methods directly. ADR-007. |
-| Engine-agnostic layers are Selenium-free | `DriverContext`, `WebDriver`, `By` must not appear in `core.runtime`, `core.interactions`, or `dsl` except in `@Deprecated` bridge paths. ADR-018. |
-| `LocatorDescriptor` is Selenium-free | No `org.openqa.selenium.By` dependency. ADR-019. |
-| `ElementSupport` scope is frozen | Exactly three methods: `nameOf`, `declaringClassOf`, `ordinalOf`. No additions without an ADR. ADR-017. |
-| `Target` carries no enum-specific defaults | `core.target.Target` must not assume enum implementors. |
-| `VOIDBuilder` is single-use | Each session requires a new `VOID.builder()` call. ADR-018. |
+Axis follows ADR-021's two neutrality axes (**engine**: does this seam prevent swapping
+Selenium for Playwright/Appium; **domain**: does this seam prevent adding REST/CLI/Database
+alongside Web/UI) plus **scope**, for invariants that are about API/lifecycle discipline
+rather than either neutrality axis.
+
+| Invariant | Axis | Rule |
+|---|---|---|
+| `UIEngine` is the single execution authority | engine | Nothing outside `UIEngine` implementations calls `WebDriver` methods directly. ADR-007. |
+| Engine-agnostic layers are Selenium-free | engine | `DriverContext`, `WebDriver`, `By` must not appear in `core.runtime`, `core.interactions`, or `dsl` except in `@Deprecated` bridge paths. ADR-018. |
+| `LocatorDescriptor` is Selenium-free | engine | No `org.openqa.selenium.By` dependency. ADR-019. |
+| `ElementSupport` scope is frozen | scope | Exactly three methods: `nameOf`, `declaringClassOf`, `ordinalOf`. No additions without an ADR. ADR-017. |
+| `Target` carries no enum-specific defaults | scope | `core.target.Target` must not assume enum implementors. |
+| `VOIDBuilder` is single-use | scope | Each session requires a new `VOID.builder()` call. ADR-018. |
+| Kernel purity: the kernel depends only on JDK, `core.logging`, `core.annotations`, `core.target`, itself, and a short, explicitly documented list of temporary exceptions | domain | `core.actions`, `core.actions.trace`, `core.actions.hooks`, `core.flow`, `core.executor`, `core.context` (minus the legacy `ExecutionContext`), `core.runtime`, `core.bootstrap` must never depend on `elements.*` or Selenium. Consolidates I2.1-I2.3; enforced by `KernelBoundaryRulesTest.kernelPurity`, with every temporary exception named and cross-referenced to its closing phase. ADR-021, runtime-redesign I2.4. |
 
 ---
 
@@ -199,7 +205,7 @@ Violations are tracked as P-IDs. Reference the ID when naming or logging a viola
 | P2 | OCP | Sequential `instanceof` chains in `VoidDSL` dispatch | Fixed |
 | P3 | OCP | `switch (ActionCapability)` in `HookChainAction.operationLabel` | Fixed |
 | P4 | LSP, DIP | `instanceof ActionLabeled` fallback in `HookChainAction` | Fixed |
-| P5 | LSP | `(Enum<?>) this` hard cast in `Element` interface defaults | Fixed |
+| P5 | LSP | `(Enum<?>) this` hard cast in `UIElement` interface defaults | Fixed |
 | P6 | LSP | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` | Fixed |
 | P7 | ISP, OCP | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` | Fixed |
 | P8 | OCP | `switch` on engine name string in `UIEngineFactory` | Deferred -- runtime-redesign I4.1 |

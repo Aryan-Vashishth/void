@@ -1,16 +1,24 @@
-# `core.actions` — Deferred Execution Model
+# `core.actions` — Kernel-Owned Deferred Execution Model
 
 The foundation of VOID's primary execution pipeline: **Action / Flow / FlowExecutor**.
+
+As of runtime-redesign I2, phase 2.2 (kernel/UI action split, ADR-021), this package
+holds only the domain-neutral kernel contracts. The concrete UI action layer --
+`ElementAction` and its family, the 17 concrete leaf classes, and the `ElementActions`
+factory -- lives in [`elements.api.actions`](../../../elements/api/actions/), which
+this doc's examples reference where relevant.
 
 ---
 
 ## Overview
 
-Actions represent **deferred UI operations** (intent). They are produced by element capability interfaces and executed later by a `FlowExecutor`. Both locator resolution and browser execution are deferred until `perform(engine)` is called.
+Actions represent **deferred operations** (intent). Concrete UI actions are produced by
+element capability interfaces and executed later by a `FlowExecutor`. Both locator
+resolution and browser execution are deferred until `perform(engine)` is called.
 
 ```
-Element (capability interface)
-  → Action (deferred intent)
+UIElement (capability interface, elements.api)
+  → Action (deferred intent; concrete UI actions in elements.api.actions)
     → Flow (composition)
       → FlowExecutor (iteration)
         → UIEngine (physical execution)
@@ -18,13 +26,19 @@ Element (capability interface)
 
 ---
 
-## Class Inventory
+## Class Inventory (kernel, this package)
 
 | Class | Stability | Responsibility |
 |-------|-----------|----------------|
-| `Action` | @Beta | Functional interface — a single deferred UI operation. The core building block of the execution pipeline. |
-| `ElementActions` | @Internal | Factory that creates element-bound Actions supporting descriptor resolution. Used internally by capability interfaces. |
-| `HookedAction` | @Beta | Decorator that wraps an Action with before/after `ActionHandler` hooks. |
+| `Action` | @Beta | Functional interface — a single deferred operation. The core building block of the execution pipeline. |
+| `HookChainAction` | @Internal | Wrapper that stores before/after `ActionHandler` hooks around a delegate `Action`, sharing a single resolved descriptor; owns the trace pipeline. |
+| `ActionCapability` | @Beta | Metadata enum identifying the capability category of an action. |
+| `ActionProfile` / `ActionProfiles` / `Profile` / `Profiles` | @Beta | Domain-neutral default safe/reliable profiles and config-driven default selection. |
+
+**UI-domain content, now in `elements.api.actions`:** `ElementAction` and its 3 abstract
+family intermediaries, the 17 concrete leaf classes (`ClickAction`, `TypeAction`, etc.),
+`ElementActions` (the `@Internal` factory), and `CapabilityProfiles` (capability-specific
+profile constants).
 
 ---
 
@@ -117,9 +131,9 @@ When `FlowExecutor` calls `action.perform(engine)`:
 | Rule | Rationale |
 |------|-----------|
 | Actions are **deferred** | Locator resolution happens inside `perform()`, never eagerly |
-| Actions never reference `WebDriver`/`WebElement`/`By` | Engine-agnostic by design |
+| Kernel action types never reference `WebDriver`/`WebElement`/`By`/`UIElement`/`ElementRole`/capability interfaces | Domain-neutral by design (ADR-021); enforced by `KernelBoundaryRulesTest` |
 | Hook composition is optional and fluent | Clean separation of cross-cutting concerns |
-| `ElementActions` is internal | Only capability interfaces should create element-bound actions |
+| `elements.api.actions.ElementActions` is internal | Only capability interfaces should create element-bound actions |
 
 ---
 
@@ -152,9 +166,9 @@ default TypeAction type(String text) {
 }
 ```
 
-`ElementActions.of()` is an `@Internal` factory retained for test infrastructure and
-edge cases requiring a custom operation lambda. Production capability interfaces create
-concrete action subclasses directly (ADR-012).
+`elements.api.actions.ElementActions.of()` is an `@Internal` factory retained for test
+infrastructure and edge cases requiring a custom operation lambda. Production capability
+interfaces create concrete action subclasses directly (ADR-012).
 
 ---
 
@@ -194,5 +208,6 @@ External consumers interact with Actions **opaquely** — they pass them to `Flo
 - `core.flow` — composes Actions into sequences
 - `core.executor` — iterates and executes flows
 - `core.engine.UIEngine` — performs the actual browser interaction
-- `core.interactions.hooks` — ActionHandler, Before, After hook constants
+- `core.actions.hooks` — kernel-owned hook contract: `ActionHandler`, `BeforeActionHandler`, `AfterActionHandler`
+- `core.interactions.hooks` — domain-specific hook payload libraries: `Before`, `After` (deprecated bridges of the old contract types remain here until I9.3)
 

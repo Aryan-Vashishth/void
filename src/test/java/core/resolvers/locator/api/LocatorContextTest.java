@@ -1,6 +1,6 @@
 package core.resolvers.locator.api;
 
-import elements.api.Element;
+import elements.api.UIElement;
 import elements.api.capability.Clickable;
 import elements.fixture.ConventionalTestPage;
 import org.testng.annotations.Test;
@@ -50,7 +50,7 @@ public class LocatorContextTest {
 
     @Test
     public void resolveFileName_explicitOverride_returnsThatFile() {
-        Element e = new Clickable() {
+        UIElement e = new Clickable() {
             @Override public String getExternalFileName() { return "my-locators.json"; }
             @Override public String getTriggerLocator()   { return "MY_KEY"; }
         };
@@ -59,7 +59,7 @@ public class LocatorContextTest {
 
     @Test
     public void resolveFileName_nullOverride_returnsNull() {
-        Element e = new Clickable() {
+        UIElement e = new Clickable() {
             @Override public String getExternalFileName() { return null; }
             @Override public String getTriggerLocator()   { return "//button"; }
         };
@@ -94,7 +94,7 @@ public class LocatorContextTest {
     // Constants without a body share their enum class as the cache key.
 
     private static class CachingPageA {
-        enum El implements Element {
+        enum El implements UIElement {
             X, Y;
             @Override public String getExternalFileName() { PROBE_COUNT.incrementAndGet(); return "caching-a/locators.json"; }
             @Override public String getPrimaryLocator()   { return name() + ".TRIGGER"; }
@@ -102,7 +102,7 @@ public class LocatorContextTest {
     }
 
     private static class CachingPageB {
-        enum El implements Element {
+        enum El implements UIElement {
             Z;
             @Override public String getExternalFileName() { PROBE_COUNT.incrementAndGet(); return "caching-b/locators.json"; }
             @Override public String getPrimaryLocator()   { return name() + ".TRIGGER"; }

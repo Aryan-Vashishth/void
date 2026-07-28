@@ -6,7 +6,7 @@ VOID (Virtual Object Interaction Domain) is an interaction runtime for modeling 
 
 Execution pipeline:
 
-`Element → Action → Flow → FlowExecutor → UIEngine`
+`UIElement → Action → Flow → FlowExecutor → UIEngine`
 
 Test code describes intent. The runtime handles execution.
 
@@ -619,7 +619,7 @@ A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs in
 | File | Purpose |
 |------|---------|
 | [`VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) | Main entry point — bootstraps VOID, runs login flow, verifies redirect |
-| [`DemoLoginPage.java`](../../src/main/java/tests/demo/pages/DemoLoginPage.java) | Element definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
+| [`DemoLoginPage.java`](../../src/main/java/tests/demo/pages/DemoLoginPage.java) | UIElement definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
 | [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) | Locator file — XPath locators keyed by element name |
 
 ### Running

@@ -1,10 +1,10 @@
 package elements.api.capability;
 
 import core.actions.ActionCapability;
-import core.actions.OpenAction;
-import core.actions.SelectAction;
-import core.actions.SelectByTextAction;
-import core.actions.SelectByValueAction;
+import elements.api.actions.OpenAction;
+import elements.api.actions.SelectAction;
+import elements.api.actions.SelectByTextAction;
+import elements.api.actions.SelectByValueAction;
 import elements.meta.ElementRole;
 
 /**
@@ -14,12 +14,16 @@ import elements.meta.ElementRole;
  *
  * <h3>Hierarchy</h3>
  * <pre>
- *   Element → Clickable ─┐
- *   Element → Listable  ─┤→ Selectable
+ *   UIElement → Clickable ─┐
+ *   UIElement → Listable  ─┤→ Selectable
  * </pre>
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
+ *
+ * <p><b>Domain ownership:</b> Web ({@code elements.api.capability}, ADR-021, I3.3).
+ * Not a kernel type. The kernel references capabilities solely through
+ * {@link core.actions.ActionCapability}.</p>
  */
 public interface Selectable extends Clickable, Listable {
 

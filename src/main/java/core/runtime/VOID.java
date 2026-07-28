@@ -17,7 +17,7 @@ import org.openqa.selenium.WebDriver;
  * <p>A {@code VOID} instance represents a single browser session. Tests should
  * think in terms of a session, not an engine. The majority of test code should
  * interact only with {@code VOID}, {@link Flow}, {@link Action}, and
- * {@code Element} types.</p>
+ * {@code UIElement} types.</p>
  *
  * <h3>Typical usage</h3>
  * <pre>
@@ -253,7 +253,7 @@ public class VOID {
      * Returns the (cached) general-purpose legacy interaction helper.
      *
      * @deprecated Since 2.1 — use {@link #run(Flow)} / {@link #run(Action)} instead.
-     *             Prefer composing {@code Element → Action → Flow} and executing via
+     *             Prefer composing {@code UIElement → Action → Flow} and executing via
      *             {@code app.run(flow)}. Will be removed in 3.0.
      */
     @Deprecated(since = "0.1", forRemoval = true)

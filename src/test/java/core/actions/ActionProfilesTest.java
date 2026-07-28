@@ -6,6 +6,7 @@ import core.engine.UIEngine;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import core.utils.ConfigLoader;
+import elements.api.actions.ElementActions;
 import elements.api.capability.Clickable;
 import elements.api.capability.Typeable;
 import elements.meta.ElementRole;
@@ -100,6 +101,53 @@ public class ActionProfilesTest {
     @Test
     public void fromName_reliable_fallsBackToRaw() {
         assertSame(Profiles.fromName("RELIABLE"), Profiles.RAW);
+    }
+
+    // ── I3.2: UNKNOWN capability guard ────────────────────────────────────
+
+    @Test(description = "applyConfiguredDefault returns the action unchanged when capability is UNKNOWN (I3.2)")
+    public void applyConfiguredDefault_UNKNOWN_returnsActionUnchanged() {
+        Action unknown = engine -> {};
+        assertEquals(unknown.capability(), ActionCapability.UNKNOWN);
+        Action result = ActionProfiles.applyConfiguredDefault(unknown);
+        assertSame(result, unknown, "UNKNOWN-capability action must be returned unchanged");
+    }
+
+    @Test(description = "applyConfiguredDefault skips a non-RAW configured profile when capability is UNKNOWN (I3.2)")
+    public void applyConfiguredDefault_UNKNOWN_withConfiguredSafe_skipsProfile() {
+        Properties props = new Properties();
+        props.setProperty(ActionProfiles.DEFAULT_PROFILE_KEY, "DEBUG");
+        ConfigLoader.setActive(props);
+
+        Action unknown = engine -> {};
+        Action result = ActionProfiles.applyConfiguredDefault(unknown);
+        assertSame(result, unknown, "Configured DEBUG profile must not be applied to UNKNOWN-capability action");
+    }
+
+    @Test(description = "safely() on UNKNOWN-capability action throws (I3.2)")
+    public void safely_UNKNOWN_throwsIllegalState() {
+        Action unknown = engine -> {};
+        try {
+            unknown.safely();
+            throw new AssertionError("Expected IllegalStateException");
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("UNKNOWN"), "Exception message must name the capability");
+        }
+    }
+
+    @Test(description = "applyConfiguredDefault with known capability still applies the profile (I3.2 behavior-neutral check)")
+    public void applyConfiguredDefault_knownCapability_withConfiguredDebug_appliesProfile() {
+        Properties props = new Properties();
+        props.setProperty(ActionProfiles.DEFAULT_PROFILE_KEY, "DEBUG");
+        ConfigLoader.setActive(props);
+
+        List<String> calls = new ArrayList<>();
+        UIEngine engine = buildEngine(calls);
+
+        ActionProfiles.applyConfiguredDefault(CLICKABLE.click()).perform(engine);
+
+        assertTrue(calls.contains("click"), "Core click must execute");
+        assertTrue(calls.contains("highlight"), "DEBUG profile must apply to CLICKABLE-capability action");
     }
 
     private UIEngine buildEngine(List<String> calls) {

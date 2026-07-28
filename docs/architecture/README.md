@@ -8,7 +8,7 @@ Reference documentation for VOID's execution model and subsystems.
 |---|---|
 | `quick-start.md` | Defining elements, emitting actions, composing flows, running sessions |
 | `system-overview.md` | Full system description, capability table, architecture invariants, execution flow |
-| `elements.md` | Element interface contract, capability hierarchy, LocatorFamily, ElementSupport, LocatorRoles |
+| `elements.md` | UIElement interface contract, capability hierarchy, LocatorFamily, ElementSupport, LocatorRoles |
 | `actions.md` | ElementAction hierarchy, concrete action types, ActionProfiles, extension guide |
 | `locator-resolution.md` | Three-step locator resolution, LocatorContext, mixed strategies, caching |
 | `hooks-pipeline.md` | Before/after hook engine, ActionHandler types, hook composition |

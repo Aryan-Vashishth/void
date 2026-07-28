@@ -25,12 +25,12 @@
  *
  * <h3>Primary execution path</h3>
  * <pre>
- *   Element → Action (intent) → Flow (composition) → FlowExecutor (iteration) → UIEngine (execution)
+ *   UIElement → Action (intent) → Flow (composition) → FlowExecutor (iteration) → UIEngine (execution)
  * </pre>
  *
  * <h3>Legacy execution path (frozen)</h3>
  * <pre>
- *   Element → Interactions (orchestrator) → UIEngine (execution)
+ *   UIElement → Interactions (orchestrator) → UIEngine (execution)
  * </pre>
  */
 package core;

@@ -1,12 +1,13 @@
 package core.actions;
 
+import core.actions.hooks.ActionHandler;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
 import core.executor.FlowExecutor;
 import core.flow.Flow;
-import core.interactions.hooks.ActionHandler;
-import elements.api.Element;
+import elements.api.UIElement;
+import elements.api.actions.ElementActions;
 import elements.meta.ElementRole;
 
 import org.testng.annotations.BeforeMethod;
@@ -43,8 +44,8 @@ public class HookPipelineTest {
     /** Stub UIEngine that records resolve() calls and returns STUB_DESCRIPTOR. */
     private UIEngine stubEngine;
 
-    /** Minimal Element stub for ElementActions tests. */
-    private static final Element STUB_ELEMENT = new Element() {
+    /** Minimal UIElement stub for ElementActions tests. */
+    private static final UIElement STUB_ELEMENT = new UIElement() {
         @Override public String getExternalFileName()              { return "stub.json"; }
         @Override public String getPrimaryLocator()                { return "STUB_KEY"; }
         @Override public Object[] getArgs()                        { return new Object[0]; }

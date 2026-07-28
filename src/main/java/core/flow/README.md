@@ -84,7 +84,7 @@ Flow secureLogin = Flow.of(
 ## How Flows Fit in the Pipeline
 
 ```
-Element.click() / .type("text")     → Action (deferred)
+UIElement.click() / .type("text")   → Action (deferred)
     ↓
 Flow.of(action1, action2, action3)  → Flow (composition)
     ↓
