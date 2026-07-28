@@ -282,13 +282,17 @@ This label appears in `ActionTrace.operation` and `ActionTraceLogger` output —
 
 ---
 
-## ActionCapability — Metadata Enum
+## ActionCapability — Open Capability Token
 
-`ActionCapability` is a **metadata-only** enum. It identifies what kind of operation an action represents for observability, logging, and tracing. It is **never used for execution dispatch**.
+`ActionCapability` is a **metadata-only** interface (runtime-redesign I3.1; formerly a closed enum). It identifies what kind of operation an action represents for observability, logging, and tracing. It is **never used for execution dispatch**.
 
-Full value set: `CLICKABLE`, `TYPEABLE`, `SELECTABLE`, `HOVERABLE`, `CHECKABLE`, `UPLOADABLE`, `SEARCHABLE`, `SEARCH_FIELD`, `SEARCHABLE_DROPDOWN`, `READ_ONLY`, `TABLE`, `EDITABLE_TABLE`, `LISTABLE`, `MULTI_SELECTABLE`, `UNKNOWN`.
+The set is open: any domain can define new capabilities via `ActionCapability.of("MY_CAP")` without editing runtime-owned files. Equality is name-based -- two capabilities with the same name are equal.
+
+Built-in UI-domain constants (preserved from the former enum): `CLICKABLE`, `TYPEABLE`, `SELECTABLE`, `HOVERABLE`, `CHECKABLE`, `UPLOADABLE`, `SEARCHABLE`, `SEARCH_FIELD`, `SEARCHABLE_DROPDOWN`, `READ_ONLY`, `TABLE`, `EDITABLE_TABLE`, `LISTABLE`, `MULTI_SELECTABLE`, `UNKNOWN`.
 
 Each concrete action declares its capability in the `super(element, role, capability)` constructor call. The value flows through to `ActionTrace.capability` for observability and is not read back to make execution decisions.
+
+**Migration note (formerly enum):** callers using `ActionCapability.CONSTANT_NAME` are unchanged. Callers that called `.values()`, `.ordinal()`, or used `ActionCapability` in a `switch` must migrate -- none existed in-repo.
 
 > **ADR-013:** `ActionCapability` describes; it does not dispatch. A `switch` on `capability()` that selects element execution methods is an antipattern and is prohibited.
 

@@ -278,6 +278,19 @@ exactly what AD2 already says: the web domain's concrete refinement of
 
 ---
 
+## Addendum (2026-07-28) -- ActionCapability Open Set (I3.1)
+
+`ActionCapability` is no longer a closed enum. As of runtime-redesign I3.1 it is an
+open interface with name-based value equality. The 15 built-in constants are preserved
+as static fields with identical names. New domains define capabilities via
+`ActionCapability.of("MY_CAP")` without editing runtime-owned files.
+
+The kernel purity gate (`KernelBoundaryRulesTest.kernelPurity`) is unaffected:
+`ActionCapability` and its package-private backing type `NamedCapability` both reside
+in `core.actions` (kernel), so no new inter-package dependencies are introduced.
+
+---
+
 ## Related
 
 - Architecture audit: `docs/audits/ongoing/architecture-audit-2026-07-domain-model.md`

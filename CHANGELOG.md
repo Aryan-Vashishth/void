@@ -13,6 +13,21 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Internal
 
+- **Open capability set -- ActionCapability is now an interface (runtime-redesign I3.1)**
+  - `ActionCapability` converted from a closed enum to an open interface; the 15 built-in
+    constants (`CLICKABLE`, `TYPEABLE`, etc.) are preserved as static fields with
+    identical names and string-equality semantics
+  - New domains define capabilities via `ActionCapability.of("MY_CAP")` -- no edits to
+    runtime files required
+  - Equality is name-based (`record NamedCapability` backing); two capabilities with the
+    same name are equal
+  - Extension fitness test added: `ActionCapabilityExtensionTest` proves a custom
+    capability registers and carries through an `Action` with zero runtime edits
+
+  *Migration for existing callers:* `ActionCapability.CONSTANT_NAME` references are
+  unchanged. `.values()`, `.ordinal()`, and `switch (capability)` idioms are no longer
+  valid -- none existed in-repo.
+
 - **ADR-021 -- Kernel boundary, ontology, and open decisions (runtime-redesign I0)**
   - Resolves the three open architectural decisions from the 2026-07 audit: AD1 (one
     session binds one domain), AD2 (execution owner named `Executor`; `UIEngine` is the
