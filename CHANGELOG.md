@@ -41,6 +41,15 @@ Versions follow [Semantic Versioning](https://semver.org/).
   `ActionCapability.of("MY_CAP")` on your action, or call `.raw()` explicitly if
   no browser-wait contract applies.
 
+- **Neutral capability contract; Web-domain ownership declared (runtime-redesign I3.3)**
+  - All 15 capability interfaces (`Clickable`, `Typeable`, ...) gain explicit Web-domain
+    ownership declaration in javadoc and `package-info.java`; the kernel references
+    capabilities solely through the `ActionCapability` interface
+  - `elements.md` capability hierarchy gains an ownership table listing all 15 interfaces,
+    their `ActionCapability` constant, and their domain/package
+  - Fitness check added: `KernelBoundaryRulesTest.kernelCapabilityReferencesAreContractTypedOnly`
+    -- ensures no kernel package ever imports a concrete Web-domain capability type
+
 - **ADR-021 -- Kernel boundary, ontology, and open decisions (runtime-redesign I0)**
   - Resolves the three open architectural decisions from the 2026-07 audit: AD1 (one
     session binds one domain), AD2 (execution owner named `Executor`; `UIEngine` is the

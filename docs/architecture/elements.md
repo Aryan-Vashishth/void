@@ -106,6 +106,33 @@ Target (core.target -- domain-neutral root)
 └── KeyValuePair           standalone contract; no capability enum entry
 ```
 
+### Capability ownership table
+
+All 15 capability interfaces are **Web-domain vocabulary** (ADR-021, runtime-redesign I3.3).
+They reside in `elements.api.capability` and are never referenced by kernel packages.
+The kernel uses only the neutral `ActionCapability` contract.
+
+| Interface | `ActionCapability` constant | Domain | Package |
+|---|---|---|---|
+| `Clickable` | `CLICKABLE` | Web | `elements.api.capability` |
+| `Typeable` | `TYPEABLE` | Web | `elements.api.capability` |
+| `Selectable` | `SELECTABLE` | Web | `elements.api.capability` |
+| `Hoverable` | `HOVERABLE` | Web | `elements.api.capability` |
+| `Checkable` | `CHECKABLE` | Web | `elements.api.capability` |
+| `Uploadable` | `UPLOADABLE` | Web | `elements.api.capability` |
+| `Searchable` | `SEARCHABLE` | Web | `elements.api.capability` |
+| `SearchField` | `SEARCH_FIELD` | Web | `elements.api.capability` |
+| `SearchableDropdown` | `SEARCHABLE_DROPDOWN` | Web | `elements.api.capability` |
+| `ReadOnly` | `READ_ONLY` | Web | `elements.api.capability` |
+| `Table` | `TABLE` | Web | `elements.api.capability` |
+| `EditableTable` | `EDITABLE_TABLE` | Web | `elements.api.capability` |
+| `Listable` | `LISTABLE` | Web | `elements.api.capability` |
+| `MultiSelectable` | `MULTI_SELECTABLE` | Web | `elements.api.capability` |
+| `KeyValuePair` | (none -- standalone contract) | Web | `elements.api.capability` |
+
+The fitness check `KernelBoundaryRulesTest.kernelCapabilityReferencesAreContractTypedOnly`
+enforces this boundary automatically.
+
 ### Diamond inheritance
 
 `Selectable` extends both `Clickable` and `Listable`, each of which returns a different

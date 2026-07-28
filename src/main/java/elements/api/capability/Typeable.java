@@ -22,6 +22,10 @@ import elements.meta.ElementRole;
  * <h3>Action emission</h3>
  * <p>Emits deferred {@link core.actions.Action} objects for type, clear, append, and typeAndPress.
  * Contains NO execution logic. Elements emit Action (intent), engine executes.</p>
+ *
+ * <p><b>Domain ownership:</b> Web ({@code elements.api.capability}, ADR-021, I3.3).
+ * Not a kernel type. The kernel references capabilities solely through
+ * {@link core.actions.ActionCapability}.</p>
  */
 public interface Typeable extends UIElement {
 

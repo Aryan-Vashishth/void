@@ -200,6 +200,30 @@ public class KernelBoundaryRulesTest {
         rule.check(allClasses);
     }
 
+    // ─────────────────────────────────────────────────────────────────────
+    // I3.3 -- Neutral capability contract
+    // The kernel references capabilities contract-typed (ActionCapability interface)
+    // only. Concrete Web-domain capability interfaces (elements.api.capability.*)
+    // must never appear in any kernel package.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "full kernel never references concrete Web-domain capability types (I3.3)")
+    public void kernelCapabilityReferencesAreContractTypedOnly() {
+        ArchRule rule = noClasses()
+                .that().resideInAnyPackage(
+                    "core.actions..", "core.flow..", "core.executor..",
+                    "core.runtime..", "core.bootstrap..", "core.context..")
+                .should().dependOnClassesThat().resideInAPackage("elements.api.capability..")
+                .because(
+                    "Kernel capability references must be contract-typed via ActionCapability only. " +
+                    "Concrete Web-domain capability interfaces (Clickable, Typeable, Selectable, ...) " +
+                    "are elements.api.capability domain vocabulary, not kernel types (ADR-021). " +
+                    "The open-set extension point is ActionCapability.of(String). " +
+                    "runtime-redesign I3.3.");
+
+        rule.check(allClasses);
+    }
+
     @Test(description = "elements.api.actions (the relocated UI action family) has no Selenium dependency")
     public void uiActionsAreSeleniumFree() {
         ArchRule rule = noClasses()

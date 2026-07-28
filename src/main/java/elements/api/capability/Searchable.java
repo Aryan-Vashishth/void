@@ -15,6 +15,10 @@ import elements.meta.ElementRole;
  *
  * <h3>Action emission</h3>
  * <p>Contains NO execution logic. Emits Action (intent) only.</p>
+ *
+ * <p><b>Domain ownership:</b> Web ({@code elements.api.capability}, ADR-021, I3.3).
+ * Not a kernel type. The kernel references capabilities solely through
+ * {@link core.actions.ActionCapability}.</p>
  */
 public interface Searchable extends SearchField {
 
