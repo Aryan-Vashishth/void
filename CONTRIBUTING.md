@@ -162,6 +162,10 @@ Merge
 | `bugfix/<name>` | Isolated bug fixes that do not require an initiative |
 | `docs/<name>` | Documentation-only changes |
 
+**Never commit or push directly to `main`.** Every change -- including single-line
+documentation fixes, changelog updates, and version bumps -- must go through a branch and
+be merged via `git merge --no-ff`. `main` is the integration point only.
+
 ---
 
 ### Initiative Branches
@@ -440,17 +444,29 @@ a double-hyphen and a short description.
 
 ### Cutting a release
 
-1. Replace `## [Unreleased]` with the new version and today's date:
-   ```
-   ## [0.3.0] - 2026-xx-xx
-   ```
-2. Add a new empty `## [Unreleased]` section above it.
-3. Update the comparison links at the bottom of `CHANGELOG.md`:
+All version-bump changes must go through a branch (e.g. `docs/release-0.3.0`) and be merged
+via `--no-ff` before tagging. Never commit version files directly to `main`.
+
+1. On a release branch, bump the version in all three files atomically:
+   - `pom.xml` -- `<version>0.3.0</version>`
+   - `version.json` -- `{ "version": "0.3.0" }` (the README badge reads from this file)
+   - `CHANGELOG.md` -- promote `## [Unreleased]` to `## [0.3.0] - YYYY-MM-DD` and add a
+     new empty `## [Unreleased]` above it
+2. Update the comparison links at the bottom of `CHANGELOG.md`:
    ```
    [Unreleased]: .../compare/v0.3.0...HEAD
    [0.3.0]: .../compare/v0.2.0...v0.3.0
    ```
-4. Tag the release commit: `git tag v0.3.0`.
+3. Merge the release branch to `main` via `--no-ff`.
+4. Tag the merge commit on `main`:
+   ```
+   git tag v0.3.0
+   git push origin v0.3.0
+   ```
+5. Create a GitHub release targeting the tag:
+   ```
+   gh release create v0.3.0 --title "v0.3.0" --notes-file <notes-file>
+   ```
 
 ### What does NOT go in the changelog
 
