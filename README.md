@@ -3,7 +3,7 @@
 An interaction runtime for modeling and executing interaction workflows.
 Currently configured for UI automation.
 
-**Element → Action → Flow → FlowExecutor → UIEngine**
+**UIElement → Action → Flow → FlowExecutor → UIEngine**
 
 VOID separates interaction modeling from execution.
 Elements emit actions. Actions compose flows. Flows are executed by the VOID Runtime through interchangeable engines that own waits, retries, locator resolution, synchronization, and native automation concerns.
@@ -13,7 +13,7 @@ The runtime handles execution.
 
 Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
-![VOID](https://img.shields.io/badge/VOID-v0.4.1-5f2d9c)
+![VOID](https://img.shields.io/badge/VOID-v0.5.0-5f2d9c)
 [![CI](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml)
 [![VoidDemo](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml)
 ![Java](https://img.shields.io/badge/Java-17+-blue?logo=openjdk)
@@ -70,11 +70,16 @@ VOID enforces one execution path:
 Tests → VOID (session) → FlowExecutor → UIEngine
 ```
 
-The full expansion:
+The full expansion (Web/UI domain):
 
 ```text
-Element → Action → Flow → VOID.run() → FlowExecutor → UIEngine
+UIElement → Action → Flow → VOID.run() → FlowExecutor → UIEngine
 ```
+
+At the kernel level, `UIElement` is replaced by `Target` -- the engine-neutral root interface.
+`UIElement` extends `Target` and is the Web/UI-domain specialization. Capability interfaces
+(`Clickable`, `Typeable`, etc.) attach to `UIElement` and carry the Web vocabulary. The
+`Action` and `Flow` layers are domain-neutral and work with any `Target` implementor.
 
 There is no alternative path for new code.
 No direct WebDriver calls.
@@ -91,17 +96,18 @@ This constraint is what makes behavior predictable and debuggable.
 | Layer | Responsibility | What it should do | What it should not do |
 |---|---|---|---|
 | `VOID` | session object | navigate, run flows, shutdown | click, type, resolve |
-| `Element` | typed UI contract | declare roles and locator keys | execute browser actions |
+| `Target` | kernel-neutral element root | identify a target in the execution graph | carry Web/UI-specific state |
+| `UIElement` | Web-domain element contract (extends `Target`) | declare capability interfaces, locator keys, and roles | execute browser actions |
 | `Action` | deferred intent | describe what should happen | touch WebDriver / `By` |
 | `Flow` | composition | group actions into a workflow | execute anything |
 | `FlowExecutor` | internal executor | execute actions in order | be constructed by test code |
 | `UIEngine` | browser executor | waits, retries, scroll, click, type, screenshot | act as test API |
 
 ```text
-Element → Action → Flow → VOID.run() → FlowExecutor → UIEngine
+UIElement → Action → Flow → VOID.run() → FlowExecutor → UIEngine
 ```
 
-Test code interacts with `VOID`, `Flow`, `Action`, and `Element`.
+Test code interacts with `VOID`, `Flow`, `Action`, and `UIElement`.
 Everything else is internal.
 
 ---

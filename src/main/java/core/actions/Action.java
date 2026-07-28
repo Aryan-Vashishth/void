@@ -22,7 +22,8 @@ import java.util.Objects;
  *
  * <h3>Single execution path</h3>
  * <pre>
- *   UIElement → Action → Flow → FlowExecutor → UIEngine
+ *   Target → Action → Flow → FlowExecutor → UIEngine        (kernel-neutral)
+ *   UIElement (extends Target) → Action → ...               (Web/UI domain)
  * </pre>
  *
  * <h3>Hook support</h3>

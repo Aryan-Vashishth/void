@@ -223,23 +223,37 @@ bounded-context finding: "the kernel/UI boundary runs through the middle of
 | Class | Role |
 |-------|------|
 | `UIEngine` | Execution contract interface |
+| `EngineRegistrar` | SPI contract -- one implementation per engine; discovered via `ServiceLoader` |
+| `EngineBootstrap` | Sealed initialization token passed to `EngineRegistrar.create()` |
 | `LocatorDescriptor` | Engine-agnostic locator representation |
 | `LocatorStrategy` | Locator type enum (XPATH, CSS, ID, NAME, etc.) |
 | `EngineConfig` | Engine initialisation parameters |
-| `UIEngineFactory` | Creates engine instances from config |
+| `UIEngineFactory` | Looks up `EngineRegistrar` by name; no engine-specific code |
 
 **Sub-packages:**
 
 | Package | Content |
 |---------|---------|
-| `core.engine.selenium` | `SeleniumEngine` — default production implementation |
+| `core.engine.selenium` | `SeleniumEngine` + `SeleniumEngineRegistrar` -- default production implementation |
 
 **UIEngine responsibilities:**
 - Resolve `LocatorDescriptor` → native locator
 - Handle scroll, waits, retries, fallback internally
 - Callers must NOT perform their own scroll/wait/retry logic
 
-**Extensibility:** Adding a Playwright engine means creating `core.engine.playwright` — no test code changes.
+**Extensibility via `EngineRegistrar` SPI (I4.1, ADR-021):**
+
+Adding a new engine requires zero edits to `UIEngineFactory` or any other framework class:
+
+1. Implement `EngineRegistrar` in the engine's own sub-package (e.g. `core.engine.playwright`).
+2. Add its fully-qualified name to `META-INF/services/core.engine.EngineRegistrar` on the classpath.
+3. `UIEngineFactory` discovers all registrars at class-load time via `ServiceLoader` and adds them to its internal registry.
+
+`UIEngineFactory.register(EngineRegistrar)` is available for programmatic registration when the
+classpath service descriptor is unavailable (e.g., dynamic module loading in tests).
+
+Kernel purity rule: `UIEngineFactory` must not depend on `core.engine.selenium..` -- enforced by
+`KernelBoundaryRulesTest.engineFactoryIsImplementationFree` (ADR-021, runtime-redesign I4.1).
 
 ---
 
