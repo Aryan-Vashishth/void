@@ -11,6 +11,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [0.5.0] - 2026-07-28
+
 ### Internal
 
 - **Open capability set -- ActionCapability is now an interface (runtime-redesign I3.1)**

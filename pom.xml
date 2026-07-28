@@ -6,7 +6,7 @@
 
     <groupId>io.github.aryan-vashishth</groupId>
     <artifactId>void-framework</artifactId>
-    <version>0.4.1</version>
+    <version>0.5.0</version>
 
     <!-- =========================================================
          Dependency Versions — update here, nowhere else
