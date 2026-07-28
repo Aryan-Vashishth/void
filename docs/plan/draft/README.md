@@ -20,8 +20,8 @@ Plan-level execution order (versioning per each plan's "Versioning (CHANGELOG.md
 
 ## Initiatives
 
-- `01 - runtime-redesign/` -- **master roadmap** for the next major release: 10 initiatives, 37 phases migrating to the domain-neutral runtime (Runtime / Interaction / Capability / Target / Domain). Absorbs `runtime-kernel-boundary` (scrapped, now in `../archive/`) and `02 - generalize-element-into-target` (merged as Initiative I1); owns P8 from `oop-violations-remediation`
+- `07 - runtime-redesign/` -- **master roadmap** for the next major release: 10 initiatives, 37 phases migrating to the domain-neutral runtime (Runtime / Interaction / Capability / Target / Domain). Absorbs `runtime-kernel-boundary` (scrapped, now in `../archive/`) and `08 - generalize-element-into-target` (merged as Initiative I1); owns P8 from `oop-violations-remediation`
 - `oop-violations-remediation/` -- **COMPLETE (2026-07-23).** Moved to `../done/05 - oop-violations-remediation/`. All phases implemented; P8 absorbed by runtime-redesign 4.1, P11 by 9.3.
-- `02 - generalize-element-into-target/` -- MERGED into `runtime-redesign/` Initiative I1 (phases 1.1-1.3 lifted verbatim); retained for its phase docs and audit until I1 activates
-- `03 - locator-sync-trigger/` -- 4-phase plan for locator sync build integration and developer CLI; absorbs void-cli-simplification; independent of runtime-redesign (avoid landing alongside its phase 7.3)
-- `04 - release-automation/` -- 2-phase plan: Phase 1 adds `scripts/set-version` (atomic pom.xml + version.json propagation); Phase 2 adds `scripts/release` (precondition enforcement + optional commit). Independent of all other initiatives; can land at any time.
+- `08 - generalize-element-into-target/` -- MERGED into `runtime-redesign/` Initiative I1 (phases 1.1-1.3 lifted verbatim); retained for its phase docs and audit until I1 activates
+- `09 - locator-sync-trigger/` -- 4-phase plan for locator sync build integration and developer CLI; absorbs void-cli-simplification; independent of runtime-redesign (avoid landing alongside its phase 7.3)
+- `10 - release-automation/` -- 2-phase plan: Phase 1 adds `scripts/set-version` (atomic pom.xml + version.json propagation); Phase 2 adds `scripts/release` (precondition enforcement + optional commit). Independent of all other initiatives; can land at any time.

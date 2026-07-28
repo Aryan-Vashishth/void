@@ -2,7 +2,7 @@
 
 Completed implementation plans. All phases in these directories are merged, verified, and reflected in the current codebase.
 
-## Initiatives -- in implementation sequence
+## Initiatives -- in implementation sequence (01-06; draft continues at 07)
 
 | Order | Directory | Release | Summary |
 |---|---|---|---|
