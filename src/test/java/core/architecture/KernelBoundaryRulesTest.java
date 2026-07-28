@@ -324,6 +324,27 @@ public class KernelBoundaryRulesTest {
     // core.flow, core.executor, core.context, core.runtime).
     // ─────────────────────────────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Engine neutrality -- factory/implementation separation (I4.1)
+    //
+    // UIEngineFactory is the neutral engine contract; it must not reference any
+    // concrete engine implementation. Adding a second engine must require zero edits
+    // inside core.engine -- only a new EngineRegistrar + services descriptor entry.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "UIEngineFactory does not depend on core.engine.selenium (I4.1)")
+    public void engineFactoryIsImplementationFree() {
+        ArchRule rule = noClasses()
+                .that().haveFullyQualifiedName("core.engine.UIEngineFactory")
+                .should().dependOnClassesThat().resideInAPackage("core.engine.selenium..")
+                .because(
+                    "UIEngineFactory is the neutral engine contract. Concrete engine " +
+                    "implementations register via the EngineRegistrar SPI; the factory " +
+                    "must not import or reference them directly. runtime-redesign I4.1, P8.");
+
+        rule.check(allClasses);
+    }
+
     @Test(description = "no kernel package depends on elements.* (cycle break, D1 unrecurrable)")
     public void kernelPackagesDoNotDependOnElements() {
         ArchRule rule = noClasses()

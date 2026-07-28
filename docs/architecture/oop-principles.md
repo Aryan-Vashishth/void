@@ -296,7 +296,7 @@ references `WebDriver` or `DriverContext`.
 | P5 | HIGH | LSP | 2 | `(Enum<?>) this` hard cast in `UIElement` interface defaults (FIXED) |
 | P6 | MEDIUM | DRY, LSP | 2 | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` (FIXED) |
 | P7 | MEDIUM | ISP, OCP | 2 | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` (FIXED) |
-| P8 | MEDIUM | OCP | 4 | `switch` on engine name string in `UIEngineFactory` |
+| P8 | MEDIUM | OCP | 4 | `switch` on engine name string in `UIEngineFactory` (FIXED -- I4.1) |
 | P9 | LOW | OCP | 4 | O(n) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` (FIXED) |
 | P10 | LOW | ISP | 2 | Forced abstract `getIndex()` in `Listable` with no default (FIXED) |
 | P11 | LOW | OCP | 4 | Per-capability static helpers in `Via` growing with capability count |
