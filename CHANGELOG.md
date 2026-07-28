@@ -28,6 +28,19 @@ Versions follow [Semantic Versioning](https://semver.org/).
   unchanged. `.values()`, `.ordinal()`, and `switch (capability)` idioms are no longer
   valid -- none existed in-repo.
 
+- **UNKNOWN silent fallback removed (runtime-redesign I3.2)**
+  - `Action.safely()` now throws `IllegalStateException` when the action's capability
+    is `ActionCapability.UNKNOWN`; the runtime cannot select browser-wait hooks for an
+    unrecognised capability -- use `.raw()` or declare a specific `ActionCapability`
+  - `ActionProfiles.applyConfiguredDefault()` skips profile application for UNKNOWN
+    capability and emits a `WARN` log naming the configuration remedy
+  - `docs/contributing/configuration-reference.md` created: documents `void.profile.default`
+    and the post-I3.2 UNKNOWN guard behaviour
+
+  *Migration for custom actions relying on silent defaults:* declare a specific
+  `ActionCapability.of("MY_CAP")` on your action, or call `.raw()` explicitly if
+  no browser-wait contract applies.
+
 - **ADR-021 -- Kernel boundary, ontology, and open decisions (runtime-redesign I0)**
   - Resolves the three open architectural decisions from the 2026-07 audit: AD1 (one
     session binds one domain), AD2 (execution owner named `Executor`; `UIEngine` is the

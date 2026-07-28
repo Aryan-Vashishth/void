@@ -31,6 +31,12 @@ public final class ActionProfiles {
     private ActionProfiles() {}
 
     public static Action applyConfiguredDefault(Action action) {
+        if (ActionCapability.UNKNOWN.equals(action.capability())) {
+            CustomLogger.warn.log(
+                "applyConfiguredDefault: action with UNKNOWN capability skipped -- no profile applied. " +
+                "Declare a specific ActionCapability, or set " + DEFAULT_PROFILE_KEY + "=RAW to suppress this warning.");
+            return action;
+        }
         ActionProfile configured = configuredDefault();
         if (configured == Profiles.RAW) {
             return action;

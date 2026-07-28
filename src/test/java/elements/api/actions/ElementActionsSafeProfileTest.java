@@ -184,14 +184,15 @@ public class ElementActionsSafeProfileTest {
         assertEquals(p.after(), List.of(After.WAIT_FOR_ANGULAR_LOADER, After.WAIT_FOR_SPIN_SPINNER_LOADER, After.HIGHLIGHT_ELEMENT));
     }
 
-    @Test
-    public void lambdaAction_capability_isUnknown_andSafelyUsesDefaultSafe() {
-        // Lambda actions (engine -> {}) don't extend ElementAction.
-        // Action.safely() default uses ActionProfiles.DEFAULT_SAFE.
+    @Test(expectedExceptions = IllegalStateException.class,
+          description = "lambda actions with UNKNOWN capability must not silently inherit browser-wait hooks (I3.2)")
+    public void lambdaAction_UNKNOWN_safely_throwsIllegalState() {
+        // Lambda actions (engine -> {}) don't extend ElementAction and carry UNKNOWN capability.
+        // After I3.2: safely() refuses to select hooks for an unrecognised capability.
+        // Remedy: declare a specific ActionCapability or call .raw() instead.
         Action lambda = engine -> {};
         assertEquals(lambda.capability(), ActionCapability.UNKNOWN);
-        Action safe = lambda.safely();
-        assertNotSame(safe, lambda);
+        lambda.safely(); // must throw
     }
 
     // ── Stubs ─────────────────────────────────────────────────────────────
