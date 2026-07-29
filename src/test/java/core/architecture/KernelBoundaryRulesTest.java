@@ -354,6 +354,31 @@ public class KernelBoundaryRulesTest {
     // SeleniumEngineRegistrar (core.engine.selenium), which is allowed to import it.
     // ─────────────────────────────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Domain neutrality -- Executor contract purity (I4.3)
+    //
+    // Executor is the kernel-neutral execution-owner concept (ADR-021 AD2).
+    // It may import only JDK types. No elements.*, Selenium, or core.driver
+    // may appear on it -- any such import would permanently bind all domain
+    // executors to web vocabulary, violating domain neutrality by definition.
+    // This is the roadmap's central risk (I4.3 plan) and is enforced here.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "Executor is a neutral kernel contract: no elements, Selenium, or driver (I4.3)")
+    public void executorContractIsNeutral() {
+        ArchRule rule = noClasses()
+                .that().haveFullyQualifiedName("core.engine.Executor")
+                .should().dependOnClassesThat()
+                        .resideInAnyPackage("elements..", "org.openqa.selenium..", "core.driver..")
+                .because(
+                    "Executor is the kernel's neutral execution-owner contract (ADR-021 AD2). " +
+                    "No UI vocabulary, Selenium, or driver infrastructure may appear on it. " +
+                    "A method a non-web executor could only implement by throwing does not " +
+                    "belong here. runtime-redesign I4.3.");
+
+        rule.check(allClasses);
+    }
+
     @Test(description = "core.engine contract package has no core.driver dependency (I4.2)")
     public void engineContractIsDriverFree() {
         ArchRule rule = noClasses()

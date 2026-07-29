@@ -74,7 +74,10 @@ public final class UIEngineFactory {
                     "Unknown engine: '" + engineName + "'. Registered: " + REGISTRY.keySet());
         }
 
-        UIEngine engine = registrar.create(bootstrap);
+        // Bridge cast: EngineRegistrar.create() returns Executor (neutral contract);
+        // UIEngineFactory.create() still returns UIEngine until I4.4 retypes all callers.
+        // Every registrar in I4.3 produces a UIEngine; the cast is safe for this release.
+        UIEngine engine = (UIEngine) registrar.create(bootstrap);
 
         EngineConfig engineConfig = new EngineConfig(config);
         engine.initialize(engineConfig);

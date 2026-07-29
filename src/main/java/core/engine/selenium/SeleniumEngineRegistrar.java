@@ -3,6 +3,7 @@ package core.engine.selenium;
 import core.driver.DriverFactory;
 import core.engine.EngineBootstrap;
 import core.engine.EngineRegistrar;
+import core.engine.Executor;
 import core.engine.UIEngine;
 
 import java.util.Arrays;
@@ -29,7 +30,7 @@ public final class SeleniumEngineRegistrar implements EngineRegistrar {
     }
 
     @Override
-    public UIEngine create(EngineBootstrap bootstrap) {
+    public Executor create(EngineBootstrap bootstrap) {
         if (bootstrap instanceof EngineBootstrap.WithSettings ws) {
             return new SeleniumEngine(resolveProfile(ws.settings()));
         }

@@ -19,14 +19,14 @@ public interface EngineRegistrar {
     String name();
 
     /**
-     * Creates an uninitialized engine from the given bootstrap token.
+     * Creates an uninitialized executor from the given bootstrap token.
      *
-     * <p>{@link UIEngineFactory} calls {@link UIEngine#initialize(EngineConfig)} after this
+     * <p>{@link UIEngineFactory} calls {@link Executor#initialize(EngineConfig)} after this
      * method returns. Implementations must not call {@code initialize} themselves.</p>
      *
      * @param bootstrap engine initialization token supplied by the session builder
-     * @return a new, uninitialized engine instance
+     * @return a new, uninitialized executor instance
      * @throws IllegalArgumentException if the bootstrap token is incompatible with this engine
      */
-    UIEngine create(EngineBootstrap bootstrap);
+    Executor create(EngineBootstrap bootstrap);
 }
