@@ -13,6 +13,65 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.6.0] - 2026-07-29
+
+### Internal
+
+- **Engine Registry SPI -- runtime-redesign I4.1 (closes P8)**
+  - `UIEngineFactory` switch-on-string replaced with a name-based `EngineRegistrar` SPI;
+    `SeleniumEngine` self-registers at the Selenium boundary -- no `core.engine` edit required
+    for a second engine
+  - `core.engine` package has zero compile-time imports of `core.engine.selenium`; DIP now
+    holds at the exact point whose purpose was inversion
+  - `UIEngineFactory` retained as a deprecated delegation shim for the VOIDBuilder call site;
+    closes with I6.4 registry migration
+  - OOP violations table: P8 marked fixed
+
+- **EngineBootstrap decoupling from DriverFactory -- runtime-redesign I4.2**
+  - `EngineBootstrap` no longer carries `DriverFactory.Profile`; it carries the engine name
+    plus an opaque `Map<String, Object>` of engine-owned settings
+  - `SeleniumEngine` derives its own profile internally from the settings map
+  - `VOIDBuilder.profile(DriverFactory.Profile)` public surface unchanged (deprecated,
+    closes I6.4); deprecated `VOID.start(Profile)` path continues working via builder delegation
+  - `core.engine` has zero `core.driver` imports; ADR-018 migration debt retired
+
+- **Executor neutral execution-owner contract -- runtime-redesign I4.3**
+  - `core.engine.Executor` introduced: three abstract methods (`initialize(EngineBootstrap)`,
+    `shutdown()`, `getEngineName(): String`); no UI vocabulary, no Selenium imports
+  - `UIEngine extends Executor`; `UIEngineFactory` / `EngineRegistrar` operate on
+    `Executor` internally
+  - Additive change -- no caller migration required at this phase
+
+- **Kernel retyping with deprecated bridges -- runtime-redesign I4.4**
+  - `Action.perform(Executor)` and `Action.resolve(Executor)` are the primary SAM signatures;
+    `UIEngine`-typed overloads retained as `@Deprecated(forRemoval = true)` bridges that
+    delegate to the primary -- no logic duplication
+  - `ActionHandler.execute(Executor, @Nullable LocatorDescriptor)` is the primary SAM;
+    bridge added for `UIEngine` callers
+  - `FlowExecutor` constructor and field retyped to `Executor`
+  - All 17 concrete `ElementAction` subclasses retain `UIEngine`-typed internal `execute()`
+    method (UI-domain) and cast `Executor -> UIEngine` at the adapter boundary
+  - All in-repo test callers migrated off bridges; `HookBridgeCompatibilityTest` verifies
+    round-trip delegation (both signatures reach the same execution path)
+  - `KernelBoundaryRulesTest.kernelPurity` gate updated: both `Executor` and `UIEngine`
+    documented as temporary exceptions with explicit reasons and closing phases
+  - Migration Ledger: bridges close I9.4
+
+  *Migration for external callers:* `action.perform(UIEngine engine)` continues to work
+  (deprecated). Migrate to `action.perform((Executor) engine)` or let `UIEngine`'s
+  widening handle it when the caller holds an `Executor` reference.
+
+- **Driver subsystem declared as Selenium-executor internals -- runtime-redesign I4.5**
+  - `DriverIsolationRulesTest.driverIsolation()` ArchUnit rule added: only
+    `core.engine.selenium.*` may import `core.driver.*`; 8 current exceptions named and
+    cross-referenced to closing phases
+  - `EnumResolver.printEnumFormat(By, WebDriver)` parameterized: `Waiter` dependency
+    removed; callers that need a driver instance pass it explicitly
+  - Physical move of `core/driver/` deferred (no breaking class renames in this phase);
+    the rule enforces the boundary and will collapse as each exception closes
+
+---
+
 ## [0.5.0] - 2026-07-28
 
 ### Internal

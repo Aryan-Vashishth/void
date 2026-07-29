@@ -91,8 +91,11 @@ public final class VOIDBuilder {
         FrameworkBootstrap.init();
 
         Properties config = resolvedConfig();
+        Properties bootstrapSettings = new Properties();
+        bootstrapSettings.setProperty("profile",
+                (profile != null ? profile : DriverFactory.Profile.DEFAULT).name());
         UIEngine engine = UIEngineFactory.create(config,
-                EngineBootstrap.fromProfile(profile != null ? profile : DriverFactory.Profile.DEFAULT));
+                EngineBootstrap.withSettings(bootstrapSettings));
 
         SessionContext ctx = new SessionContext(config, engine);
 

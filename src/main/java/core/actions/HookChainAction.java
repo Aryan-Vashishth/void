@@ -4,8 +4,8 @@ import core.actions.hooks.ActionHandler;
 import core.actions.trace.ActionTrace;
 import core.actions.trace.ActionTraceLogger;
 import core.actions.trace.TraceStatus;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
-import core.engine.UIEngine;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -65,16 +65,16 @@ final class HookChainAction implements Action {
     }
 
     @Override
-    public void perform(UIEngine engine) {
-        performAndTrace(engine);
+    public void perform(Executor executor) {
+        performAndTrace(executor);
     }
 
     /**
      * Executes the full hook pipeline and returns a trace of the execution.
      * Package-private -- exposed for unit testing only.
      */
-    ActionTrace performAndTrace(UIEngine engine) {
-        LocatorDescriptor descriptor = delegate.resolve(engine);
+    ActionTrace performAndTrace(Executor executor) {
+        LocatorDescriptor descriptor = delegate.resolve(executor);
 
         long start = System.currentTimeMillis();
         List<String> ranBefore = new ArrayList<>();
@@ -87,7 +87,7 @@ final class HookChainAction implements Action {
             ranBefore.add(ActionTraceLogger.nameOf(hook));
             if (failure == null) {
                 try {
-                    hook.execute(engine, descriptor);
+                    hook.execute(executor, descriptor);
                 } catch (RuntimeException | Error t) {
                     status  = TraceStatus.HOOK_FAILED;
                     failure = t;
@@ -97,7 +97,7 @@ final class HookChainAction implements Action {
 
         if (failure == null) {
             try {
-                delegate.perform(engine);
+                delegate.perform(executor);
             } catch (RuntimeException | Error t) {
                 status  = TraceStatus.FAILED;
                 failure = t;
@@ -110,7 +110,7 @@ final class HookChainAction implements Action {
                 ranAfter.add(ActionTraceLogger.nameOf(hook));
                 if (failure == null) {
                     try {
-                        hook.execute(engine, descriptor);
+                        hook.execute(executor, descriptor);
                     } catch (RuntimeException | Error t) {
                         status  = TraceStatus.HOOK_FAILED;
                         failure = t;
@@ -161,8 +161,8 @@ final class HookChainAction implements Action {
                                       @Nullable List<ActionHandler> after) {
         Objects.requireNonNull(delegate, "delegate action must not be null");
         Action pinned = new Action() {
-            @Override public void perform(UIEngine engine)            { delegate.perform(engine); }
-            @Override public LocatorDescriptor resolve(UIEngine e)    { return descriptor; }
+            @Override public void perform(Executor executor)          { delegate.perform(executor); }
+            @Override public LocatorDescriptor resolve(Executor e)    { return descriptor; }
             @Override public ActionCapability capability()            { return delegate.capability(); }
             @Override public String elementLabel()                    { return delegate.elementLabel(); }
             @Override public String operationLabel()                  { return delegate.operationLabel(); }
@@ -171,8 +171,8 @@ final class HookChainAction implements Action {
     }
 
     @Override
-    public LocatorDescriptor resolve(UIEngine engine) {
-        return delegate.resolve(engine);
+    public LocatorDescriptor resolve(Executor executor) {
+        return delegate.resolve(executor);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package core.actions;
 
-import core.engine.UIEngine;
+import core.engine.Executor;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -75,7 +75,7 @@ public class ActionCapabilityExtensionTest {
     public void extensionTest_actionWithCustomCapability_noRuntimeEditsRequired() {
         // Define a custom action carrying the custom capability -- no runtime files touched.
         Action customAction = new Action() {
-            @Override public void perform(UIEngine engine) {}
+            @Override public void perform(Executor executor) {}
             @Override public ActionCapability capability() { return FORM_SUBMITTABLE; }
         };
 

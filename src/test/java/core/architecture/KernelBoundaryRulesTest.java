@@ -324,6 +324,74 @@ public class KernelBoundaryRulesTest {
     // core.flow, core.executor, core.context, core.runtime).
     // ─────────────────────────────────────────────────────────────────────
 
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Engine neutrality -- factory/implementation separation (I4.1)
+    //
+    // UIEngineFactory is the neutral engine contract; it must not reference any
+    // concrete engine implementation. Adding a second engine must require zero edits
+    // inside core.engine -- only a new EngineRegistrar + services descriptor entry.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "UIEngineFactory does not depend on core.engine.selenium (I4.1)")
+    public void engineFactoryIsImplementationFree() {
+        ArchRule rule = noClasses()
+                .that().haveFullyQualifiedName("core.engine.UIEngineFactory")
+                .should().dependOnClassesThat().resideInAPackage("core.engine.selenium..")
+                .because(
+                    "UIEngineFactory is the neutral engine contract. Concrete engine " +
+                    "implementations register via the EngineRegistrar SPI; the factory " +
+                    "must not import or reference them directly. runtime-redesign I4.1, P8.");
+
+        rule.check(allClasses);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Engine neutrality -- contract package driver-free (I4.2)
+    //
+    // EngineBootstrap previously carried DriverFactory.Profile, pulling core.driver
+    // into the neutral contract package. After I4.2, EngineBootstrap carries only
+    // an opaque Properties map; the driver-layer type is resolved inside
+    // SeleniumEngineRegistrar (core.engine.selenium), which is allowed to import it.
+    // ─────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Domain neutrality -- Executor contract purity (I4.3)
+    //
+    // Executor is the kernel-neutral execution-owner concept (ADR-021 AD2).
+    // It may import only JDK types. No elements.*, Selenium, or core.driver
+    // may appear on it -- any such import would permanently bind all domain
+    // executors to web vocabulary, violating domain neutrality by definition.
+    // This is the roadmap's central risk (I4.3 plan) and is enforced here.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "Executor is a neutral kernel contract: no elements, Selenium, or driver (I4.3)")
+    public void executorContractIsNeutral() {
+        ArchRule rule = noClasses()
+                .that().haveFullyQualifiedName("core.engine.Executor")
+                .should().dependOnClassesThat()
+                        .resideInAnyPackage("elements..", "org.openqa.selenium..", "core.driver..")
+                .because(
+                    "Executor is the kernel's neutral execution-owner contract (ADR-021 AD2). " +
+                    "No UI vocabulary, Selenium, or driver infrastructure may appear on it. " +
+                    "A method a non-web executor could only implement by throwing does not " +
+                    "belong here. runtime-redesign I4.3.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.engine contract package has no core.driver dependency (I4.2)")
+    public void engineContractIsDriverFree() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.engine")
+                .should().dependOnClassesThat().resideInAPackage("core.driver..")
+                .because(
+                    "The engine contract package must not import driver infrastructure. " +
+                    "core.engine.selenium may import core.driver; the contract package " +
+                    "core.engine may not. runtime-redesign I4.2.");
+
+        rule.check(allClasses);
+    }
+
     @Test(description = "no kernel package depends on elements.* (cycle break, D1 unrecurrable)")
     public void kernelPackagesDoNotDependOnElements() {
         ArchRule rule = noClasses()
@@ -354,11 +422,28 @@ public class KernelBoundaryRulesTest {
     // dependency, not a hypothetical -- each is load-bearing today and closes on
     // a specific later phase:
     //
-    //   core.engine.UIEngine, core.engine.LocatorDescriptor
-    //       Action.perform()/resolve() and HookChainAction are typed against
-    //       UIEngine/LocatorDescriptor because the neutral Executor contract
-    //       (ADR-021 AD2) does not exist yet. Closes: I4 (Executor introduced;
-    //       these become bridge overloads per the Migration Ledger, deleted I9.4).
+    //   core.engine.Executor
+    //       The kernel's neutral execution-owner contract (ADR-021 AD2). I4.4
+    //       retyped Action.perform(), ActionHandler.execute(), and FlowExecutor
+    //       to accept Executor. Unlike the others, this is NOT temporary --
+    //       Executor is the permanent neutral contract; it will not be removed
+    //       from kernel method signatures. Listed here because the allowed
+    //       predicate does not yet enumerate individual core.engine types;
+    //       consolidate into the predicate when the full core.engine split lands.
+    //   core.engine.UIEngine
+    //       Two distinct load-bearing cases:
+    //       (a) Deprecated bridge default methods on Action (perform/resolve) and
+    //           ActionHandler (execute, legacy) still carry UIEngine in their
+    //           signatures. Scheduled for deletion I9.4.
+    //       (b) VOID (engine field, getEngine(), navigateTo, etc.),
+    //           SessionContext (engine field, engine(), getEngineName, toString),
+    //           and VOIDBuilder (start()) -- session-wiring code that is
+    //           explicitly out of scope for I4.4. Closes across later phases
+    //           (I4.5 and the Migration Ledger, I9.3).
+    //   core.engine.LocatorDescriptor
+    //       Action.resolve(), ActionHandler.execute(), and HookChainAction carry
+    //       LocatorDescriptor in their kernel-side signatures. The UIEngine-typed
+    //       bridge overloads from I4.4 are scheduled for deletion in I9.4.
     //   core.engine.EngineBootstrap, core.engine.UIEngineFactory
     //       VOID/VOIDBuilder's engine-selection wiring. Already in the
     //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
@@ -389,6 +474,7 @@ public class KernelBoundaryRulesTest {
     // ═════════════════════════════════════════════════════════════════════
 
     private static final Set<String> KERNEL_PURITY_TEMPORARY_EXCEPTIONS = Set.of(
+            "core.engine.Executor",
             "core.engine.UIEngine",
             "core.engine.LocatorDescriptor",
             "core.engine.EngineBootstrap",

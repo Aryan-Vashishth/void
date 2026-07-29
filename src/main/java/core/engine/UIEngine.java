@@ -39,7 +39,7 @@ import java.time.Duration;
  * @see LocatorDescriptor
  * @see EngineConfig
  */
-public interface UIEngine {
+public interface UIEngine extends Executor {
 
     // ─────────────────────────────────────────────────────────────────────
     // LIFECYCLE

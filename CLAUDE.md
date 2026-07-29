@@ -1,4 +1,4 @@
-# VOID Framework -- Claude Instructions
+# VOID Runtime -- Claude Instructions
 
 Project-level instructions for Claude Code. These override default behavior.
 
@@ -223,7 +223,7 @@ Violations are tracked as P-IDs. Reference the ID when naming or logging a viola
 | P5 | LSP | `(Enum<?>) this` hard cast in `UIElement` interface defaults | Fixed |
 | P6 | LSP | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` | Fixed |
 | P7 | ISP, OCP | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` | Fixed |
-| P8 | OCP | `switch` on engine name string in `UIEngineFactory` | Deferred -- runtime-redesign I4.1 |
+| P8 | OCP | `switch` on engine name string in `UIEngineFactory` | Fixed -- runtime-redesign I4.1 |
 | P9 | OCP | O(n) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` | Fixed |
 | P10 | ISP | Forced abstract `getIndex()` in `Listable` with no default | Fixed |
 | P11 | OCP | Per-capability static helpers in `Via` growing with capability count | Deferred -- runtime-redesign I9.3 |

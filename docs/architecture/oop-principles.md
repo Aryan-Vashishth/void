@@ -61,7 +61,7 @@ call `element.triggerAction()` and let each capability interface dispatch.
 
 `UIEngineFactory.java` selects an engine implementation by comparing a string:
 
-##### Examples
+##### Before (violation)
 
 ```java
 // core/engine/UIEngineFactory.java -- P8 violation
@@ -81,8 +81,39 @@ UIEngine engine = switch (engineName) {
 
 Every new engine requires modifying this switch.
 
-**The fix:** An open registration map -- `Map<String, Function<EngineBootstrap, UIEngine>>`.
-Registering a new engine adds an entry without modifying the factory body.
+**The fix:** `EngineRegistrar` SPI -- each engine implements the interface and declares itself
+via `META-INF/services/core.engine.EngineRegistrar`. `UIEngineFactory` discovers registrars
+at class-load time via `ServiceLoader`; no edits are required to add an engine.
+
+##### After (fixed -- I4.1)
+
+```java
+// core/engine/EngineRegistrar.java -- SPI contract
+public interface EngineRegistrar {
+    String name();
+    UIEngine create(EngineBootstrap bootstrap);
+}
+
+// core/engine/selenium/SeleniumEngineRegistrar.java -- engine registers itself
+public final class SeleniumEngineRegistrar implements EngineRegistrar {
+    @Override public String name() { return SeleniumEngine.ID; }
+    @Override public UIEngine create(EngineBootstrap bootstrap) {
+        if (bootstrap instanceof EngineBootstrap.FromProfile fp) return new SeleniumEngine(fp.profile());
+        throw new IllegalArgumentException("SeleniumEngine requires EngineBootstrap.FromProfile");
+    }
+}
+
+// UIEngineFactory -- no engine-specific code; lookup only
+EngineRegistrar registrar = REGISTRY.get(engineName);   // populated by ServiceLoader at class-load
+if (registrar == null) throw new IllegalStateException("Unknown engine: " + engineName);
+UIEngine engine = registrar.create(bootstrap);
+```
+
+Adding a Playwright engine: implement `EngineRegistrar` in `core.engine.playwright` and add the
+FQCN to `META-INF/services/core.engine.EngineRegistrar`. Zero edits to `UIEngineFactory`.
+
+> **FIXED (I4.1):** Switch replaced by `EngineRegistrar` SPI discovered via `ServiceLoader`.
+> `UIEngineFactory` has no dependency on `core.engine.selenium` (enforced by `KernelBoundaryRulesTest.engineFactoryIsImplementationFree`).
 
 ---
 
@@ -296,7 +327,7 @@ references `WebDriver` or `DriverContext`.
 | P5 | HIGH | LSP | 2 | `(Enum<?>) this` hard cast in `UIElement` interface defaults (FIXED) |
 | P6 | MEDIUM | DRY, LSP | 2 | Duplicated `instanceof Enum<?>` in `ElementAction` + `LocatorResolver` (FIXED) |
 | P7 | MEDIUM | ISP, OCP | 2 | `instanceof ActionCapabilityProvider` in `ElementActions.capabilityFor` (FIXED) |
-| P8 | MEDIUM | OCP | 4 | `switch` on engine name string in `UIEngineFactory` |
+| P8 | MEDIUM | OCP | 4 | `switch` on engine name string in `UIEngineFactory` (FIXED -- I4.1) |
 | P9 | LOW | OCP | 4 | O(n) dedup in `SearchableDropdown`/`SearchField.getAllLocatorRoles` (FIXED) |
 | P10 | LOW | ISP | 2 | Forced abstract `getIndex()` in `Listable` with no default (FIXED) |
 | P11 | LOW | OCP | 4 | Per-capability static helpers in `Via` growing with capability count |

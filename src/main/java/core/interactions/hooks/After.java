@@ -1,6 +1,7 @@
 package core.interactions.hooks;
 
 import core.actions.hooks.AfterActionHandler;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 
@@ -45,16 +46,18 @@ public final class After {
     private After() {}
 
     // ── No-ops ────────────────────────────────────────────────────────────
-    public static final AfterActionHandler DO_NOTHING = (engine, descriptor) -> {};
+    public static final AfterActionHandler DO_NOTHING = (executor, descriptor) -> {};
 
     // ── Loader waits ──────────────────────────────────────────────────────
-    public static final AfterActionHandler WAIT_FOR_ANGULAR_LOADER = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_ANGULAR_LOADER = (executor, descriptor) -> {
+        UIEngine engine = (UIEngine) executor;
         LocatorDescriptor loader = LocatorDescriptor.of("app-loader", core.engine.LocatorStrategy.CSS);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
         catch (Exception ignored) { /* loader not present — continue */ }
     };
 
-    public static final AfterActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (executor, descriptor) -> {
+        UIEngine engine = (UIEngine) executor;
         LocatorDescriptor loader = LocatorDescriptor.of(
                 "//span[contains(@class, 'spin spinner')]", core.engine.LocatorStrategy.XPATH);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
@@ -64,31 +67,31 @@ public final class After {
     // ── Element-state waits ────────────────────────────────────────────────
 
     /** Waits for the element to be visible after the action. */
-    public static final AfterActionHandler WAIT_FOR_ELEMENT_VISIBLE = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_ELEMENT_VISIBLE = (executor, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to After.WAIT_FOR_ELEMENT_VISIBLE");
             return;
         }
-        engine.waitForVisible(descriptor, DEFAULT_TIMEOUT);
+        ((UIEngine) executor).waitForVisible(descriptor, DEFAULT_TIMEOUT);
     };
 
     // ── Element manipulation ───────────────────────────────────────────────
 
     /** Highlights the element with a green border (success indicator). */
-    public static final AfterActionHandler HIGHLIGHT_ELEMENT = (engine, descriptor) -> {
+    public static final AfterActionHandler HIGHLIGHT_ELEMENT = (executor, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to After.HIGHLIGHT_ELEMENT");
             return;
         }
-        engine.highlight(descriptor, "green");
+        ((UIEngine) executor).highlight(descriptor, "green");
     };
 
     /** Scrolls the element into view after the action. */
-    public static final AfterActionHandler SCROLL_TO_ELEMENT = (engine, descriptor) -> {
+    public static final AfterActionHandler SCROLL_TO_ELEMENT = (executor, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to After.SCROLL_TO_ELEMENT");
             return;
         }
-        engine.scrollTo(descriptor);
+        ((UIEngine) executor).scrollTo(descriptor);
     };
 }

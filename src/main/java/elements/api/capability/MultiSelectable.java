@@ -2,6 +2,7 @@ package elements.api.capability;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
+import core.engine.UIEngine;
 
 import elements.api.UIElement;
 import elements.meta.ElementRole;
@@ -67,15 +68,17 @@ public interface MultiSelectable extends UIElement {
 
     /** Opens the multi-dropdown trigger (default index). */
     default Action open() {
-        return engine -> {
+        return executor -> {
+            UIEngine engine = (UIEngine) executor;
             var d = engine.resolve(this, ElementRole.MULTI_TRIGGER);
             engine.click(d);
         };
     }
 
-    /** Composite: opens Nth trigger → waits overlay → clicks option by label. */
+    /** Composite: opens Nth trigger, waits overlay, clicks option by label. */
     default Action selectAtIndex(Integer index) {
-        return engine -> {
+        return executor -> {
+            UIEngine engine = (UIEngine) executor;
             engine.click(engine.resolve(this, ElementRole.MULTI_TRIGGER, argsForIndex(index)));
             engine.waitForOverlay(java.time.Duration.ofSeconds(5));
             engine.click(engine.resolve(getExternalFileName(), getListLocator(), getArgs()));

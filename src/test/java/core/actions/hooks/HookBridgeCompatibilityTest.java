@@ -1,6 +1,7 @@
 package core.actions.hooks;
 
 import core.actions.Action;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
@@ -38,7 +39,7 @@ public class HookBridgeCompatibilityTest {
         private boolean called;
 
         @Override
-        public void execute(UIEngine engine, LocatorDescriptor descriptor) {
+        public void execute(Executor executor, LocatorDescriptor descriptor) {
             called = true;
         }
     }
@@ -47,7 +48,7 @@ public class HookBridgeCompatibilityTest {
         private boolean called;
 
         @Override
-        public void execute(UIEngine engine, LocatorDescriptor descriptor) {
+        public void execute(Executor executor, LocatorDescriptor descriptor) {
             called = true;
         }
     }
@@ -72,7 +73,7 @@ public class HookBridgeCompatibilityTest {
         Action action = ElementActions.of(STUB_ELEMENT, ElementRole.TRIGGER, (engine, descriptor) -> {});
         Action decorated = action.before(hook);
 
-        decorated.perform(stubEngine());
+        decorated.perform((Executor) stubEngine());
 
         assertTrue(hook.called, "legacy-typed before hook should still execute via the new-typed pipeline");
     }
@@ -83,12 +84,13 @@ public class HookBridgeCompatibilityTest {
         Action action = ElementActions.of(STUB_ELEMENT, ElementRole.TRIGGER, (engine, descriptor) -> {});
         Action decorated = action.after(hook);
 
-        decorated.perform(stubEngine());
+        decorated.perform((Executor) stubEngine());
 
         assertTrue(hook.called, "legacy-typed after hook should still execute via the new-typed pipeline");
     }
 
     @Test(description = "old-package ActionHandler.legacy() adapter still bridges to the new contract")
+    @SuppressWarnings("deprecation")
     public void legacyAdapterStillBridges() {
         java.util.concurrent.atomic.AtomicBoolean ran = new java.util.concurrent.atomic.AtomicBoolean(false);
         ActionHandler wrapped = ActionHandler.legacy(engine -> ran.set(true));

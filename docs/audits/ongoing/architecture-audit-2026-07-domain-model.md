@@ -273,8 +273,8 @@ Verified violations and inversions:
 | ID | Violation | Evidence |
 |----|-----------|----------|
 | D1 | `elements.api` and `core.actions` are mutually dependent | Capability interfaces create Actions (`Clickable.click()` returns `ClickAction`); Actions hold Elements. Import lists confirm the cycle. Proof that Element+Capability+ConcreteAction is one bounded context. Any redesign treating "elements" and "actions" as separately movable units will fail. **Resolved (runtime-redesign M2, I2.2+I2.4):** `ElementAction` family moved to `elements.api.actions`; `core.actions` carries zero `elements.*` imports; `kernelPackagesDoNotDependOnElements` + `kernelPurity` enforce the boundary automatically. |
-| D2 | Contract depends on implementation | `core.engine` -> `core.engine.selenium` via `UIEngineFactory` switch-on-string (P8). Adding PlaywrightEngine requires editing the contract package. DIP violated at the exact point whose purpose is inversion. |
-| D3 | Contract depends on platform infrastructure | `core.engine` -> `core.driver` via `EngineBootstrap`/factory. Documented ADR-018 migration debt; today the engine abstraction cannot compile without WebDriver-world on the classpath. |
+| D2 | Contract depends on implementation | `core.engine` -> `core.engine.selenium` via `UIEngineFactory` switch-on-string (P8). Adding PlaywrightEngine requires editing the contract package. DIP violated at the exact point whose purpose is inversion. **Resolved (runtime-redesign I4.1):** `UIEngineFactory` replaced with a name-based `EngineRegistrar` SPI; `SeleniumEngine` self-registers; `core.engine` has zero compile-time imports of `core.engine.selenium`. P8 closed. |
+| D3 | Contract depends on platform infrastructure | `core.engine` -> `core.driver` via `EngineBootstrap`/factory. Documented ADR-018 migration debt; today the engine abstraction cannot compile without WebDriver-world on the classpath. **Resolved (runtime-redesign I4.2):** `EngineBootstrap` no longer carries `DriverFactory.Profile`; it carries engine name plus opaque engine-owned settings; `SeleniumEngine` derives its profile internally; `core.engine` has zero `core.driver` imports. ADR-018 debt retired. |
 | D4 | Modern depends on deprecated (by location) | `core.actions` -> `core.interactions.hooks`. The kernel's hook imports route through the frozen package. **Resolved (runtime-redesign M2, I2.1):** Hook contracts (`ActionHandler`, `BeforeActionHandler`, `AfterActionHandler`) moved to `core.actions.hooks`; deprecated bridges retained in `core.interactions.hooks` pending I9.3 legacy cleanup. |
 | D5 | `dsl` depends on the legacy pipeline | `dsl` -> `core.interactions`. The non-deprecated DSL is structurally downstream of the frozen orchestrator; the legacy context cannot be deleted without breaking a living layer. |
 | D6 | Utilities depend on everything | `core.utils` -> driver, engine, resolvers, elements. Leaves importing the trunk. Any module extraction trips over utils first. |
@@ -376,7 +376,7 @@ Biggest long-term risks, in order:
 | ID | Risk |
 |----|------|
 | D17 | **Single-artifact enforcement.** Every invariant ("engine-agnostic layers are Selenium-free", "nothing outside UIEngine calls WebDriver") is enforced by convention, review, and grep. One Maven module means the compiler never defends a boundary. 18 files with live Selenium imports, several in non-deprecated non-platform code, show it already slips. |
-| D1 | **The kernel/UI-domain fusion.** `Action.perform(UIEngine)`, concrete UI actions inside the kernel package, the elements/actions cycle, and the UI-typed hook signature together mean the runtime cannot be pointed at without dragging the UI domain along. The second domain will force this apart under pressure; deciding it deliberately first is far cheaper. **Resolved (runtime-redesign M2, I2.2+I2.4):** kernel/UI boundary physically separated and ratcheted. `Action.perform(UIEngine)` pin remains (I4 scope). |
+| D1 | **The kernel/UI-domain fusion.** `Action.perform(UIEngine)`, concrete UI actions inside the kernel package, the elements/actions cycle, and the UI-typed hook signature together mean the runtime cannot be pointed at without dragging the UI domain along. The second domain will force this apart under pressure; deciding it deliberately first is far cheaper. **Resolved (runtime-redesign M2, I2.2+I2.4):** kernel/UI boundary physically separated and ratcheted. **Resolved (runtime-redesign I4.4):** `Action.perform`, `ActionHandler.execute`, and `FlowExecutor` retyped to `Executor`; UIEngine-typed overloads remain as deprecated bridges pending I9.4 cleanup. |
 | D18 | **Closed enums at extension points.** `ActionCapability` and `LocatorStrategy` are the runtime's two hardcoded vocabularies. Every future domain and engine must edit the runtime to teach it new words. The June audit ranks the capability enum as what cracks first, including the failure mode of `UNKNOWN` silently applying browser wait hooks to non-browser actions. **Resolved (runtime-redesign M2, I3.1+I3.2):** `ActionCapability` converted to open interface; `ActionCapability.of(String)` is the extension point; UNKNOWN silent hook application removed. `LocatorStrategy` remains closed (I4+ scope). |
 | -- | **Facade shape.** `VOID` as the single session object with browser methods means either the facade fragments per domain later, or it bloats into a god object. Neither has been decided. |
 | -- | **Configuration identity.** As long as `driver.properties` is the file the bootstrap dies without, the framework's ignition system belongs to Selenium. |
@@ -394,11 +394,19 @@ Biggest long-term risks, in order:
 2. **Kernel/UI-domain entanglement** (D1): the `Action.perform(UIEngine)` pin, concrete
    UI actions cohabiting with the kernel, and the `elements.api`/`core.actions` cycle.
    One finding, not three; the boundary of the runtime kernel is undefined in code.
+   **Resolved (runtime-redesign M2 + I4.4):** kernel/UI boundary separated and ratcheted
+   (M2); `Action.perform`, `ActionHandler.execute`, `FlowExecutor` retyped to `Executor` (I4.4).
 3. **Engine contract depends on Selenium implementation and driver infrastructure**
    (D2, D3). The one boundary a multi-engine future depends on absolutely is soft in
    both directions.
+   **Resolved (runtime-redesign I4.1 + I4.2):** `UIEngineFactory` replaced with
+   `EngineRegistrar` SPI; `EngineBootstrap` decoupled from `DriverFactory.Profile`;
+   `core.engine` has zero `core.engine.selenium` and zero `core.driver` imports (I4.1/I4.2).
 4. **Closed extension vocabularies** (D18): `ActionCapability` and `LocatorStrategy`
    enums, including the `UNKNOWN` silent-fallback behavior.
+   **Resolved (runtime-redesign M2, I3.1+I3.2):** `ActionCapability` is now an open
+   interface with `of(String)` as the extension point; `UNKNOWN` silent-fallback removed.
+   `LocatorStrategy` remains closed (I7 scope).
 
 ### High (will significantly affect scalability)
 
