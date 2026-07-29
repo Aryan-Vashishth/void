@@ -1,4 +1,4 @@
-# VOID Framework -- Claude Instructions
+# VOID Runtime -- Claude Instructions
 
 Project-level instructions for Claude Code. These override default behavior.
 
