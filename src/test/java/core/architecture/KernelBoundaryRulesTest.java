@@ -345,6 +345,28 @@ public class KernelBoundaryRulesTest {
         rule.check(allClasses);
     }
 
+    // ─────────────────────────────────────────────────────────────────────
+    // Axis: Engine neutrality -- contract package driver-free (I4.2)
+    //
+    // EngineBootstrap previously carried DriverFactory.Profile, pulling core.driver
+    // into the neutral contract package. After I4.2, EngineBootstrap carries only
+    // an opaque Properties map; the driver-layer type is resolved inside
+    // SeleniumEngineRegistrar (core.engine.selenium), which is allowed to import it.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test(description = "core.engine contract package has no core.driver dependency (I4.2)")
+    public void engineContractIsDriverFree() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.engine")
+                .should().dependOnClassesThat().resideInAPackage("core.driver..")
+                .because(
+                    "The engine contract package must not import driver infrastructure. " +
+                    "core.engine.selenium may import core.driver; the contract package " +
+                    "core.engine may not. runtime-redesign I4.2.");
+
+        rule.check(allClasses);
+    }
+
     @Test(description = "no kernel package depends on elements.* (cycle break, D1 unrecurrable)")
     public void kernelPackagesDoNotDependOnElements() {
         ArchRule rule = noClasses()

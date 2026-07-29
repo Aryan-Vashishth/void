@@ -1,23 +1,25 @@
 package core.engine;
 
-import core.driver.DriverFactory;
+import java.util.Properties;
 
 /**
  * Opaque initialization token passed from {@link core.runtime.VOIDBuilder} to
  * {@link UIEngineFactory}.
  *
- * <p>Decouples the factory contract from Selenium-specific types. The factory hands the
- * bootstrap to the engine it constructs, which knows how to consume it.</p>
+ * <p>Carries engine-owned settings as an opaque {@link Properties} map. The factory hands
+ * the bootstrap to the registered engine, which interprets the settings.
+ * {@code EngineBootstrap} itself has no knowledge of setting semantics -- key definitions
+ * are owned by each {@link EngineRegistrar} implementation.</p>
  *
- * <p>Currently only {@link FromProfile} is used. Additional variants may be introduced
- * when new engine types are added.</p>
+ * <p>Currently only {@link WithSettings} is used. Additional variants may be introduced
+ * when new engine types require distinct initialization shapes.</p>
  */
 public sealed interface EngineBootstrap
-        permits EngineBootstrap.FromProfile {
+        permits EngineBootstrap.WithSettings {
 
-    /** Engine builds its own driver from the given profile. */
-    record FromProfile(DriverFactory.Profile profile) implements EngineBootstrap {}
+    /** Opaque, engine-owned settings. Key-value pairs whose meaning is defined by the registrar. */
+    record WithSettings(Properties settings) implements EngineBootstrap {}
 
-    /** Creates a bootstrap carrying a driver profile. */
-    static EngineBootstrap fromProfile(DriverFactory.Profile profile) { return new FromProfile(profile); }
+    /** Creates a bootstrap carrying opaque engine settings. */
+    static EngineBootstrap withSettings(Properties settings) { return new WithSettings(settings); }
 }
