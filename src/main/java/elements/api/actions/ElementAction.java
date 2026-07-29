@@ -6,6 +6,7 @@ import core.actions.ActionProfile;
 import core.actions.ActionProfiles;
 import core.actions.Profiles;
 import core.annotations.Beta;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 import elements.api.UIElement;
@@ -76,11 +77,12 @@ public abstract class ElementAction implements Action {
      * <p>Calls {@link #resolve} then passes the descriptor to {@link #execute}.
      * Subclasses must override only {@link #execute}.</p>
      *
-     * @param engine the UI engine for execution
+     * @param executor the execution context; cast to {@link UIEngine} internally
      */
     @Override
-    public final void perform(UIEngine engine) {
-        LocatorDescriptor descriptor = resolve(engine);
+    public final void perform(Executor executor) {
+        UIEngine engine = (UIEngine) executor;
+        LocatorDescriptor descriptor = resolve(executor);
         execute(engine, descriptor);
     }
 
@@ -101,11 +103,12 @@ public abstract class ElementAction implements Action {
      * <p>This is shared across all hooks and the action itself.
      * Called exactly once per {@link #perform} invocation.</p>
      *
-     * @param engine the UI engine to resolve against
+     * @param executor the execution context; cast to {@link UIEngine} internally
      * @return the resolved descriptor
      */
     @Override
-    public final LocatorDescriptor resolve(UIEngine engine) {
+    public final LocatorDescriptor resolve(Executor executor) {
+        UIEngine engine = (UIEngine) executor;
         return engine.resolve(element, role);
     }
 

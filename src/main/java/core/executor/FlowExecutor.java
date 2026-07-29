@@ -2,11 +2,11 @@ package core.executor;
 
 import core.actions.Action;
 import core.annotations.Beta;
-import core.engine.UIEngine;
+import core.engine.Executor;
 import core.flow.Flow;
 
 /**
- * Executes {@link Action}s and {@link Flow}s against a {@link UIEngine}.
+ * Executes {@link Action}s and {@link Flow}s against an {@link Executor}.
  *
  * @apiNote <b>Beta.</b> This API may change without notice. Do not use inside stable modules.
  *
@@ -25,10 +25,10 @@ import core.flow.Flow;
 @Beta(since = "0.1", note = "Action/Flow/FlowExecutor pipeline is evolving — API may change")
 public class FlowExecutor {
 
-    private final UIEngine engine;
+    private final Executor executor;
 
-    public FlowExecutor(UIEngine engine) {
-        this.engine = engine;
+    public FlowExecutor(Executor executor) {
+        this.executor = executor;
     }
 
     /**
@@ -38,7 +38,7 @@ public class FlowExecutor {
      */
     public void run(Flow flow) {
         for (Action action : flow.getActions()) {
-            action.perform(engine);
+            action.perform(executor);
         }
     }
 
@@ -48,6 +48,6 @@ public class FlowExecutor {
      * @param action the action to execute
      */
     public void run(Action action) {
-        action.perform(engine);
+        action.perform(executor);
     }
 }

@@ -2,6 +2,7 @@ package core.actions;
 
 import core.actions.trace.ActionTrace;
 import core.actions.trace.TraceStatus;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
@@ -167,7 +168,7 @@ public class ActionTraceTest {
 
     @Test
     public void raw_executesWithoutEmittingTrace() {
-        CLICKABLE.click().raw().perform(stubEngine);
+        CLICKABLE.click().raw().perform((Executor) stubEngine);
 
         assertNull(HookChainAction.lastTrace(),
                 "raw() must not emit a trace -- no HookChainAction is involved");
@@ -195,7 +196,7 @@ public class ActionTraceTest {
 
     @Test
     public void safely_threadsSafeProfileNameIntoTrace() {
-        CLICKABLE.click().safely().perform(stubEngine);
+        CLICKABLE.click().safely().perform((Executor) stubEngine);
 
         ActionTrace trace = HookChainAction.lastTrace();
         assertNotNull(trace);
@@ -204,7 +205,7 @@ public class ActionTraceTest {
 
     @Test
     public void debug_threadsDebugProfileNameIntoTrace() {
-        TYPEABLE.type("test").debug().perform(stubEngine);
+        TYPEABLE.type("test").debug().perform((Executor) stubEngine);
 
         ActionTrace trace = HookChainAction.lastTrace();
         assertNotNull(trace);

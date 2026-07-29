@@ -4,6 +4,7 @@ import core.actions.Action;
 import core.actions.ActionCapability;
 import core.actions.ActionProfiles;
 import core.engine.EngineConfig;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
@@ -194,7 +195,7 @@ public class ConcreteActionsTest {
     @Test
     public void clickAction_perform_callsEngineClick() {
         RecordingEngine engine = new RecordingEngine();
-        new ClickAction(stubClickable()).perform(engine);
+        new ClickAction(stubClickable()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("click"));
     }
 
@@ -210,7 +211,7 @@ public class ConcreteActionsTest {
     @Test
     public void toggleAction_perform_callsEngineClick() {
         RecordingEngine engine = new RecordingEngine();
-        new ToggleAction(stubCheckable()).perform(engine);
+        new ToggleAction(stubCheckable()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("click"));
     }
 
@@ -227,7 +228,7 @@ public class ConcreteActionsTest {
     public void checkAction_perform_clicksWhenStatesDiffer() {
         RecordingEngine engine = new RecordingEngine();
         engine.checkboxState = false;
-        new CheckAction(stubCheckable(), true).perform(engine);
+        new CheckAction(stubCheckable(), true).perform((Executor) engine);
         assertEquals(engine.ops, List.of("click"));
     }
 
@@ -235,7 +236,7 @@ public class ConcreteActionsTest {
     public void checkAction_perform_skipsClickWhenStatesMatch() {
         RecordingEngine engine = new RecordingEngine();
         engine.checkboxState = false;
-        new CheckAction(stubCheckable(), false).perform(engine);
+        new CheckAction(stubCheckable(), false).perform((Executor) engine);
         assertFalse(engine.ops.contains("click"), "should not click when state already matches");
     }
 
@@ -251,7 +252,7 @@ public class ConcreteActionsTest {
     @Test
     public void hoverAction_perform_callsEngineHover() {
         RecordingEngine engine = new RecordingEngine();
-        new HoverAction(stubHoverable()).perform(engine);
+        new HoverAction(stubHoverable()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("hover"));
     }
 
@@ -267,7 +268,7 @@ public class ConcreteActionsTest {
     @Test
     public void typeAction_perform_callsEngineType_withText() {
         RecordingEngine engine = new RecordingEngine();
-        new TypeAction(stubTypeable(), "hello").perform(engine);
+        new TypeAction(stubTypeable(), "hello").perform((Executor) engine);
         assertEquals(engine.ops, List.of("type"));
         assertEquals(engine.lastTypedText, "hello");
     }
@@ -284,7 +285,7 @@ public class ConcreteActionsTest {
     @Test
     public void clearAction_perform_callsEngineClear() {
         RecordingEngine engine = new RecordingEngine();
-        new ClearAction(stubTypeable()).perform(engine);
+        new ClearAction(stubTypeable()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("clear"));
     }
 
@@ -300,7 +301,7 @@ public class ConcreteActionsTest {
     @Test
     public void appendTypeAction_perform_callsEngineAppendType_withText() {
         RecordingEngine engine = new RecordingEngine();
-        new AppendTypeAction(stubTypeable(), "world").perform(engine);
+        new AppendTypeAction(stubTypeable(), "world").perform((Executor) engine);
         assertEquals(engine.ops, List.of("appendType"));
         assertEquals(engine.lastAppendedText, "world");
     }
@@ -317,7 +318,7 @@ public class ConcreteActionsTest {
     @Test
     public void typeAndPressAction_perform_callsTypeAndSendKey_inOrder() {
         RecordingEngine engine = new RecordingEngine();
-        new TypeAndPressAction(stubTypeable(), "query", "TAB").perform(engine);
+        new TypeAndPressAction(stubTypeable(), "query", "TAB").perform((Executor) engine);
         assertEquals(engine.ops, List.of("type", "sendKey"));
         assertEquals(engine.lastTypedText, "query");
         assertEquals(engine.lastSentKey, "TAB");
@@ -335,7 +336,7 @@ public class ConcreteActionsTest {
     @Test
     public void openAction_perform_callsEngineClick() {
         RecordingEngine engine = new RecordingEngine();
-        new OpenAction(stubSelectable()).perform(engine);
+        new OpenAction(stubSelectable()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("click"));
     }
 
@@ -351,7 +352,7 @@ public class ConcreteActionsTest {
     @Test
     public void selectAction_perform_callsClickWaitOverlayClick_inOrder() {
         RecordingEngine engine = new RecordingEngine();
-        new SelectAction(stubSelectable()).perform(engine);
+        new SelectAction(stubSelectable()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("click", "waitForOverlay", "click"));
     }
 
@@ -367,7 +368,7 @@ public class ConcreteActionsTest {
     @Test
     public void selectByTextAction_perform_callsSelectByVisibleText_withText() {
         RecordingEngine engine = new RecordingEngine();
-        new SelectByTextAction(stubSelectable(), "Option A").perform(engine);
+        new SelectByTextAction(stubSelectable(), "Option A").perform((Executor) engine);
         assertEquals(engine.ops, List.of("selectByText"));
         assertEquals(engine.lastSelectedText, "Option A");
     }
@@ -384,7 +385,7 @@ public class ConcreteActionsTest {
     @Test
     public void selectByValueAction_perform_callsSelectByValue_withValue() {
         RecordingEngine engine = new RecordingEngine();
-        new SelectByValueAction(stubSelectable(), "v1").perform(engine);
+        new SelectByValueAction(stubSelectable(), "v1").perform((Executor) engine);
         assertEquals(engine.ops, List.of("selectByValue"));
         assertEquals(engine.lastSelectedValue, "v1");
     }
@@ -406,7 +407,7 @@ public class ConcreteActionsTest {
     @Test
     public void uploadAction_perform_callsUploadFile_withPath() {
         RecordingEngine engine = new RecordingEngine();
-        new UploadAction(stubUploadable(), "/files/report.pdf").perform(engine);
+        new UploadAction(stubUploadable(), "/files/report.pdf").perform((Executor) engine);
         assertEquals(engine.ops, List.of("uploadFile"));
         assertEquals(engine.lastUploadPath, "/files/report.pdf");
     }
@@ -423,7 +424,7 @@ public class ConcreteActionsTest {
     @Test
     public void typeSearchAction_perform_callsEngineType_withSearchTerm() {
         RecordingEngine engine = new RecordingEngine();
-        new TypeSearchAction(stubSearchField(), "invoice").perform(engine);
+        new TypeSearchAction(stubSearchField(), "invoice").perform((Executor) engine);
         assertEquals(engine.ops, List.of("type"));
         assertEquals(engine.lastTypedText, "invoice");
     }
@@ -440,7 +441,7 @@ public class ConcreteActionsTest {
     @Test
     public void submitSearchAction_perform_callsEngineClick() {
         RecordingEngine engine = new RecordingEngine();
-        new SubmitSearchAction(stubSearchField()).perform(engine);
+        new SubmitSearchAction(stubSearchField()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("click"));
     }
 
@@ -457,7 +458,7 @@ public class ConcreteActionsTest {
     @Test
     public void searchAndSelectAction_perform_callsCompositeSequence() {
         RecordingEngine engine = new RecordingEngine();
-        new SearchAndSelectAction(stubSearchableDropdown(), "Paris").perform(engine);
+        new SearchAndSelectAction(stubSearchableDropdown(), "Paris").perform((Executor) engine);
         assertEquals(engine.ops, List.of("click", "type", "waitForVisible", "click"));
         assertEquals(engine.lastTypedText, "Paris");
     }
@@ -481,7 +482,7 @@ public class ConcreteActionsTest {
     public void readTextAction_perform_callsEngineGetText() {
         // execute() must delegate to UIEngine.getText(), not click/type/etc.
         RecordingEngine engine = new RecordingEngine();
-        new ReadTextAction(stubReadOnly()).perform(engine);
+        new ReadTextAction(stubReadOnly()).perform((Executor) engine);
         assertEquals(engine.ops, List.of("getText"));
     }
 

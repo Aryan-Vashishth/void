@@ -5,6 +5,7 @@ import core.actions.ActionCapability;
 import core.actions.ActionProfile;
 import core.actions.Profiles;
 import core.annotations.Beta;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
@@ -120,7 +121,7 @@ public class ElementActionTest {
         // perform() should call resolve() then execute()
         // We verify this by ensuring execute() was called after resolve()
         callOrder.set("initial");
-        action.perform(stubEngine);
+        action.perform((Executor) stubEngine);
         assertEquals(callOrder.get(), "execute",
                 "perform() must call resolve() then execute()");
     }
@@ -137,7 +138,7 @@ public class ElementActionTest {
             }
         };
 
-        action.perform(stubEngine);
+        action.perform((Executor) stubEngine);
         assertSame(receivedDescriptor.get(), stubDescriptor,
                 "execute() must receive the descriptor resolved in perform()");
     }
@@ -154,7 +155,7 @@ public class ElementActionTest {
             }
         };
 
-        action.perform(stubEngine);
+        action.perform((Executor) stubEngine);
         assertSame(receivedEngine.get(), stubEngine,
                 "execute() must receive the engine passed to perform()");
     }
@@ -402,7 +403,7 @@ public class ElementActionTest {
             protected void execute(UIEngine engine, LocatorDescriptor descriptor) {}
         };
 
-        action.resolve(recordingEngine);
+        action.resolve((Executor) recordingEngine);
         assertSame(resolvedElement.get(), stubElement);
         assertEquals(resolvedRole.get(), ElementRole.TRIGGER);
     }
@@ -419,7 +420,7 @@ public class ElementActionTest {
             }
         };
 
-        action.perform(stubEngine);
+        action.perform((Executor) stubEngine);
         assertSame(passedDescriptor.get(), stubDescriptor);
     }
 

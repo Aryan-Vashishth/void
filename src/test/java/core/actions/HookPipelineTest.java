@@ -1,6 +1,7 @@
 package core.actions;
 
 import core.actions.hooks.ActionHandler;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
@@ -105,7 +106,7 @@ public class HookPipelineTest {
                 List.of(before1, before2),
                 List.of(after1, after2));
 
-        hooked.perform(stubEngine);
+        hooked.perform((Executor) stubEngine);
 
         assertEquals(executionLog,
                 List.of("before1", "before2", "action", "after1", "after2"),
@@ -122,7 +123,7 @@ public class HookPipelineTest {
                 List.of((e, d) -> beforeReceived.set(d)),
                 List.of((e, d) -> afterReceived.set(d)));
 
-        hooked.perform(stubEngine);
+        hooked.perform((Executor) stubEngine);
 
         assertSame(beforeReceived.get(), STUB_DESCRIPTOR,
                 "Before hook must receive the descriptor");
@@ -136,10 +137,10 @@ public class HookPipelineTest {
 
         HookChainAction hooked = HookChainAction.forTesting(
                 (e) -> {}, STUB_DESCRIPTOR,
-                List.of((e, d) -> capturedEngine.set(e)),
+                List.of((executor, d) -> capturedEngine.set((UIEngine) executor)),
                 null);
 
-        hooked.perform(stubEngine);
+        hooked.perform((Executor) stubEngine);
 
         assertSame(capturedEngine.get(), stubEngine,
                 "Hook must receive the same engine instance");
@@ -155,7 +156,7 @@ public class HookPipelineTest {
                 List.of((e, d) -> { throw new RuntimeException("before failed"); }),
                 List.of((e, d) -> afterRan.set(true)));
 
-        assertThrows(RuntimeException.class, () -> hooked.perform(stubEngine));
+        assertThrows(RuntimeException.class, () -> hooked.perform((Executor) stubEngine));
         assertFalse(actionRan.get(), "Action must NOT execute when a before hook throws");
         assertFalse(afterRan.get(), "After hooks must NOT execute when a before hook throws");
     }
@@ -169,7 +170,7 @@ public class HookPipelineTest {
                 null,
                 List.of((e, d) -> { throw new RuntimeException("after failed"); }));
 
-        assertThrows(RuntimeException.class, () -> hooked.perform(stubEngine));
+        assertThrows(RuntimeException.class, () -> hooked.perform((Executor) stubEngine));
         assertTrue(actionRan.get(), "Action must execute before the after hook throws");
     }
 
@@ -181,7 +182,7 @@ public class HookPipelineTest {
                 (e) -> actionRan.set(true), STUB_DESCRIPTOR,
                 null, null);
 
-        hooked.perform(stubEngine);  // should not throw
+        hooked.perform((Executor) stubEngine);  // should not throw
 
         assertTrue(actionRan.get(), "Action must execute when hook lists are null");
     }
@@ -197,7 +198,7 @@ public class HookPipelineTest {
                 (e) -> actionRan.set(true), STUB_DESCRIPTOR,
                 withNull, null);
 
-        hooked.perform(stubEngine);  // null hook should be skipped gracefully
+        hooked.perform((Executor) stubEngine);  // null hook should be skipped gracefully
 
         assertTrue(actionRan.get());
         assertEquals(executionLog, List.of("valid"));
@@ -212,7 +213,7 @@ public class HookPipelineTest {
                 List.of((e, d) -> received.set(d)),
                 null);
 
-        hooked.perform(stubEngine);
+        hooked.perform((Executor) stubEngine);
 
         assertNull(received.get(), "Legacy path: null descriptor must be passed through to hooks");
     }
@@ -233,7 +234,7 @@ public class HookPipelineTest {
         Action action = ElementActions.of(STUB_ELEMENT, ElementRole.TRIGGER,
                 (engine, d) -> receivedDescriptor.set(d));
 
-        action.perform(stubEngine);
+        action.perform((Executor) stubEngine);
 
         assertSame(receivedDescriptor.get(), STUB_DESCRIPTOR,
                 "ElementActions.of() must resolve and pass descriptor to the op");
@@ -244,7 +245,7 @@ public class HookPipelineTest {
         Action action = ElementActions.of(STUB_ELEMENT, ElementRole.TRIGGER,
                 (engine, d) -> {});
 
-        LocatorDescriptor resolved = action.resolve(stubEngine);
+        LocatorDescriptor resolved = action.resolve((Executor) stubEngine);
 
         assertSame(resolved, STUB_DESCRIPTOR,
                 "resolve() must return the descriptor from engine.resolve()");
@@ -257,7 +258,7 @@ public class HookPipelineTest {
     @Test(expectedExceptions = UnsupportedOperationException.class)
     public void action_resolve_default_throwsForRawLambda() {
         Action rawAction = (engine) -> {};
-        rawAction.resolve(stubEngine);
+        rawAction.resolve((Executor) stubEngine);
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -273,7 +274,7 @@ public class HookPipelineTest {
                 List.of((e, d) -> executionLog.add("before")),
                 List.of((e, d) -> executionLog.add("after")));
 
-        hooked.perform(stubEngine);
+        hooked.perform((Executor) stubEngine);
 
         assertEquals(executionLog, List.of("before", "action", "after"));
     }
@@ -290,7 +291,7 @@ public class HookPipelineTest {
         action.withHooks(
                 List.of((e, d) -> beforeDesc.set(d)),
                 List.of((e, d) -> afterDesc.set(d))
-        ).perform(stubEngine);
+        ).perform((Executor) stubEngine);
 
         assertSame(beforeDesc.get(), STUB_DESCRIPTOR);
         assertSame(actionDesc.get(), STUB_DESCRIPTOR);
@@ -304,7 +305,7 @@ public class HookPipelineTest {
         Action action = ElementActions.of(STUB_ELEMENT, ElementRole.TRIGGER,
                 (engine, d) -> ran.set(true));
 
-        action.withHooks(null, null).perform(stubEngine);
+        action.withHooks(null, null).perform((Executor) stubEngine);
 
         assertTrue(ran.get(), "Action must execute even with null hook lists");
     }
@@ -320,7 +321,7 @@ public class HookPipelineTest {
                 List.of((e, d) -> { throw new RuntimeException("boom"); }),
                 null);
 
-        assertThrows(RuntimeException.class, () -> hooked.perform(stubEngine));
+        assertThrows(RuntimeException.class, () -> hooked.perform((Executor) stubEngine));
         assertFalse(actionRan.get());
     }
 
@@ -331,7 +332,7 @@ public class HookPipelineTest {
         Action hooked = rawAction.withHooks(
                 List.of((e, d) -> {}),
                 null);
-        hooked.perform(stubEngine);  // resolve() called inside → throws
+        hooked.perform((Executor) stubEngine);  // resolve() called inside → throws
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -343,12 +344,12 @@ public class HookPipelineTest {
         AtomicReference<UIEngine> capturedEngine = new AtomicReference<>();
         AtomicReference<LocatorDescriptor> capturedDesc = new AtomicReference<>();
 
-        ActionHandler handler = (engine, descriptor) -> {
-            capturedEngine.set(engine);
+        ActionHandler handler = (executor, descriptor) -> {
+            capturedEngine.set((UIEngine) executor);
             capturedDesc.set(descriptor);
         };
 
-        handler.execute(stubEngine, STUB_DESCRIPTOR);
+        handler.execute((Executor) stubEngine, STUB_DESCRIPTOR);
 
         assertSame(capturedEngine.get(), stubEngine);
         assertSame(capturedDesc.get(), STUB_DESCRIPTOR);
@@ -361,7 +362,7 @@ public class HookPipelineTest {
 
         ActionHandler handler = ActionHandler.legacy(engine -> capturedEngine.set(engine));
 
-        handler.execute(stubEngine, STUB_DESCRIPTOR);
+        handler.execute((Executor) stubEngine, STUB_DESCRIPTOR);
 
         assertSame(capturedEngine.get(), stubEngine,
                 "Legacy adapter must pass through the engine");
@@ -374,7 +375,7 @@ public class HookPipelineTest {
 
         ActionHandler handler = ActionHandler.legacy(engine -> ran.set(true));
 
-        handler.execute(stubEngine, null);  // legacy path: null descriptor
+        handler.execute((Executor) stubEngine, null);  // legacy path: null descriptor
 
         assertTrue(ran.get());
     }
@@ -388,7 +389,7 @@ public class HookPipelineTest {
         AtomicReference<UIEngine> capturedEngine = new AtomicReference<>();
         FlowExecutor executor = new FlowExecutor(stubEngine);
 
-        executor.run((engine) -> capturedEngine.set(engine));
+        executor.run(e -> capturedEngine.set((UIEngine) e));
 
         assertSame(capturedEngine.get(), stubEngine);
     }

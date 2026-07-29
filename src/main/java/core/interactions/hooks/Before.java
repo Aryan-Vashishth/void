@@ -1,6 +1,7 @@
 package core.interactions.hooks;
 
 import core.actions.hooks.BeforeActionHandler;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 
@@ -43,17 +44,19 @@ public final class Before {
     private Before() {}
 
     // ── No-ops / logging ──────────────────────────────────────────────────
-    public static final BeforeActionHandler DO_NOTHING  = (engine, descriptor) -> {};
-    public static final BeforeActionHandler LOG_INTENT  = (engine, descriptor) -> debug.log("[DEBUG] Performing UI action...");
+    public static final BeforeActionHandler DO_NOTHING  = (executor, descriptor) -> {};
+    public static final BeforeActionHandler LOG_INTENT  = (executor, descriptor) -> debug.log("[DEBUG] Performing UI action...");
 
     // ── Loader waits ──────────────────────────────────────────────────────
-    public static final BeforeActionHandler WAIT_FOR_ANGULAR_LOADER = (engine, descriptor) -> {
+    public static final BeforeActionHandler WAIT_FOR_ANGULAR_LOADER = (executor, descriptor) -> {
+        UIEngine engine = (UIEngine) executor;
         LocatorDescriptor loader = LocatorDescriptor.of("app-loader", core.engine.LocatorStrategy.CSS);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
         catch (Exception ignored) { /* loader not present — continue */ }
     };
 
-    public static final BeforeActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (engine, descriptor) -> {
+    public static final BeforeActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (executor, descriptor) -> {
+        UIEngine engine = (UIEngine) executor;
         LocatorDescriptor loader = LocatorDescriptor.of(
                 "//span[contains(@class, 'spin spinner')]", core.engine.LocatorStrategy.XPATH);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
@@ -63,50 +66,50 @@ public final class Before {
     // ── Element-state waits (use descriptor passed by HookedAction / caller) ─────
 
     /** Waits for the element to become clickable. */
-    public static final BeforeActionHandler WAIT_FOR_ELEMENT_CLICKABLE = (engine, descriptor) -> {
+    public static final BeforeActionHandler WAIT_FOR_ELEMENT_CLICKABLE = (executor, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to WAIT_FOR_ELEMENT_CLICKABLE");
             return;
         }
-        engine.waitForClickable(descriptor, DEFAULT_TIMEOUT);
+        ((UIEngine) executor).waitForClickable(descriptor, DEFAULT_TIMEOUT);
     };
 
     /** Waits for the element to be visible. */
-    public static final BeforeActionHandler WAIT_FOR_ELEMENT_VISIBLE = (engine, descriptor) -> {
+    public static final BeforeActionHandler WAIT_FOR_ELEMENT_VISIBLE = (executor, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to WAIT_FOR_ELEMENT_VISIBLE");
             return;
         }
-        engine.waitForVisible(descriptor, DEFAULT_TIMEOUT);
+        ((UIEngine) executor).waitForVisible(descriptor, DEFAULT_TIMEOUT);
     };
 
     // ── Element manipulation ───────────────────────────────────────────────
 
     /** Clears the input element. Throws if no descriptor provided. */
-    public static final BeforeActionHandler CLEAR_FIELD = (engine, descriptor) -> {
+    public static final BeforeActionHandler CLEAR_FIELD = (executor, descriptor) -> {
         if (descriptor == null) {
             throw new IllegalStateException(
                     "[Before.CLEAR_FIELD] No descriptor provided – resolve the element first.");
         }
-        engine.clear(descriptor);
+        ((UIEngine) executor).clear(descriptor);
     };
 
     /** Scrolls the element into view. */
-    public static final BeforeActionHandler SCROLL_TO_ELEMENT = (engine, descriptor) -> {
+    public static final BeforeActionHandler SCROLL_TO_ELEMENT = (executor, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to SCROLL_TO_ELEMENT");
             return;
         }
-        engine.scrollTo(descriptor);
+        ((UIEngine) executor).scrollTo(descriptor);
     };
 
     /** Highlights the element with a red border (debug aid). */
-    public static final BeforeActionHandler HIGHLIGHT_ELEMENT = (engine, descriptor) -> {
+    public static final BeforeActionHandler HIGHLIGHT_ELEMENT = (executor, descriptor) -> {
         if (descriptor == null) {
             debug.log("[HOOK WARNING] No locator descriptor provided to HIGHLIGHT_ELEMENT");
             return;
         }
-        engine.highlight(descriptor, "red");
+        ((UIEngine) executor).highlight(descriptor, "red");
     };
 }
 

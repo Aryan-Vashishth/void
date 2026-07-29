@@ -4,6 +4,7 @@ import core.actions.hooks.ActionHandler;
 import core.actions.hooks.AfterActionHandler;
 import core.actions.hooks.BeforeActionHandler;
 import core.annotations.Beta;
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 
@@ -48,11 +49,11 @@ import java.util.Objects;
 public interface Action {
 
     /**
-     * Executes this action against the given engine.
+     * Executes this action against the given executor.
      *
-     * @param engine the UI engine that performs the actual browser interaction
+     * @param executor the execution context that performs the actual interaction
      */
-    void perform(UIEngine engine);
+    void perform(Executor executor);
 
     /**
      * Resolves the {@link LocatorDescriptor} for this action's target element.
@@ -61,14 +62,32 @@ public interface Action {
      * hook composition APIs. The default throws for raw lambda actions
      * that don't target a specific element.</p>
      *
-     * @param engine the engine to resolve against
+     * @param executor the executor to resolve against
      * @return resolved descriptor
      * @throws UnsupportedOperationException if this action doesn't support resolution
      */
-    default LocatorDescriptor resolve(UIEngine engine) {
+    default LocatorDescriptor resolve(Executor executor) {
         throw new UnsupportedOperationException(
                 "This action does not support descriptor resolution. " +
                 "Use a concrete ElementAction subclass (e.g., ClickAction, TypeAction).");
+    }
+
+    /**
+     * @deprecated Use {@link #perform(Executor)} instead.
+     *             Bridge overload; delegates to the primary. Scheduled for deletion in I9.4.
+     */
+    @Deprecated(since = "0.5", forRemoval = true)
+    default void perform(UIEngine engine) {
+        perform((Executor) engine);
+    }
+
+    /**
+     * @deprecated Use {@link #resolve(Executor)} instead.
+     *             Bridge overload; delegates to the primary. Scheduled for deletion in I9.4.
+     */
+    @Deprecated(since = "0.5", forRemoval = true)
+    default LocatorDescriptor resolve(UIEngine engine) {
+        return resolve((Executor) engine);
     }
 
     /**

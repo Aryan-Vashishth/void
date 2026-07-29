@@ -1,5 +1,6 @@
 package core.actions;
 
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
 import core.engine.UIEngine;
@@ -61,7 +62,7 @@ public class ActionProfilesTest {
         List<String> calls = new ArrayList<>();
         UIEngine engine = buildEngine(calls);
 
-        TYPEABLE.type("admin").safely().perform(engine);
+        TYPEABLE.type("admin").safely().perform((Executor) engine);
 
         assertTrue(calls.contains("clear"));
         assertTrue(calls.contains("waitForVisible"));
@@ -87,7 +88,7 @@ public class ActionProfilesTest {
         List<String> calls = new ArrayList<>();
         UIEngine engine = buildEngine(calls);
 
-        ElementActions.of(CLICKABLE, ElementRole.TRIGGER, (e, d) -> e.click(d)).perform(engine);
+        ElementActions.of(CLICKABLE, ElementRole.TRIGGER, (e, d) -> e.click(d)).perform((Executor) engine);
 
         assertTrue(calls.contains("click"), "Core click should still execute");
         assertTrue(calls.contains("highlight"), "Configured DEBUG profile should add highlight hooks");
@@ -144,7 +145,7 @@ public class ActionProfilesTest {
         List<String> calls = new ArrayList<>();
         UIEngine engine = buildEngine(calls);
 
-        ActionProfiles.applyConfiguredDefault(CLICKABLE.click()).perform(engine);
+        ActionProfiles.applyConfiguredDefault(CLICKABLE.click()).perform((Executor) engine);
 
         assertTrue(calls.contains("click"), "Core click must execute");
         assertTrue(calls.contains("highlight"), "DEBUG profile must apply to CLICKABLE-capability action");
@@ -177,7 +178,7 @@ public class ActionProfilesTest {
         List<String> calls = new ArrayList<>();
         UIEngine engine = buildEngine(calls);
 
-        TYPEABLE.type("test").debug().perform(engine);
+        TYPEABLE.type("test").debug().perform((Executor) engine);
 
         assertTrue(calls.contains("type"), "Core type must execute");
         assertTrue(calls.contains("highlight"), "HIGHLIGHT_ELEMENT hook must run");
@@ -198,7 +199,7 @@ public class ActionProfilesTest {
         List<String> calls = new ArrayList<>();
         UIEngine engine = buildEngine(calls);
 
-        CLICKABLE.click().raw().perform(engine);
+        CLICKABLE.click().raw().perform((Executor) engine);
 
         assertTrue(calls.contains("click"), "Core click must execute");
         assertFalse(calls.contains("highlight"), "raw() must not add any hooks");
@@ -215,7 +216,7 @@ public class ActionProfilesTest {
                 .after(After.HIGHLIGHT_ELEMENT)
                 .build();
 
-        TYPEABLE.type("test").using(custom).perform(engine);
+        TYPEABLE.type("test").using(custom).perform((Executor) engine);
 
         assertTrue(calls.contains("type"), "Core type must execute");
         assertTrue(calls.contains("highlight"), "Custom profile hooks must run");

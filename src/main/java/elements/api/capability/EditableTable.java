@@ -2,6 +2,7 @@ package elements.api.capability;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
+import core.engine.UIEngine;
 import elements.meta.ElementRole;
 
 /**
@@ -47,14 +48,16 @@ public interface EditableTable extends Table {
     // ── Action emission ─────────────────────────────────────────────────
 
     default Action clickAddRow() {
-        return engine -> {
+        return executor -> {
+            UIEngine engine = (UIEngine) executor;
             var d = engine.resolve(this, ElementRole.ADD_ROW_BUTTON);
             engine.click(d);
         };
     }
 
     default Action clickRemoveRow() {
-        return engine -> {
+        return executor -> {
+            UIEngine engine = (UIEngine) executor;
             var d = engine.resolve(this, ElementRole.REMOVE_ROW_BUTTON);
             engine.click(d);
         };

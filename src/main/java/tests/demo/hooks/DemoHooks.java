@@ -3,6 +3,7 @@ package tests.demo.hooks;
 import core.actions.hooks.AfterActionHandler;
 import core.engine.LocatorDescriptor;
 import core.engine.LocatorStrategy;
+import core.engine.UIEngine;
 import tests.demo.pages.DemoLoginPage;
 import elements.meta.ElementRole;
 
@@ -39,7 +40,8 @@ public final class DemoHooks {
      * <p>Resolves the success label via the engine — the hook never holds a direct
      * {@code WebElement} reference, keeping it engine-agnostic and reusable across sessions.</p>
      */
-    public static final AfterActionHandler WAIT_FOR_LOGIN_SUCCESS = (engine, descriptor) -> {
+    public static final AfterActionHandler WAIT_FOR_LOGIN_SUCCESS = (executor, descriptor) -> {
+        UIEngine engine = (UIEngine) executor;
         LocatorDescriptor successMsg = engine.resolve(
                 DemoLoginPage.Labels.SUCCESS_MESSAGE, ElementRole.TEXT);
         engine.waitForVisible(successMsg, LOGIN_SUCCESS_TIMEOUT);

@@ -422,11 +422,28 @@ public class KernelBoundaryRulesTest {
     // dependency, not a hypothetical -- each is load-bearing today and closes on
     // a specific later phase:
     //
-    //   core.engine.UIEngine, core.engine.LocatorDescriptor
-    //       Action.perform()/resolve() and HookChainAction are typed against
-    //       UIEngine/LocatorDescriptor because the neutral Executor contract
-    //       (ADR-021 AD2) does not exist yet. Closes: I4 (Executor introduced;
-    //       these become bridge overloads per the Migration Ledger, deleted I9.4).
+    //   core.engine.Executor
+    //       The kernel's neutral execution-owner contract (ADR-021 AD2). I4.4
+    //       retyped Action.perform(), ActionHandler.execute(), and FlowExecutor
+    //       to accept Executor. Unlike the others, this is NOT temporary --
+    //       Executor is the permanent neutral contract; it will not be removed
+    //       from kernel method signatures. Listed here because the allowed
+    //       predicate does not yet enumerate individual core.engine types;
+    //       consolidate into the predicate when the full core.engine split lands.
+    //   core.engine.UIEngine
+    //       Two distinct load-bearing cases:
+    //       (a) Deprecated bridge default methods on Action (perform/resolve) and
+    //           ActionHandler (execute, legacy) still carry UIEngine in their
+    //           signatures. Scheduled for deletion I9.4.
+    //       (b) VOID (engine field, getEngine(), navigateTo, etc.),
+    //           SessionContext (engine field, engine(), getEngineName, toString),
+    //           and VOIDBuilder (start()) -- session-wiring code that is
+    //           explicitly out of scope for I4.4. Closes across later phases
+    //           (I4.5 and the Migration Ledger, I9.3).
+    //   core.engine.LocatorDescriptor
+    //       Action.resolve(), ActionHandler.execute(), and HookChainAction carry
+    //       LocatorDescriptor in their kernel-side signatures. The UIEngine-typed
+    //       bridge overloads from I4.4 are scheduled for deletion in I9.4.
     //   core.engine.EngineBootstrap, core.engine.UIEngineFactory
     //       VOID/VOIDBuilder's engine-selection wiring. Already in the
     //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
@@ -457,6 +474,7 @@ public class KernelBoundaryRulesTest {
     // ═════════════════════════════════════════════════════════════════════
 
     private static final Set<String> KERNEL_PURITY_TEMPORARY_EXCEPTIONS = Set.of(
+            "core.engine.Executor",
             "core.engine.UIEngine",
             "core.engine.LocatorDescriptor",
             "core.engine.EngineBootstrap",

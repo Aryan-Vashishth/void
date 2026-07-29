@@ -1,5 +1,6 @@
 package core.actions.hooks;
 
+import core.engine.Executor;
 import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
 
@@ -51,9 +52,9 @@ import javax.annotation.Nullable;
 public interface ActionHandler {
 
     /**
-     * Execute this hook given the active engine and the current action's locator descriptor.
+     * Execute this hook given the active executor and the current action's locator descriptor.
      *
-     * @param engine     the UI engine that performs browser interactions
+     * @param executor   the execution context that performs interactions
      * @param descriptor the locator descriptor for the element being acted upon;
      *                   may be {@code null} in legacy code paths
      *
@@ -63,7 +64,16 @@ public interface ActionHandler {
      * without an explicit descriptor.  New code must always supply a
      * non-null descriptor.
      */
-    void execute(UIEngine engine, @Nullable LocatorDescriptor descriptor);
+    void execute(Executor executor, @Nullable LocatorDescriptor descriptor);
+
+    /**
+     * @deprecated Use {@link #execute(Executor, LocatorDescriptor)} instead.
+     *             Bridge overload; delegates to the primary. Scheduled for deletion in I9.4.
+     */
+    @Deprecated(since = "0.5", forRemoval = true)
+    default void execute(UIEngine engine, @Nullable LocatorDescriptor descriptor) {
+        execute((Executor) engine, descriptor);
+    }
 
     // ── Legacy adapter ──────────────────────────────────────────────────────
 
@@ -74,13 +84,13 @@ public interface ActionHandler {
      *   ActionHandler wrapped = ActionHandler.legacy(engine -&gt; doSomething(engine));
      * </pre>
      *
-     * @param handler single-arg hook (receives only the engine)
+     * @param handler single-arg hook (receives only the UIEngine)
      * @return two-arg {@link ActionHandler} that ignores the descriptor
-     * @deprecated Use descriptor-aware {@code (engine, descriptor) -> ...} hooks instead.
+     * @deprecated Use descriptor-aware {@code (executor, descriptor) -> ...} hooks instead.
      *             This adapter exists only for migration and will be removed.
      */
     @Deprecated(forRemoval = true)
     static ActionHandler legacy(java.util.function.Consumer<UIEngine> handler) {
-        return (engine, descriptor) -> handler.accept(engine);
+        return (executor, descriptor) -> handler.accept((UIEngine) executor);
     }
 }
