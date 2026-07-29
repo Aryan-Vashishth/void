@@ -82,6 +82,16 @@ public final class SeleniumEngine implements UIEngine {
 
         if (this.driver == null) {
             // Primary path: engine creates and registers its own driver.
+            // Validate web config here (not at framework bootstrap) so non-web domains can
+            // start without driver.properties on the classpath (I5.2 / audit C4).
+            if (Thread.currentThread().getContextClassLoader()
+                    .getResource(DriverFactory.DEFAULT_PROPERTIES_CLASSPATH) == null) {
+                throw new IllegalStateException(
+                        "Web session initialization failed: driver.properties not found on classpath at '"
+                                + DriverFactory.DEFAULT_PROPERTIES_CLASSPATH + "'. "
+                                + "Ensure the file exists at "
+                                + "src/main/resources/core/driver/config/driver.properties");
+            }
             this.driver = DriverFactory.fromProfile(profile).build();
             DriverContext.setPrimaryDriver(this.driver);
             debug.log("[SeleniumEngine] Driver created and registered via profile: " + profile);
