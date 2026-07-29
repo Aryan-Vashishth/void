@@ -78,9 +78,6 @@ public class VOID {
     /** Per-session context (config, executor, identity). */
     private final SessionContext context;
 
-    /** The active execution engine for this session. */
-    private final UIEngine engine;
-
     /** Current lifecycle state of this session. */
     private volatile SessionState state = SessionState.ACTIVE;
 
@@ -99,12 +96,10 @@ public class VOID {
      * Protected constructor -- use {@link #builder()} or {@link #start(DriverFactory.Profile)}.
      *
      * @param context the session context for this session
-     * @param engine  the active UI engine
      */
-    protected VOID(SessionContext context, UIEngine engine) {
+    protected VOID(SessionContext context) {
         this.context = context;
-        this.engine = engine;
-        this.executor = new FlowExecutor(engine);
+        this.executor = new FlowExecutor(context.engine());
     }
 
     // ===========================
@@ -165,8 +160,8 @@ public class VOID {
      */
     public void shutdown() {
         CustomLogger.info.log("VOID session shutting down -- sessionId=" + context.sessionId()
-                + ", engine=" + engine.getEngineName());
-        engine.shutdown();
+                + ", engine=" + context.getEngineName());
+        context.engine().shutdown();
         state = SessionState.SHUTDOWN;
         // DriverContext cleanup is owned by SeleniumEngine.shutdown()
     }
@@ -186,7 +181,7 @@ public class VOID {
      * @param url the target URL
      */
     public void navigateTo(String url) {
-        engine.navigateTo(url);
+        executor.run(e -> ((UIEngine) e).navigateTo(url));
     }
 
     /**
@@ -195,7 +190,9 @@ public class VOID {
      * @return current URL string
      */
     public String getCurrentUrl() {
-        return engine.getCurrentUrl();
+        String[] result = {null};
+        executor.run(e -> result[0] = ((UIEngine) e).getCurrentUrl());
+        return result[0];
     }
 
     /**
@@ -204,14 +201,16 @@ public class VOID {
      * @return page title string
      */
     public String getTitle() {
-        return engine.getTitle();
+        String[] result = {null};
+        executor.run(e -> result[0] = ((UIEngine) e).getTitle());
+        return result[0];
     }
 
     /**
      * Reloads the current page in this session's browser.
      */
     public void refresh() {
-        engine.refresh();
+        executor.run(e -> ((UIEngine) e).refresh());
     }
 
     // ===========================
@@ -255,7 +254,7 @@ public class VOID {
      * @return the active UIEngine for this session
      */
     public UIEngine getEngine() {
-        return engine;
+        return (UIEngine) context.engine();
     }
 
     // ===========================
@@ -272,7 +271,7 @@ public class VOID {
     @Deprecated(since = "0.1", forRemoval = true)
     public Interactions interaction() {
         if (interactions == null) {
-            interactions = new Interactions(engine);
+            interactions = new Interactions((UIEngine) context.engine());
         }
         return interactions;
     }
@@ -298,6 +297,6 @@ public class VOID {
      */
     @Deprecated(since = "0.1", forRemoval = true)
     protected WebDriver getDriver() {
-        return (WebDriver) engine.getNativeDriver();
+        return (WebDriver) ((UIEngine) context.engine()).getNativeDriver();
     }
 }

@@ -5,7 +5,6 @@ import core.context.SessionContext;
 import core.driver.DriverFactory;
 import core.engine.EngineBootstrap;
 import core.engine.Executor;
-import core.engine.UIEngine;
 import core.engine.UIEngineFactory;
 import core.logging.CustomLogger;
 
@@ -100,13 +99,9 @@ public final class VOIDBuilder {
 
         SessionContext ctx = new SessionContext(config, executor);
 
-        // Bridge cast: all current registrars produce UIEngine subtypes; closes in 5.3 when
-        // navigation routes through the pipeline and VOID no longer holds a UIEngine reference.
-        UIEngine engine = (UIEngine) executor;
-
         CustomLogger.info.log("VOID session started -- sessionId=" + ctx.sessionId()
-                + ", engine=" + engine.getEngineName() + ", profile=" + profile);
-        return new VOID(ctx, engine);
+                + ", engine=" + ctx.getEngineName() + ", profile=" + profile);
+        return new VOID(ctx);
     }
 
     private Properties resolvedConfig() {
