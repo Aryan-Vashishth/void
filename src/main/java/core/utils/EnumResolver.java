@@ -1,10 +1,13 @@
 package core.utils;
 
 import com.beust.jcommander.internal.Nullable;
-import core.driver.Waiter;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,8 +23,9 @@ public class EnumResolver {
             // add more as needed
     );
 
-    public static void printEnumFormat(By locator){
-        List<WebElement> elements = Waiter.get().until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
+    public static void printEnumFormat(By locator, WebDriver driver){
+        List<WebElement> elements = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
         for(WebElement element: elements){
             String enumFormated = normalizeToEnumName(element.getText().trim());
             debug.log(enumFormated + "(\"" + element.getText() + "\"),");
