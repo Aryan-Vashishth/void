@@ -72,11 +72,17 @@ import org.openqa.selenium.WebDriver;
  */
 public class VOID {
 
-    /** Per-session context (config + engine). */
+    /** Lifecycle states for a VOID session. */
+    public enum SessionState { ACTIVE, SHUTDOWN }
+
+    /** Per-session context (config, executor, identity). */
     private final SessionContext context;
 
     /** The active execution engine for this session. */
     private final UIEngine engine;
+
+    /** Current lifecycle state of this session. */
+    private volatile SessionState state = SessionState.ACTIVE;
 
     /** Lazily-initialised, cached legacy interaction helper. */
     @Deprecated
@@ -158,9 +164,16 @@ public class VOID {
      * on the same thread are unaffected.</p>
      */
     public void shutdown() {
-        CustomLogger.info.log("VOID session shutting down -- engine=" + engine.getEngineName());
+        CustomLogger.info.log("VOID session shutting down -- sessionId=" + context.sessionId()
+                + ", engine=" + engine.getEngineName());
         engine.shutdown();
+        state = SessionState.SHUTDOWN;
         // DriverContext cleanup is owned by SeleniumEngine.shutdown()
+    }
+
+    /** Returns the current lifecycle state of this session. */
+    public SessionState getSessionState() {
+        return state;
     }
 
     // ===========================

@@ -1,55 +1,62 @@
 package core.context;
 
-import core.engine.UIEngine;
+import core.engine.Executor;
 
 import java.util.Objects;
 import java.util.Properties;
+import java.util.UUID;
 
 /**
  * Engine-agnostic, per-session execution context.
  *
- * <p>Holds the resolved configuration and the active {@link UIEngine} for a
- * single VOID session. Passed explicitly through the call chain — no hidden
- * static state required.</p>
+ * <p>Holds the resolved configuration, the active {@link Executor}, and a stable
+ * session identity for a single VOID session. Passed explicitly through the call
+ * chain -- no hidden static state required.</p>
  *
  * <h3>Why this replaces ExecutionContext</h3>
  * <ul>
- *   <li>{@link ExecutionContext} holds a raw {@code WebDriver} — Selenium-coupled.</li>
- *   <li>This class holds a {@link UIEngine}, enabling Playwright or any future engine.</li>
- *   <li>Enables parallel execution — each thread/test gets its own context.</li>
+ *   <li>{@link ExecutionContext} holds a raw {@code WebDriver} -- Selenium-coupled.</li>
+ *   <li>This class holds an {@link Executor}, enabling Playwright or any future engine.</li>
+ *   <li>Enables parallel execution -- each thread/test gets its own context.</li>
  *   <li>Makes dependencies visible at construction time.</li>
  * </ul>
  *
  * <h3>Usage</h3>
  * <pre>
- *   SessionContext ctx = new SessionContext(config, engine);
- *   ctx.engine().navigateTo("https://example.com");
+ *   SessionContext ctx = new SessionContext(config, executor);
  *   String val = ctx.getConfig("some.key");
  * </pre>
  *
- * @see UIEngine
+ * @see Executor
  * @see ExecutionContext
  */
 public final class SessionContext {
 
+    private final String sessionId;
     private final Properties config;
-    private final UIEngine engine;
+    private final Executor executor;
 
     /**
-     * Creates a new session context.
+     * Creates a new session context with a generated session ID.
      *
-     * @param config resolved configuration properties (must not be null)
-     * @param engine active UIEngine instance (must not be null)
+     * @param config   resolved configuration properties (must not be null)
+     * @param executor active Executor instance (must not be null)
      * @throws NullPointerException if either argument is null
      */
-    public SessionContext(Properties config, UIEngine engine) {
+    public SessionContext(Properties config, Executor executor) {
+        this.sessionId = UUID.randomUUID().toString();
         this.config = Objects.requireNonNull(config, "config must not be null");
-        this.engine = Objects.requireNonNull(engine, "engine must not be null");
+        this.executor = Objects.requireNonNull(executor, "executor must not be null");
     }
 
-    /** Returns the active {@link UIEngine} for this session. */
-    public UIEngine engine() {
-        return engine;
+    /** Returns the unique ID for this session. */
+    public String sessionId() {
+        return sessionId;
+    }
+
+    /** Returns the active {@link Executor} for this session. */
+    public Executor engine() {
+        return executor;
     }
 
     /** Returns the full configuration snapshot for this session. */
@@ -84,13 +91,14 @@ public final class SessionContext {
      * @return engine identifier
      */
     public String getEngineName() {
-        return engine.getEngineName();
+        return executor.getEngineName();
     }
 
     @Override
     public String toString() {
-        return "SessionContext{configKeys=" + config.size()
-                + ", engine=" + engine.getEngineName() + '}';
+        return "SessionContext{sessionId=" + sessionId
+                + ", engine=" + executor.getEngineName()
+                + ", configKeys=" + config.size() + '}';
     }
 }
 
