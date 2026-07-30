@@ -4,8 +4,10 @@ import elements.api.UIElement;
 import core.utils.ResolvableEnum;
 import core.driver.DriverContext;
 import core.driver.Waiter;
+import core.engine.selenium.SeleniumEngine;
 import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
+import elements.locator.LocatorDescriptor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -41,7 +43,8 @@ public class KeyValuePairHandler {
         try {
             String file = element.getExternalFileName();
             String key = element.getPrimaryLocator();
-            By by = LocatorResolvers.strict().resolve(LocatorRequest.of(file, key, element.getArgs()));
+            LocatorDescriptor d = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(file, key, element.getArgs()));
+            By by = SeleniumEngine.toBy(d);
             WebElement el = Waiter.get().until(ExpectedConditions.visibilityOfElementLocated(by));
             String value = el.getText() == null ? "" : el.getText().trim();
             debug.resolved("Resolved key-value", "Label", label, "Value", value, "By", by);

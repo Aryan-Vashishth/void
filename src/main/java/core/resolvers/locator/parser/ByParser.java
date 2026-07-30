@@ -12,7 +12,12 @@ import java.util.Locale;
  * strings starting with {@code "/"}, {@code "("} or {@code ".//"} are treated as XPath, otherwise
  * CSS. This consolidates the two slightly-divergent {@code toBy} implementations that previously
  * lived in {@code ElementLocatorResolverV1} and {@code PropertiesFileLocatorReaderV1}.</p>
+ *
+ * @deprecated The By-returning resolve pipeline is deprecated as of I7.3.
+ *     {@link core.resolvers.locator.api.LocatorResolver#resolveDescriptor} is the replacement.
+ *     Retained only by {@code PropertiesFileLocatorReader} legacy bridge; deletes in I9.3.
  */
+@Deprecated(forRemoval = true)
 public final class ByParser {
 
     /** Default prefix table — case-insensitive matching. */

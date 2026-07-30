@@ -7,15 +7,9 @@ import java.util.function.Function;
 /**
  * One entry in the prefix → {@link By} factory table used by {@link ByParser}.
  *
- * <p>Replaces the long {@code if/else} chain that used to appear in both
- * {@code ElementLocatorResolverV1.toBy} and
- * {@code PropertiesFileLocatorReaderV1.toBy}.</p>
- *
- * @param prefix  the lowercase prefix including the trailing {@code "="}
- *                (e.g. {@code "id="}, {@code "partiallinktext="})
- * @param label   human-readable label used in error messages (e.g. {@code "id"}, {@code "partialLinkText"})
- * @param factory function turning the value-after-prefix into a {@link By}
+ * @deprecated Part of the deprecated {@link ByParser} By-returning pipeline. Deletes in I9.3.
  */
+@Deprecated(forRemoval = true)
 public record ByPrefixStrategy(String prefix, String label, Function<String, By> factory) {
 
     /** {@code true} if {@code lowerTrimmed} starts with this strategy's prefix. */
