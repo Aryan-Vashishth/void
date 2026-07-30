@@ -19,3 +19,4 @@ Pre-implementation audits for initiatives not yet merged, plus full-system miles
 | I4.4 -- Kernel Retyping with Bridges | [i4.4-pre-implementation-audit.md](i4.4-pre-implementation-audit.md) | READY |
 | I4.5 -- Driver Subsystem Re-homed as Platform Internals | [i4.5-pre-implementation-audit.md](i4.5-pre-implementation-audit.md) | READY |
 | I5 -- Session Model | [i5-pre-implementation-audit.md](i5-pre-implementation-audit.md) | READY |
+| I7 -- Locator Generalization | [i7-pre-implementation-audit.md](i7-pre-implementation-audit.md) | READY |
