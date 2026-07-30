@@ -49,8 +49,13 @@ public class VoidDemo {
     }
 
     /**
-     * Plain login — no hooks. Shows the session-façade pattern:
+     * Plain login -- no profile. Shows the session-façade pattern:
      * {@code app.navigateTo()}, {@code app.run(flow)}, {@code app.getCurrentUrl()}.
+     *
+     * <p>{@link DemoHooks#WAIT_FOR_LOGIN_SUCCESS} is attached to the click to guard
+     * the redirect assertion. Post-submit navigation waits are a practical necessity
+     * even without a {@code .safely()} profile -- the browser needs time to complete
+     * the form-submission redirect before the URL can be read.</p>
      */
     @Test
     public void loginWithValidCredentials() {
@@ -61,6 +66,7 @@ public class VoidDemo {
                 DemoLoginPage.Credentials.USERNAME.type(VALID_USERNAME),
                 DemoLoginPage.Credentials.PASSWORD.type(VALID_PASSWORD),
                 DemoLoginPage.Button.LOGIN_BUTTON.click()
+                        .after(DemoHooks.WAIT_FOR_LOGIN_SUCCESS)
         );
 
         info.log("Executing login flow...");
