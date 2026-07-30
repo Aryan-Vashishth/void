@@ -143,7 +143,8 @@ public class VOID {
      */
     @Deprecated(since = "0.3", forRemoval = true)
     public static VOID start(DriverFactory.Profile profile) {
-        return builder().profile(profile).start();
+        return builder().profile(
+                profile != null ? SessionProfile.of(profile.name()) : null).start();
     }
 
     // ===========================

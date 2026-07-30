@@ -486,10 +486,9 @@ public class KernelBoundaryRulesTest {
     //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
     //       closes 4.2).
     //   core.driver.DriverFactory
-    //       VOIDBuilder.profile(DriverFactory.Profile). Tracked in the ADR-021
-    //       addendum / core-driver-package-selenium-coupling backlog finding,
-    //       absorbed into I6.4; the DriverFactory.Profile API-surface decision
-    //       gates that phase, not this one.
+    //       VOIDBuilder.profile(DriverFactory.Profile) @Deprecated bridge (I6.4 F4
+    //       resolved: SessionProfile introduced in core.runtime; bridge closes I9.3).
+    //       VOID.start(DriverFactory.Profile) @Deprecated bridge (closes I9.3).
     //   core.utils.ConfigLoader, core.utils.ConfigPaths
     //       Config-driven default profile selection (ActionProfiles) and
     //       bootstrap config paths (FrameworkBootstrap). Narrow, non-domain

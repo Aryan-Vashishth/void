@@ -60,8 +60,16 @@ public class VOIDBuilderTest {
     @Test
     public void profile_returnsSelf_forFluentChaining() {
         VOIDBuilder builder = VOID.builder();
-        assertSame(builder.profile(DriverFactory.Profile.DEFAULT), builder,
+        assertSame(builder.profile(SessionProfile.DEFAULT), builder,
                 "profile() must return the same builder instance");
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void profileDeprecated_delegatesToSessionProfile() throws Exception {
+        VOIDBuilder builder = VOID.builder();
+        builder.profile(DriverFactory.Profile.CI);
+        assertEquals(profile(builder), SessionProfile.CI);
     }
 
     // -------------------------------------------------------------------------
@@ -103,8 +111,8 @@ public class VOIDBuilderTest {
     @Test
     public void profile_setsProfileField() throws Exception {
         VOIDBuilder builder = VOID.builder();
-        builder.profile(DriverFactory.Profile.DEFAULT);
-        assertEquals(profile(builder), DriverFactory.Profile.DEFAULT);
+        builder.profile(SessionProfile.DEFAULT);
+        assertEquals(profile(builder), SessionProfile.DEFAULT);
     }
 
     // -------------------------------------------------------------------------
@@ -183,10 +191,10 @@ public class VOIDBuilderTest {
         return (String) f.get(builder);
     }
 
-    private static DriverFactory.Profile profile(VOIDBuilder builder) throws Exception {
+    private static SessionProfile profile(VOIDBuilder builder) throws Exception {
         Field f = VOIDBuilder.class.getDeclaredField("profile");
         f.setAccessible(true);
-        return (DriverFactory.Profile) f.get(builder);
+        return (SessionProfile) f.get(builder);
     }
 
     private static Properties resolvedConfig(VOIDBuilder builder) throws Exception {

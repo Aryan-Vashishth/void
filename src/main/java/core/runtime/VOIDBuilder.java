@@ -22,26 +22,26 @@ import java.util.Properties;
  * <pre>
  *   // Domain and engine resolved from config / ENV / System property
  *   VOID session = VOID.builder()
- *           .profile(DriverFactory.Profile.DEFAULT)
+ *           .profile(SessionProfile.DEFAULT)
  *           .start();
  *
  *   // Explicit domain and engine override
  *   VOID session = VOID.builder()
  *           .domain("web")
  *           .engine(SeleniumEngine.ID)
- *           .profile(DriverFactory.Profile.CHROME)
+ *           .profile(SessionProfile.CI)
  *           .start();
  *
  *   // Two independent sessions
- *   VOID admin    = VOID.builder().profile(DriverFactory.Profile.DEFAULT).start();
- *   VOID customer = VOID.builder().profile(DriverFactory.Profile.DEFAULT).start();
+ *   VOID admin    = VOID.builder().profile(SessionProfile.DEFAULT).start();
+ *   VOID customer = VOID.builder().profile(SessionProfile.DEFAULT).start();
  * </pre>
  */
 public final class VOIDBuilder {
 
     private String domainName;
     private String engineName;
-    private DriverFactory.Profile profile;
+    private SessionProfile profile;
     private boolean started = false;
 
     /** Package-private -- callers use {@link VOID#builder()}. */
@@ -77,14 +77,27 @@ public final class VOIDBuilder {
     }
 
     /**
-     * Sets the driver configuration profile for this session.
+     * Sets the session configuration profile.
      *
-     * @param profile driver profile
+     * <p>The profile name is passed to the domain executor's adapter, which maps it
+     * to its own configuration source (e.g. the Selenium adapter maps {@code "DEFAULT"}
+     * to {@code driver.properties}, {@code "CI"} to {@code driver-ci.properties}).</p>
+     *
+     * @param sessionProfile session profile
      * @return this builder
      */
-    public VOIDBuilder profile(DriverFactory.Profile profile) {
-        this.profile = profile;
+    public VOIDBuilder profile(SessionProfile sessionProfile) {
+        this.profile = sessionProfile;
         return this;
+    }
+
+    /**
+     * @deprecated since 0.9 -- use {@link #profile(SessionProfile)} instead.
+     *             Will be removed in 1.0.
+     */
+    @Deprecated(since = "0.9", forRemoval = true)
+    public VOIDBuilder profile(DriverFactory.Profile driverProfile) {
+        return profile(driverProfile != null ? SessionProfile.of(driverProfile.name()) : null);
     }
 
     /**
@@ -112,7 +125,7 @@ public final class VOIDBuilder {
 
         Properties bootstrapSettings = new Properties();
         bootstrapSettings.setProperty("profile",
-                (profile != null ? profile : DriverFactory.Profile.DEFAULT).name());
+                (profile != null ? profile : SessionProfile.DEFAULT).name());
         Executor executor = DomainRegistry.create(resolvedDomain, config,
                 EngineBootstrap.withSettings(bootstrapSettings));
 
