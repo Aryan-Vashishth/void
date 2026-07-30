@@ -4,7 +4,7 @@ import core.bootstrap.FrameworkBootstrap;
 import core.context.SessionContext;
 import core.driver.DriverFactory;
 import core.engine.EngineBootstrap;
-import core.engine.UIEngine;
+import core.engine.Executor;
 import core.engine.UIEngineFactory;
 import core.logging.CustomLogger;
 
@@ -94,14 +94,14 @@ public final class VOIDBuilder {
         Properties bootstrapSettings = new Properties();
         bootstrapSettings.setProperty("profile",
                 (profile != null ? profile : DriverFactory.Profile.DEFAULT).name());
-        UIEngine engine = UIEngineFactory.create(config,
+        Executor executor = UIEngineFactory.create(config,
                 EngineBootstrap.withSettings(bootstrapSettings));
 
-        SessionContext ctx = new SessionContext(config, engine);
+        SessionContext ctx = new SessionContext(config, executor);
 
-        CustomLogger.info.log("VOID session started -- engine="
-                + engine.getEngineName() + ", profile=" + profile);
-        return new VOID(ctx, engine);
+        CustomLogger.info.log("VOID session started -- sessionId=" + ctx.sessionId()
+                + ", engine=" + ctx.getEngineName() + ", profile=" + profile);
+        return new VOID(ctx);
     }
 
     private Properties resolvedConfig() {

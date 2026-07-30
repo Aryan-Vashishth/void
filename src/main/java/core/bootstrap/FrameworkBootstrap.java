@@ -11,15 +11,20 @@ import java.util.Properties;
  *
  * <p>Performs bootstrap tasks that must happen exactly once per JVM:</p>
  * <ol>
- *   <li>Verifies {@code driver.properties} is on the classpath (fail-fast)</li>
  *   <li>Loads the utils/test config from the classpath</li>
  * </ol>
+ *
+ * <p>This class is domain-neutral: it does not validate web/driver configuration.
+ * Web-domain config (e.g. {@code driver.properties}) is validated by
+ * {@code SeleniumEngine.initialize()} at web session creation time, which preserves
+ * fail-fast semantics for the web path without gating non-web domains at framework
+ * startup.</p>
  *
  * <p>This class is intentionally free of driver logic, test logic, or any
  * mutable global state beyond the {@code initialized} guard. All resolved
  * configuration is returned to the caller via {@link #getUtilsConfig()}.</p>
  *
- * <p>Safe to call {@link #init()} multiple times — only the first invocation
+ * <p>Safe to call {@link #init()} multiple times -- only the first invocation
  * performs work.</p>
  */
 public final class FrameworkBootstrap {
@@ -32,26 +37,14 @@ public final class FrameworkBootstrap {
     private FrameworkBootstrap() {}
 
     /**
-     * Bootstrap the framework. Idempotent — only the first call performs work.
-     *
-     * @throws IllegalStateException if {@code driver.properties} is missing
+     * Bootstrap the framework. Idempotent -- only the first call performs work.
      */
     public static synchronized void init() {
         if (initialized) return;
 
         CustomLogger.debug.log("FrameworkBootstrap: starting...");
 
-        // 1. Verify driver.properties is on the classpath (existence check only — actual
-        //    loading happens later in DriverFactory.fromProfile via ConfigLoader.Layered)
-        if (Thread.currentThread().getContextClassLoader().getResource(ConfigPaths.DRIVER_DEFAULT) == null) {
-            throw new IllegalStateException(
-                    "FrameworkBootstrap failed: driver.properties not found on classpath at '"
-                            + ConfigPaths.DRIVER_DEFAULT + "'. "
-                            + "Ensure the file exists at src/main/resources/core/driver/config/driver.properties");
-        }
-        CustomLogger.debug.log("FrameworkBootstrap: driver.properties verified on classpath.");
-
-        // 2. Load utils/test config
+        // Load utils/test config
         Properties loaded = ConfigLoader.loadFromClasspath(ConfigPaths.UTILS_TEST);
         if (!loaded.isEmpty()) {
             utilsConfig = loaded;

@@ -57,14 +57,14 @@ public final class UIEngineFactory {
     }
 
     /**
-     * Creates and initializes a UIEngine based on the given config.
+     * Creates and initializes an Executor based on the given config.
      *
      * @param config    combined configuration properties
      * @param bootstrap engine initialization token (see {@link EngineBootstrap})
-     * @return initialized UIEngine
+     * @return initialized Executor
      * @throws IllegalStateException if the configured engine is not registered
      */
-    public static UIEngine create(Properties config, EngineBootstrap bootstrap) {
+    public static Executor create(Properties config, EngineBootstrap bootstrap) {
         String engineName = resolveEngineName(config);
         info.log("[UIEngineFactory] Creating engine: " + engineName);
 
@@ -74,17 +74,14 @@ public final class UIEngineFactory {
                     "Unknown engine: '" + engineName + "'. Registered: " + REGISTRY.keySet());
         }
 
-        // Bridge cast: EngineRegistrar.create() returns Executor (neutral contract);
-        // UIEngineFactory.create() still returns UIEngine until I4.4 retypes all callers.
-        // Every registrar in I4.3 produces a UIEngine; the cast is safe for this release.
-        UIEngine engine = (UIEngine) registrar.create(bootstrap);
+        Executor executor = registrar.create(bootstrap);
 
         EngineConfig engineConfig = new EngineConfig(config);
-        engine.initialize(engineConfig);
+        executor.initialize(engineConfig);
 
         info.log("[UIEngineFactory] Engine '" + engineName + "' initialized. Timeout="
                 + engineConfig.getDefaultTimeout().toSeconds() + "s");
-        return engine;
+        return executor;
     }
 
     /**

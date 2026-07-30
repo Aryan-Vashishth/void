@@ -13,6 +13,18 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.7.0] - 2026-07-29
+
+### Internal
+
+- **Session identity -- runtime-redesign I5.1**: `SessionContext` gains a UUID session ID (`sessionId()`) and updated `toString()`. `VOID` gains `SessionState` enum (`ACTIVE`, `SHUTDOWN`) and `getSessionState()`. Session ID appears in start and shutdown log lines.
+- **Executor retype -- runtime-redesign I5.1**: `SessionContext.engine()` now returns `Executor` (was `UIEngine`). `UIEngineFactory.create()` bridge cast removed; return type is now `Executor`. `VOIDBuilder.start()` no longer holds a `UIEngine` local; `new VOID(ctx)` replaces `new VOID(ctx, engine)`.
+- **Bootstrap de-Seleniumization -- runtime-redesign I5.2**: `FrameworkBootstrap.init()` no longer validates `driver.properties`. Framework bootstrap is domain-neutral. The check relocates to `SeleniumEngine.initialize()` on the primary driver-creation path, preserving fail-fast semantics for web sessions. **Behavior change**: missing `driver.properties` now fails at web session creation rather than at framework init. Same JVM run, later moment, identical guarantee.
+- **Unified execution model -- runtime-redesign I5.3**: `VOID.navigateTo`, `getCurrentUrl`, `getTitle`, and `refresh` now route through `FlowExecutor` rather than calling the engine directly. `VOID.engine` field removed; UIEngine accessed from `context.engine()` at deprecated/escape-hatch call sites. Second execution model eliminated.
+- **Config identity split -- runtime-redesign I5.4**: `configuration-reference.md` restructured with ownership table. `driver.properties` is now explicitly documented as the Web domain's file. `ConfigPaths` constants annotated with domain ownership labels.
+
+---
+
 ## [0.6.0] - 2026-07-29
 
 ### Internal

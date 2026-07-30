@@ -33,25 +33,25 @@ public final class ConfigPaths {
 
     private ConfigPaths() {}
 
-    // ─── Driver ─────────────────────────────────────────────────────────────
-    /** Default driver configuration (browser, timeouts, window, etc.) */
+    // ─── Web domain (owner: core.engine.selenium) ───────────────────────────
+    /** [Web domain] Default driver configuration (browser, timeouts, window, etc.) */
     public static final String DRIVER_DEFAULT = "core/driver/config/driver.properties";
 
-    /** Local development overlay (headless=false, maximize, etc.) */
+    /** [Web domain] Local development overlay (headless=false, maximize, etc.) */
     public static final String DRIVER_LOCAL   = "core/driver/config/driver-local.properties";
 
-    /** CI pipeline overlay (headless=true, etc.) */
+    /** [Web domain] CI pipeline overlay (headless=true, etc.) */
     public static final String DRIVER_CI      = "core/driver/config/driver-ci.properties";
 
-    /** Selenium Grid / remote overlay */
+    /** [Web domain] Selenium Grid / remote overlay */
     public static final String DRIVER_GRID    = "core/driver/config/driver-grid.properties";
 
-    // ─── Utils / Test Data ──────────────────────────────────────────────────
-    /** Paths for JSON logging, test-data, uploads, fallback resources */
+    // ─── Runtime / neutral (owner: core.bootstrap, core.utils) ─────────────
+    /** [Runtime] Paths for JSON logging, test-data, uploads, fallback resources */
     public static final String UTILS_TEST     = "core/utils/config/test.properties";
 
     // ─── Logging (future) ───────────────────────────────────────────────────
-    /** Custom logging configuration (reserved for future use) */
+    /** [Logging] Custom logging configuration (reserved for future use) */
     public static final String LOGGING        = "core/logging/config/logging.properties";
 }
 

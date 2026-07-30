@@ -4,15 +4,41 @@ Complete reference for all VOID configuration files, the `ConfigLoader` layering
 
 ---
 
+## Configuration Ownership
+
+Every configuration file and key in VOID has a declared owner. No neutral (kernel) component
+validates or reads a key that belongs to a domain layer.
+
+| Owner | Config file | ConfigPaths constant | Validated by |
+|---|---|---|---|
+| **Runtime** (neutral) | `test.properties` | `UTILS_TEST` | `FrameworkBootstrap.init()` |
+| **Runtime** (neutral) | *(engine key: `engine`)* | -- | `UIEngineFactory.resolveEngineName()` |
+| **Runtime** (neutral) | `log4j2.xml` | -- | Log4j 2 on first log call |
+| **Web domain** | `driver.properties` | `DRIVER_DEFAULT` | `SeleniumEngine.initialize()` |
+| **Web domain** | `driver-local.properties` | `DRIVER_LOCAL` | `SeleniumEngine.initialize()` overlay |
+| **Web domain** | `driver-ci.properties` | `DRIVER_CI` | `SeleniumEngine.initialize()` overlay |
+| **Web domain** | `driver-grid.properties` | `DRIVER_GRID` | `SeleniumEngine.initialize()` overlay |
+
+### Validation timing
+
+`FrameworkBootstrap.init()` is domain-neutral: it validates only runtime configuration
+(`test.properties`). Web-domain configuration (`driver.properties`) is validated by
+`SeleniumEngine.initialize()` at web session creation time -- before any interaction executes,
+but after a non-web domain can start without web configuration present. This is a deliberate
+design decision (runtime-redesign I5.2 / audit C4).
+
+---
+
 ## Table of Contents
 
-1. [Configuration Layering](#configuration-layering)
-2. [`driver.properties`](#driverproperties)
-3. [`test.properties`](#testproperties)
-4. [Engine Configuration](#engine-configuration)
-5. [Locator Path Configuration](#locator-path-configuration)
-6. [Overriding at Runtime](#overriding-at-runtime)
-7. [`log4j2.xml`](#log4j2xml)
+1. [Configuration Ownership](#configuration-ownership)
+2. [Configuration Layering](#configuration-layering)
+3. [`driver.properties` (Web domain)](#driverproperties-web-domain)
+4. [`test.properties` (Runtime)](#testproperties-runtime)
+5. [Engine Configuration (Runtime)](#engine-configuration-runtime)
+6. [Locator Path Configuration](#locator-path-configuration)
+7. [Overriding at Runtime](#overriding-at-runtime)
+8. [`log4j2.xml` (Runtime / Logging)](#log4j2xml-runtime--logging)
 
 ---
 
@@ -51,11 +77,13 @@ This means you can define production defaults in `src/main/resources/core/driver
 
 ---
 
-## `driver.properties`
+## `driver.properties` (Web domain)
 
-**Location**: `src/main/resources/core/driver/config/driver.properties`  
-**Classpath**: `core/driver/config/driver.properties` (via `ConfigPaths.DRIVER_DEFAULT`)  
-**Purpose**: Configures the Selenium WebDriver instance created by `DriverFactory`.
+**Owner**: Web domain (`core.engine.selenium`)
+**Location**: `src/main/resources/core/driver/config/driver.properties`
+**Classpath**: `core/driver/config/driver.properties` (via `ConfigPaths.DRIVER_DEFAULT`)
+**Purpose**: Configures the Selenium WebDriver instance created by `DriverFactory`. Required only for web sessions; non-web domains do not need this file.
+**Validated by**: `SeleniumEngine.initialize()` at web session creation.
 
 ### Full Key Reference
 
@@ -177,11 +205,13 @@ ConfigPaths.DRIVER_GRID     // "core/driver/config/driver-grid.properties"
 
 ---
 
-## `test.properties`
+## `test.properties` (Runtime)
 
-**Location**: `src/main/resources/core/utils/config/test.properties`  
-**Classpath**: `core/utils/config/test.properties` (via `ConfigPaths.UTILS_TEST`)  
-**Purpose**: Controls file paths and data-layer settings for test execution.
+**Owner**: Runtime (neutral -- `core.bootstrap`, `core.utils`)
+**Location**: `src/main/resources/core/utils/config/test.properties`
+**Classpath**: `core/utils/config/test.properties` (via `ConfigPaths.UTILS_TEST`)
+**Purpose**: Controls file paths and data-layer settings for test execution. Domain-neutral; loaded by `FrameworkBootstrap.init()` before any session is created.
+**Validated by**: `FrameworkBootstrap.init()`.
 
 ### Full Key Reference
 
@@ -205,9 +235,10 @@ locators.template.output.dir=locators/
 
 ---
 
-## Engine Configuration
+## Engine Configuration (Runtime)
 
-**Purpose**: Configures the `UIEngine` abstraction layer — the single execution authority.
+**Owner**: Runtime (neutral -- `core.engine.UIEngineFactory`)
+**Purpose**: Selects and configures the active `Executor` (execution owner). Domain-neutral; the `engine` key is read before any domain-specific configuration.
 
 ### Engine Selection
 
@@ -338,10 +369,11 @@ Properties testProps = ConfigLoader.loadFromClasspath(
 
 ---
 
-## `log4j2.xml`
+## `log4j2.xml` (Runtime / Logging)
 
-**Location**: `src/main/resources/log4j2.xml` (and `src/test/resources/log4j2.xml` for tests)  
-**Purpose**: Configures Apache Log4j 2 — the underlying logging engine.
+**Owner**: Runtime / Logging (`core.logging`)
+**Location**: `src/main/resources/log4j2.xml` (and `src/test/resources/log4j2.xml` for tests)
+**Purpose**: Configures Apache Log4j 2 -- the underlying logging engine.
 
 VOID's `CustomLogger` wraps Log4j 2 but respects its configuration for:
 - Log level thresholds
