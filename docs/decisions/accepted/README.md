@@ -27,3 +27,4 @@ All accepted Architecture Decision Records for VOID.
 | [019](019-selenium-locator-bridge.md) | SeleniumLocatorBridge Isolation | Engine / Interactions |
 | [020](020-core-utils-selenium-decoupling.md) | Core Utils Selenium Decoupling | Engine / Utils |
 | [021](021-runtime-redesign-kernel-boundary.md) | Runtime Redesign -- Kernel Boundary and Domain Neutrality | Architecture / Runtime |
+| [023](023-locator-generalization.md) | Locator Generalization -- Open Strategy Set, Descriptor Ownership, and By-Returning Deprecation | Engine / Resolvers |

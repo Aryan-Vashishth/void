@@ -1,7 +1,7 @@
 # ADR-023 -- Locator Generalization: Open Strategy Set, Descriptor Ownership, and By-Returning Deprecation
 
 **Date:** 2026-07-30
-**Status:** Pending Review (`initiative/locator-generalization`)
+**Status:** Accepted
 
 ---
 
