@@ -355,6 +355,19 @@ public class KernelBoundaryRulesTest {
         rule.check(allClasses);
     }
 
+    @Test(description = "DomainRegistry does not depend on core.engine.selenium (I6.1)")
+    public void domainRegistryIsImplementationFree() {
+        ArchRule rule = noClasses()
+                .that().haveFullyQualifiedName("core.engine.DomainRegistry")
+                .should().dependOnClassesThat().resideInAPackage("core.engine.selenium..")
+                .because(
+                    "DomainRegistry is the neutral domain contract. Domain implementations " +
+                    "register via the DomainRegistrar SPI; the registry must not import or " +
+                    "reference them directly. runtime-redesign I6.1.");
+
+        rule.check(allClasses);
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // Axis: Engine neutrality -- contract package driver-free (I4.2)
     //
@@ -464,6 +477,10 @@ public class KernelBoundaryRulesTest {
     //       LocatorDescriptor in their kernel-side signatures. The UIEngine-typed
     //       bridge overloads from I4.4 are scheduled for deletion in I9.4.
     //       Moved from core.engine to elements.locator in I7.2.
+    //   core.engine.DomainRegistry
+    //       VOIDBuilder's domain-selection wiring (I6.1). DomainRegistry is the
+    //       neutral domain registration contract and is a permanent fixture of the
+    //       session bootstrap path, not a removal target. Introduced in I6.1.
     //   core.engine.EngineBootstrap, core.engine.UIEngineFactory
     //       VOID/VOIDBuilder's engine-selection wiring. Already in the
     //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
@@ -497,6 +514,7 @@ public class KernelBoundaryRulesTest {
             "core.engine.Executor",
             "core.engine.UIEngine",
             "elements.locator.LocatorDescriptor",
+            "core.engine.DomainRegistry",
             "core.engine.EngineBootstrap",
             "core.engine.UIEngineFactory",
             "core.driver.DriverFactory",

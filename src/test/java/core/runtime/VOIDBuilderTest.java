@@ -1,6 +1,7 @@
 package core.runtime;
 
 import core.driver.DriverFactory;
+import core.engine.DomainRegistry;
 import core.engine.UIEngineFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -43,6 +44,13 @@ public class VOIDBuilderTest {
     // -------------------------------------------------------------------------
 
     @Test
+    public void domain_returnsSelf_forFluentChaining() {
+        VOIDBuilder builder = VOID.builder();
+        assertSame(builder.domain("web"), builder,
+                "domain() must return the same builder instance");
+    }
+
+    @Test
     public void engine_returnsSelf_forFluentChaining() {
         VOIDBuilder builder = VOID.builder();
         assertSame(builder.engine("selenium"), builder,
@@ -59,6 +67,22 @@ public class VOIDBuilderTest {
     // -------------------------------------------------------------------------
     // Field assignment
     // -------------------------------------------------------------------------
+
+    @Test
+    public void domain_setsDomainNameField() throws Exception {
+        VOIDBuilder builder = VOID.builder();
+        builder.domain("store");
+        assertEquals(domainName(builder), "store");
+    }
+
+    @Test
+    public void domain_overridesExistingDomainName() throws Exception {
+        VOIDBuilder builder = VOID.builder();
+        builder.domain("web");
+        builder.domain("store");
+        assertEquals(domainName(builder), "store",
+                "second domain() call must overwrite the first");
+    }
 
     @Test
     public void engine_setsEngineNameField() throws Exception {
@@ -86,6 +110,22 @@ public class VOIDBuilderTest {
     // -------------------------------------------------------------------------
     // resolvedConfig() -- private method tested via reflection
     // -------------------------------------------------------------------------
+
+    @Test
+    public void resolvedConfig_injectsDomainNameWhenSet() throws Exception {
+        VOIDBuilder builder = VOID.builder().domain("store");
+        Properties config = resolvedConfig(builder);
+        assertEquals(config.getProperty(DomainRegistry.PROP_DOMAIN), "store",
+                "resolvedConfig() must inject domainName into the Properties copy");
+    }
+
+    @Test
+    public void resolvedConfig_doesNotSetDomainNameWhenDomainNotCalled() throws Exception {
+        VOIDBuilder builder = VOID.builder();
+        Properties config = resolvedConfig(builder);
+        assertNull(config.getProperty(DomainRegistry.PROP_DOMAIN),
+                "resolvedConfig() must not inject domain name when domain() was not called");
+    }
 
     @Test
     public void resolvedConfig_injectsEngineNameWhenSet() throws Exception {
@@ -130,6 +170,12 @@ public class VOIDBuilderTest {
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    private static String domainName(VOIDBuilder builder) throws Exception {
+        Field f = VOIDBuilder.class.getDeclaredField("domainName");
+        f.setAccessible(true);
+        return (String) f.get(builder);
+    }
 
     private static String engineName(VOIDBuilder builder) throws Exception {
         Field f = VOIDBuilder.class.getDeclaredField("engineName");
