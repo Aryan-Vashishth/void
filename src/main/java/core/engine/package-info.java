@@ -9,7 +9,7 @@
  * <ul>
  *   <li>{@link core.engine.UIEngine} — the execution interface</li>
  *   <li>{@link core.engine.LocatorDescriptor} — engine-agnostic locator representation</li>
- *   <li>{@link core.engine.LocatorStrategy} — locator type enum (XPATH, CSS, ID, NAME)</li>
+ *   <li>{@link core.engine.LocatorStrategy} — open locator strategy token (XPATH, CSS, ID, NAME + extensible)</li>
  *   <li>{@link core.engine.EngineConfig} — engine initialization parameters</li>
  * </ul>
  */

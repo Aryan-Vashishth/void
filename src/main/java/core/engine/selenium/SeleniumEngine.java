@@ -16,8 +16,11 @@ import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,6 +41,17 @@ public final class SeleniumEngine implements UIEngine {
 
     /** Engine identifier registered in {@link core.engine.UIEngineFactory}. */
     public static final String ID = "selenium";
+
+    /** Open dispatch table: strategy name → Selenium By factory. Add entries for new strategies. */
+    private static final Map<String, Function<String, By>> BY_FACTORIES;
+    static {
+        Map<String, Function<String, By>> m = new LinkedHashMap<>();
+        m.put(LocatorStrategy.XPATH.name(), By::xpath);
+        m.put(LocatorStrategy.CSS.name(),   By::cssSelector);
+        m.put(LocatorStrategy.ID.name(),    By::id);
+        m.put(LocatorStrategy.NAME.name(),  By::name);
+        BY_FACTORIES = Map.copyOf(m);
+    }
 
     private final DriverFactory.Profile profile;  // null on legacy path
     private WebDriver driver;                      // null until initialize() on primary path
@@ -544,15 +558,13 @@ public final class SeleniumEngine implements UIEngine {
      * @return Selenium By
      */
     public static By toBy(LocatorDescriptor descriptor) {
-        if (descriptor == null || descriptor.value() == null) {
+        if (descriptor == null || descriptor.value() == null)
             throw new IllegalArgumentException("LocatorDescriptor or value cannot be null");
-        }
-        return switch (descriptor.strategy()) {
-            case XPATH -> By.xpath(descriptor.value());
-            case CSS -> By.cssSelector(descriptor.value());
-            case ID -> By.id(descriptor.value());
-            case NAME -> By.name(descriptor.value());
-        };
+        Function<String, By> factory = BY_FACTORIES.get(descriptor.strategy().name());
+        if (factory != null) return factory.apply(descriptor.value());
+        throw new IllegalStateException(
+                "No Selenium By mapping for locator strategy '" + descriptor.strategy().name() + "'. "
+                + "Add a BY_FACTORIES entry in SeleniumEngine for this strategy.");
     }
 
     /**
