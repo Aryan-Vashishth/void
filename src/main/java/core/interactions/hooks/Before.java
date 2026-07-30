@@ -2,8 +2,9 @@ package core.interactions.hooks;
 
 import core.actions.hooks.BeforeActionHandler;
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
 import core.engine.UIEngine;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 
 import java.time.Duration;
 
@@ -50,7 +51,7 @@ public final class Before {
     // ── Loader waits ──────────────────────────────────────────────────────
     public static final BeforeActionHandler WAIT_FOR_ANGULAR_LOADER = (executor, descriptor) -> {
         UIEngine engine = (UIEngine) executor;
-        LocatorDescriptor loader = LocatorDescriptor.of("app-loader", core.engine.LocatorStrategy.CSS);
+        LocatorDescriptor loader = LocatorDescriptor.of("app-loader", LocatorStrategy.CSS);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
         catch (Exception ignored) { /* loader not present — continue */ }
     };
@@ -58,7 +59,7 @@ public final class Before {
     public static final BeforeActionHandler WAIT_FOR_SPIN_SPINNER_LOADER = (executor, descriptor) -> {
         UIEngine engine = (UIEngine) executor;
         LocatorDescriptor loader = LocatorDescriptor.of(
-                "//span[contains(@class, 'spin spinner')]", core.engine.LocatorStrategy.XPATH);
+                "//span[contains(@class, 'spin spinner')]", LocatorStrategy.XPATH);
         try { engine.waitForAbsence(loader, DEFAULT_TIMEOUT); }
         catch (Exception ignored) { /* loader not present — continue */ }
     };

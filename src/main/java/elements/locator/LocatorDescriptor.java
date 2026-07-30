@@ -1,4 +1,4 @@
-package core.engine;
+package elements.locator;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -8,12 +8,12 @@ import java.util.Arrays;
  *
  * <p>Bridges the gap between VOID's locator resolution system (which produces
  * string-based locator values) and the execution engine (which needs a native
- * locator format). Each {@link UIEngine} implementation translates this descriptor
- * into its own locator type internally.</p>
+ * locator format). Each {@link core.engine.UIEngine} implementation translates
+ * this descriptor into its own locator type internally.</p>
  *
- * <p>For scoped (parent→child) element lookups, use {@link #withParent(LocatorDescriptor)}
- * to compose a locator tree. The engine resolves the parent first, then searches
- * within that scope for the child element.</p>
+ * <p>For scoped (parent&rarr;child) element lookups, use
+ * {@link #withParent(LocatorDescriptor)} to compose a locator tree. The engine
+ * resolves the parent first, then searches within that scope for the child element.</p>
  *
  * <p>Example:
  * <pre>
@@ -23,9 +23,10 @@ import java.util.Arrays;
  * </pre>
  *
  * @param value    the resolved locator string (e.g., {@code //button[@id='apply']})
- * @param strategy the locator strategy (XPATH, CSS, ID, NAME)
+ * @param strategy the locator strategy (XPATH, CSS, ID, NAME, or custom)
  * @param args     dynamic substitution args (already applied to value; kept for metadata/logging)
  * @param parent   optional parent descriptor for scoped lookups (null = global scope)
+ * @param label    optional human-readable label for logging (e.g., {@code "LoginPage > USERNAME"})
  */
 public record LocatorDescriptor(
         String value,
@@ -57,7 +58,8 @@ public record LocatorDescriptor(
     }
 
     /**
-     * Returns a new descriptor with a human-readable label (e.g. {@code "Credentials > USERNAME_INPUT"}).
+     * Returns a new descriptor with a human-readable label
+     * (e.g. {@code "Credentials > USERNAME_INPUT"}).
      * Used by the engine to log element identity instead of raw XPath/CSS strings.
      *
      * @param label display label

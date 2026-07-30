@@ -1,7 +1,7 @@
 package core.resolvers.locator.api;
 
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import core.resolvers.locator.parser.ByParser;
 import core.resolvers.locator.source.LocatorSource;
 import core.resolvers.locator.source.LocatorSourceRegistry;

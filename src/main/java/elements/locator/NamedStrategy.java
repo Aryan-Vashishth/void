@@ -1,4 +1,4 @@
-package core.engine;
+package elements.locator;
 
 /**
  * Package-private value type backing {@link LocatorStrategy#of(String)}.

@@ -141,9 +141,19 @@ public class KernelBoundaryRulesTest {
     @Test(description = "LocatorDescriptor has no org.openqa.selenium.By dependency")
     public void locatorDescriptorIsSeleniumFree() {
         ArchRule rule = noClasses()
-                .that().haveFullyQualifiedName("core.engine.LocatorDescriptor")
+                .that().haveFullyQualifiedName("elements.locator.LocatorDescriptor")
                 .should().dependOnClassesThat().resideInAPackage(SELENIUM)
                 .because("LocatorDescriptor must not import Selenium types. ADR-019 + ADR-021.");
+
+        rule.check(allClasses);
+    }
+
+    @Test(description = "core.engine contains no Locator* class after I7.2 move")
+    public void coreEngineHasNoLocatorTypes() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("core.engine")
+                .should().haveSimpleNameStartingWith("Locator")
+                .because("LocatorDescriptor and LocatorStrategy moved to elements.locator in I7.2. ADR-019.");
 
         rule.check(allClasses);
     }
@@ -394,15 +404,24 @@ public class KernelBoundaryRulesTest {
 
     @Test(description = "no kernel package depends on elements.* (cycle break, D1 unrecurrable)")
     public void kernelPackagesDoNotDependOnElements() {
+        // elements.locator is excepted: LocatorDescriptor is the kernel's neutral locator
+        // value type (formerly core.engine.LocatorDescriptor, moved I7.2). Kernel bridge
+        // methods (Action.resolve, ActionHandler.execute, HookChainAction) still reference
+        // it; those bridges close in I9.4.
         ArchRule rule = noClasses()
                 .that().resideInAnyPackage(
                         "core.actions", "core.actions.trace..", "core.actions.hooks..",
                         "core.flow..", "core.executor..", "core.context..", "core.runtime..")
-                .should().dependOnClassesThat().resideInAPackage("elements..")
+                .should().dependOnClassesThat(
+                    JavaClass.Predicates.resideInAPackage("elements..")
+                        .and(DescribedPredicate.describe(
+                            "is not elements.locator (kernel bridge, closes I9.4)",
+                            jc -> !jc.getPackageName().startsWith("elements.locator"))))
                 .because(
                     "The kernel/UI-domain dependency direction is one-way: elements.api and " +
                     "elements.api.actions may depend on the kernel, never the reverse. Audit D1; " +
-                    "runtime-redesign I2.3.");
+                    "runtime-redesign I2.3. Exception: elements.locator -- neutral locator value " +
+                    "types that were formerly in core.engine, moved I7.2, bridges close I9.4.");
 
         rule.check(allClasses);
     }
@@ -440,10 +459,11 @@ public class KernelBoundaryRulesTest {
     //           and VOIDBuilder (start()) -- session-wiring code that is
     //           explicitly out of scope for I4.4. Closes across later phases
     //           (I4.5 and the Migration Ledger, I9.3).
-    //   core.engine.LocatorDescriptor
+    //   elements.locator.LocatorDescriptor
     //       Action.resolve(), ActionHandler.execute(), and HookChainAction carry
     //       LocatorDescriptor in their kernel-side signatures. The UIEngine-typed
     //       bridge overloads from I4.4 are scheduled for deletion in I9.4.
+    //       Moved from core.engine to elements.locator in I7.2.
     //   core.engine.EngineBootstrap, core.engine.UIEngineFactory
     //       VOID/VOIDBuilder's engine-selection wiring. Already in the
     //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
@@ -476,7 +496,7 @@ public class KernelBoundaryRulesTest {
     private static final Set<String> KERNEL_PURITY_TEMPORARY_EXCEPTIONS = Set.of(
             "core.engine.Executor",
             "core.engine.UIEngine",
-            "core.engine.LocatorDescriptor",
+            "elements.locator.LocatorDescriptor",
             "core.engine.EngineBootstrap",
             "core.engine.UIEngineFactory",
             "core.driver.DriverFactory",

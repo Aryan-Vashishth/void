@@ -2,8 +2,8 @@ package core.actions.hooks;
 
 import core.actions.Action;
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import core.engine.UIEngine;
 import elements.api.UIElement;
 import elements.api.actions.ElementActions;

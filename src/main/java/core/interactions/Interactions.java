@@ -1,7 +1,7 @@
 package core.interactions;
 
 import core.engine.UIEngine;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.bridge.selenium.SeleniumLocatorBridge;
 import core.engine.selenium.SeleniumEngine;
 import elements.meta.ElementRole;

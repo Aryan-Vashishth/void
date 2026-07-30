@@ -2,7 +2,7 @@ package core.utils.web;
 
 import elements.api.capability.ReadOnly;
 import core.driver.DriverContext;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.engine.selenium.SeleniumEngine;
 import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;

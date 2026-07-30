@@ -5,7 +5,7 @@ import core.actions.trace.ActionTrace;
 import core.actions.trace.ActionTraceLogger;
 import core.actions.trace.TraceStatus;
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

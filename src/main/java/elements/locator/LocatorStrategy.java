@@ -1,4 +1,4 @@
-package core.engine;
+package elements.locator;
 
 /**
  * Locator strategy token identifying how an element is addressed.
@@ -6,8 +6,9 @@ package core.engine;
  * <p>The set is intentionally open: any domain or engine can define new strategies
  * via {@link #of(String)} without editing framework-owned files.</p>
  *
- * <p>Each {@link UIEngine} implementation translates a {@link LocatorDescriptor}
- * (which includes a strategy) into its native locator representation:</p>
+ * <p>Each {@link core.engine.UIEngine} implementation translates a
+ * {@link LocatorDescriptor} (which includes a strategy) into its native locator
+ * representation:</p>
  * <ul>
  *   <li>Selenium: {@code By.xpath(...)}, {@code By.cssSelector(...)}, etc.</li>
  *   <li>Playwright: {@code page.locator("xpath=...")}, {@code page.locator("#id")}, etc.</li>

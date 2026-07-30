@@ -1,8 +1,8 @@
 package tests.demo.hooks;
 
 import core.actions.hooks.AfterActionHandler;
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import core.engine.UIEngine;
 import tests.demo.pages.DemoLoginPage;
 import elements.meta.ElementRole;

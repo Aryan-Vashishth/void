@@ -1,7 +1,7 @@
 package core.bridge.selenium;
 
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import core.logging.CustomLogger;
 import org.openqa.selenium.By;
 

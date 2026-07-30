@@ -2,6 +2,7 @@ package core.interactions;
 
 import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
+import elements.locator.LocatorDescriptor;
 
 import core.driver.DriverContext;
 import elements.api.UIElement;
@@ -200,37 +201,37 @@ public final class Via {
     // ─────────────────────────────────────────────────────────────────────
 
     /**
-     * Resolves the best-available {@link core.engine.LocatorDescriptor} for any {@link UIElement}.
+     * Resolves the best-available {@link LocatorDescriptor} for any {@link UIElement}.
      * <p>This is the preferred replacement for {@link #locator(UIElement)} which returns a Selenium {@code By}.</p>
      *
      * @param element any {@link UIElement} enum descriptor
-     * @return resolved {@link core.engine.LocatorDescriptor}
+     * @return resolved {@link LocatorDescriptor}
      */
-    public static core.engine.LocatorDescriptor descriptor(UIElement element) {
+    public static LocatorDescriptor descriptor(UIElement element) {
         return LocatorResolvers.strict().resolveDescriptor(element);
     }
 
     /**
-     * Resolves a {@link core.engine.LocatorDescriptor} for a specific {@link ElementRole}.
+     * Resolves a {@link LocatorDescriptor} for a specific {@link ElementRole}.
      *
      * @param element      any {@link UIElement} enum descriptor
      * @param role         the specific role to resolve
      * @param overrideArgs optional arguments to override the enum's own args
-     * @return resolved {@link core.engine.LocatorDescriptor}
+     * @return resolved {@link LocatorDescriptor}
      */
-    public static core.engine.LocatorDescriptor descriptor(UIElement element, ElementRole role, Object... overrideArgs) {
+    public static LocatorDescriptor descriptor(UIElement element, ElementRole role, Object... overrideArgs) {
         return LocatorResolvers.strict().resolveDescriptor(element, role, overrideArgs);
     }
 
     /**
-     * Resolves a {@link core.engine.LocatorDescriptor} from an explicit file name + key + args.
+     * Resolves a {@link LocatorDescriptor} from an explicit file name + key + args.
      *
      * @param fileName properties or JSON file
      * @param key      locator key
      * @param args     optional format arguments
-     * @return resolved {@link core.engine.LocatorDescriptor}
+     * @return resolved {@link LocatorDescriptor}
      */
-    public static core.engine.LocatorDescriptor descriptor(String fileName, String key, Object... args) {
+    public static LocatorDescriptor descriptor(String fileName, String key, Object... args) {
         return LocatorResolvers.strict().resolveDescriptor(fileName, key, args);
     }
 

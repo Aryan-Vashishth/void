@@ -1,6 +1,7 @@
 package core.engine;
 
 import elements.api.UIElement;
+import elements.locator.LocatorDescriptor;
 import elements.meta.ElementRole;
 import java.time.Duration;
 

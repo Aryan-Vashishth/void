@@ -1,8 +1,8 @@
 package core.actions;
 
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import core.engine.UIEngine;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
