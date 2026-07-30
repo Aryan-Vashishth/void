@@ -7,7 +7,7 @@ import core.actions.ActionProfiles;
 import core.actions.Profiles;
 import core.annotations.Beta;
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.engine.UIEngine;
 import elements.api.UIElement;
 import elements.meta.ElementRole;

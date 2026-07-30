@@ -5,7 +5,7 @@ import core.actions.hooks.AfterActionHandler;
 import core.actions.hooks.BeforeActionHandler;
 import core.annotations.Beta;
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.engine.UIEngine;
 
 import javax.annotation.Nullable;

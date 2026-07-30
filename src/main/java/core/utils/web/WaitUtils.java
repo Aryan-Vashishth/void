@@ -1,6 +1,8 @@
 package core.utils.web;
 
+import core.engine.selenium.SeleniumEngine;
 import core.resolvers.locator.api.LocatorResolvers;
+import elements.locator.LocatorDescriptor;
 
 import elements.api.capability.ReadOnly;
 import javax.annotation.Nullable;
@@ -158,7 +160,8 @@ public class WaitUtils {
      */
     @Deprecated(forRemoval = true)
     public static void waitForElementToDisappear(ReadOnly element) {
-        By locator = LocatorResolvers.strict().resolve(element);
+        LocatorDescriptor d = LocatorResolvers.strict().resolveDescriptor(element);
+        By locator = SeleniumEngine.toBy(d);
         waitForElementToDisappear(locator);
     }
 

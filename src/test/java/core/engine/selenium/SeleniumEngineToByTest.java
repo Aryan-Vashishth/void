@@ -1,7 +1,7 @@
 package core.engine.selenium;
 
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
 
@@ -89,6 +89,32 @@ public class SeleniumEngineToByTest {
                 "toBy must resolve from value, not label");
         assertFalse(by.toString().contains("SomePage"),
                 "label must not appear in the By output");
+    }
+
+    // ── Open strategy set ────────────────────────────────────────────────────
+
+    @Test
+    public void toBy_customStrategy_throwsWithHelpfulMessage() {
+        LocatorStrategy accessibility = LocatorStrategy.of("ACCESSIBILITY_ID");
+        LocatorDescriptor d = LocatorDescriptor.of("com.example.button", accessibility);
+
+        IllegalStateException ex = expectThrows(IllegalStateException.class,
+                () -> SeleniumEngine.toBy(d));
+
+        assertTrue(ex.getMessage().contains("ACCESSIBILITY_ID"),
+                "Error message must name the unsupported strategy: " + ex.getMessage());
+        assertTrue(ex.getMessage().contains("BY_FACTORIES"),
+                "Error message must point to the registration site: " + ex.getMessage());
+    }
+
+    @Test
+    public void toBy_customStrategyEqualsByName_treatedSameAsConstant() {
+        LocatorDescriptor withConstant = LocatorDescriptor.of("//a", LocatorStrategy.XPATH);
+        LocatorDescriptor withOf       = LocatorDescriptor.of("//a", LocatorStrategy.of("XPATH"));
+
+        assertEquals(SeleniumEngine.toBy(withConstant).toString(),
+                     SeleniumEngine.toBy(withOf).toString(),
+                "Two XPATH strategies with the same name must map to the same By");
     }
 
     // ── Null guards ───────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@ package elements.api.actions;
 import core.actions.ActionCapability;
 
 import core.annotations.Beta;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.engine.UIEngine;
 import elements.api.capability.Selectable;
 import elements.meta.ElementRole;

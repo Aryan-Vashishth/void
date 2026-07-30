@@ -290,7 +290,7 @@ package tests.your.hooks;
 
 import core.actions.hooks.AfterActionHandler;
 import core.actions.hooks.BeforeActionHandler;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import your.pages.SomePage;
 import elements.meta.ElementRole;
 import java.time.Duration;

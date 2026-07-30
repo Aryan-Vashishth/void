@@ -1,7 +1,7 @@
 package core.actions.hooks;
 
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.engine.UIEngine;
 
 import javax.annotation.Nullable;

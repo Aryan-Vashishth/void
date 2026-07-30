@@ -13,6 +13,36 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.8.0] - 2026-07-30
+
+### Internal
+
+- **Open locator strategy set -- runtime-redesign I7.1**: `LocatorStrategy` changed from a
+  closed enum to an open interface backed by a `NamedStrategy` record. The four constants
+  (XPATH, CSS, ID, NAME) are preserved as `static final` fields; all existing call sites
+  compile unchanged. `SeleniumEngine.toBy()` switch replaced with an open `BY_FACTORIES`
+  dispatch table -- unknown strategies throw `IllegalStateException` with a message pointing
+  to the registration site. Pattern mirrors `ActionCapability` from I3.
+
+- **Locator descriptor ownership -- runtime-redesign I7.2**: `LocatorDescriptor`,
+  `LocatorStrategy`, and `NamedStrategy` moved from `core.engine` to `elements.locator`,
+  acknowledging their web-domain nature. All import sites updated (51 files). New
+  `elements.locator` is an intermediate home; final relocation to the canonical web-domain
+  package is deferred to I6.4.
+
+  **Migration:** update all `import core.engine.LocatorDescriptor` to
+  `import elements.locator.LocatorDescriptor` and `import core.engine.LocatorStrategy` to
+  `import elements.locator.LocatorStrategy`.
+
+- **By-returning resolution pipeline deprecated -- runtime-redesign I7.3**: The three
+  non-deprecated production call sites (`WaitUtils`, `KeyValuePairHandler`, `Upload`) that
+  called `LocatorResolver.resolve() -> By` are migrated to `resolveDescriptor()` +
+  `SeleniumEngine.toBy()`. The five `LocatorResolver.resolve()` and `resolveBest()` methods
+  are now `@Deprecated(forRemoval = true)`; `ByParser` and `ByPrefixStrategy` are likewise
+  deprecated. Full deletion is deferred to I9.3 alongside `Via.locator()` and `Interactions`.
+
+---
+
 ## [0.7.0] - 2026-07-29
 
 ### Internal
@@ -716,7 +746,13 @@ After bumping to `2.0-SNAPSHOT`:
 
 ---
 
-[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.4.1...v0.5.0
+[0.4.1]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.1.0...v0.2.0

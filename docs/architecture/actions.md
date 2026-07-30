@@ -315,7 +315,7 @@ Teams building on VOID should define their own reusable hook libraries following
 ```java
 package tests.demo.hooks;
 
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.interactions.hooks.AfterActionHandler;
 import tests.demo.pages.DemoLoginPage;
 import elements.meta.ElementRole;

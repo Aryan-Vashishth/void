@@ -2,8 +2,8 @@ package core.actions;
 
 import core.actions.hooks.ActionHandler;
 import core.engine.Executor;
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import core.engine.UIEngine;
 import core.executor.FlowExecutor;
 import core.flow.Flow;

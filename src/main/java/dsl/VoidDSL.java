@@ -1,6 +1,6 @@
 package dsl;
 
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import core.resolvers.locator.api.LocatorRequest;
 import core.resolvers.locator.api.LocatorResolvers;
 

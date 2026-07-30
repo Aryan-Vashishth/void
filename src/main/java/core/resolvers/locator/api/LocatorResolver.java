@@ -1,7 +1,7 @@
 package core.resolvers.locator.api;
 
-import core.engine.LocatorDescriptor;
-import core.engine.LocatorStrategy;
+import elements.locator.LocatorDescriptor;
+import elements.locator.LocatorStrategy;
 import core.resolvers.locator.parser.ByParser;
 import core.resolvers.locator.source.LocatorSource;
 import core.resolvers.locator.source.LocatorSourceRegistry;
@@ -76,7 +76,13 @@ public final class LocatorResolver {
     // Full pipeline
     // ---------------------------------------------------------------------
 
-    /** Full pipeline: raw lookup → template formatting → {@link By} parsing. */
+    /**
+     * Full pipeline: raw lookup → template formatting → {@link By} parsing.
+     *
+     * @deprecated Use {@link #resolveDescriptor(LocatorRequest)} instead.
+     *     Via.locator() and Interactions remain callers; deletion tracked in I9.3.
+     */
+    @Deprecated(forRemoval = true)
     public By resolve(LocatorRequest request) {
         String template = rawTemplate(request);
 
@@ -104,7 +110,8 @@ public final class LocatorResolver {
         return by;
     }
 
-    /** Convenience: build a request and resolve. */
+    /** @deprecated Use {@link #resolveDescriptor(String, String, Object...)} instead. I9.3. */
+    @Deprecated(forRemoval = true)
     public By resolve(String fileName, String key, Object... args) {
         return resolve(LocatorRequest.of(fileName, key, args));
     }
@@ -214,12 +221,14 @@ public final class LocatorResolver {
     // UIElement-based resolution
     // ---------------------------------------------------------------------
 
-    /** Resolve the primary locator for an {@link UIElement}. */
+    /** @deprecated Use {@link #resolveDescriptor(UIElement)} instead. I9.3. */
+    @Deprecated(forRemoval = true)
     public By resolve(UIElement e) {
         return resolveBest(e);
     }
 
-    /** Resolve a specific role for an {@link UIElement}; throws if the role is not declared. */
+    /** @deprecated Use {@link #resolveDescriptor(UIElement, ElementRole, Object...)} instead. I9.3. */
+    @Deprecated(forRemoval = true)
     public By resolve(UIElement e, ElementRole role, Object... overrideArgs) {
         Map<ElementRole, String> roles = safeRoles(e.getAllLocatorRoles());
         String key = roles.get(role);
@@ -231,8 +240,9 @@ public final class LocatorResolver {
     }
 
     /**
-     * Resolve the best available locator: PRIMARY → SECONDARY → first non-blank role value.
+     * @deprecated Use {@link #resolveDescriptorBest(UIElement, Object...)} instead. I9.3.
      */
+    @Deprecated(forRemoval = true)
     public By resolveBest(UIElement e, Object... overrideArgs) {
         String file = locatorContext.resolveFileName(e);
         Object[] args = e.effectiveArgs(overrideArgs);

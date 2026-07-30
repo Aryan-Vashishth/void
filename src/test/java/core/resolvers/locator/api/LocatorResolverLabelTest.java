@@ -1,6 +1,6 @@
 package core.resolvers.locator.api;
 
-import core.engine.LocatorDescriptor;
+import elements.locator.LocatorDescriptor;
 import elements.api.UIElement;
 import elements.api.capability.Clickable;
 import elements.meta.ElementRole;
