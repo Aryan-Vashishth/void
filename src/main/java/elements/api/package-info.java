@@ -7,13 +7,19 @@
  * {@code Selectable}, {@code Table}, etc.) extend it to model specific
  * element types and emit deferred {@link core.actions.Action} objects.</p>
  *
- * <p>Elements NEVER execute — they emit intent only. Execution is handled
- * by {@link core.engine.UIEngine} at runtime.</p>
+ * <p>Elements NEVER execute -- they emit intent only. Execution is handled
+ * by the web domain's execution contract at runtime.</p>
  *
  * <h3>Execution path</h3>
  * <pre>
- *   UIElement → Action (intent) → Flow → FlowExecutor → UIEngine (execution)
+ *   UIElement -&gt; Action (intent) -&gt; Flow -&gt; FlowExecutor -&gt; UIEngine (execution)
  * </pre>
+ *
+ * <h3>Domain ownership (ADR-021 addendum, runtime-redesign I6.2)</h3>
+ * <p>All types in this package are <strong>Web-domain vocabulary</strong> (logical
+ * ownership layer). They define what the Web domain's elements ARE, not how
+ * they are executed. Physical relocation to {@code domain.automation.web.vocabulary.element}
+ * is gated on the I6.4 Class Migration Matrix execution. ADR-021 addendum.</p>
  */
 package elements.api;
 

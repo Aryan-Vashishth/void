@@ -40,5 +40,16 @@
  * @see core.driver.DriverContext
  * @see core.driver.DriverManager
  * @see core.driver.Waiter
+ *
+ * <h3>Domain ownership (ADR-021 addendum, runtime-redesign I6.2)</h3>
+ * <p>All types in this package are <strong>Web-domain implementation</strong>
+ * (Selenium driver infrastructure). Physical relocation to
+ * {@code domain.automation.web.selenium.driver} is gated on the I6.4 Class
+ * Migration Matrix execution, pending the {@code DriverFactory.Profile} API-surface
+ * decision (F4 hard gate). Types are also renamed on relocation:
+ * {@code DriverFactory} -&gt; {@code SeleniumDriverFactory},
+ * {@code DriverContext} -&gt; {@code SeleniumDriverContext},
+ * {@code DriverManager} -&gt; {@code SeleniumDriverManager}.
+ * ADR-021 addendum, backlog finding core-driver-package-selenium-coupling.</p>
  */
 package core.driver;

@@ -13,7 +13,12 @@
  * {@code core.actions} keeps only the domain-neutral kernel contracts (Action, Flow,
  * ActionProfile, ActionCapability, HookChainAction).</p>
  *
- * <p>Elements NEVER execute — they emit intent only. Execution is handled by
- * {@link core.engine.UIEngine} at runtime.</p>
+ * <p>Elements NEVER execute -- they emit intent only. Execution is handled by
+ * the web domain's execution contract at runtime.</p>
+ *
+ * <h3>Domain ownership (ADR-021 addendum, runtime-redesign I6.2)</h3>
+ * <p>All types in this package are <strong>Web-domain vocabulary</strong> (concrete
+ * interaction layer). Physical relocation to {@code domain.automation.web.vocabulary.actions}
+ * is gated on the I6.4 Class Migration Matrix execution. ADR-021 addendum.</p>
  */
 package elements.api.actions;

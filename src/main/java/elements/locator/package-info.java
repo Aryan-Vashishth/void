@@ -10,7 +10,10 @@
  * in runtime-redesign I7.2 to align ownership with usage: these are DOM-scoped,
  * UI-domain nouns, not neutral engine contract types.</p>
  *
- * <p>The final physical relocation to {@code domain.automation.web.*} is
- * deferred to I6.4 (Class Migration Matrix gate).</p>
+ * <h3>Domain ownership (ADR-021 addendum, runtime-redesign I6.2)</h3>
+ * <p>All types in this package are <strong>Web-domain implementation</strong>
+ * (locator addressing layer). Physical relocation to
+ * {@code domain.automation.web.locator} is gated on the I6.4 Class Migration
+ * Matrix execution. ADR-021 addendum.</p>
  */
 package elements.locator;
