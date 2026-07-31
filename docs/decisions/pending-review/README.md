@@ -8,5 +8,4 @@ that they require a final review pass before being moved to `accepted/`.
 
 | ADR | Title | Area | Branch |
 |---|---|---|---|
-| [022](022-session-model.md) | Session Model: Identity, Neutral Bootstrap, and Unified Execution | Runtime / Session | `initiative/session-model` |
 | [024](024-domain-registration.md) | Domain Registration: Contract, Web Assembly, Probe Gate, and Physical Relocation | Architecture / Domain | `initiative/domain-registration` |

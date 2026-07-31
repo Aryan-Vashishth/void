@@ -1,7 +1,7 @@
 # ADR-022 -- Session Model: Identity, Neutral Bootstrap, and Unified Execution
 
 **Date:** 2026-07-29
-**Status:** Pending Review (`initiative/session-model`)
+**Status:** Accepted (merged to main, v0.7.0)
 
 ---
 

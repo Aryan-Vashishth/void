@@ -13,7 +13,7 @@ The runtime handles execution.
 
 Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
-![VOID](https://img.shields.io/badge/VOID-v0.5.0-5f2d9c)
+![VOID](https://img.shields.io/badge/VOID-v0.9.0-5f2d9c)
 [![CI](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/ci.yml)
 [![VoidDemo](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml/badge.svg)](https://github.com/Aryan-Vashishth/void/actions/workflows/demo.yml)
 ![Java](https://img.shields.io/badge/Java-17+-blue?logo=openjdk)
@@ -554,9 +554,8 @@ Each `VOID` instance is its own isolated session.
 > `TableHandler`, `Interactions(WebDriver)`) read from it directly and will see only the
 > most recently started session's driver. All modern paths (`VOID.builder()` + engine-level
 > calls) route through the `UIEngine` instance and are unaffected. Avoid mixing deprecated
-> utilities with multi-session code. Full thread-safe session isolation is planned under
-> the runtime-redesign initiative (Initiative I5 -- Session Model,
-> [`docs/plan/draft/runtime-redesign/initiative-5-session-model.md`](docs/plan/draft/runtime-redesign/initiative-5-session-model.md)).
+> utilities with multi-session code. Full thread-safe session isolation was delivered in
+> runtime-redesign I5 (Session Model, v0.7.0); full deprecated-utility removal is planned for I9.
 
 ---
 

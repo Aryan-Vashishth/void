@@ -9,7 +9,8 @@ Pending audits for I8 and I9 live in `../../draft/06 - runtime-redesign/audit/`.
 |---|---|---|---|
 | M2 (v0.5.0) | [m2-full-system-audit.md](m2-full-system-audit.md) | PASS | I1 Target Model, I2 Kernel Extraction, I3 Capability Model |
 | M3 (v0.6.0) | [m3-full-system-audit.md](m3-full-system-audit.md) | PASS | I4 Execution Boundary |
-| M4 (v0.7.0) | [i5-full-system-audit.md](i5-full-system-audit.md) | PASS | I5 Session Model |
+| M4 (v0.7.0-v0.8.0+) | [m4-full-system-audit.md](m4-full-system-audit.md) | PASS | I5 Session Model, I6 Domain Registration, I7 Locator Generalization |
+| M4 early-pass (v0.7.0) | [i5-full-system-audit.md](i5-full-system-audit.md) | PASS | I5 Session Model only (written before I6/I7 completed) |
 
 ## Post-Implementation Audits
 
