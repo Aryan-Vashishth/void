@@ -1,5 +1,8 @@
 package core.resolvers.locator.api;
 
+import domain.automation.web.resolve.api.ConventionalLocatorPath;
+import domain.automation.web.resolve.api.LocatorPaths;
+import domain.automation.web.resolve.api.LocatorResolvers;
 import elements.fixture.ConventionalTestPage;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;

@@ -1,5 +1,7 @@
 package core.engine;
 
+import domain.automation.web.engine.UIEngine;
+
 import java.time.Duration;
 import java.util.Properties;
 

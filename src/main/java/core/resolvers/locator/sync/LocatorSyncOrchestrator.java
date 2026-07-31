@@ -1,6 +1,6 @@
 package core.resolvers.locator.sync;
 
-import core.resolvers.locator.api.ConventionalLocatorPath;
+import domain.automation.web.resolve.api.ConventionalLocatorPath;
 import core.resolvers.locator.json.JsonLocatorMigrator;
 import core.resolvers.locator.sync.EmptyKeyValidator.EmptyKeyError;
 import core.resolvers.locator.sync.LocatorTemplateGenerator.LocatorKey;

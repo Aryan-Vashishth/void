@@ -26,8 +26,8 @@ import java.util.Objects;
  *           .start();
  * </pre>
  *
- * <p>Replaces the Selenium-specific {@code DriverFactory.Profile} on the public API
- * (runtime-redesign I6.4, F4 gate resolution). {@code DriverFactory.Profile} remains
+ * <p>Replaces the Selenium-specific {@code SeleniumDriverFactory.Profile} on the public API
+ * (runtime-redesign I6.4, F4 gate resolution). {@code SeleniumDriverFactory.Profile} remains
  * as an internal Selenium adapter concern; the deprecated bridge methods on
  * {@code VOIDBuilder} and {@code VOID} are removed in 1.0.</p>
  */

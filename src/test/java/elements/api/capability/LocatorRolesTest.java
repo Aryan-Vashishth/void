@@ -1,6 +1,6 @@
-package elements.api.capability;
+package domain.automation.web.vocabulary.capability;
 
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.role.ElementRole;
 import org.testng.annotations.Test;
 
 import java.util.Iterator;

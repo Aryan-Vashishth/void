@@ -1,5 +1,6 @@
 package core.resolvers.locator.json;
 
+import domain.automation.web.resolve.json.JsonLocatorReader;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

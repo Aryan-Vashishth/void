@@ -2,12 +2,12 @@ package core.actions.hooks;
 
 import core.actions.Action;
 import core.engine.Executor;
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
-import core.engine.UIEngine;
-import elements.api.UIElement;
-import elements.api.actions.ElementActions;
-import elements.meta.ElementRole;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
+import domain.automation.web.engine.UIEngine;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.actions.ElementActions;
+import domain.automation.web.vocabulary.role.ElementRole;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.InvocationHandler;

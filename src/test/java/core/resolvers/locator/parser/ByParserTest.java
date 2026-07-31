@@ -1,5 +1,6 @@
 package core.resolvers.locator.parser;
 
+import domain.automation.web.resolve.parser.ByParser;
 import org.openqa.selenium.By;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

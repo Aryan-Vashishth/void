@@ -1,7 +1,10 @@
 package elements.api;
 
-import elements.api.capability.Clickable;
-import elements.api.capability.Typeable;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.element.AdvancedLocatorFamily;
+import domain.automation.web.vocabulary.element.LocatorFamily;
+import domain.automation.web.vocabulary.element.UIElement;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;

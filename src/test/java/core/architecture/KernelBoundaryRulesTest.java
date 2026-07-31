@@ -27,7 +27,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
  * phases expand this list as more packages are cleaned.</p>
  *
  * <h3>Axis: Engine neutrality (ADR-018, ADR-019)</h3>
- * <p>{@code core.runtime} must not import {@code WebDriver} or {@code DriverContext}.
+ * <p>{@code core.runtime} must not import {@code WebDriver} or {@code SeleniumDriverContext}.
  * {@code core.engine.LocatorDescriptor} must not import {@code org.openqa.selenium.By}.</p>
  */
 public class KernelBoundaryRulesTest {
@@ -40,7 +40,7 @@ public class KernelBoundaryRulesTest {
     public void importClasses() {
         allClasses = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages("core", "elements", "dsl");
+                .importPackages("core", "domain", "dsl");
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -91,25 +91,26 @@ public class KernelBoundaryRulesTest {
     // Elements API -- Selenium-free
     // ─────────────────────────────────────────────────────────────────────
 
-    @Test(description = "elements.api and elements.meta have no Selenium dependency")
+    @Test(description = "domain.automation.web.vocabulary has no Selenium dependency")
     public void elementsApiIsSeleniumFree() {
         ArchRule rule = noClasses()
-                .that().resideInAPackage("elements..")
+                .that().resideInAPackage("domain.automation.web.vocabulary..")
                 .should().dependOnClassesThat().resideInAPackage(SELENIUM)
                 .because(
-                    "elements.api defines capability interfaces; elements.meta defines " +
-                    "structural utilities. Both are domain-neutral vocabulary. ADR-021.");
+                    "vocabulary.* defines capability interfaces, actions, and structural " +
+                    "utilities. All are domain-neutral vocabulary. ADR-021. " +
+                    "Relocated from elements.* in I6.4.");
 
         rule.check(allClasses);
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // Runtime facade -- no WebDriver/DriverContext fields (ADR-018)
+    // Runtime facade -- no WebDriver/SeleniumDriverContext fields (ADR-018)
     //
     // Note: VOID.getDriver() is a @Deprecated(forRemoval=true) escape hatch
     // whose return type is WebDriver. That method-level dependency is a known
     // tracked bridge, scheduled for deletion in I9.3. This check locks the
-    // stronger form of coupling: a WebDriver or DriverContext stored as a field.
+    // stronger form of coupling: a WebDriver or SeleniumDriverContext stored as a field.
     // ─────────────────────────────────────────────────────────────────────
 
     @Test(description = "core.runtime does not store WebDriver as a field")
@@ -124,12 +125,12 @@ public class KernelBoundaryRulesTest {
         rule.check(allClasses);
     }
 
-    @Test(description = "core.runtime does not store DriverContext as a field")
+    @Test(description = "core.runtime does not store SeleniumDriverContext as a field")
     public void runtimeDoesNotDeclareDriverContextField() {
         ArchRule rule = noFields()
                 .that().areDeclaredInClassesThat().resideInAPackage("core.runtime..")
-                .should().haveRawType("core.driver.DriverContext")
-                .because("VOID must not hold a DriverContext field. ADR-018 + ADR-021.");
+                .should().haveRawType("core.driver.SeleniumDriverContext")
+                .because("VOID must not hold a SeleniumDriverContext field. ADR-018 + ADR-021.");
 
         rule.check(allClasses);
     }
@@ -141,7 +142,7 @@ public class KernelBoundaryRulesTest {
     @Test(description = "LocatorDescriptor has no org.openqa.selenium.By dependency")
     public void locatorDescriptorIsSeleniumFree() {
         ArchRule rule = noClasses()
-                .that().haveFullyQualifiedName("elements.locator.LocatorDescriptor")
+                .that().haveFullyQualifiedName("domain.automation.web.locator.LocatorDescriptor")
                 .should().dependOnClassesThat().resideInAPackage(SELENIUM)
                 .because("LocatorDescriptor must not import Selenium types. ADR-019 + ADR-021.");
 
@@ -171,7 +172,7 @@ public class KernelBoundaryRulesTest {
     // no exceptions.
     // ─────────────────────────────────────────────────────────────────────
 
-    private static final String UI_ELEMENT = "elements.api.UIElement";
+    private static final String UI_ELEMENT = "domain.automation.web.vocabulary.element.UIElement";
 
     @Test(description = "core.actions kernel types depend only on Target, never UIElement")
     public void actionsKernelIsTargetNeutral() {
@@ -190,7 +191,7 @@ public class KernelBoundaryRulesTest {
     public void actionsKernelDoesNotDependOnElementRole() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("core.actions")
-                .should().dependOnClassesThat().haveFullyQualifiedName("elements.meta.ElementRole")
+                .should().dependOnClassesThat().haveFullyQualifiedName("domain.automation.web.vocabulary.role.ElementRole")
                 .because(
                     "ElementRole is UI-domain locator-role vocabulary; the kernel dispatches on " +
                     "Action/Flow only. runtime-redesign I2.2 exit criterion.");
@@ -202,7 +203,7 @@ public class KernelBoundaryRulesTest {
     public void actionsKernelDoesNotDependOnCapabilityInterfaces() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("core.actions")
-                .should().dependOnClassesThat().resideInAPackage("elements.api.capability..")
+                .should().dependOnClassesThat().resideInAPackage("domain.automation.web.vocabulary.capability..")
                 .because(
                     "Capability interfaces are UI-domain vocabulary; the kernel never references " +
                     "them. runtime-redesign I2.2 exit criterion.");
@@ -223,7 +224,7 @@ public class KernelBoundaryRulesTest {
                 .that().resideInAnyPackage(
                     "core.actions..", "core.flow..", "core.executor..",
                     "core.runtime..", "core.bootstrap..", "core.context..")
-                .should().dependOnClassesThat().resideInAPackage("elements.api.capability..")
+                .should().dependOnClassesThat().resideInAPackage("domain.automation.web.vocabulary.capability..")
                 .because(
                     "Kernel capability references must be contract-typed via ActionCapability only. " +
                     "Concrete Web-domain capability interfaces (Clickable, Typeable, Selectable, ...) " +
@@ -234,12 +235,12 @@ public class KernelBoundaryRulesTest {
         rule.check(allClasses);
     }
 
-    @Test(description = "elements.api.actions (the relocated UI action family) has no Selenium dependency")
+    @Test(description = "domain.automation.web.vocabulary.actions has no Selenium dependency")
     public void uiActionsAreSeleniumFree() {
         ArchRule rule = noClasses()
-                .that().resideInAPackage("elements.api.actions..")
+                .that().resideInAPackage("domain.automation.web.vocabulary.actions..")
                 .should().dependOnClassesThat().resideInAPackage(SELENIUM)
-                .because("Concrete UI actions delegate to UIEngine, never Selenium directly. ADR-021, I2.2.");
+                .because("Concrete UI actions delegate to UIEngine, never Selenium directly. ADR-021, I2.2. Relocated from elements.api.actions in I6.4.");
 
         rule.check(allClasses);
     }
@@ -342,15 +343,16 @@ public class KernelBoundaryRulesTest {
     // inside core.engine -- only a new EngineRegistrar + services descriptor entry.
     // ─────────────────────────────────────────────────────────────────────
 
-    @Test(description = "UIEngineFactory does not depend on core.engine.selenium (I4.1)")
+    @Test(description = "UIEngineFactory does not depend on domain.automation.web.selenium (I4.1)")
     public void engineFactoryIsImplementationFree() {
         ArchRule rule = noClasses()
-                .that().haveFullyQualifiedName("core.engine.UIEngineFactory")
-                .should().dependOnClassesThat().resideInAPackage("core.engine.selenium..")
+                .that().haveFullyQualifiedName("domain.automation.web.engine.UIEngineFactory")
+                .should().dependOnClassesThat().resideInAPackage("domain.automation.web.selenium..")
                 .because(
                     "UIEngineFactory is the neutral engine contract. Concrete engine " +
                     "implementations register via the EngineRegistrar SPI; the factory " +
-                    "must not import or reference them directly. runtime-redesign I4.1, P8.");
+                    "must not import or reference them directly. runtime-redesign I4.1, P8. " +
+                    "Relocated from core.engine to domain.automation.web.engine in I6.4.");
 
         rule.check(allClasses);
     }
@@ -371,7 +373,7 @@ public class KernelBoundaryRulesTest {
     // ─────────────────────────────────────────────────────────────────────
     // Axis: Engine neutrality -- contract package driver-free (I4.2)
     //
-    // EngineBootstrap previously carried DriverFactory.Profile, pulling core.driver
+    // EngineBootstrap previously carried SeleniumDriverFactory.Profile, pulling core.driver
     // into the neutral contract package. After I4.2, EngineBootstrap carries only
     // an opaque Properties map; the driver-layer type is resolved inside
     // SeleniumEngineRegistrar (core.engine.selenium), which is allowed to import it.
@@ -392,7 +394,7 @@ public class KernelBoundaryRulesTest {
         ArchRule rule = noClasses()
                 .that().haveFullyQualifiedName("core.engine.Executor")
                 .should().dependOnClassesThat()
-                        .resideInAnyPackage("elements..", "org.openqa.selenium..", "core.driver..")
+                        .resideInAnyPackage("domain.automation.web..", "org.openqa.selenium..")
                 .because(
                     "Executor is the kernel's neutral execution-owner contract (ADR-021 AD2). " +
                     "No UI vocabulary, Selenium, or driver infrastructure may appear on it. " +
@@ -406,35 +408,37 @@ public class KernelBoundaryRulesTest {
     public void engineContractIsDriverFree() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("core.engine")
-                .should().dependOnClassesThat().resideInAPackage("core.driver..")
+                .should().dependOnClassesThat().resideInAPackage("domain.automation.web.selenium.driver..")
                 .because(
                     "The engine contract package must not import driver infrastructure. " +
-                    "core.engine.selenium may import core.driver; the contract package " +
-                    "core.engine may not. runtime-redesign I4.2.");
+                    "domain.automation.web.selenium may import domain.automation.web.selenium.driver; " +
+                    "the contract package core.engine may not. runtime-redesign I4.2.");
 
         rule.check(allClasses);
     }
 
-    @Test(description = "no kernel package depends on elements.* (cycle break, D1 unrecurrable)")
+    @Test(description = "no kernel package depends on domain.automation.web.vocabulary.* (cycle break, D1 unrecurrable)")
     public void kernelPackagesDoNotDependOnElements() {
-        // elements.locator is excepted: LocatorDescriptor is the kernel's neutral locator
-        // value type (formerly core.engine.LocatorDescriptor, moved I7.2). Kernel bridge
-        // methods (Action.resolve, ActionHandler.execute, HookChainAction) still reference
-        // it; those bridges close in I9.4.
+        // domain.automation.web.locator and domain.automation.web.engine are excepted:
+        // LocatorDescriptor is the kernel's neutral locator value type (moved I7.2, relocated I6.4).
+        // UIEngine and UIEngineFactory are the kernel's engine contract types (relocated I6.4).
+        // All three bridges close in I9.4.
         ArchRule rule = noClasses()
                 .that().resideInAnyPackage(
                         "core.actions", "core.actions.trace..", "core.actions.hooks..",
                         "core.flow..", "core.executor..", "core.context..", "core.runtime..")
                 .should().dependOnClassesThat(
-                    JavaClass.Predicates.resideInAPackage("elements..")
+                    JavaClass.Predicates.resideInAPackage("domain.automation.web..")
                         .and(DescribedPredicate.describe(
-                            "is not elements.locator (kernel bridge, closes I9.4)",
-                            jc -> !jc.getPackageName().startsWith("elements.locator"))))
+                            "is not domain.automation.web.locator or domain.automation.web.engine (kernel bridges, close I9.4)",
+                            jc -> !jc.getPackageName().startsWith("domain.automation.web.locator")
+                               && !jc.getPackageName().startsWith("domain.automation.web.engine"))))
                 .because(
-                    "The kernel/UI-domain dependency direction is one-way: elements.api and " +
-                    "elements.api.actions may depend on the kernel, never the reverse. Audit D1; " +
-                    "runtime-redesign I2.3. Exception: elements.locator -- neutral locator value " +
-                    "types that were formerly in core.engine, moved I7.2, bridges close I9.4.");
+                    "The kernel/UI-domain dependency direction is one-way: domain.automation.web.vocabulary.* " +
+                    "and domain.automation.web.selenium.* may depend on the kernel, never the reverse. " +
+                    "Audit D1; runtime-redesign I2.3, I6.4. " +
+                    "Exceptions: domain.automation.web.locator (neutral locator value types) and " +
+                    "domain.automation.web.engine (engine contract types) -- bridges close I9.4.");
 
         rule.check(allClasses);
     }
@@ -485,10 +489,10 @@ public class KernelBoundaryRulesTest {
     //       VOID/VOIDBuilder's engine-selection wiring. Already in the
     //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
     //       closes 4.2).
-    //   core.driver.DriverFactory
-    //       VOIDBuilder.profile(DriverFactory.Profile) @Deprecated bridge (I6.4 F4
+    //   core.driver.SeleniumDriverFactory
+    //       VOIDBuilder.profile(SeleniumDriverFactory.Profile) @Deprecated bridge (I6.4 F4
     //       resolved: SessionProfile introduced in core.runtime; bridge closes I9.3).
-    //       VOID.start(DriverFactory.Profile) @Deprecated bridge (closes I9.3).
+    //       VOID.start(SeleniumDriverFactory.Profile) @Deprecated bridge (closes I9.3).
     //   core.utils.ConfigLoader, core.utils.ConfigPaths
     //       Config-driven default profile selection (ActionProfiles) and
     //       bootstrap config paths (FrameworkBootstrap). Narrow, non-domain
@@ -511,13 +515,11 @@ public class KernelBoundaryRulesTest {
 
     private static final Set<String> KERNEL_PURITY_TEMPORARY_EXCEPTIONS = Set.of(
             "core.engine.Executor",
-            "core.engine.UIEngine",
-            "elements.locator.LocatorDescriptor",
+            "domain.automation.web.engine.UIEngine",
+            "domain.automation.web.locator.LocatorDescriptor",
             "core.engine.DomainRegistry",
             "core.engine.EngineBootstrap",
-            "core.engine.UIEngineFactory",
-            "core.driver.DriverFactory",
-            "core.driver.DriverFactory$Profile",
+            "domain.automation.web.engine.UIEngineFactory",
             "core.utils.ConfigLoader",
             "core.utils.ConfigPaths",
             "core.interactions.hooks.Before",

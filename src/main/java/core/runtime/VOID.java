@@ -3,8 +3,7 @@ package core.runtime;
 import core.actions.Action;
 import core.bootstrap.FrameworkBootstrap;
 import core.context.SessionContext;
-import core.driver.DriverFactory;
-import core.engine.UIEngine;
+import domain.automation.web.engine.UIEngine;
 import core.executor.FlowExecutor;
 import core.flow.Flow;
 import core.logging.CustomLogger;
@@ -93,7 +92,7 @@ public class VOID {
     // ===========================
 
     /**
-     * Protected constructor -- use {@link #builder()} or {@link #start(DriverFactory.Profile)}.
+     * Protected constructor -- use {@link #builder()} or {@link #start()}.
      *
      * @param context the session context for this session
      */
@@ -111,7 +110,7 @@ public class VOID {
      *
      * <pre>
      *   VOID session = VOID.builder()
-     *           .profile(DriverFactory.Profile.DEFAULT)
+     *           .profile(SeleniumDriverFactory.Profile.DEFAULT)
      *           .start();
      * </pre>
      *
@@ -122,7 +121,7 @@ public class VOID {
     }
 
     /**
-     * Starts a new VOID session with the {@link DriverFactory.Profile#DEFAULT DEFAULT} profile.
+     * Starts a new VOID session with the default profile.
      *
      * @return a ready-to-use VOID session
      * @deprecated since 0.3 -- use {@link #builder()} instead.
@@ -131,20 +130,6 @@ public class VOID {
     @Deprecated(since = "0.3", forRemoval = true)
     public static VOID start() {
         return builder().start();
-    }
-
-    /**
-     * Starts a new VOID session with the specified driver profile.
-     *
-     * @param profile the driver configuration profile
-     * @return a ready-to-use VOID session
-     * @deprecated since 0.3 -- use {@link #builder()} instead.
-     *             Will be removed in 1.0.
-     */
-    @Deprecated(since = "0.3", forRemoval = true)
-    public static VOID start(DriverFactory.Profile profile) {
-        return builder().profile(
-                profile != null ? SessionProfile.of(profile.name()) : null).start();
     }
 
     // ===========================
@@ -164,7 +149,7 @@ public class VOID {
                 + ", engine=" + context.getEngineName());
         context.engine().shutdown();
         state = SessionState.SHUTDOWN;
-        // DriverContext cleanup is owned by SeleniumEngine.shutdown()
+        // SeleniumDriverContext cleanup is owned by SeleniumEngine.shutdown()
     }
 
     /** Returns the current lifecycle state of this session. */

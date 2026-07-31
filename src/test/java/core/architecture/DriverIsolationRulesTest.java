@@ -17,7 +17,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * Architecture ratchet enforcing {@code core.driver} isolation as Selenium-executor internals.
  *
  * <h3>Policy (ADR-021, runtime-redesign I4.5)</h3>
- * <p>{@code core.driver} ({@code DriverFactory}, {@code DriverContext}, {@code DriverManager},
+ * <p>{@code core.driver} ({@code SeleniumDriverFactory}, {@code SeleniumDriverContext}, {@code SeleniumDriverManager},
  * {@code Waiter}) is Selenium-specific infrastructure. Only {@code core.engine.selenium.*}
  * may import it in production code. Every other import is a tracked violation
  * with a named closing phase in {@link #DRIVER_ISOLATION_EXCEPTIONS}.</p>
@@ -42,26 +42,22 @@ public class DriverIsolationRulesTest {
     //
     //   core.interactions.Via
     //       Via.webElement(UIElement) and Via.webElement(By) convenience overloads
-    //       call DriverContext.getActiveDriver() (thread-local driver access).
+    //       call SeleniumDriverContext.getActiveDriver() (thread-local driver access).
     //       Via is entirely Selenium-coupled; cleanup deferred to 9.x.
     //   core.utils.web.WaitUtils
-    //       DriverContext.getDriver() called throughout deprecated utility methods.
+    //       SeleniumDriverContext.getDriver() called throughout deprecated utility methods.
     //       Closes 9.2 (Migration Ledger, broader core.utils dismantling).
     //   core.utils.web.DOMUtils
     //       Same pattern. @Deprecated. Closes 9.2.
     //   core.utils.web.TableHandler
     //       Same pattern. @Deprecated. Closes 9.2.
     //   core.utils.web.KeyValuePairHandler
-    //       DriverContext and Waiter used. @Deprecated. Closes 9.2.
+    //       SeleniumDriverContext and Waiter used. @Deprecated. Closes 9.2.
     //   core.utils.web.Upload
     //       Waiter used for upload-completion wait. @Deprecated. Closes 9.2.
-    //   core.runtime.VOID
-    //       DriverFactory.Profile in deprecated VOID.start(Profile) static factory.
-    //       Post-4.2 residue. Closes 9.3 (Migration Ledger).
-    //   core.runtime.VOIDBuilder
-    //       profile(DriverFactory.Profile) -- public fluent builder API. Blocking
-    //       decision: removing or renaming DriverFactory.Profile is a breaking
-    //       external change. Closes when the I6.4 API surface decision is made.
+    // (core.runtime.VOID and core.runtime.VOIDBuilder removed in I6.4: deprecated
+    //  SeleniumDriverFactory.Profile bridge methods deleted when DriverFactory relocated
+    //  to domain.automation.web.selenium.driver and renamed SeleniumDriverFactory.)
     // ═════════════════════════════════════════════════════════════════════
 
     private static final Set<String> DRIVER_ISOLATION_EXCEPTIONS = Set.of(
@@ -70,9 +66,7 @@ public class DriverIsolationRulesTest {
             "core.utils.web.DOMUtils",
             "core.utils.web.TableHandler",
             "core.utils.web.KeyValuePairHandler",
-            "core.utils.web.Upload",
-            "core.runtime.VOID",
-            "core.runtime.VOIDBuilder"
+            "core.utils.web.Upload"
     );
 
     private JavaClasses allClasses;
@@ -81,7 +75,7 @@ public class DriverIsolationRulesTest {
     public void importClasses() {
         allClasses = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages("core", "elements", "dsl", "tests");
+                .importPackages("core", "domain", "dsl", "tests");
     }
 
     @Test(description = "core.driver imported only from the Selenium engine boundary (ADR-021, I4.5)")
@@ -92,13 +86,15 @@ public class DriverIsolationRulesTest {
         );
 
         ArchRule rule = noClasses()
-                .that().resideOutsideOfPackages("core.engine.selenium..", "core.driver..")
+                .that().resideOutsideOfPackages("domain.automation.web.selenium..", "domain.automation.web.selenium.driver..")
                 .and(isNotAnException)
-                .should().dependOnClassesThat().resideInAPackage("core.driver..")
-                .because("core.driver is Selenium-specific infrastructure and must not be treated as "
-                        + "framework-neutral infrastructure. Only core.engine.selenium.* may import it. "
-                        + "ADR-021, runtime-redesign I4.5. Every current exception is named and "
-                        + "cross-referenced to its closing phase in DRIVER_ISOLATION_EXCEPTIONS.");
+                .should().dependOnClassesThat().resideInAPackage("domain.automation.web.selenium.driver..")
+                .because("domain.automation.web.selenium.driver is Selenium-specific infrastructure "
+                        + "and must not be treated as framework-neutral infrastructure. "
+                        + "Only domain.automation.web.selenium.* may import it. "
+                        + "ADR-021, runtime-redesign I4.5 (updated I6.4: driver relocated from core.driver). "
+                        + "Every current exception is named and cross-referenced to its closing phase "
+                        + "in DRIVER_ISOLATION_EXCEPTIONS.");
 
         rule.check(allClasses);
     }

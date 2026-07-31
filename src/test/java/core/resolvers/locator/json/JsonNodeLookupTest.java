@@ -1,4 +1,4 @@
-package core.resolvers.locator.json;
+package domain.automation.web.resolve.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

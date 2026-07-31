@@ -1,6 +1,6 @@
 package core.engine;
 
-import core.engine.selenium.WebDomainRegistrar;
+import domain.automation.web.WebDomainRegistrar;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

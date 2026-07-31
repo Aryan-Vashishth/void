@@ -1,15 +1,15 @@
 package core.interactions;
 
-import core.driver.DriverContext;
+import domain.automation.web.selenium.driver.SeleniumDriverContext;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
-import core.resolvers.locator.api.LocatorResolver;
-import core.resolvers.locator.api.LocatorResolvers;
-import elements.api.capability.Clickable;
-import elements.api.capability.ReadOnly;
+import domain.automation.web.resolve.api.LocatorResolver;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.ReadOnly;
 import core.utils.ResolvableEnum;
-import elements.api.capability.Typeable;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.role.ElementRole;
 import core.actions.hooks.ActionHandler;
 import core.interactions.Interactions;
 import org.openqa.selenium.By;
@@ -208,8 +208,8 @@ public class InteractionsEndToEndTest {
 
     @AfterMethod(alwaysRun = true)
     public void detachDrivers() {
-        try { DriverContext.removePrimary(); }   catch (Exception ignored) {}
-        try { DriverContext.removeSecondary(); } catch (Exception ignored) {}
+        try { SeleniumDriverContext.removePrimary(); }   catch (Exception ignored) {}
+        try { SeleniumDriverContext.removeSecondary(); } catch (Exception ignored) {}
     }
 
     @AfterClass(alwaysRun = true)

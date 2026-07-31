@@ -2,11 +2,11 @@ package core.utils.web;
 
 import core.utils.ConfigLoader;
 import core.utils.io.FileUtils;
-import elements.api.capability.Uploadable;
-import core.driver.Waiter;
-import core.engine.selenium.SeleniumEngine;
-import core.resolvers.locator.api.LocatorResolvers;
-import elements.locator.LocatorDescriptor;
+import domain.automation.web.vocabulary.capability.Uploadable;
+import domain.automation.web.selenium.driver.Waiter;
+import domain.automation.web.selenium.SeleniumEngine;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.locator.LocatorDescriptor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;

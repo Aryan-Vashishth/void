@@ -1,6 +1,7 @@
 package elements.api.capability;
 
-import elements.api.UIElement;
+import domain.automation.web.vocabulary.capability.Listable;
+import domain.automation.web.vocabulary.element.UIElement;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;

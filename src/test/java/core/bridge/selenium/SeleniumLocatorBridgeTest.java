@@ -1,7 +1,7 @@
 package core.bridge.selenium;
 
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
 

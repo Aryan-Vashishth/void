@@ -4,7 +4,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
-import core.engine.UIEngine;
+import domain.automation.web.engine.UIEngine;
 import core.executor.FlowExecutor;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

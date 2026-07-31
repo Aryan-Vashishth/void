@@ -1,6 +1,7 @@
 package elements.api;
 
-import elements.api.capability.MultiSelectable;
+import domain.automation.web.vocabulary.capability.MultiSelectable;
+import domain.automation.web.vocabulary.element.UIElement;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;

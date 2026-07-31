@@ -1,8 +1,8 @@
 package core.elements;
 
-import elements.api.capability.Clickable;
-import elements.api.capability.Selectable;
-import elements.api.capability.Typeable;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.Selectable;
+import domain.automation.web.vocabulary.capability.Typeable;
 
 public class DemoPageElements {
     public enum Login implements Typeable {

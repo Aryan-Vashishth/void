@@ -1,7 +1,12 @@
 package core.resolvers.locator.api;
 
-import elements.api.UIElement;
-import elements.api.capability.Clickable;
+import domain.automation.web.resolve.api.DefaultLocatorContext;
+import domain.automation.web.resolve.api.LocatorContext;
+import domain.automation.web.resolve.api.LocatorRequest;
+import domain.automation.web.resolve.api.LocatorResolver;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.capability.Clickable;
 import elements.fixture.ConventionalTestPage;
 import org.testng.annotations.Test;
 import tests.demo.pages.DemoLoginPage;

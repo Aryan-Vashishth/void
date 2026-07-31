@@ -1,20 +1,20 @@
 package core.actions;
 
-import elements.api.capability.Checkable;
-import elements.api.capability.Clickable;
-import elements.api.capability.EditableTable;
-import elements.api.capability.Hoverable;
-import elements.api.capability.Listable;
-import elements.api.capability.MultiSelectable;
-import elements.api.capability.ReadOnly;
-import elements.api.capability.Searchable;
-import elements.api.capability.SearchField;
-import elements.api.capability.SearchableDropdown;
-import elements.api.capability.Selectable;
-import elements.api.capability.Table;
-import elements.api.capability.Typeable;
-import elements.api.capability.Uploadable;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.capability.Checkable;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.EditableTable;
+import domain.automation.web.vocabulary.capability.Hoverable;
+import domain.automation.web.vocabulary.capability.Listable;
+import domain.automation.web.vocabulary.capability.MultiSelectable;
+import domain.automation.web.vocabulary.capability.ReadOnly;
+import domain.automation.web.vocabulary.capability.Searchable;
+import domain.automation.web.vocabulary.capability.SearchField;
+import domain.automation.web.vocabulary.capability.SearchableDropdown;
+import domain.automation.web.vocabulary.capability.Selectable;
+import domain.automation.web.vocabulary.capability.Table;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.capability.Uploadable;
+import domain.automation.web.vocabulary.role.ElementRole;
 import org.testng.annotations.Test;
 
 import java.util.Map;
@@ -124,7 +124,7 @@ public class ActionCapabilityProviderTest {
 
     @Test
     public void element_capabilityResolvesWithoutRegistry() {
-        elements.api.UIElement element = stubClickable();
+        domain.automation.web.vocabulary.element.UIElement element = stubClickable();
         // capability() is now on UIElement -- no separate provider interface needed.
         assertSame(element.capability(), ActionCapability.CLICKABLE);
     }

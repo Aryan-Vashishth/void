@@ -4,7 +4,8 @@ package core.resolvers.locator.json;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import core.resolvers.locator.api.ConventionalLocatorPath;
+import domain.automation.web.resolve.api.ConventionalLocatorPath;
+import domain.automation.web.resolve.json.JsonTreeBuilder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

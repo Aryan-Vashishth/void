@@ -1,4 +1,4 @@
-package elements.api.actions;
+package domain.automation.web.vocabulary.actions;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
@@ -6,14 +6,15 @@ import core.actions.ActionProfile;
 import core.actions.ActionProfiles;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
-import elements.api.capability.Checkable;
-import elements.api.capability.Clickable;
-import elements.api.capability.Hoverable;
-import elements.api.capability.SearchField;
-import elements.api.capability.SearchableDropdown;
-import elements.api.capability.Selectable;
-import elements.api.capability.Typeable;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.capability.Checkable;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.Hoverable;
+import domain.automation.web.vocabulary.capability.SearchField;
+import domain.automation.web.vocabulary.capability.SearchableDropdown;
+import domain.automation.web.vocabulary.capability.Selectable;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.actions.*;
+import domain.automation.web.vocabulary.role.ElementRole;
 import org.testng.annotations.Test;
 
 import java.util.List;

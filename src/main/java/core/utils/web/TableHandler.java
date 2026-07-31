@@ -1,11 +1,11 @@
 package core.utils.web;
 
-import elements.api.capability.ReadOnly;
-import core.driver.DriverContext;
-import elements.locator.LocatorDescriptor;
-import core.engine.selenium.SeleniumEngine;
-import core.resolvers.locator.api.LocatorRequest;
-import core.resolvers.locator.api.LocatorResolvers;
+import domain.automation.web.vocabulary.capability.ReadOnly;
+import domain.automation.web.selenium.driver.SeleniumDriverContext;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.selenium.SeleniumEngine;
+import domain.automation.web.resolve.api.LocatorRequest;
+import domain.automation.web.resolve.api.LocatorResolvers;
 import org.openqa.selenium.WebDriver;
 import com.beust.jcommander.internal.Nullable;
 import org.openqa.selenium.By;
@@ -49,7 +49,7 @@ public class TableHandler {
     @Deprecated(forRemoval = true)
     public static void insertRowInTable(Map<String, String> fieldNameToValue, TableElementV1 tableElement) {
         try {
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             LocatorDescriptor headersDescriptor = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
             By headersBy = SeleniumEngine.toBy(headersDescriptor);
             List<WebElement> headers = driver.findElements(headersBy);
@@ -81,7 +81,7 @@ public class TableHandler {
     @Deprecated(forRemoval = true)
     public static List<String> getColumnHeaders(TableElementV1 tableElement) {
         try {
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             LocatorDescriptor headerDescriptor = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getHeaderLocator()));
             By headerBy = SeleniumEngine.toBy(headerDescriptor);
             List<WebElement> headerElements = driver.findElements(headerBy);
@@ -110,7 +110,7 @@ public class TableHandler {
             boolean areMultipleRows
     ) {
         try {
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             int startIndex = (rowNumber == null) ? 0 : rowNumber - 1;
             List<String> headers = getColumnHeaders(tableElement);
             LocatorDescriptor rowsDescriptor = LocatorResolvers.strict().resolveDescriptor(LocatorRequest.of(tableElement.getExternalFileName(), tableElement.getRowLocator()));

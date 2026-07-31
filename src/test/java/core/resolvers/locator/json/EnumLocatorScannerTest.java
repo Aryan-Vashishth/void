@@ -3,6 +3,7 @@ package core.resolvers.locator.json;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import core.elements.DemoPageElements;
+import domain.automation.web.resolve.json.PropertiesIndex;
 import elements.fixture.ConventionalPropsPage;
 import org.testng.annotations.Test;
 

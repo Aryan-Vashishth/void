@@ -1,13 +1,13 @@
 package core.utils.web;
 
-import elements.api.UIElement;
+import domain.automation.web.vocabulary.element.UIElement;
 import core.utils.ResolvableEnum;
-import core.driver.DriverContext;
-import core.driver.Waiter;
-import core.engine.selenium.SeleniumEngine;
-import core.resolvers.locator.api.LocatorRequest;
-import core.resolvers.locator.api.LocatorResolvers;
-import elements.locator.LocatorDescriptor;
+import domain.automation.web.selenium.driver.SeleniumDriverContext;
+import domain.automation.web.selenium.driver.Waiter;
+import domain.automation.web.selenium.SeleniumEngine;
+import domain.automation.web.resolve.api.LocatorRequest;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.locator.LocatorDescriptor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -22,7 +22,7 @@ import static core.logging.CustomLogger.error;
 
 /**
  * Static utility for extracting and verifying key→value pairs from UI.
- * Uses {@link DriverContext} and {@link Waiter} — no instantiation needed.
+ * Uses {@link SeleniumDriverContext} and {@link Waiter} — no instantiation needed.
  *
  * <p>Enums passed here must implement <b>both</b> {@link ResolvableEnum} (for label)
  * and an {@link UIElement} sub-interface (for locator resolution).</p>

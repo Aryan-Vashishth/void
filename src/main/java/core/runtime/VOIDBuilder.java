@@ -2,11 +2,10 @@ package core.runtime;
 
 import core.bootstrap.FrameworkBootstrap;
 import core.context.SessionContext;
-import core.driver.DriverFactory;
 import core.engine.DomainRegistry;
 import core.engine.EngineBootstrap;
 import core.engine.Executor;
-import core.engine.UIEngineFactory;
+import domain.automation.web.engine.UIEngineFactory;
 import core.logging.CustomLogger;
 
 import java.util.Properties;
@@ -89,15 +88,6 @@ public final class VOIDBuilder {
     public VOIDBuilder profile(SessionProfile sessionProfile) {
         this.profile = sessionProfile;
         return this;
-    }
-
-    /**
-     * @deprecated since 0.9 -- use {@link #profile(SessionProfile)} instead.
-     *             Will be removed in 1.0.
-     */
-    @Deprecated(since = "0.9", forRemoval = true)
-    public VOIDBuilder profile(DriverFactory.Profile driverProfile) {
-        return profile(driverProfile != null ? SessionProfile.of(driverProfile.name()) : null);
     }
 
     /**

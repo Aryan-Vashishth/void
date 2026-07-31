@@ -1,13 +1,13 @@
 package core.utils.web;
 
-import core.engine.selenium.SeleniumEngine;
-import core.resolvers.locator.api.LocatorResolvers;
-import elements.locator.LocatorDescriptor;
+import domain.automation.web.selenium.SeleniumEngine;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.locator.LocatorDescriptor;
 
-import elements.api.capability.ReadOnly;
+import domain.automation.web.vocabulary.capability.ReadOnly;
 import javax.annotation.Nullable;
 import javax.annotation.Nonnull;
-import core.driver.DriverContext;
+import domain.automation.web.selenium.driver.SeleniumDriverContext;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -27,7 +27,7 @@ import static core.logging.CustomLogger.warn;
  * for common wait scenarios: element visibility/clickability, Angular CDK overlay
  * stabilisation, custom loader spinners, and DOM flicker detection.</p>
  *
- * <p>All methods obtain the active driver from {@link core.driver.DriverContext}.
+ * <p>All methods obtain the active driver from {@link core.driver.SeleniumDriverContext}.
  * Default timeout is {@value #DEFAULT_TIMEOUT_SEC} seconds with {@value #DEFAULT_POLLING_MS}ms
  * polling.</p>
  *
@@ -90,7 +90,7 @@ public class WaitUtils {
         final boolean loggingEnabled = (enableLogging != null) ? enableLogging : true;
 
         if (driver == null) {
-            driver = DriverContext.getDriver();
+            driver = SeleniumDriverContext.getDriver();
         }
 
         if (condition == null) {
@@ -119,7 +119,7 @@ public class WaitUtils {
                                            Duration timeout,
                                            Duration polling,
                                            java.util.function.Supplier<Boolean> condition) {
-        WebDriver driver = DriverContext.getDriver();
+        WebDriver driver = SeleniumDriverContext.getDriver();
         FluentWait<WebDriver> wait = new FluentWait<>(driver)
                 .withTimeout(timeout)
                 .pollingEvery(polling)
@@ -144,7 +144,7 @@ public class WaitUtils {
      */
     @Deprecated(forRemoval = true)
     public static void waitForElementToBeVisible(By locator) {
-        waitForCondition(DriverContext.getDriver(), ExpectedConditions.visibilityOfElementLocated(locator), locator, 20, 200, true, "element to be visible: " + locator);
+        waitForCondition(SeleniumDriverContext.getDriver(), ExpectedConditions.visibilityOfElementLocated(locator), locator, 20, 200, true, "element to be visible: " + locator);
     }
 
     /**
@@ -152,7 +152,7 @@ public class WaitUtils {
      */
     @Deprecated(forRemoval = true)
     public static void waitForElementToDisappear(By locator) {
-        waitForCondition(DriverContext.getDriver(), ExpectedConditions.invisibilityOfElementLocated(locator), locator, 20, 200, true, "element to disappear: " + locator);
+        waitForCondition(SeleniumDriverContext.getDriver(), ExpectedConditions.invisibilityOfElementLocated(locator), locator, 20, 200, true, "element to disappear: " + locator);
     }
 
     /**
@@ -172,7 +172,7 @@ public class WaitUtils {
     public static boolean waitForElementToBeAbsent(By locator, int timeoutSeconds) {
         ExpectedCondition<Boolean> condition = ExpectedConditions.invisibilityOfElementLocated(locator);
         Boolean result = waitForCondition(
-                DriverContext.getDriver(),
+                SeleniumDriverContext.getDriver(),
                 condition,
                 locator,
                 timeoutSeconds,
@@ -189,7 +189,7 @@ public class WaitUtils {
      */
     @Deprecated(forRemoval = true)
     public static void waitForElementToBeClickable(By locator) {
-        waitForCondition(DriverContext.getDriver(),
+        waitForCondition(SeleniumDriverContext.getDriver(),
                 ExpectedConditions.elementToBeClickable(locator),
                 locator,
                 20,
@@ -255,7 +255,7 @@ public class WaitUtils {
             @Nullable Integer pollingMs,
             @Nullable Boolean handleMultiple
     ) {
-        WebDriver driver = DriverContext.getDriver();
+        WebDriver driver = SeleniumDriverContext.getDriver();
         int appearMs = (waitToAppearMs != null) ? waitToAppearMs : 3000;
         int disappearMs = (waitToDisappearMs != null) ? waitToDisappearMs : 20000;
         int pollMs = (pollingMs != null) ? pollingMs : 200;
@@ -373,7 +373,7 @@ public class WaitUtils {
                 : "text '" + expectedText + "' in element: " + locator;
 
         Boolean result = waitForCondition(
-                DriverContext.getDriver(),
+                SeleniumDriverContext.getDriver(),
                 condition,
                 locator,
                 timeoutSeconds,
@@ -429,7 +429,7 @@ public class WaitUtils {
             @Nullable Integer pollingMs,
             @Nullable Boolean handleMultiple
     ) {
-        WebDriver driver = DriverContext.getDriver();
+        WebDriver driver = SeleniumDriverContext.getDriver();
         final int appearMs   = (waitToAppearMs != null)    ? waitToAppearMs    : 3000;
         final int disappearMs= (waitToDisappearMs != null) ? waitToDisappearMs : 20000;
         final int pollMs     = (pollingMs != null)         ? pollingMs         : 200;

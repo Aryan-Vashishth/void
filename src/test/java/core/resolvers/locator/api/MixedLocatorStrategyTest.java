@@ -1,6 +1,7 @@
 package core.resolvers.locator.api;
 
-import elements.api.capability.Clickable;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.vocabulary.capability.Clickable;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
 

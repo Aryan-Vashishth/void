@@ -1,9 +1,10 @@
 package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import core.resolvers.locator.api.ConventionalLocatorPath;
-import elements.api.UIElement;
-import elements.meta.ElementRole;
+import domain.automation.web.resolve.api.ConventionalLocatorPath;
+import domain.automation.web.resolve.json.PropertiesIndex;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.role.ElementRole;
 
 import java.util.Map;
 import java.util.Properties;

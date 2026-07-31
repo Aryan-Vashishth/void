@@ -1,9 +1,9 @@
 package core.resolvers.locator.sync;
 
-import elements.api.capability.Clickable;
-import elements.api.capability.ReadOnly;
-import elements.api.capability.Selectable;
-import elements.api.capability.Typeable;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.ReadOnly;
+import domain.automation.web.vocabulary.capability.Selectable;
+import domain.automation.web.vocabulary.capability.Typeable;
 
 /** Minimal page fixture for LocatorSync unit tests. Not a real page. */
 interface SyncTestFixturePage {

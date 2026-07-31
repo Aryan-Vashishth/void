@@ -1,4 +1,4 @@
-package elements.api.actions;
+package domain.automation.web.vocabulary.actions;
 
 import core.actions.Action;
 import core.actions.ActionCapability;
@@ -6,16 +6,16 @@ import core.actions.ActionProfile;
 import core.actions.Profiles;
 import core.annotations.Beta;
 import core.engine.Executor;
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
-import core.engine.UIEngine;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
+import domain.automation.web.engine.UIEngine;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
-import elements.api.UIElement;
-import elements.api.capability.Clickable;
-import elements.api.capability.Selectable;
-import elements.api.capability.Typeable;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.Selectable;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.role.ElementRole;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

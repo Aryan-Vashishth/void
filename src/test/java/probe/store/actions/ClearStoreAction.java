@@ -3,7 +3,7 @@ package probe.store.actions;
 import core.actions.Action;
 import core.actions.ActionCapability;
 import core.engine.Executor;
-import elements.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorDescriptor;
 import probe.store.StoreExecutor;
 
 public final class ClearStoreAction implements Action {

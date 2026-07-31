@@ -1,4 +1,4 @@
-package elements.api;
+package domain.automation.web.vocabulary.element;
 
 import org.testng.annotations.Test;
 

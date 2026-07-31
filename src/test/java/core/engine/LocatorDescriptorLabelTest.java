@@ -1,7 +1,7 @@
 package core.engine;
 
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;

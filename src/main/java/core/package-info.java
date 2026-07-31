@@ -12,7 +12,7 @@
  *   <li>{@code core.annotations}    — Stability-tier markers: {@code @Beta}, {@code @Internal}</li>
  *   <li>{@code core.bootstrap}      — One-time framework initialisation ({@code FrameworkBootstrap})</li>
  *   <li>{@code core.context}        — Per-session execution context ({@code ExecutionContext}, {@code SessionContext})</li>
- *   <li>{@code core.driver}         — WebDriver lifecycle: {@code DriverFactory}, {@code DriverContext}, {@code DriverManager}</li>
+ *   <li>{@code core.driver}         — WebDriver lifecycle: {@code SeleniumDriverFactory}, {@code SeleniumDriverContext}, {@code SeleniumDriverManager}</li>
  *   <li>{@code core.engine}         — Engine abstraction: {@code UIEngine}, {@code LocatorDescriptor}, {@code SeleniumEngine}</li>
  *   <li>{@code core.executor}       — Flow execution: {@code FlowExecutor}</li>
  *   <li>{@code core.flow}           — Declarative action composition: {@code Flow}</li>

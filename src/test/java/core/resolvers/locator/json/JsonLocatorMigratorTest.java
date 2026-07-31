@@ -2,7 +2,7 @@ package core.resolvers.locator.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import core.elements.DemoPageElements;
-import core.resolvers.locator.api.ConventionalLocatorPath;
+import domain.automation.web.resolve.api.ConventionalLocatorPath;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testng.annotations.AfterClass;

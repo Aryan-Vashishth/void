@@ -1,8 +1,7 @@
 package core.runtime;
 
-import core.driver.DriverFactory;
 import core.engine.DomainRegistry;
-import core.engine.UIEngineFactory;
+import domain.automation.web.engine.UIEngineFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -62,14 +61,6 @@ public class VOIDBuilderTest {
         VOIDBuilder builder = VOID.builder();
         assertSame(builder.profile(SessionProfile.DEFAULT), builder,
                 "profile() must return the same builder instance");
-    }
-
-    @Test
-    @SuppressWarnings("deprecation")
-    public void profileDeprecated_delegatesToSessionProfile() throws Exception {
-        VOIDBuilder builder = VOID.builder();
-        builder.profile(DriverFactory.Profile.CI);
-        assertEquals(profile(builder), SessionProfile.CI);
     }
 
     // -------------------------------------------------------------------------
