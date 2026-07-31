@@ -229,3 +229,9 @@ docs/audits/ongoing for open findings" rule, missed in the initial expansion)
   dedicated fix.
 - `uiengine-sendkeys-javadoc-selenium-reference.md` is already resolved
   (2026-07-22); no action, only its file path updates when `UIEngine` relocates.
+- **Status**: COMPLETE -- commit `3d83c1d`, 1100 tests green, 2026-07-31. 179 files
+  changed; 6 selenium domain files had wrong package declarations (fixed); 30+
+  test files needed new domain imports or package-declaration changes for
+  package-private access; `ElementStructureRulesTest` importPackages scope extended
+  to include `"domain"` and `"dsl"`. Exit criteria met: kernel purity gate green,
+  zero remaining pre-move FQN imports in non-deprecated code.
