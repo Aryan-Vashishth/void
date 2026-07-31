@@ -40,15 +40,16 @@ membership list and the `runtime-redesign` roadmap's Initiative I2 (Kernel Extra
 
 - **`core.actions`** (kernel, domain-neutral, per ADR-021): `Action`, `ActionCapability`,
   `ActionProfile`, `ActionProfiles`, `Profile`, `Profiles`, `HookChainAction`. These
-  reference `core.target.Target` at most — never `elements.api.UIElement`,
-  `elements.meta.ElementRole`, or `elements.api.capability` — so the kernel can be
-  pointed at without dragging the UI element model along.
-- **`elements.api.actions`** (UI-domain): `ElementAction` and its three abstract family
+  reference `core.target.Target` at most -- never `domain.automation.web.vocabulary.element.UIElement`,
+  `domain.automation.web.vocabulary.role.ElementRole`, or `domain.automation.web.vocabulary.capability` --
+  so the kernel can be pointed at without dragging the UI element model along.
+- **`domain.automation.web.vocabulary.actions`** (UI-domain): `ElementAction` and its three abstract family
   intermediaries (`ClickableElementAction`, `TypeableElementAction`,
   `SelectableElementAction`), the 17 concrete leaf action classes, the `ElementActions`
   factory, and `CapabilityProfiles` (capability-specific profile constants). These are
-  genuinely UI-specific — `ElementAction.resolve()` calls `UIEngine.resolve(UIElement,
-  ElementRole, ...)`, which requires the UI-domain locator model.
+  genuinely UI-specific -- `ElementAction.resolve()` calls `UIEngine.resolve(UIElement,
+  ElementRole, ...)`, which requires the UI-domain locator model. Relocated from
+  `elements.api.actions` in I6 (ADR-024, Domain Registration).
 
 This split happened in three stages:
 
@@ -73,11 +74,12 @@ This split happened in three stages:
    direction is now enforced as one-way, kernel-neutral by construction going forward.
 
 `KernelBoundaryRulesTest` (`src/test/java/core/architecture/`) enforces the boundary with
-no exemptions needed anymore: no kernel-owned package may depend on `elements.*` at all
-(the broad I2.3 ratchet), with narrower checks retained for specific types
+no exemptions needed anymore: no kernel-owned package may depend on `elements.*` or
+`domain.automation.web.*` (the broad kernel purity gate, ADR-021 consolidated in I2.4),
+with narrower checks retained for specific types
 (`core.actions` may never depend on `UIElement`, `ElementRole`, or
-`elements.api.capability`; `core.actions.trace`, `core.executor`, and `core.flow` may
-never depend on `UIElement`); `elements.api.actions` must stay Selenium-free.
+`domain.automation.web.vocabulary.capability`; `core.actions.trace`, `core.executor`, and `core.flow` may
+never depend on `UIElement`); `domain.automation.web.vocabulary.actions` must stay Selenium-free.
 
 **What remains a documented, deliberate gap (not fixed by 2.2):** `ActionProfiles` and
 `Profiles` still import `core.interactions.hooks.Before`/`After` directly for their
@@ -91,7 +93,7 @@ constants 2.2 moved out; it is excluded by name from `KernelBoundaryRulesTest`'s
 
 ## Class Hierarchy
 
-All classes below live in `elements.api.actions`, not `core.actions`.
+All classes below live in `domain.automation.web.vocabulary.actions`, not `core.actions`.
 
 ```
 ElementAction (abstract, public)
@@ -315,10 +317,10 @@ Teams building on VOID should define their own reusable hook libraries following
 ```java
 package tests.demo.hooks;
 
-import elements.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorDescriptor;
 import core.interactions.hooks.AfterActionHandler;
 import tests.demo.pages.DemoLoginPage;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.role.ElementRole;
 import java.time.Duration;
 import static core.logging.CustomLogger.debug;
 

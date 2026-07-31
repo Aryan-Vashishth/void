@@ -8,15 +8,16 @@
 
 ```
 core/
-├── actions/          ← Kernel deferred execution contracts (Action, HookChainAction); concrete UI actions in elements.api.actions
+├── actions/          ← Kernel deferred execution contracts (Action, HookChainAction)
 ├── adapters/         ← External framework adapters (Cucumber)
 │   └── cucumber/     ← BDD step definitions
 ├── annotations/      ← Stability-tier markers (@Beta, @Internal)
 ├── bootstrap/        ← One-time framework initialisation
+├── bridge/
+│   └── selenium/     ← Selenium compatibility bridge (deprecated)
 ├── context/          ← Per-session execution context holders
-├── driver/           ← WebDriver lifecycle management
-├── engine/           ← Engine abstraction layer
-│   └── selenium/     ← Selenium implementation of UIEngine
+├── engine/           ← Kernel engine contracts (Executor, EngineBootstrap, EngineConfig,
+│                       DomainRegistrar, DomainRegistry); web types moved to domain/
 ├── executor/         ← Flow execution (FlowExecutor)
 ├── flow/             ← Declarative action composition (Flow)
 ├── interactions/     ← Legacy interaction orchestrator (frozen)
@@ -27,21 +28,39 @@ core/
 │   ├── intent/       ← Semantic intent taxonomy (LogIntent)
 │   ├── render/       ← Log rendering pipeline (LogActions)
 │   └── theme/        ← Color theme model and built-in catalog
-├── resolvers/        ← Locator resolution subsystem
-│   └── locator/      ← Role-based locator pipeline
-│       ├── api/      ← Public API (LocatorResolvers, LocatorRequest)
-│       ├── parser/   ← Raw string → By (ByParser, ByPrefixStrategy)
-│       ├── template/ ← Locator template substitution
-│       ├── source/   ← Polymorphic backing sources
-│       ├── json/     ← JSON format readers and migration tools
-│       └── properties/ ← Properties format reader
+├── resolvers/        ← Locator dev-tooling (migration, sync, template gen)
+│   └── locator/      ← Locator file tooling (not the runtime resolution pipeline)
+│       ├── json/     ← EnumLocatorScanner, JsonLocatorMigrator, JsonMigratorCli
+│       ├── sync/     ← LocatorSyncOrchestrator, orphan detection, template writer
+│       └── template/ ← LocatorTemplate (substitution model)
 ├── runtime/          ← Framework entry point (VOID façade)
+├── target/           ← Domain-neutral Target root interface
 └── utils/            ← Cross-cutting utilities
     ├── data/         ← Test data generation and verification
     ├── io/           ← File I/O, JSON/Properties readers
     │   ├── json/     ← JsonReader, JsonLogger
     │   └── properties/ ← PropertiesReader
     └── web/          ← DOM utilities, waits, table/upload helpers
+
+domain/
+└── automation/
+    └── web/          ← Web-domain module root (WebDomainRegistrar)
+        ├── engine/   ← UIEngine, UIEngineFactory, EngineRegistrar
+        ├── locator/  ← LocatorDescriptor, LocatorStrategy (open interface), NamedStrategy
+        ├── resolve/  ← Runtime locator resolution pipeline
+        │   ├── api/  ← LocatorResolver, LocatorResolvers, LocatorRequest, LocatorContext
+        │   ├── json/ ← JsonLocatorReader, JsonNodeLookup, JsonTreeBuilder
+        │   ├── parser/   ← ByParser, ByPrefixStrategy
+        │   ├── properties/ ← PropertiesFileLocatorReader
+        │   └── source/   ← LocatorSource, LocatorSourceRegistry, layered sources
+        ├── selenium/ ← SeleniumEngine, SeleniumEngineRegistrar
+        │   └── driver/   ← SeleniumDriverFactory, SeleniumDriverContext,
+        │                   SeleniumDriverManager, Waiter
+        └── vocabulary/ ← Web UI-domain types
+            ├── actions/  ← Concrete UI action classes (ElementAction and 17 subclasses)
+            ├── capability/ ← Capability interfaces + LocatorRoles
+            ├── element/  ← UIElement, LocatorFamily, ElementSupport, KeyValuePair
+            └── role/     ← ElementRole, EnumClassRegistry
 ```
 
 ---
@@ -75,12 +94,12 @@ ADR-021), this package holds only kernel types; concrete UI actions live in
 
 ---
 
-### `elements.api.actions` — UI-Domain Concrete Action Layer
+### `domain.automation.web.vocabulary.actions` — UI-Domain Concrete Action Layer
 
-**Purpose:** Concrete UI actions and the abstract family bases that emit them. Relocated
-from `core.actions` in runtime-redesign I2 phase 2.2 (ADR-021, audit Part I
-bounded-context finding: "the kernel/UI boundary runs through the middle of
-`core.actions`, invisible in the package structure").
+**Purpose:** Concrete UI actions and the abstract family bases that emit them. Split
+from `core.actions` in runtime-redesign I2 phase 2.2 (ADR-021), then relocated from
+`elements.api.actions` to `domain.automation.web.vocabulary.actions` in I6 (ADR-024,
+Domain Registration).
 
 **Key Classes:**
 
@@ -163,9 +182,12 @@ bounded-context finding: "the kernel/UI boundary runs through the middle of
 **Key Class:** `FrameworkBootstrap`
 
 **What it does:**
-1. Verifies `driver.properties` is on the classpath (fail-fast).
-2. Loads utils/test configuration from classpath.
-3. Seeds `ConfigLoader.ACTIVE` for backward-compatibility.
+1. Loads utils/test configuration from classpath.
+2. Seeds `ConfigLoader.ACTIVE` for backward-compatibility.
+
+`driver.properties` validation was removed from `FrameworkBootstrap.init()` in I5.2
+(ADR-022) and relocated to `SeleniumEngine.initialize()`, where it fires only when a
+web session is created. Non-web domains may call `init()` without `driver.properties`.
 
 **Properties:**
 - Safe to call `init()` multiple times — only the first invocation performs work.
@@ -190,7 +212,7 @@ bounded-context finding: "the kernel/UI boundary runs through the middle of
 | Class | Engine Dependency | Use Case |
 |-------|-------------------|----------|
 | `ExecutionContext` | `WebDriver` (Selenium-coupled) | Legacy path, internal |
-| `SessionContext` | `UIEngine` (engine-agnostic) | Modern path, preferred |
+| `SessionContext` | `Executor` (engine-agnostic) | Modern path, preferred |
 
 **Benefits:**
 - No global mutable singletons.
@@ -199,61 +221,48 @@ bounded-context finding: "the kernel/UI boundary runs through the middle of
 
 ---
 
-### `core.driver` — WebDriver Lifecycle
+### `domain.automation.web.selenium.driver` — WebDriver Lifecycle
 
 **Purpose:** Complete WebDriver lifecycle management isolated from the rest of the framework.
+Relocated from `core.driver` in I6 (ADR-024, Domain Registration).
 
 | Class | Responsibility |
 |-------|---------------|
-| `DriverFactory` | Fluent WebDriver builder (Chrome, Firefox, Edge, headless, remote, grid) |
-| `DriverContext` | Thread-local driver storage |
-| `DriverManager` | Lifecycle orchestration (create, register, quit) |
+| `SeleniumDriverFactory` | Fluent WebDriver builder (Chrome, Firefox, Edge, headless, remote, grid) |
+| `SeleniumDriverContext` | Thread-local driver storage |
+| `SeleniumDriverManager` | Lifecycle orchestration (create, register, quit) |
 | `Waiter` | Explicit-wait helpers (visibility, clickability, presence) |
 
-**Configuration:** Entirely via `driver.properties` — no code changes required.
+**Configuration:** Entirely via `driver.properties` -- no code changes required.
 
 **Thread safety:** All classes use `ThreadLocal` storage for safe parallel execution.
 
 ---
 
-### `core.engine` — Engine Abstraction Layer
+### `core.engine` — Kernel Engine Contracts
 
-**Purpose:** Decouples VOID's interaction layer from any specific browser automation library.
+**Purpose:** Kernel-level execution contracts and domain-registration SPI. Pure kernel: no
+Selenium, no web types.
 
 | Class | Role |
 |-------|------|
-| `UIEngine` | Execution contract interface |
-| `EngineRegistrar` | SPI contract -- one implementation per engine; discovered via `ServiceLoader` |
-| `EngineBootstrap` | Sealed initialization token passed to `EngineRegistrar.create()` |
-| `LocatorDescriptor` | Engine-agnostic locator representation |
-| `LocatorStrategy` | Locator type enum (XPATH, CSS, ID, NAME, etc.) |
-| `EngineConfig` | Engine initialisation parameters |
-| `UIEngineFactory` | Looks up `EngineRegistrar` by name; no engine-specific code |
+| `Executor` | Kernel neutral execution contract (`perform`, `getEngineName`, `shutdown`) |
+| `EngineBootstrap` | Sealed initialization token passed to domain registrars |
+| `EngineConfig` | Engine-agnostic init parameters (timeouts, baseUrl, polling) |
+| `DomainRegistrar` | SPI for registering a new execution domain (I6, ADR-024) |
+| `DomainRegistry` | Discovers and holds all `DomainRegistrar` implementations via `ServiceLoader` |
 
-**Sub-packages:**
+Web-specific engine types (`UIEngine`, `UIEngineFactory`, `EngineRegistrar`) live in
+`domain.automation.web.engine` (relocated in I6, ADR-024). The Selenium implementation
+(`SeleniumEngine`, `SeleniumEngineRegistrar`) lives in `domain.automation.web.selenium`.
 
-| Package | Content |
-|---------|---------|
-| `core.engine.selenium` | `SeleniumEngine` + `SeleniumEngineRegistrar` -- default production implementation |
+**Extensibility via `DomainRegistrar` SPI (I6, ADR-024):**
 
-**UIEngine responsibilities:**
-- Resolve `LocatorDescriptor` → native locator
-- Handle scroll, waits, retries, fallback internally
-- Callers must NOT perform their own scroll/wait/retry logic
+Adding a new execution domain requires zero edits to the kernel:
 
-**Extensibility via `EngineRegistrar` SPI (I4.1, ADR-021):**
-
-Adding a new engine requires zero edits to `UIEngineFactory` or any other framework class:
-
-1. Implement `EngineRegistrar` in the engine's own sub-package (e.g. `core.engine.playwright`).
-2. Add its fully-qualified name to `META-INF/services/core.engine.EngineRegistrar` on the classpath.
-3. `UIEngineFactory` discovers all registrars at class-load time via `ServiceLoader` and adds them to its internal registry.
-
-`UIEngineFactory.register(EngineRegistrar)` is available for programmatic registration when the
-classpath service descriptor is unavailable (e.g., dynamic module loading in tests).
-
-Kernel purity rule: `UIEngineFactory` must not depend on `core.engine.selenium..` -- enforced by
-`KernelBoundaryRulesTest.engineFactoryIsImplementationFree` (ADR-021, runtime-redesign I4.1).
+1. Implement `DomainRegistrar` in the domain's own package.
+2. Add its fully-qualified name to `META-INF/services/core.engine.DomainRegistrar`.
+3. `DomainRegistry` discovers it at class-load time via `ServiceLoader`.
 
 ---
 
@@ -334,20 +343,28 @@ Kernel purity rule: `UIEngineFactory` must not depend on `core.engine.selenium..
 
 ---
 
-### `core.resolvers.locator` — Locator Resolution Pipeline
+### `core.resolvers.locator` — Locator Dev-Tooling
 
-**Purpose:** Reads element locators from external sources and resolves them into engine-agnostic descriptors.
+**Purpose:** Development and migration tools for locator files. The runtime resolution
+pipeline moved to `domain.automation.web.resolve.*` in I6 (ADR-024).
 
 **Sub-packages:**
 
 | Package | Role |
 |---------|------|
-| `api` | Public API: `LocatorResolvers`, `LocatorResolver`, `LocatorRequest`, `LocatorPaths` |
-| `parser` | Raw string → `By` conversion (`ByParser`, `ByPrefixStrategy`) |
 | `template` | `LocatorTemplate` with STRICT/PAD_LAST substitution policies |
-| `source` | Polymorphic backing sources (`LocatorSource` interface + impls) |
-| `json` | JSON locator reader, migration tools, CLI migrator |
-| `properties` | Properties file locator reader |
+| `json` | `EnumLocatorScanner`, `JsonLocatorMigrator`, `JsonMigratorCli` (migration CLI) |
+| `sync` | `LocatorSyncOrchestrator`, orphan-key detection, template writer |
+
+**Runtime resolution** (for call-site reference) lives in `domain.automation.web.resolve`:
+
+| Package | Role |
+|---------|------|
+| `api` | `LocatorResolvers`, `LocatorResolver`, `LocatorRequest`, `LocatorContext`, `LocatorPaths` |
+| `parser` | Raw string → `By` (`ByParser`, `ByPrefixStrategy`) |
+| `source` | Polymorphic backing sources (`LocatorSource`, `LocatorSourceRegistry`, layered impls) |
+| `json` | `JsonLocatorReader`, `JsonNodeLookup`, `JsonTreeBuilder`, `PropertiesIndex` |
+| `properties` | `PropertiesFileLocatorReader` |
 
 **Resolution flow:**
 1. `LocatorResolvers.strict()` receives a request (file + key + args).
@@ -372,12 +389,12 @@ Kernel purity rule: `UIEngineFactory` must not depend on `core.engine.selenium..
 **Startup pipeline:**
 ```
 VOID.builder()
-  .profile(DriverFactory.Profile.DEFAULT)   (optional -- defaults to DEFAULT)
-  .engine(SeleniumEngine.ID)                (optional -- defaults to config/ENV)
+  .profile(SeleniumDriverFactory.Profile.DEFAULT)   (optional -- defaults to DEFAULT)
+  .engine(SeleniumEngine.ID)                        (optional -- defaults to config/ENV)
   .start()
-    → FrameworkBootstrap.init()             (one-time config validation)
-    → UIEngineFactory.create()              (engine selected; driver deferred to engine)
-    → SessionContext                        (bind config + engine)
+    → FrameworkBootstrap.init()             (one-time utils config load; no driver.properties gate)
+    → UIEngineFactory.create()              (engine selected; driver deferred to SeleniumEngine.initialize())
+    → SessionContext(config, Executor)      (bind config + engine-agnostic executor)
     → return VOID façade
 ```
 

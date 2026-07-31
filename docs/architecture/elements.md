@@ -39,7 +39,7 @@ of an element is an `Action` object.
 
 ## UIElement Interface Contract
 
-`UIElement` (in `elements.api`) is the web-domain root contract for all UI element
+`UIElement` (in `domain.automation.web.vocabulary.element`) is the web-domain root contract for all UI element
 descriptors. It extends the domain-neutral `core.target.Target`, which carries the
 members with zero UI semantics; `UIElement` adds locator-specific structure on top.
 
@@ -109,26 +109,26 @@ Target (core.target -- domain-neutral root)
 ### Capability ownership table
 
 All 15 capability interfaces are **Web-domain vocabulary** (ADR-021, runtime-redesign I3.3).
-They reside in `elements.api.capability` and are never referenced by kernel packages.
+They reside in `domain.automation.web.vocabulary.capability` and are never referenced by kernel packages.
 The kernel uses only the neutral `ActionCapability` contract.
 
 | Interface | `ActionCapability` constant | Domain | Package |
 |---|---|---|---|
-| `Clickable` | `CLICKABLE` | Web | `elements.api.capability` |
-| `Typeable` | `TYPEABLE` | Web | `elements.api.capability` |
-| `Selectable` | `SELECTABLE` | Web | `elements.api.capability` |
-| `Hoverable` | `HOVERABLE` | Web | `elements.api.capability` |
-| `Checkable` | `CHECKABLE` | Web | `elements.api.capability` |
-| `Uploadable` | `UPLOADABLE` | Web | `elements.api.capability` |
-| `Searchable` | `SEARCHABLE` | Web | `elements.api.capability` |
-| `SearchField` | `SEARCH_FIELD` | Web | `elements.api.capability` |
-| `SearchableDropdown` | `SEARCHABLE_DROPDOWN` | Web | `elements.api.capability` |
-| `ReadOnly` | `READ_ONLY` | Web | `elements.api.capability` |
-| `Table` | `TABLE` | Web | `elements.api.capability` |
-| `EditableTable` | `EDITABLE_TABLE` | Web | `elements.api.capability` |
-| `Listable` | `LISTABLE` | Web | `elements.api.capability` |
-| `MultiSelectable` | `MULTI_SELECTABLE` | Web | `elements.api.capability` |
-| `KeyValuePair` | (none -- standalone contract) | Web | `elements.api.capability` |
+| `Clickable` | `CLICKABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `Typeable` | `TYPEABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `Selectable` | `SELECTABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `Hoverable` | `HOVERABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `Checkable` | `CHECKABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `Uploadable` | `UPLOADABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `Searchable` | `SEARCHABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `SearchField` | `SEARCH_FIELD` | Web | `domain.automation.web.vocabulary.capability` |
+| `SearchableDropdown` | `SEARCHABLE_DROPDOWN` | Web | `domain.automation.web.vocabulary.capability` |
+| `ReadOnly` | `READ_ONLY` | Web | `domain.automation.web.vocabulary.capability` |
+| `Table` | `TABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `EditableTable` | `EDITABLE_TABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `Listable` | `LISTABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `MultiSelectable` | `MULTI_SELECTABLE` | Web | `domain.automation.web.vocabulary.capability` |
+| `KeyValuePair` | (none -- standalone contract) | Web | `domain.automation.web.vocabulary.element` |
 
 The fitness check `KernelBoundaryRulesTest.kernelCapabilityReferencesAreContractTypedOnly`
 enforces this boundary automatically.
@@ -213,7 +213,7 @@ supports older `.properties` format with padding conventions.
 
 ## LocatorFamily -- Shared Locator Patterns
 
-`LocatorFamily` (in `elements.api`) addresses the case where multiple enum constants in a
+`LocatorFamily` (in `domain.automation.web.vocabulary.element`) addresses the case where multiple enum constants in a
 group share the same locator key with different dynamic argument values. Instead of each
 constant having its own unique key, they share one key and differ only in their `getArgs()`.
 
@@ -241,7 +241,7 @@ resolve time.
 
 ## ElementSupport -- Enum Reflection Utility
 
-`ElementSupport` (package-private in `elements.api`) provides three static helpers that
+`ElementSupport` (package-private in `domain.automation.web.vocabulary.element`) provides three static helpers that
 consolidate the `(Enum<?>) this` casts required for enum-based element implementations.
 
 ### Methods
@@ -255,14 +255,14 @@ consolidate the `(Enum<?>) this` casts required for enum-based element implement
 ### Scope constraint
 
 `ElementSupport` is package-private and contains exactly these three methods. It is not a
-general-purpose element utility. Callers outside `elements.api` must not use it. Additions
+general-purpose element utility. Callers outside `domain.automation.web.vocabulary.element` must not use it. Additions
 require a new ADR (see ADR-017).
 
 ---
 
 ## LocatorRoles -- Role Map Construction
 
-`LocatorRoles` (public, in `elements.api`) provides a `roleMap()` builder for constructing
+`LocatorRoles` (public, in `domain.automation.web.vocabulary.capability`) provides a `roleMap()` builder for constructing
 `getAllLocatorRoles()` return values without equality chain boilerplate.
 
 ```java
@@ -339,12 +339,13 @@ These invariants are enforced by `ElementStructureRulesTest` and must not be vio
 6. **`getAllLocatorRoles()` returns an ordered map.** The first entry is the primary locator.
    `getPrimaryLocator()` relies on iteration order. Use `LinkedHashMap`-backed maps only.
 
-7. **The kernel never depends on `elements.*`.** `elements.api` and `elements.api.actions`
-   depend on the kernel (`core.actions.Action`, `ActionCapability`, `ActionProfile`,
-   `ActionProfiles`) — never the reverse. This was audit finding D1 (the two packages'
-   mutual dependency was proof they were one bounded context); `KernelBoundaryRulesTest`'s
-   `kernelPackagesDoNotDependOnElements` (runtime-redesign I2.3) makes it a permanent,
-   enforced ratchet rather than a one-time cleanup that could silently regress.
+7. **The kernel never depends on `elements.*` or `domain.automation.web.*`.** The vocabulary
+   packages (`domain.automation.web.vocabulary.*`) and action layer depend on the kernel
+   (`core.actions.Action`, `ActionCapability`, `ActionProfile`, `ActionProfiles`) -- never
+   the reverse. This was audit finding D1 (the two packages' mutual dependency was proof
+   they were one bounded context); `KernelBoundaryRulesTest`'s `kernelPurity`
+   (runtime-redesign I2.3, consolidated I2.4) makes it a permanent, enforced ratchet rather
+   than a one-time cleanup that could silently regress.
 
 ---
 
@@ -352,7 +353,7 @@ These invariants are enforced by `ElementStructureRulesTest` and must not be vio
 
 ### Adding a new capability interface
 
-1. Create the interface in `elements.api.capability`.
+1. Create the interface in `domain.automation.web.vocabulary.capability`.
 2. Extend `UIElement` (not `ActionCapabilityProvider` -- see ADR-016).
 3. Override `capability()` to return the new `ActionCapability` constant.
 4. If the new interface extends two parents with `capability()`, add an explicit

@@ -120,19 +120,31 @@ Each engine translates `LocatorDescriptor` into its native locator:
 
 ## LocatorStrategy
 
-```java
-public enum LocatorStrategy {
-    XPATH,   // XPath expression
-    CSS,     // CSS selector
-    ID,      // HTML element id attribute
-    NAME;    // HTML element name attribute
+`LocatorStrategy` is an open interface (since I7.1, ADR-023), not a closed enum.
+This allows third-party engine adapters to define their own strategy constants without
+modifying the framework.
 
-    public static LocatorStrategy infer(String locatorValue) {
-        // Starts with // or (// → XPATH
-        // Otherwise → CSS (safest default)
-    }
+```java
+public interface LocatorStrategy {
+    String name();
 }
 ```
+
+The built-in strategies are provided as constants on `NamedStrategy` (a record
+implementing `LocatorStrategy`):
+
+```java
+public record NamedStrategy(String name) implements LocatorStrategy {
+    public static final LocatorStrategy XPATH = new NamedStrategy("XPATH");
+    public static final LocatorStrategy CSS   = new NamedStrategy("CSS");
+    public static final LocatorStrategy ID    = new NamedStrategy("ID");
+    public static final LocatorStrategy NAME  = new NamedStrategy("NAME");
+}
+```
+
+`ByParser` and `ByPrefixStrategy` use `NamedStrategy` constants. `SeleniumEngine`
+maps by `strategy.name()` string match, so any engine adapter can add strategies
+without modifying `SeleniumEngine`.
 
 ### Inference Rules
 
@@ -663,7 +675,7 @@ mvn test -Dlocator.json.base.path=custom/locators/json/
 **Check**:
 1. Ensure the locator value uses the correct prefix (`xpath=`, `css=`, `id=`).
 2. If no prefix, verify the value format — XPath must start with `//` or `(//`.
-3. The strategy is inferred via `LocatorStrategy.infer()` when no prefix is present.
+3. The strategy is inferred via `ByParser`/`ByPrefixStrategy` when no prefix is present.
 
 ---
 
@@ -674,7 +686,7 @@ mvn test -Dlocator.json.base.path=custom/locators/json/
 - [Configuration Reference](configuration-reference.md) — all config keys
 - [Hooks Pipeline](hooks-pipeline.md) — how hooks interact with resolution
 - [`core/resolvers/locator/json/README.md`](../../src/main/java/core/resolvers/locator/json/README.md) — JSON migration internals
-- [`UIEngine.java`](../../src/main/java/core/engine/UIEngine.java) — execution contract with resolve() methods
+- [`UIEngine.java`](../../src/main/java/domain/automation/web/engine/UIEngine.java) — execution contract with resolve() methods
 
 ---
 

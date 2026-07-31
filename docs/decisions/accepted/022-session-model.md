@@ -223,5 +223,5 @@ and the lambda executes synchronously before `executor.run()` returns.
 - [ADR-021 -- Runtime Redesign: Kernel Boundary, Ontology, Open Decisions](021-runtime-redesign-kernel-boundary.md)
 - [ADR-018 -- Engine Lifecycle Ownership](../accepted/018-engine-lifecycle-ownership.md)
 - [ADR-011 -- VOID as Primary Session Facade](../accepted/011-void-facade-boundary.md)
-- [I5 pre-implementation audit](../../plan/draft/06%20-%20runtime-redesign/audit/i5-pre-implementation-audit.md)
-- [I5 full-system audit (M4)](../../plan/draft/06%20-%20runtime-redesign/audit/i5-full-system-audit.md)
+- [I5 pre-implementation audit](../../plan/done/06%20-%20runtime-redesign/audit/i5-pre-implementation-audit.md)
+- [I5 full-system audit (M4)](../../plan/done/06%20-%20runtime-redesign/audit/i5-full-system-audit.md)
