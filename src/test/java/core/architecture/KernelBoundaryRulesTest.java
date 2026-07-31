@@ -129,8 +129,8 @@ public class KernelBoundaryRulesTest {
     public void runtimeDoesNotDeclareDriverContextField() {
         ArchRule rule = noFields()
                 .that().areDeclaredInClassesThat().resideInAPackage("core.runtime..")
-                .should().haveRawType("core.driver.SeleniumDriverContext")
-                .because("VOID must not hold a SeleniumDriverContext field. ADR-018 + ADR-021.");
+                .should().haveRawType("domain.automation.web.selenium.driver.SeleniumDriverContext")
+                .because("VOID must not hold a SeleniumDriverContext field. ADR-018 + ADR-021. Relocated from core.driver in I6.4.");
 
         rule.check(allClasses);
     }
@@ -357,15 +357,16 @@ public class KernelBoundaryRulesTest {
         rule.check(allClasses);
     }
 
-    @Test(description = "DomainRegistry does not depend on core.engine.selenium (I6.1)")
+    @Test(description = "DomainRegistry does not depend on domain.automation.web.selenium (I6.1)")
     public void domainRegistryIsImplementationFree() {
         ArchRule rule = noClasses()
                 .that().haveFullyQualifiedName("core.engine.DomainRegistry")
-                .should().dependOnClassesThat().resideInAPackage("core.engine.selenium..")
+                .should().dependOnClassesThat().resideInAPackage("domain.automation.web.selenium..")
                 .because(
                     "DomainRegistry is the neutral domain contract. Domain implementations " +
                     "register via the DomainRegistrar SPI; the registry must not import or " +
-                    "reference them directly. runtime-redesign I6.1.");
+                    "reference them directly. runtime-redesign I6.1. " +
+                    "Updated I6.4: engine.selenium relocated to domain.automation.web.selenium.");
 
         rule.check(allClasses);
     }
@@ -489,10 +490,6 @@ public class KernelBoundaryRulesTest {
     //       VOID/VOIDBuilder's engine-selection wiring. Already in the
     //       runtime-redesign Migration Ledger (EngineBootstrap: pre-existing,
     //       closes 4.2).
-    //   core.driver.SeleniumDriverFactory
-    //       VOIDBuilder.profile(SeleniumDriverFactory.Profile) @Deprecated bridge (I6.4 F4
-    //       resolved: SessionProfile introduced in core.runtime; bridge closes I9.3).
-    //       VOID.start(SeleniumDriverFactory.Profile) @Deprecated bridge (closes I9.3).
     //   core.utils.ConfigLoader, core.utils.ConfigPaths
     //       Config-driven default profile selection (ActionProfiles) and
     //       bootstrap config paths (FrameworkBootstrap). Narrow, non-domain
