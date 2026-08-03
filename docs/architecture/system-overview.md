@@ -40,6 +40,13 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - [015 - Capability Self-Description via ActionCapabilityProvider](../decisions/accepted/015-capability-self-description.md)
 - [016 - capability() Ownership Migration](../decisions/accepted/016-capability-ownership-migration.md)
 - [017 - ElementSupport and LocatorRoles Utility Scope](../decisions/accepted/017-element-support-locator-roles.md)
+- [018 - Engine Lifecycle Ownership](../decisions/accepted/018-engine-lifecycle-ownership.md)
+- [019 - LocatorDescriptor as Engine-Agnostic Locator](../decisions/accepted/019-locator-descriptor.md)
+- [020 - Target as Domain-Neutral Root](../decisions/accepted/020-target-neutral-root.md)
+- [021 - Runtime Redesign: Kernel Boundary, Ontology, Open Decisions](../decisions/accepted/021-runtime-redesign-kernel-boundary.md)
+- [022 - Session Model: Identity, Neutral Bootstrap, and Unified Execution](../decisions/accepted/022-session-model.md)
+- [023 - Locator Generalization: Open LocatorStrategy Interface](../decisions/accepted/023-locator-generalization.md)
+- [024 - Domain Registration: Web-Domain Package Structure](../decisions/accepted/024-domain-registration.md)
 
 ---
 
@@ -75,31 +82,31 @@ Architecture in this document is projected from accepted decisions under `docs/d
 - `Flow` composes multiple Actions into ordered sequences.
 - `FlowExecutor` iterates Flows and calls `action.perform(engine)` for each.
 - Locator resolution happens **inside** `perform()` at execution time — never eagerly.
-- `HookedAction` decorates an Action with before/after hooks, sharing a single resolved descriptor.
+- `HookChainAction` decorates an Action with before/after hooks, sharing a single resolved descriptor.
 - `ElementActions` (`@Internal`) provides a custom-operation factory for test infrastructure only (see ADR-012).
 
 ### 🧩 Capability-Based UIElement Model
 
 | Interface | Package | Description |
 |-----------|---------|-------------|
-| `Target` | `core.target` | Domain-neutral root — display text, args, effective-args. |
-| `UIElement` | `elements.api` | Web-domain root contract, extends `Target` — locator keys, external file, role map. |
-| `Clickable` | `elements.api.capability` | Clickable UI components (buttons, links). Emits `click()`. |
-| `Typeable` | `elements.api.capability` | Text input fields. Emits `type()`, `clear()`, `append()`. |
-| `Selectable` | `elements.api.capability` | Trigger + list locators for single-value dropdowns. Emits `open()`, `select()`. |
-| `MultiSelectable` | `elements.api.capability` | Repeated dropdown patterns (indexed). Emits `open()`, `selectAtIndex()`. |
-| `Searchable` | `elements.api.capability` | Search input + result list locators. |
-| `SearchableDropdown` | `elements.api.capability` | Searchable dropdown (trigger + input + results). Emits `searchAndSelect()`. |
-| `SearchField` | `elements.api.capability` | Standalone search-field (input + button). Emits `typeSearch()`, `submitSearch()`. |
-| `Hoverable` | `elements.api.capability` | Hover tooltip with attribute fallback. Emits `hover()`. |
-| `Table` | `elements.api.capability` | Read-only structured table (rows, columns, cells, header). |
-| `EditableTable` | `elements.api.capability` | Editable table — adds add/remove row buttons. Emits `clickAddRow()`. |
-| `Listable` | `elements.api.capability` | Static or dynamic list-based UI patterns. |
-| `Checkable` | `elements.api.capability` | Checkbox toggle logic. Emits `toggle()`, `set(boolean)`. |
-| `Uploadable` | `elements.api.capability` | File upload automation. Emits `upload(path)`. |
-| `ReadOnly` | `elements.api.capability` | Non-editable / display-only elements. Emits `readText()`. |
-| `KeyValuePair` | `elements.api` | Key-value display or edit pairs. |
-| `ResolvableEnum` | `core.utils` | Mixin for name↔label enum resolution. Not a locator interface. |
+| `Target` | `core.target` | Domain-neutral root -- display text, args, effective-args. |
+| `UIElement` | `domain.automation.web.vocabulary.element` | Web-domain root contract, extends `Target` -- locator keys, external file, role map. |
+| `Clickable` | `domain.automation.web.vocabulary.capability` | Clickable UI components (buttons, links). Emits `click()`. |
+| `Typeable` | `domain.automation.web.vocabulary.capability` | Text input fields. Emits `type()`, `clear()`, `append()`. |
+| `Selectable` | `domain.automation.web.vocabulary.capability` | Trigger + list locators for single-value dropdowns. Emits `open()`, `select()`. |
+| `MultiSelectable` | `domain.automation.web.vocabulary.capability` | Repeated dropdown patterns (indexed). Emits `open()`, `selectAtIndex()`. |
+| `Searchable` | `domain.automation.web.vocabulary.capability` | Search input + result list locators. |
+| `SearchableDropdown` | `domain.automation.web.vocabulary.capability` | Searchable dropdown (trigger + input + results). Emits `searchAndSelect()`. |
+| `SearchField` | `domain.automation.web.vocabulary.capability` | Standalone search-field (input + button). Emits `typeSearch()`, `submitSearch()`. |
+| `Hoverable` | `domain.automation.web.vocabulary.capability` | Hover tooltip with attribute fallback. Emits `hover()`. |
+| `Table` | `domain.automation.web.vocabulary.capability` | Read-only structured table (rows, columns, cells, header). |
+| `EditableTable` | `domain.automation.web.vocabulary.capability` | Editable table -- adds add/remove row buttons. Emits `clickAddRow()`. |
+| `Listable` | `domain.automation.web.vocabulary.capability` | Static or dynamic list-based UI patterns. |
+| `Checkable` | `domain.automation.web.vocabulary.capability` | Checkbox toggle logic. Emits `toggle()`, `set(boolean)`. |
+| `Uploadable` | `domain.automation.web.vocabulary.capability` | File upload automation. Emits `upload(path)`. |
+| `ReadOnly` | `domain.automation.web.vocabulary.capability` | Non-editable / display-only elements. Emits `readText()`. |
+| `KeyValuePair` | `domain.automation.web.vocabulary.element` | Key-value display or edit pairs. |
+| `ResolvableEnum` | `core.utils` | Mixin for name-label enum resolution. Not a locator interface. |
 
 ---
 

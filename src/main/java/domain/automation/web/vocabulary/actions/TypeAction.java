@@ -1,0 +1,36 @@
+package domain.automation.web.vocabulary.actions;
+import core.actions.ActionCapability;
+
+import core.annotations.Beta;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.engine.UIEngine;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.role.ElementRole;
+
+/**
+ * Concrete action for typing text into a {@link Typeable} element.
+ *
+ * <p>Emitted by {@code Typeable.type(String)}. Resolves the INPUT locator, then
+ * delegates to {@link UIEngine#type} (clear then type).</p>
+ *
+ * <p>Safe profile: {@link CapabilityProfiles#TYPEABLE_SAFE} — clears field and waits for
+ * visibility before; highlights after.</p>
+ */
+@Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
+public final class TypeAction extends TypeableElementAction {
+
+    private final String text;
+
+    public TypeAction(Typeable element, String text) {
+        super(element, ElementRole.INPUT, ActionCapability.TYPEABLE);
+        this.text = text;
+    }
+
+    @Override
+    public String operationLabel() { return "type"; }
+
+    @Override
+    protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
+        engine.type(descriptor, text);
+    }
+}

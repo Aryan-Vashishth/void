@@ -1,13 +1,13 @@
 package core.interactions;
 
-import core.resolvers.locator.api.LocatorRequest;
-import core.resolvers.locator.api.LocatorResolvers;
-import elements.locator.LocatorDescriptor;
+import domain.automation.web.resolve.api.LocatorRequest;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.locator.LocatorDescriptor;
 
-import core.driver.DriverContext;
-import elements.api.UIElement;
-import elements.api.capability.*;
-import elements.meta.ElementRole;
+import domain.automation.web.selenium.driver.SeleniumDriverContext;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.capability.*;
+import domain.automation.web.vocabulary.role.ElementRole;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -287,13 +287,13 @@ public final class Via {
     /** @deprecated Use engine-based methods instead. */
     @Deprecated(forRemoval = true)
     public static WebElement webElement(UIElement element) {
-        return webElement(DriverContext.getActiveDriver(), element);
+        return webElement(SeleniumDriverContext.getActiveDriver(), element);
     }
 
     /** @deprecated Use engine-based methods instead. */
     @Deprecated(forRemoval = true)
     public static WebElement webElement(By locator) {
-        return webElement(DriverContext.getActiveDriver(), locator);
+        return webElement(SeleniumDriverContext.getActiveDriver(), locator);
     }
 
     /** @deprecated Use engine-based methods instead. */

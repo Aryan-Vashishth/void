@@ -1,13 +1,13 @@
 package dsl;
 
-import elements.locator.LocatorDescriptor;
-import core.resolvers.locator.api.LocatorRequest;
-import core.resolvers.locator.api.LocatorResolvers;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.resolve.api.LocatorRequest;
+import domain.automation.web.resolve.api.LocatorResolvers;
 
-import elements.meta.EnumClassRegistry;
-import elements.api.UIElement;
+import domain.automation.web.vocabulary.role.EnumClassRegistry;
+import domain.automation.web.vocabulary.element.UIElement;
 import core.actions.ActionCapability;
-import elements.api.capability.*;
+import domain.automation.web.vocabulary.capability.*;
 import core.utils.ResolvableEnum;
 import core.actions.hooks.ActionHandler;
 import core.interactions.Interactions;
@@ -15,7 +15,7 @@ import core.utils.EnumResolver;
 
 import java.util.List;
 
-import static elements.meta.EnumClassRegistry.*;
+import static domain.automation.web.vocabulary.role.EnumClassRegistry.*;
 import static core.utils.EnumResolver.stringToEnum;
 import static core.logging.CustomLogger.*;
 

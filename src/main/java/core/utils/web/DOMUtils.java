@@ -4,7 +4,7 @@ import core.utils.UIContext;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import core.driver.DriverContext;
+import domain.automation.web.selenium.driver.SeleniumDriverContext;
 
 import static core.logging.CustomLogger.debug;
 import static core.logging.CustomLogger.info;
@@ -31,7 +31,7 @@ public class DOMUtils {
     @Deprecated(forRemoval = true)
     public static void scrollToElement(WebElement element) {
         try {
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             ((JavascriptExecutor) driver).executeScript(
                     "arguments[0].scrollIntoView({behavior: 'instant', block: 'center', inline: 'nearest'});",
                     element
@@ -50,7 +50,7 @@ public class DOMUtils {
         debug.log("Attempting to hover on element: " + element);
         try {
             scrollToElement(element);
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             Actions actions = new Actions(driver);
             actions.moveToElement(element).perform();
             info.success("Hovered on element successfully.");
@@ -66,7 +66,7 @@ public class DOMUtils {
     @Deprecated(forRemoval = true)
     public static void switchToFrame(By iframeLocator) {
         try {
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             WebElement iframe;
             if (iframeLocator != null) {
                 try {
@@ -119,7 +119,7 @@ public class DOMUtils {
     @Deprecated(forRemoval = true)
     public static void switchToDefaultContent() {
         try {
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             driver.switchTo().defaultContent();
             info.frame("Switched back to default content.");
         } catch (Exception e) {
@@ -134,7 +134,7 @@ public class DOMUtils {
     @Deprecated(forRemoval = true)
     public static void sendKey(Keys key) {
         try {
-            WebDriver driver = DriverContext.getDriver();
+            WebDriver driver = SeleniumDriverContext.getDriver();
             debug.log("Sending key via Actions: " + key.name());
             new Actions(driver).sendKeys(key).perform();
             info.success("Key sent successfully: " + key.name());

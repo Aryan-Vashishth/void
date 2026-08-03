@@ -1,7 +1,7 @@
 package tests.demo.pages;
 
-import elements.api.UIElement;
-import elements.api.capability.*;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.capability.*;
 
 /**
  * Complex page-element catalogue for the Account Mapping page.

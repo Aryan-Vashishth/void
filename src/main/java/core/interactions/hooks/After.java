@@ -2,9 +2,9 @@ package core.interactions.hooks;
 
 import core.actions.hooks.AfterActionHandler;
 import core.engine.Executor;
-import core.engine.UIEngine;
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
+import domain.automation.web.engine.UIEngine;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
 
 import java.time.Duration;
 

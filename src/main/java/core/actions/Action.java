@@ -5,8 +5,8 @@ import core.actions.hooks.AfterActionHandler;
 import core.actions.hooks.BeforeActionHandler;
 import core.annotations.Beta;
 import core.engine.Executor;
-import elements.locator.LocatorDescriptor;
-import core.engine.UIEngine;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.engine.UIEngine;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;

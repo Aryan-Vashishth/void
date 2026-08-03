@@ -19,7 +19,7 @@
 //import org.openqa.selenium.By;
 //import org.testng.Assert;
 //import core.utils.web.DOMUtils;
-//import core.driver.DriverContext;
+//import domain.automation.web.selenium.driver.SeleniumDriverContext;
 //import core.utils.EnumResolver;
 //import core.utils.json.JsonLogger;
 //import core.utils.json.JsonReader;
@@ -51,16 +51,16 @@
 //    CommonMethods commonMethods = new CommonMethods();
 //    Vartopia vartopia;
 //
-//    // Γ£à Add constructor to initialize DriverContext
+//    // Γ£à Add constructor to initialize SeleniumDriverContext
 //    public CommonStepDef() {
 //       CustomLogger.initialize(this.getClass());
-//        DriverContext.setDriver(driver);
+//        SeleniumDriverContext.setDriver(driver);
 //        vartopia = new Vartopia();
 //    }
 //
 //    // --- Small helpers for richer assert messages ---
 //    private String activeKeySafe() {
-//        try { return DriverContext.getActiveKey(); } catch (Exception e) { return "n/a"; }
+//        try { return SeleniumDriverContext.getActiveKey(); } catch (Exception e) { return "n/a"; }
 //    }
 //    private String pageUrl() {
 //        try { return HelperMethods.getCurrentURLPage(driver); } catch (Exception e) { return "n/a"; }

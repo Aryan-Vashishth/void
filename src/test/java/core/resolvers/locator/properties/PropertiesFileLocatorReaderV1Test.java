@@ -1,5 +1,6 @@
 package core.resolvers.locator.properties;
 
+import domain.automation.web.resolve.properties.PropertiesFileLocatorReader;
 import org.openqa.selenium.By;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

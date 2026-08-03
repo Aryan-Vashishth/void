@@ -2,10 +2,10 @@ package core.runtime;
 
 import core.bootstrap.FrameworkBootstrap;
 import core.context.SessionContext;
-import core.driver.DriverFactory;
+import core.engine.DomainRegistry;
 import core.engine.EngineBootstrap;
 import core.engine.Executor;
-import core.engine.UIEngineFactory;
+import domain.automation.web.engine.UIEngineFactory;
 import core.logging.CustomLogger;
 
 import java.util.Properties;
@@ -19,30 +19,46 @@ import java.util.Properties;
  *
  * <h3>Usage</h3>
  * <pre>
- *   // Engine resolved from config / ENV / System property
+ *   // Domain and engine resolved from config / ENV / System property
  *   VOID session = VOID.builder()
- *           .profile(DriverFactory.Profile.DEFAULT)
+ *           .profile(SessionProfile.DEFAULT)
  *           .start();
  *
- *   // Explicit engine override
+ *   // Explicit domain and engine override
  *   VOID session = VOID.builder()
+ *           .domain("web")
  *           .engine(SeleniumEngine.ID)
- *           .profile(DriverFactory.Profile.CHROME)
+ *           .profile(SessionProfile.CI)
  *           .start();
  *
  *   // Two independent sessions
- *   VOID admin    = VOID.builder().profile(DriverFactory.Profile.DEFAULT).start();
- *   VOID customer = VOID.builder().profile(DriverFactory.Profile.DEFAULT).start();
+ *   VOID admin    = VOID.builder().profile(SessionProfile.DEFAULT).start();
+ *   VOID customer = VOID.builder().profile(SessionProfile.DEFAULT).start();
  * </pre>
  */
 public final class VOIDBuilder {
 
+    private String domainName;
     private String engineName;
-    private DriverFactory.Profile profile;
+    private SessionProfile profile;
     private boolean started = false;
 
     /** Package-private -- callers use {@link VOID#builder()}. */
     VOIDBuilder() {}
+
+    /**
+     * Selects the domain for this session.
+     *
+     * <p>If not called, the domain is resolved from System property {@code domain},
+     * ENV {@code DOMAIN}, config, or the registry default ({@code "web"}).</p>
+     *
+     * @param domainId domain identifier string (e.g. {@code "web"})
+     * @return this builder
+     */
+    public VOIDBuilder domain(String domainId) {
+        this.domainName = domainId;
+        return this;
+    }
 
     /**
      * Overrides engine selection for this session.
@@ -60,24 +76,28 @@ public final class VOIDBuilder {
     }
 
     /**
-     * Sets the driver configuration profile for this session.
+     * Sets the session configuration profile.
      *
-     * @param profile driver profile
+     * <p>The profile name is passed to the domain executor's adapter, which maps it
+     * to its own configuration source (e.g. the Selenium adapter maps {@code "DEFAULT"}
+     * to {@code driver.properties}, {@code "CI"} to {@code driver-ci.properties}).</p>
+     *
+     * @param sessionProfile session profile
      * @return this builder
      */
-    public VOIDBuilder profile(DriverFactory.Profile profile) {
-        this.profile = profile;
+    public VOIDBuilder profile(SessionProfile sessionProfile) {
+        this.profile = sessionProfile;
         return this;
     }
 
     /**
-     * Initializes the engine and returns a ready-to-use {@link VOID} session.
+     * Initializes the domain executor and returns a ready-to-use {@link VOID} session.
      *
      * <p>This is the terminal operation. The call sequence is:</p>
      * <ol>
-     *   <li>{@link FrameworkBootstrap#init()} -- one-time config validation</li>
-     *   <li>{@link UIEngineFactory#create} -- engine selected first, driver deferred</li>
-     *   <li>Build a {@link SessionContext} binding config and engine</li>
+     *   <li>{@link FrameworkBootstrap#init()} -- one-time config load</li>
+     *   <li>{@link DomainRegistry#create} -- domain resolved, executor created and initialized</li>
+     *   <li>Build a {@link SessionContext} binding config and executor</li>
      * </ol>
      *
      * @return a ready-to-use VOID session
@@ -91,21 +111,27 @@ public final class VOIDBuilder {
         FrameworkBootstrap.init();
 
         Properties config = resolvedConfig();
+        String resolvedDomain = DomainRegistry.resolveDomainName(config);
+
         Properties bootstrapSettings = new Properties();
         bootstrapSettings.setProperty("profile",
-                (profile != null ? profile : DriverFactory.Profile.DEFAULT).name());
-        Executor executor = UIEngineFactory.create(config,
+                (profile != null ? profile : SessionProfile.DEFAULT).name());
+        Executor executor = DomainRegistry.create(resolvedDomain, config,
                 EngineBootstrap.withSettings(bootstrapSettings));
 
         SessionContext ctx = new SessionContext(config, executor);
 
         CustomLogger.info.log("VOID session started -- sessionId=" + ctx.sessionId()
+                + ", domain=" + resolvedDomain
                 + ", engine=" + ctx.getEngineName() + ", profile=" + profile);
         return new VOID(ctx);
     }
 
     private Properties resolvedConfig() {
         Properties config = new Properties(FrameworkBootstrap.getUtilsConfig());
+        if (domainName != null) {
+            config.setProperty(DomainRegistry.PROP_DOMAIN, domainName);
+        }
         if (engineName != null) {
             config.setProperty(UIEngineFactory.PROP_ENGINE, engineName);
         }

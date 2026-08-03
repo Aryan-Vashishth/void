@@ -1,9 +1,11 @@
 package core.resolvers.locator.api;
 
-import elements.locator.LocatorDescriptor;
-import elements.api.UIElement;
-import elements.api.capability.Clickable;
-import elements.meta.ElementRole;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.resolve.api.LocatorResolver;
+import domain.automation.web.resolve.api.LocatorResolvers;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.role.ElementRole;
 
 import org.testng.annotations.Test;
 

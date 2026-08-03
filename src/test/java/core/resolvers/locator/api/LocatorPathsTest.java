@@ -1,5 +1,6 @@
 package core.resolvers.locator.api;
 
+import domain.automation.web.resolve.api.LocatorPaths;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;

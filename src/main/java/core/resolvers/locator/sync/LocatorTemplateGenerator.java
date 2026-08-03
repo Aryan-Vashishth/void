@@ -1,7 +1,7 @@
 package core.resolvers.locator.sync;
 
-import elements.api.UIElement;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.element.UIElement;
+import domain.automation.web.vocabulary.role.ElementRole;
 
 import java.util.ArrayList;
 import java.util.EnumSet;

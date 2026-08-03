@@ -1,11 +1,11 @@
 package tests.demo.hooks;
 
 import core.actions.hooks.AfterActionHandler;
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
-import core.engine.UIEngine;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
+import domain.automation.web.engine.UIEngine;
 import tests.demo.pages.DemoLoginPage;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.role.ElementRole;
 
 import java.time.Duration;
 

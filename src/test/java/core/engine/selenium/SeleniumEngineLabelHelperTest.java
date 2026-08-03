@@ -1,7 +1,8 @@
 package core.engine.selenium;
 
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
+import domain.automation.web.selenium.SeleniumEngine;
 
 import org.testng.annotations.Test;
 

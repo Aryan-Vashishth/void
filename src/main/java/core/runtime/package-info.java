@@ -16,7 +16,7 @@
  * <pre>
  *   VOID.start()
  *     → FrameworkBootstrap.init()          (one-time: validate configs, seed utils)
- *     → DriverManager.createDriver()       (create + register WebDriver)
+ *     → SeleniumDriverManager.createDriver()       (create + register WebDriver)
  *     → UIEngineFactory.create()           (instantiate engine from config)
  *     → ExecutionContext                   (holds config + driver for this session)
  *     → return VOID façade                 (thin wrapper, delegates to context)

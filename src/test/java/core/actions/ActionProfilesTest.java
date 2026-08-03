@@ -1,16 +1,16 @@
 package core.actions;
 
 import core.engine.Executor;
-import elements.locator.LocatorDescriptor;
-import elements.locator.LocatorStrategy;
-import core.engine.UIEngine;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorStrategy;
+import domain.automation.web.engine.UIEngine;
 import core.interactions.hooks.After;
 import core.interactions.hooks.Before;
 import core.utils.ConfigLoader;
-import elements.api.actions.ElementActions;
-import elements.api.capability.Clickable;
-import elements.api.capability.Typeable;
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.actions.ElementActions;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.role.ElementRole;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 

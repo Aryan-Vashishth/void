@@ -1,5 +1,6 @@
 package core.resolvers.locator.json;
 
+import domain.automation.web.resolve.json.PropertiesIndex;
 import org.testng.annotations.Test;
 
 import java.util.Properties;

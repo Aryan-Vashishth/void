@@ -1,6 +1,6 @@
 package elements.fixture;
 
-import elements.api.capability.Typeable;
+import domain.automation.web.vocabulary.capability.Typeable;
 
 public interface ConventionalPropsPage {
 

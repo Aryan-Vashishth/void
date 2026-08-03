@@ -1,7 +1,7 @@
 package elements.fixture;
 
-import elements.api.capability.Clickable;
-import elements.api.capability.ReadOnly;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.ReadOnly;
 
 /**
  * Test-only page used to verify Phase 5 conventional path resolution.

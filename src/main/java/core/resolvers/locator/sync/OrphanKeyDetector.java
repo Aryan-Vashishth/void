@@ -1,6 +1,6 @@
 package core.resolvers.locator.sync;
 
-import elements.meta.ElementRole;
+import domain.automation.web.vocabulary.role.ElementRole;
 
 import java.util.ArrayList;
 import java.util.Collections;

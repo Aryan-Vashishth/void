@@ -1,6 +1,6 @@
 package core.utils;
 
-import elements.locator.LocatorDescriptor;
+import domain.automation.web.locator.LocatorDescriptor;
 import org.openqa.selenium.WebElement;
 
 /**

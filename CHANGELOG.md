@@ -13,6 +13,89 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.9.0] - 2026-07-31
+
+### Internal
+
+- **Domain registration contract -- runtime-redesign I6.1**: `DomainRegistrar` SPI and
+  `DomainRegistry` factory introduced in `core.engine`. `VOIDBuilder` wired to read the active
+  domain at bootstrap; the Web domain self-registers as the default so existing user code
+  requires no changes. `EngineRegistrar` relocated from `core.engine.selenium` to the SPI.
+
+- **Web domain assembly and ownership audit -- runtime-redesign I6.2**: Web domain declared as
+  the first `Domain` instance. Full ownership sweep of all main-tree packages produces the
+  Class Migration Matrix: vocabulary layer (`UIElement` model, capabilities, actions, roles) vs.
+  implementation layer (UIEngine contract, Selenium executor, locator resolution, driver
+  internals). No files moved in this phase -- the matrix is the authoritative input for I6.4.
+
+- **Probe domain (neutrality CI gate) -- runtime-redesign I6.3**: A minimal, test-scope,
+  non-UI store domain registered and executed entirely from test code proves: new domain, zero
+  edits to runtime-owned files. The probe exercises registration, session creation, capability
+  declaration and validation, interaction dispatch, hooks, and tracing. It runs in CI
+  permanently as the M4 neutrality regression gate. Removing it or breaking it is a build
+  failure, not a code-review concern.
+
+- **Physical web domain relocation -- runtime-redesign I6.4**: All 74+ types from the I6.2
+  matrix physically relocated to `domain.automation.web.*`. `DriverFactory` renamed to
+  `SeleniumDriverFactory`, `DriverContext` to `SeleniumDriverContext`, `DriverManager` to
+  `SeleniumDriverManager`. `SessionProfile` introduced in `core.runtime` as the stable session
+  configuration type (resolves F4 gate); deprecated `VOID.start(SeleniumDriverFactory.Profile)`
+  and `VOIDBuilder.profile(SeleniumDriverFactory.Profile)` bridge methods removed.
+  `driver.properties` renamed to `selenium-webdriver.properties`. Package-info.java added to
+  all 16 domain packages. Fitness checks tightened: `domain.automation.web.vocabulary.*` is
+  Selenium-free, kernel packages do not import `domain.automation.web.vocabulary.*` or
+  `domain.automation.web.selenium.*`, `SeleniumDriverContext` field check updated to new FQN.
+
+  **Package FQN mapping (1.0.0 migration guide -- authoring complete, finalized in I9.5):**
+
+  | Old FQN | New FQN |
+  |---|---|
+  | `elements.api.UIElement` | `domain.automation.web.vocabulary.element.UIElement` |
+  | `elements.api.KeyValuePair` | `domain.automation.web.vocabulary.element.KeyValuePair` |
+  | `elements.api.LocatorFamily` | `domain.automation.web.vocabulary.element.LocatorFamily` |
+  | `elements.api.AdvancedLocatorFamily` | `domain.automation.web.vocabulary.element.AdvancedLocatorFamily` |
+  | `elements.api.SwitchLocatorFamily` | `domain.automation.web.vocabulary.element.SwitchLocatorFamily` |
+  | `elements.api.capability.Clickable` | `domain.automation.web.vocabulary.capability.Clickable` |
+  | `elements.api.capability.Typeable` | `domain.automation.web.vocabulary.capability.Typeable` |
+  | `elements.api.capability.Listable` | `domain.automation.web.vocabulary.capability.Listable` |
+  | `elements.api.capability.Selectable` | `domain.automation.web.vocabulary.capability.Selectable` |
+  | `elements.api.capability.Checkable` | `domain.automation.web.vocabulary.capability.Checkable` |
+  | `elements.api.capability.ReadOnly` | `domain.automation.web.vocabulary.capability.ReadOnly` |
+  | `elements.api.capability.Hoverable` | `domain.automation.web.vocabulary.capability.Hoverable` |
+  | `elements.api.capability.SearchField` | `domain.automation.web.vocabulary.capability.SearchField` |
+  | `elements.api.capability.Searchable` | `domain.automation.web.vocabulary.capability.Searchable` |
+  | `elements.api.capability.SearchableDropdown` | `domain.automation.web.vocabulary.capability.SearchableDropdown` |
+  | `elements.api.capability.Uploadable` | `domain.automation.web.vocabulary.capability.Uploadable` |
+  | `elements.api.capability.Table` | `domain.automation.web.vocabulary.capability.Table` |
+  | `elements.api.capability.EditableTable` | `domain.automation.web.vocabulary.capability.EditableTable` |
+  | `elements.api.capability.MultiSelectable` | `domain.automation.web.vocabulary.capability.MultiSelectable` |
+  | `elements.api.actions.ElementAction` | `domain.automation.web.vocabulary.actions.ElementAction` |
+  | `elements.api.actions.ElementActions` | `domain.automation.web.vocabulary.actions.ElementActions` |
+  | `elements.api.actions.CapabilityProfiles` | `domain.automation.web.vocabulary.actions.CapabilityProfiles` |
+  | `elements.meta.ElementRole` | `domain.automation.web.vocabulary.role.ElementRole` |
+  | `elements.meta.EnumClassRegistry` | `domain.automation.web.vocabulary.role.EnumClassRegistry` |
+  | `elements.locator.LocatorDescriptor` | `domain.automation.web.locator.LocatorDescriptor` |
+  | `elements.locator.LocatorStrategy` | `domain.automation.web.locator.LocatorStrategy` |
+  | `elements.locator.NamedStrategy` | `domain.automation.web.locator.NamedStrategy` |
+  | `core.engine.UIEngine` | `domain.automation.web.engine.UIEngine` |
+  | `core.engine.UIEngineFactory` | `domain.automation.web.engine.UIEngineFactory` |
+  | `core.engine.EngineRegistrar` | `domain.automation.web.engine.EngineRegistrar` |
+  | `core.engine.selenium.SeleniumEngine` | `domain.automation.web.selenium.SeleniumEngine` |
+  | `core.engine.selenium.SeleniumEngineRegistrar` | `domain.automation.web.selenium.SeleniumEngineRegistrar` |
+  | `core.driver.DriverFactory` | `domain.automation.web.selenium.driver.SeleniumDriverFactory` |
+  | `core.driver.DriverContext` | `domain.automation.web.selenium.driver.SeleniumDriverContext` |
+  | `core.driver.DriverManager` | `domain.automation.web.selenium.driver.SeleniumDriverManager` |
+  | `core.driver.Waiter` | `domain.automation.web.selenium.driver.Waiter` |
+  | `core.resolvers.locator.api.*` | `domain.automation.web.resolve.api.*` |
+  | `core.resolvers.locator.parser.*` | `domain.automation.web.resolve.parser.*` |
+  | `core.resolvers.locator.properties.*` | `domain.automation.web.resolve.properties.*` |
+  | `core.resolvers.locator.source.*` | `domain.automation.web.resolve.source.*` |
+  | `core.resolvers.locator.json.JsonLocatorReader` | `domain.automation.web.resolve.json.JsonLocatorReader` |
+  | `core.resolvers.locator.json.PropertiesIndex` | `domain.automation.web.resolve.json.PropertiesIndex` |
+  | `core.resolvers.locator.json.JsonTreeBuilder` | `domain.automation.web.resolve.json.JsonTreeBuilder` |
+
+---
+
 ## [0.8.0] - 2026-07-30
 
 ### Internal
@@ -746,7 +829,8 @@ After bumping to `2.0-SNAPSHOT`:
 
 ---
 
-[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Aryan-Vashishth/void-framework/compare/v0.5.0...v0.6.0

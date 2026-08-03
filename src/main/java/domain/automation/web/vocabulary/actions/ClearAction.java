@@ -1,0 +1,30 @@
+package domain.automation.web.vocabulary.actions;
+import core.actions.ActionCapability;
+
+import core.annotations.Beta;
+import domain.automation.web.locator.LocatorDescriptor;
+import domain.automation.web.engine.UIEngine;
+import domain.automation.web.vocabulary.capability.Typeable;
+import domain.automation.web.vocabulary.role.ElementRole;
+
+/**
+ * Concrete action for clearing a {@link Typeable} element's input field.
+ *
+ * <p>Emitted by {@code Typeable.clear()}. Resolves the INPUT locator, then
+ * delegates to {@link UIEngine#clear}.</p>
+ *
+ * <p>Safe profile: {@link CapabilityProfiles#TYPEABLE_SAFE} — clears field and waits for
+ * visibility before; highlights after.</p>
+ */
+@Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
+public final class ClearAction extends TypeableElementAction {
+
+    public ClearAction(Typeable element) {
+        super(element, ElementRole.INPUT, ActionCapability.TYPEABLE);
+    }
+
+    @Override
+    protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
+        engine.clear(descriptor);
+    }
+}

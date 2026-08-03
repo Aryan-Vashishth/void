@@ -3,7 +3,7 @@ package core.architecture;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
-import elements.api.UIElement;
+import domain.automation.web.vocabulary.element.UIElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -29,7 +29,7 @@ public class ElementStructureRulesTest {
     @BeforeClass
     public void importClasses() {
         allClasses = new ClassFileImporter()
-                .importPackages("tests", "elements", "core");
+                .importPackages("tests", "elements", "core", "domain", "dsl");
     }
 
     // ─────────────────────────────────────────────────────────────────────

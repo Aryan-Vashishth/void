@@ -1,6 +1,9 @@
 package core.resolvers.locator.source;
 
-import core.resolvers.locator.api.LocatorRequest;
+import domain.automation.web.resolve.api.LocatorRequest;
+import domain.automation.web.resolve.source.HardcodedLocatorSource;
+import domain.automation.web.resolve.source.JsonLocatorSource;
+import domain.automation.web.resolve.source.PropertiesLocatorSource;
 
 import org.testng.annotations.Test;
 

@@ -5,6 +5,7 @@
         <packages>
             <package name="core.*"/>
             <package name="elements.*"/>
+            <package name="probe.*"/>
         </packages>
     </test>
 </suite>

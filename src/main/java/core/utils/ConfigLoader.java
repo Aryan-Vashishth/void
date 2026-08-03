@@ -35,7 +35,7 @@ import java.util.function.BiFunction;
  *   Properties props = ConfigLoader.loadFromClasspath("core/driver/config/driver.properties");
  * </pre>
  *
- * @see core.driver.DriverFactory
+ * @see core.driver.SeleniumDriverFactory
  * @see core.resolvers.locator.api.LocatorPaths
  */
 public final class ConfigLoader {

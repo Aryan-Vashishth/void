@@ -1,9 +1,9 @@
 package tests.demo.pages;
 
-import elements.api.LocatorFamily;
-import elements.api.capability.Clickable;
-import elements.api.capability.ReadOnly;
-import elements.api.capability.Typeable;
+import domain.automation.web.vocabulary.element.LocatorFamily;
+import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.ReadOnly;
+import domain.automation.web.vocabulary.capability.Typeable;
 
 /**
  * UIElement definitions for the-internet.herokuapp.com/login demo page.

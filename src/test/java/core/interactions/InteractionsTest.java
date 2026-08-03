@@ -1,9 +1,9 @@
 package core.interactions;
 import core.actions.hooks.ActionHandler;
-import core.driver.DriverContext;
+import domain.automation.web.selenium.driver.SeleniumDriverContext;
 import core.logging.CustomLogger;
 import core.interactions.Interactions;
-import core.engine.selenium.SeleniumEngine;
+import domain.automation.web.selenium.SeleniumEngine;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -23,7 +23,7 @@ import static org.testng.Assert.*;
  * deliberately scoped to the parts of {@code Interactions} that can be exercised
  * without a real browser:</p>
  * <ul>
- *   <li>Constructor wiring (driver + WebDriverWait fields, DriverContext registration).</li>
+ *   <li>Constructor wiring (driver + WebDriverWait fields, SeleniumDriverContext registration).</li>
  *   <li>The {@link Interactions#of(ActionHandler...)} hook-collection helper.</li>
  * </ul>
  *
@@ -63,8 +63,8 @@ public class InteractionsTest {
 
     @AfterMethod(alwaysRun = true)
     public void detachDrivers() {
-        try { DriverContext.removePrimary(); }   catch (Exception ignored) {}
-        try { DriverContext.removeSecondary(); } catch (Exception ignored) {}
+        try { SeleniumDriverContext.removePrimary(); }   catch (Exception ignored) {}
+        try { SeleniumDriverContext.removeSecondary(); } catch (Exception ignored) {}
     }
     // ---------------------------------------------------------------------
     // Constructor
@@ -99,11 +99,11 @@ public class InteractionsTest {
     @Test
     public void constructor_doesNotRegisterDriverInDriverContext() {
         // After Phase 3: driver registration moved to SeleniumEngine.initialize().
-        // Interactions(UIEngine) no longer touches DriverContext.
+        // Interactions(UIEngine) no longer touches SeleniumDriverContext.
         WebDriver fake = newFakeDriver();
         new Interactions(new SeleniumEngine(fake));
-        assertFalse(DriverContext.hasPrimary(),
-                "Interactions constructor must not register driver in DriverContext; "
+        assertFalse(SeleniumDriverContext.hasPrimary(),
+                "Interactions constructor must not register driver in SeleniumDriverContext; "
                 + "registration is owned by SeleniumEngine.initialize()");
     }
     // ---------------------------------------------------------------------

@@ -71,7 +71,7 @@ Test code
   │
   ├─ VOID.start()
   │     VOIDBuilder
-  │       ├─ FrameworkBootstrap.init()           load driver.properties, utils config
+  │       ├─ FrameworkBootstrap.init()           load utils config (no driver.properties gate since I5.2)
   │       ├─ UIEngineFactory.create()
   │       │     └─ SeleniumEngine.initialize(EngineConfig)
   │       │           └─ WebDriver instantiated here (engine-private)
@@ -146,22 +146,22 @@ HookChainAction  (final -- wraps any Action with before/after pipeline)
 | `VOIDBuilder` | `core.runtime` | class | Fluent builder; wires engine and context |
 | `SessionContext` | `core.context` | class | Immutable per-session config and engine holder |
 | `FrameworkBootstrap` | `core.bootstrap` | class | One-time JVM init; loads config files |
-| `UIEngineFactory` | `core.engine` | class | Instantiates the correct UIEngine implementation |
-| `EngineBootstrap` | `core.engine` | sealed interface | Opaque init token passed from builder to factory |
-| `EngineConfig` | `core.engine` | class | Engine-agnostic settings (timeouts, baseUrl, polling) |
-| `UIEngine` | `core.engine` | interface | Single execution authority over the browser |
-| `SeleniumEngine` | `core.engine` | class | Selenium implementation of UIEngine |
+| `UIEngineFactory` | `domain.automation.web.engine` | class | Instantiates the correct UIEngine implementation |
+| `EngineBootstrap` | `domain.automation.web.engine` | sealed interface | Opaque init token passed from builder to factory |
+| `EngineConfig` | `domain.automation.web.engine` | class | Engine-agnostic settings (timeouts, baseUrl, polling) |
+| `UIEngine` | `domain.automation.web.engine` | interface | Single execution authority over the browser |
+| `SeleniumEngine` | `domain.automation.web.selenium` | class | Selenium implementation of UIEngine |
 | `FlowExecutor` | `core.executor` | class | Iterates a Flow and executes each Action |
 | `Flow` | `core.flow` | class | Immutable ordered sequence of Actions |
 | `Action` | `core.actions` | interface | Deferred UI operation; receives engine at perform time |
 | `ElementAction` | `core.actions` | abstract class | Template method: resolve locator then execute |
 | `HookChainAction` | `core.actions` | final class | Wraps any Action with a before/after hook pipeline |
-| `ClickAction` etc. | `core.actions` | concrete classes | Leaf operations that delegate to UIEngine methods |
+| `ClickAction` etc. | `domain.automation.web.vocabulary.actions` | concrete classes | Leaf operations that delegate to UIEngine methods |
 | `Target` | `core.target` | interface | Domain-neutral root: display text, args, effective-args |
-| `UIElement` | `elements.api` | interface | Page object descriptor: locator keys, roles, external file; extends `Target` |
-| `ElementRole` | `elements.meta` | enum | Locator slot selector (PRIMARY, SECONDARY, ...) |
-| `LocatorDescriptor` | `core.engine` | record | Engine-agnostic resolved locator passed to UIEngine |
-| `LocatorResolver` | `core.resolvers` | class | Loads, formats, and parses locator templates |
+| `UIElement` | `domain.automation.web.vocabulary.element` | interface | Page object descriptor: locator keys, roles, external file; extends `Target` |
+| `ElementRole` | `domain.automation.web.vocabulary.role` | enum | Locator slot selector (PRIMARY, SECONDARY, ...) |
+| `LocatorDescriptor` | `domain.automation.web.locator` | record | Engine-agnostic resolved locator passed to UIEngine |
+| `LocatorResolver` | `domain.automation.web.resolve.api` | class | Loads, formats, and parses locator templates |
 | `ActionHandler` | `core.interactions.hooks` | interface | Hook function: `execute(engine, descriptor)` |
 | `ActionTrace` | `core.actions.trace` | class | Immutable execution record for observability |
 | `Interactions` | `core.interactions` | class | Legacy orchestrator (frozen; BDD path only) |
@@ -174,14 +174,14 @@ HookChainAction  (final -- wraps any Action with before/after pipeline)
 
 | Participant | Depends on |
 |---|---|
-| `VOID` | `SessionContext`, `UIEngine`, `FlowExecutor` |
-| `VOIDBuilder` | `FrameworkBootstrap`, `SessionContext`, `UIEngineFactory`, `EngineBootstrap`, `UIEngine`, `DriverFactory.Profile` |
-| `SessionContext` | `UIEngine`, `Properties` |
-| `UIEngineFactory` | `UIEngine`, `SeleniumEngine`, `EngineBootstrap`, `EngineConfig`, `Properties` |
+| `VOID` | `SessionContext`, `UIEngine` (deprecated escape hatches), `FlowExecutor` |
+| `VOIDBuilder` | `FrameworkBootstrap`, `SessionContext`, `UIEngineFactory`, `EngineBootstrap`, `DriverFactory.Profile` |
+| `SessionContext` | `Executor`, `Properties` |
+| `UIEngineFactory` | `Executor`, `EngineBootstrap`, `EngineConfig`, `EngineRegistrar`, `Properties` |
 | `UIEngine` | `LocatorDescriptor`, `EngineConfig`, `UIElement`, `ElementRole` |
-| `FlowExecutor` | `UIEngine`, `Action`, `Flow` |
+| `FlowExecutor` | `Executor`, `Action`, `Flow` |
 | `Flow` | `Action[]` |
-| `Action` | `UIEngine`, `LocatorDescriptor`, `ActionCapability`, `ActionHandler`, `ActionProfile` |
+| `Action` | `Executor`, `LocatorDescriptor`, `ActionCapability`, `ActionHandler`, `ActionProfile` |
 | `ElementAction` | `UIElement`, `ElementRole`, `ActionCapability`, `UIEngine`, `LocatorDescriptor` |
 | `HookChainAction` | `Action`, `ActionHandler[]`, `LocatorDescriptor`, `ActionTrace` |
 | `UIElement` | `Target` |
