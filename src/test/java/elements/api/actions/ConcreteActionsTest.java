@@ -80,6 +80,7 @@ public class ConcreteActionsTest {
         @Override public boolean isEnabled(LocatorDescriptor d)                         { return true; }
         @Override public boolean isSelected(LocatorDescriptor d)                        { return false; }
         @Override public int getElementCount(LocatorDescriptor d)                       { return 1; }
+        @Override public java.util.List<String> getAllTexts(LocatorDescriptor d)        { return java.util.List.of(); }
         @Override public String getTextWithAttributeFallback(LocatorDescriptor d, String e, String... a) { return ""; }
         @Override public void waitForClickable(LocatorDescriptor d, Duration t) {}
         @Override public void waitForAbsence(LocatorDescriptor d, Duration t) {}

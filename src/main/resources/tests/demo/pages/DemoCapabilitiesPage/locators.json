@@ -1,0 +1,117 @@
+{
+  "DemoCapabilitiesPage" : {
+    "PageHeader" : {
+      "PAGE_TITLE" : {
+        "TEXT" : "//h1[@class='page-title']"
+      },
+      "BREADCRUMB" : {
+        "TEXT" : "//nav[@aria-label='breadcrumb']//span[@class='current']"
+      }
+    },
+    "GlobalSearch" : {
+      "SITE_SEARCH" : {
+        "SEARCH_INPUT" : "//input[@id='global-search']",
+        "SEARCH_BUTTON" : "//button[@id='global-search-submit']"
+      }
+    },
+    "NotificationBell" : {
+      "BELL_ICON" : {
+        "TRIGGER" : "//button[@id='notification-bell']"
+      }
+    },
+    "FilterBar" : {
+      "CategoryFilter" : {
+        "CATEGORY_DROPDOWN" : {
+          "TRIGGER" : "//div[@id='category-filter']//button[@class='dropdown-toggle']",
+          "SEARCH_INPUT" : "//div[@id='category-filter']//input[@type='search']",
+          "SEARCH_BUTTON" : "//div[@id='category-filter']//button[@class='search-btn']",
+          "SEARCH_RESULT" : "//div[@id='category-filter']//ul[@class='results']"
+        }
+      },
+      "DatePicker" : {
+        "DATE_FROM" : {
+          "INPUT" : "//input[@id='date-from']"
+        },
+        "DATE_TO" : {
+          "INPUT" : "//input[@id='date-to']"
+        }
+      },
+      "ShowActive" : {
+        "ACTIVE_TOGGLE" : {
+          "TRIGGER" : "//input[@type='checkbox'][@id='show-active-only']"
+        }
+      },
+      "RunButton" : {
+        "APPLY_FILTERS" : {
+          "TRIGGER" : "//button[@id='apply-filters']"
+        },
+        "CLEAR_FILTERS" : {
+          "TRIGGER" : "//button[@id='clear-filters']"
+        }
+      }
+    },
+    "Sidebar" : {
+      "InfoTooltip" : {
+        "ITEM_DESCRIPTION" : {
+          "TEXT" : "//span[@class='item-description']",
+          "TOOLTIP_CONTENT" : "//div[@role='tooltip'][@id='item-desc-tooltip']"
+        }
+      },
+      "TagSelector" : {
+        "TAG_DROPDOWN" : {
+          "MULTI_TRIGGER" : "//div[%s]//button[@class='tag-trigger']",
+          "MULTI_LIST" : "//div[%s]//ul[@class='tag-options']"
+        }
+      },
+      "AttachFile" : {
+        "DOCUMENT_UPLOAD" : {
+          "INPUT" : "//input[@type='file'][@id='document-upload']"
+        }
+      }
+    },
+    "QuickActions" : {
+      "ACTIONS_MENU" : {
+        "TRIGGER" : "//button[@id='quick-actions']",
+        "LIST" : "//ul[@id='quick-actions-menu']"
+      },
+      "ActionItems" : {
+        "EXPORT_CSV" : {
+          "LIST" : "//li[@data-action='export-csv']"
+        },
+        "EXPORT_PDF" : {
+          "LIST" : "//li[@data-action='export-pdf']"
+        },
+        "PRINT_VIEW" : {
+          "LIST" : "//li[@data-action='print-view']"
+        }
+      }
+    },
+    "AdvancedSearch" : {
+      "KEYWORD_SEARCH" : {
+        "SEARCH_INPUT" : "//input[@id='advanced-search']",
+        "SEARCH_BUTTON" : "//button[@id='advanced-search-submit']",
+        "SEARCH_RESULT" : "//ul[@id='search-results']"
+      }
+    },
+    "PagerControls" : {
+      "PREVIOUS" : {
+        "TRIGGER" : "//button[@class='pager-btn' and normalize-space()='%s']"
+      },
+      "NEXT" : {
+        "TRIGGER" : "//button[@class='pager-btn' and normalize-space()='%s']"
+      },
+      "FIRST" : {
+        "TRIGGER" : "//button[@class='pager-btn' and normalize-space()='%s']"
+      },
+      "LAST" : {
+        "TRIGGER" : "//button[@class='pager-btn' and normalize-space()='%s']"
+      },
+      "PageSize" : {
+        "PAGE_SIZE_SELECTOR" : {
+          "TRIGGER" : "//button[@id='page-size-trigger']",
+          "LIST" : "//ul[@id='page-size-options']"
+        }
+      }
+    }
+  }
+}

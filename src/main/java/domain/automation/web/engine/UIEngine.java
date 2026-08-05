@@ -6,6 +6,7 @@ import domain.automation.web.vocabulary.element.UIElement;
 import domain.automation.web.locator.LocatorDescriptor;
 import domain.automation.web.vocabulary.role.ElementRole;
 import java.time.Duration;
+import java.util.List;
 
 /**
  * UIEngine — VOID's Execution Contract
@@ -185,6 +186,16 @@ public interface UIEngine extends Executor {
      * @return trimmed text content
      */
     String getText(LocatorDescriptor locator);
+
+    /**
+     * Returns the visible text of every element matching the locator.
+     *
+     * <p>Returns an empty list when no elements match; never throws.</p>
+     *
+     * @param locator target descriptor (may match zero or more elements)
+     * @return ordered list of trimmed text strings, one per matching element
+     */
+    List<String> getAllTexts(LocatorDescriptor locator);
 
     /**
      * Returns the value of the specified attribute on the element.

@@ -73,6 +73,7 @@ public class ElementActionTest {
         @Override public boolean isEnabled(LocatorDescriptor locator) { return true; }
         @Override public boolean isSelected(LocatorDescriptor locator) { return false; }
         @Override public int getElementCount(LocatorDescriptor locator) { return 1; }
+        @Override public java.util.List<String> getAllTexts(LocatorDescriptor locator) { return java.util.List.of(); }
         @Override public String getTextWithAttributeFallback(LocatorDescriptor locator, String endsWith, String... attributes) { return ""; }
         @Override public boolean getCheckboxState(LocatorDescriptor locator) { return false; }
         @Override public void waitForVisible(LocatorDescriptor locator, java.time.Duration timeout) {}
