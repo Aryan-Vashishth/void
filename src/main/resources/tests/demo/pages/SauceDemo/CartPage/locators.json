@@ -39,7 +39,9 @@
       "Buttons" : {
         "ITEM_TITLE_LINK" : {
           "TRIGGER" : "//div[@class='inventory_item_name']/a"
-        },
+        }
+      },
+      "DynamicButtons" : {
         "REMOVE_BUTTON" : {
           "TRIGGER" : "//button[@data-test='remove-%1$s']"
         }

@@ -49,14 +49,16 @@
     },
     "ProductItem" : {
       "Buttons" : {
+        "ITEM_TITLE_LINK" : {
+          "TRIGGER" : "//div[@class='inventory_item_name']/a"
+        }
+      },
+      "DynamicButtons" : {
         "ADD_TO_CART_BUTTON" : {
           "TRIGGER" : "//button[@data-test='add-to-cart-%1$s']"
         },
         "REMOVE_BUTTON" : {
           "TRIGGER" : "//button[@data-test='remove-%1$s']"
-        },
-        "ITEM_TITLE_LINK" : {
-          "TRIGGER" : "//div[@class='inventory_item_name']/a"
         }
       },
       "Labels" : {

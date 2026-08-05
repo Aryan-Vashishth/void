@@ -1,6 +1,7 @@
 package tests.demo.pages.saucedemo;
 
 import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.ParameterizedClickable;
 import domain.automation.web.vocabulary.capability.ReadOnly;
 
 public interface CartPage {
@@ -35,8 +36,11 @@ public interface CartPage {
     interface CartItem {
 
         enum Buttons implements Clickable {
-            ITEM_TITLE_LINK,
-            REMOVE_BUTTON;
+            ITEM_TITLE_LINK;
+        }
+
+        enum DynamicButtons implements ParameterizedClickable {
+            REMOVE_BUTTON;        // XPath uses %1$s for item slug
         }
 
         enum Labels implements ReadOnly {
