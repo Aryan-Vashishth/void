@@ -17,7 +17,7 @@ import domain.automation.web.vocabulary.role.ElementRole;
  * waits for Angular loader and highlights after.</p>
  */
 @Beta(since = "0.2", note = "Phase 14 — concrete action subclass")
-public final class ClickAction extends ClickableElementAction {
+public class ClickAction extends ClickableElementAction {
 
     public ClickAction(Clickable element) {
         super(element, ElementRole.TRIGGER, ActionCapability.CLICKABLE);

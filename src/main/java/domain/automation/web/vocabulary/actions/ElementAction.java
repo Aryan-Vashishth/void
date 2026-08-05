@@ -109,7 +109,19 @@ public abstract class ElementAction implements Action {
     @Override
     public final LocatorDescriptor resolve(Executor executor) {
         UIEngine engine = (UIEngine) executor;
-        return engine.resolve(element, role);
+        return engine.resolve(element, role, locatorArgs());
+    }
+
+    /**
+     * Hook for subclasses that need to supply locator substitution args at resolve time.
+     *
+     * <p>Base implementation returns an empty array so existing actions are unaffected.
+     * {@code ParameterizedAction} overrides this to return args stored via {@code withArgs()}.</p>
+     *
+     * @return args forwarded to {@link domain.automation.web.engine.UIEngine#resolve}
+     */
+    protected Object[] locatorArgs() {
+        return new Object[0];
     }
 
     /**
