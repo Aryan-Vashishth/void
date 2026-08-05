@@ -61,67 +61,93 @@ template. Alternatives considered and rejected:
 ### Type hierarchy
 
 ```
-ElementAction  (existing, unchanged)
-  └── ParameterizedAction<T>  (new abstract, CRTP)  ← locatorArgs + withArgs() + resolve()
-        └── ParameterizedClickAction                 (new concrete) ← only overrides execute()
-        └── ParameterizedHoverAction  (Phase 2)
-        └── ParameterizedTypeAction   (Phase 2)
+ElementAction  (existing, +locatorArgs() hook)
+  └── ClickableElementAction  (existing, unchanged)
+        └── ClickAction  (existing, no longer final)
+              └── ParameterizedClickAction  (new) ← storedArgs + withArgs() + locatorArgs() override
+        └── HoverAction  (future Phase 2 pattern)
+              └── ParameterizedHoverAction  (Phase 2)
+        └── ...
 
 Clickable  (existing, unchanged)
   └── ParameterizedClickable  (new)  ← overrides click() with covariant return type
 ```
 
-`withArgs()` and the args-forwarding `resolve()` live in `ParameterizedAction` once.
-Phase 2 action types inherit both for free -- zero duplication.
+`ParameterizedClickAction extends ClickAction` (not a separate `ParameterizedAction<T>` base).
+This gives it the correct type for the covariant return override in `ParameterizedClickable` --
+`ClickAction` is the overridden return type, `ParameterizedClickAction` is the subtype.
 
-### CRTP: self-referential generic for fluent return type
+`withArgs()` returns `ParameterizedClickAction` (concrete type) directly -- no CRTP needed
+since the class is `final`. No generic suppression warnings.
 
-The naive `public <A extends ParameterizedAction> A withArgs(...)` compiles but is not
-actually type-safe -- any caller can assign the result to any `ParameterizedAction`
-subtype and the cast only fails at runtime. The Self type (CRTP) fixes this:
+### Why not a shared `ParameterizedAction<T>` base class
 
-```java
-abstract class ParameterizedAction<T extends ParameterizedAction<T>> extends ElementAction {
+The CRTP base was the original plan. Java covariant return requires the override's return
+type to be a strict subtype of the overridden method's return type:
 
-    @SuppressWarnings("unchecked")    // contained: cast is safe by the CRTP contract
-    protected final T self() { return (T) this; }
-
-    public final T withArgs(Object... args) { ... return self(); }
-}
-
-final class ParameterizedClickAction extends ParameterizedAction<ParameterizedClickAction> { ... }
+```
+Clickable.click() → ClickAction
+ParameterizedClickable.click() → ParameterizedClickAction  ← must extend ClickAction
 ```
 
-`withArgs()` now returns `ParameterizedClickAction` at the call site -- no external cast,
-no `@SuppressWarnings` on the caller. The single suppression is isolated inside `self()`.
+`ParameterizedAction<T> extends ElementAction` creates a sibling branch alongside
+`ClickAction` -- `ParameterizedClickAction extends ParameterizedAction<T>` would NOT be a
+subtype of `ClickAction`, so the covariant override would not compile.
 
-`withArgs()` is `final` -- no subclass should override locator-arg handling. All
-subclasses differ only in `execute()`.
+The simplest correct solution: `ParameterizedClickAction extends ClickAction` directly.
+`ClickAction` was `final`; removing `final` enables this. `ParameterizedClickAction` inherits
+`execute()`, the CLICKABLE profiles, and `operationLabel()` from the parent -- no duplication.
 
-### Action lifecycle (one-shot objects)
+Phase 2 (hover, type) follows the same pattern: `ParameterizedHoverAction extends HoverAction`
+(if `HoverAction` is made non-final), etc. The duplication is minimal -- only `storedArgs`
+field, `withArgs()`, and `locatorArgs()` override (8 lines per class).
+
+### Action lifecycle
+
+VOID's paradigm: elements emit actions, actions compose flows, flows are executed by the
+runtime. `withArgs()` fits this model -- it returns the action (still just a description
+of intent), which is then added to a `Flow` and consumed by `app.run()`. The caller never
+invokes execution directly.
 
 ```
 Element constant (enum)
     │
-    │ .click()
+    │  .click()
     ▼
-ParameterizedClickAction   ← created; locatorArgs = NO_ARGS
+ParameterizedClickAction         ← description of intent; locatorArgs = NO_ARGS
     │
-    │ .withArgs("sauce-labs-backpack")
+    │  .withArgs("sauce-labs-backpack")
     ▼
-ParameterizedClickAction   ← locatorArgs = ["sauce-labs-backpack"]  (same instance)
+ParameterizedClickAction         ← locatorArgs = ["sauce-labs-backpack"] (same instance)
     │
-    │ .perform(engine)
+    │  added to Flow
     ▼
-resolve(engine)            ← engine.resolve(element, TRIGGER, locatorArgs)
-    │                         effectiveArgs: locatorArgs non-empty → used as-is
+app.run(Flow.of(...))            ← execution boundary; runtime owns execution
+    │
     ▼
-engine.click(descriptor)   ← SeleniumEngine / PlaywrightEngine -- engine-neutral
+FlowExecutor → action.perform()  ← internal lifecycle, not called by user
+    │
+    ▼
+resolve()                        ← engine.resolve(element, TRIGGER, locatorArgs)
+    │                               effectiveArgs: locatorArgs non-empty → used as-is
+    ▼
+engine.click(descriptor)         ← SeleniumEngine / PlaywrightEngine -- engine-neutral
 ```
 
-Actions are one-shot objects. Mutating `locatorArgs` via a second `withArgs()` call after
-`perform()` is silent but semantically wrong -- the action has already executed.
-Document this at the class level: **do not reuse action instances across calls**.
+Usage in tests:
+
+```java
+app.run(Flow.of(
+    FIRST_NAME_INPUT.type(first),
+    LAST_NAME_INPUT.type(last),
+    ADD_TO_CART_BUTTON.click().withArgs(slug),   // ← still just an Action in the flow
+    CONTINUE_BUTTON.click()
+));
+```
+
+The "one-shot" concern effectively disappears: since actions are passed immediately into
+`Flow.of()`, there is no window to mutate them after execution. The rule is simply:
+**actions are immutable descriptions of work consumed by the runtime**.
 
 ### Engine agnosticism
 
@@ -143,8 +169,9 @@ practice. The one-shot lifecycle note above and a dedicated test make this expli
 
 | File | Change |
 |---|---|
-| `src/main/java/domain/automation/web/vocabulary/actions/ParameterizedAction.java` | New abstract base: `locatorArgs` field, `withArgs()`, `resolve()` override |
-| `src/main/java/domain/automation/web/vocabulary/actions/ParameterizedClickAction.java` | New concrete: extends `ParameterizedAction`; `execute()` calls `engine.click()` |
+| `src/main/java/domain/automation/web/vocabulary/actions/ElementAction.java` | Add `protected Object[] locatorArgs()` hook; update `resolve()` to call it |
+| `src/main/java/domain/automation/web/vocabulary/actions/ClickAction.java` | Remove `final` modifier to allow subclassing by `ParameterizedClickAction` |
+| `src/main/java/domain/automation/web/vocabulary/actions/ParameterizedClickAction.java` | New concrete: extends `ClickAction`; adds `storedArgs`, `withArgs()`, `locatorArgs()` override |
 | `src/main/java/domain/automation/web/vocabulary/capability/ParameterizedClickable.java` | New interface: extends `Clickable`; overrides `click()` with covariant `ParameterizedClickAction` return |
 | `src/main/java/tests/demo/pages/saucedemo/ProductsPage.java` | Split `ProductItem.Buttons` → `Buttons` (static) + `DynamicButtons` (`ParameterizedClickable`); `Controls.SORT_SELECT` → `Selectable` |
 | `src/main/java/tests/demo/pages/saucedemo/CartPage.java` | Split `CartItem.Buttons` → `Buttons` (static) + `DynamicButtons` (`ParameterizedClickable`) |
@@ -152,38 +179,54 @@ practice. The one-shot lifecycle note above and a dedicated test make this expli
 | `src/main/java/tests/demo/SauceDemoTest.java` | Replace `engine().click(resolve(..., slug))` with `click().withArgs(slug)`; `selectByVisibleText()` with `selectByText()` |
 | `src/test/java/elements/api/actions/ParameterizedActionTest.java` | New -- 6 unit tests (see below) |
 
-**No changes to:** `ElementAction`, `ClickAction`, `Clickable`, `UIEngine`, `SeleniumEngine`.
+**No changes to:** `Clickable`, `UIEngine`, `SeleniumEngine`.
+**Minimal change to:** `ElementAction` -- add `protected Object[] locatorArgs()` hook; change `resolve()` to call it.
+**Removed `final` from:** `ClickAction` -- required to allow `ParameterizedClickAction extends ClickAction` for covariant return.
 
-### `ParameterizedAction` (new abstract base)
+### `ElementAction` change (minimal, required)
+
+`ElementAction.resolve()` is `final` -- subclasses cannot override it. The fix is a
+protected hook method that `resolve()` delegates to for the args array:
 
 ```java
-// T is the concrete subtype -- enables withArgs() to return the concrete type directly.
-public abstract class ParameterizedAction<T extends ParameterizedAction<T>>
-        extends ElementAction {
+// Added to ElementAction -- hook for subclasses that need to supply locator args.
+// Base returns empty array so existing actions are unaffected.
+protected Object[] locatorArgs() {
+    return new Object[0];
+}
 
-    private Object[] locatorArgs = Target.NO_ARGS;
+// resolve() updated to call the hook:
+@Override
+public final LocatorDescriptor resolve(Executor executor) {
+    UIEngine engine = (UIEngine) executor;
+    return engine.resolve(element, role, locatorArgs());  // was: engine.resolve(element, role)
+}
+```
 
-    protected ParameterizedAction(UIElement element, ElementRole role, ActionCapability capability) {
-        super(element, role, capability);
+All existing action subclasses inherit the no-arg default transparently.
+
+### `ParameterizedClickAction` (new concrete)
+
+Extends `ClickAction` directly. Inherits `execute()`, profiles, and `operationLabel()`.
+Only adds `storedArgs`, `withArgs()`, and the `locatorArgs()` hook override:
+
+```java
+public final class ParameterizedClickAction extends ClickAction {
+
+    private Object[] storedArgs = Target.NO_ARGS;
+
+    public ParameterizedClickAction(ParameterizedClickable element) {
+        super(element);
     }
 
-    // Single suppression point; safe by the CRTP contract (T is the concrete subclass).
-    @SuppressWarnings("unchecked")
-    protected final T self() { return (T) this; }
-
-    // final: no subclass should change how locator args are stored or returned.
-    public final T withArgs(Object... args) {
-        // Second call overwrites first -- actions are one-shot; do not reuse.
-        this.locatorArgs = (args != null) ? args : Target.NO_ARGS;
-        return self();
+    public ParameterizedClickAction withArgs(Object... args) {
+        this.storedArgs = (args != null) ? args : Target.NO_ARGS;
+        return this;
     }
 
     @Override
-    public final LocatorDescriptor resolve(Executor executor) {
-        UIEngine engine = (UIEngine) executor;
-        // engine.resolve() is the engine-neutral contract; effectiveArgs(locatorArgs)
-        // inside the resolver: non-empty locatorArgs win, empty falls back to element.getArgs().
-        return engine.resolve(element, role, locatorArgs);
+    protected Object[] locatorArgs() {
+        return storedArgs;
     }
 }
 ```
@@ -263,20 +306,24 @@ to capture the args array for assertion.
 
 ## Phase 2 -- Extend to hover, type (future)
 
-When a use case requiring parameterized hover or type operations arises:
+When a use case requiring parameterized hover or type operations arises, the same pattern
+applies: extend the concrete action class, add `storedArgs` + `withArgs()` + `locatorArgs()`.
 
 ```java
-// Pattern is identical -- only execute() differs
-class ParameterizedHoverAction
-        extends ParameterizedAction<ParameterizedHoverAction> {
-    protected void execute(UIEngine engine, LocatorDescriptor d) { engine.hover(d); }
+// HoverAction must be made non-final (same as ClickAction was for Phase 1)
+public final class ParameterizedHoverAction extends HoverAction {
+    private Object[] storedArgs = Target.NO_ARGS;
+    public ParameterizedHoverAction(ParameterizedHoverable element) { super(element); }
+    public ParameterizedHoverAction withArgs(Object... args) { this.storedArgs = ...; return this; }
+    @Override protected Object[] locatorArgs() { return storedArgs; }
 }
 interface ParameterizedHoverable extends Hoverable {
-    default ParameterizedHoverAction hover() { return new ParameterizedHoverAction(this); }
+    @Override default ParameterizedHoverAction hover() { return new ParameterizedHoverAction(this); }
 }
 ```
 
-`withArgs()` and `resolve()` are inherited from `ParameterizedAction`. No duplication.
+The duplication is minimal: 8 lines per class (`storedArgs`, `withArgs()`, `locatorArgs()`).
+The heavy lifting is in `ElementAction.locatorArgs()` hook -- shared by all subclasses.
 
 ---
 
