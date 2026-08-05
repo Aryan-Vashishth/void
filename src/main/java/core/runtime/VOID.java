@@ -116,13 +116,18 @@ public class VOID {
      * @param context the session context for this session
      */
     protected VOID(SessionContext context) {
-        this.context    = context;
-        this.executor   = new FlowExecutor(context.engine());
-        UIEngine engine = (UIEngine) context.engine();
-        this.browser    = new Browser(engine);
-        this.elements   = new Elements(engine);
-        this.reader     = new Reader(executor);
-        this.debug      = new Debug(engine);
+        this.context  = context;
+        this.executor = new FlowExecutor(context.engine());
+        this.reader   = new Reader(executor);
+        if (context.engine() instanceof UIEngine uiEngine) {
+            this.browser  = new Browser(uiEngine);
+            this.elements = new Elements(uiEngine);
+            this.debug    = new Debug(uiEngine);
+        } else {
+            this.browser  = null;
+            this.elements = null;
+            this.debug    = null;
+        }
     }
 
     // ===========================
@@ -162,11 +167,13 @@ public class VOID {
 
     /** Returns the {@link Browser} service for navigation and page-state queries. */
     public Browser browser() {
+        if (browser == null) throw new UnsupportedOperationException("browser() requires a UIEngine session");
         return browser;
     }
 
     /** Returns the {@link Elements} service for capability-typed element queries. */
     public Elements elements() {
+        if (elements == null) throw new UnsupportedOperationException("elements() requires a UIEngine session");
         return elements;
     }
 
@@ -183,6 +190,7 @@ public class VOID {
      * engine-specific native commands, or diagnostic tooling.</p>
      */
     public Debug debug() {
+        if (debug == null) throw new UnsupportedOperationException("debug() requires a UIEngine session");
         return debug;
     }
 

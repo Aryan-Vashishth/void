@@ -1,0 +1,68 @@
+{
+  "ProductsPage": {
+    "Header": {
+      "MENU_BUTTON": {
+        "TRIGGER": "//img[@data-test='open-menu']"
+      },
+      "PAGE_TITLE": {
+        "TEXT": "//span[@data-test='title']"
+      },
+      "CART_LINK": {
+        "TRIGGER": "//a[@data-test='shopping-cart-link']"
+      },
+      "CART_BADGE": {
+        "TEXT": "//span[@data-test='shopping-cart-badge']"
+      }
+    },
+    "SideMenu": {
+      "ALL_ITEMS_LINK": {
+        "TRIGGER": "//a[@data-test='inventory-sidebar-link']"
+      },
+      "ABOUT_LINK": {
+        "TRIGGER": "//a[@data-test='about-sidebar-link']"
+      },
+      "LOGOUT_LINK": {
+        "TRIGGER": "//a[@data-test='logout-sidebar-link']"
+      },
+      "RESET_APP_STATE_LINK": {
+        "TRIGGER": "//a[@data-test='reset-sidebar-link']"
+      },
+      "CLOSE_MENU_BUTTON": {
+        "TRIGGER": "//img[@data-test='close-menu']"
+      }
+    },
+    "SortDropdown": {
+      "SORT_SELECT": {
+        "TRIGGER": "//select[@data-test='product-sort-container']"
+      },
+      "ACTIVE_OPTION_LABEL": {
+        "TEXT": "//span[@data-test='active-option']"
+      }
+    },
+    "ProductItem": {
+      "ADD_TO_CART_BUTTON": {
+        "TRIGGER": "//button[@data-test='add-to-cart-%s']"
+      },
+      "REMOVE_BUTTON": {
+        "TRIGGER": "//button[@data-test='remove-%s']"
+      },
+      "ITEM_TITLE_LINK": {
+        "TRIGGER": "//div[@data-test='inventory-item'][%s]//a[contains(@data-test,'-title-link')]"
+      },
+      "ITEM_PRICE": {
+        "TEXT": "//div[@data-test='inventory-item'][%s]//div[@data-test='inventory-item-price']"
+      }
+    },
+    "Footer": {
+      "TWITTER_LINK": {
+        "TRIGGER": "//a[@data-test='social-twitter']"
+      },
+      "FACEBOOK_LINK": {
+        "TRIGGER": "//a[@data-test='social-facebook']"
+      },
+      "LINKEDIN_LINK": {
+        "TRIGGER": "//a[@data-test='social-linkedin']"
+      }
+    }
+  }
+}

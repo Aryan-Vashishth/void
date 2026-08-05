@@ -1,0 +1,68 @@
+{
+  "CheckoutStepOnePage": {
+    "Header": {
+      "MENU_BUTTON": {
+        "TRIGGER": "//img[@data-test='open-menu']"
+      },
+      "PAGE_TITLE": {
+        "TEXT": "//span[@data-test='title']"
+      },
+      "CART_LINK": {
+        "TRIGGER": "//a[@data-test='shopping-cart-link']"
+      },
+      "CART_BADGE": {
+        "TEXT": "//span[@data-test='shopping-cart-badge']"
+      }
+    },
+    "SideMenu": {
+      "ALL_ITEMS_LINK": {
+        "TRIGGER": "//a[@data-test='inventory-sidebar-link']"
+      },
+      "ABOUT_LINK": {
+        "TRIGGER": "//a[@data-test='about-sidebar-link']"
+      },
+      "LOGOUT_LINK": {
+        "TRIGGER": "//a[@data-test='logout-sidebar-link']"
+      },
+      "RESET_APP_STATE_LINK": {
+        "TRIGGER": "//a[@data-test='reset-sidebar-link']"
+      },
+      "CLOSE_MENU_BUTTON": {
+        "TRIGGER": "//img[@data-test='close-menu']"
+      }
+    },
+    "CheckoutInfoForm": {
+      "FIRST_NAME_INPUT": {
+        "INPUT": "//input[@data-test='firstName']"
+      },
+      "LAST_NAME_INPUT": {
+        "INPUT": "//input[@data-test='lastName']"
+      },
+      "POSTAL_CODE_INPUT": {
+        "INPUT": "//input[@data-test='postalCode']"
+      },
+      "CANCEL_BUTTON": {
+        "TRIGGER": "//button[@data-test='cancel']"
+      },
+      "CONTINUE_BUTTON": {
+        "TRIGGER": "//input[@data-test='continue']"
+      }
+    },
+    "ErrorMessage": {
+      "ERROR_BANNER": {
+        "TEXT": "//h3[@data-test='error']"
+      }
+    },
+    "Footer": {
+      "TWITTER_LINK": {
+        "TRIGGER": "//a[@data-test='social-twitter']"
+      },
+      "FACEBOOK_LINK": {
+        "TRIGGER": "//a[@data-test='social-facebook']"
+      },
+      "LINKEDIN_LINK": {
+        "TRIGGER": "//a[@data-test='social-linkedin']"
+      }
+    }
+  }
+}

@@ -45,6 +45,14 @@ public interface Dropdown extends UIElement {
     }
 
     @Override
+    default java.util.Map<ElementRole, String> getAllLocatorRoles() {
+        java.util.Map<ElementRole, String> roles = new java.util.LinkedHashMap<>();
+        String trigger = getTriggerLocator();
+        if (trigger != null && !trigger.isBlank()) roles.put(ElementRole.TRIGGER, trigger);
+        return roles;
+    }
+
+    @Override
     default String getDisplayText() {
         Object[] args = getArgs();
         return args.length > 0 ? args[0].toString() : UIElement.super.getDisplayText();

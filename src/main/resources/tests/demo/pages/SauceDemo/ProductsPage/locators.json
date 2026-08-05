@@ -1,0 +1,92 @@
+{
+  "ProductsPage" : {
+    "Header" : {
+      "Buttons" : {
+        "MENU_BUTTON" : {
+          "TRIGGER" : "//button[@id='react-burger-menu-btn']"
+        },
+        "CART_LINK" : {
+          "TRIGGER" : "//a[@data-test='shopping-cart-link']"
+        }
+      },
+      "Labels" : {
+        "PAGE_TITLE" : {
+          "TEXT" : "//span[@data-test='title']"
+        },
+        "CART_BADGE" : {
+          "TEXT" : "//span[@data-test='shopping-cart-badge']"
+        }
+      }
+    },
+    "SideMenu" : {
+      "ALL_ITEMS_LINK" : {
+        "TRIGGER" : "//a[@id='inventory_sidebar_link']"
+      },
+      "ABOUT_LINK" : {
+        "TRIGGER" : "//a[@id='about_sidebar_link']"
+      },
+      "LOGOUT_LINK" : {
+        "TRIGGER" : "//a[@id='logout_sidebar_link']"
+      },
+      "RESET_APP_STATE_LINK" : {
+        "TRIGGER" : "//a[@id='reset_sidebar_link']"
+      },
+      "CLOSE_MENU_BUTTON" : {
+        "TRIGGER" : "//button[@id='react-burger-cross-btn']"
+      }
+    },
+    "SortDropdown" : {
+      "Options" : {
+        "NAME_A_TO_Z" : { "TRIGGER" : "//select[@data-test='product-sort-container']" },
+        "NAME_Z_TO_A" : { "TRIGGER" : "//select[@data-test='product-sort-container']" },
+        "PRICE_LOW_TO_HIGH" : { "TRIGGER" : "//select[@data-test='product-sort-container']" },
+        "PRICE_HIGH_TO_LOW" : { "TRIGGER" : "//select[@data-test='product-sort-container']" }
+      },
+      "Labels" : {
+        "ACTIVE_OPTION_LABEL" : {
+          "TEXT" : "//span[@data-test='active-option']"
+        }
+      }
+    },
+    "ProductItem" : {
+      "Buttons" : {
+        "ITEM_TITLE_LINK" : {
+          "TRIGGER" : "//a[contains(@data-test, 'title-link')]"
+        }
+      },
+      "DynamicButtons" : {
+        "ADD_TO_CART_BUTTON" : {
+          "TRIGGER" : "//button[@data-test='add-to-cart-%1$s']"
+        },
+        "REMOVE_BUTTON" : {
+          "TRIGGER" : "//button[@data-test='remove-%1$s']"
+        }
+      },
+      "Labels" : {
+        "ITEM_NAME" : {
+          "TEXT" : "//div[@data-test='inventory-item-name']"
+        },
+        "ITEM_NAME_AT" : {
+          "TEXT" : "(//div[@data-test='inventory-item-name'])[%1$s]"
+        },
+        "ITEM_PRICE" : {
+          "TEXT" : "//div[@data-test='inventory-item-price']"
+        },
+        "ITEM_PRICE_AT" : {
+          "TEXT" : "(//div[@data-test='inventory-item-price'])[%1$s]"
+        }
+      }
+    },
+    "Footer" : {
+      "TWITTER_LINK" : {
+        "TRIGGER" : "//a[@data-test='social-twitter']"
+      },
+      "FACEBOOK_LINK" : {
+        "TRIGGER" : "//a[@data-test='social-facebook']"
+      },
+      "LINKEDIN_LINK" : {
+        "TRIGGER" : "//a[@data-test='social-linkedin']"
+      }
+    }
+  }
+}

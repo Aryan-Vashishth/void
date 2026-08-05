@@ -6,6 +6,7 @@ import domain.automation.web.vocabulary.capability.ReadOnly;
 import domain.automation.web.vocabulary.capability.Typeable;
 import domain.automation.web.vocabulary.role.ElementRole;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -52,6 +53,24 @@ public final class Elements {
      */
     public boolean isVisible(Clickable element, Object... args) {
         return engine.isVisible(engine.resolve(element, ElementRole.TRIGGER, args));
+    }
+
+    /**
+     * Waits up to 10 seconds for the {@link Clickable} element to become visible.
+     *
+     * <p>Use after triggering an animation or transition before asserting visibility.</p>
+     */
+    public void waitForVisible(Clickable element) {
+        engine.waitForVisible(engine.resolve(element, ElementRole.TRIGGER), Duration.ofSeconds(10));
+    }
+
+    /**
+     * Waits up to 10 seconds for the {@link Clickable} element to become hidden or absent.
+     *
+     * <p>Use after triggering a close/dismiss animation before asserting invisibility.</p>
+     */
+    public void waitForHidden(Clickable element) {
+        engine.waitForAbsence(engine.resolve(element, ElementRole.TRIGGER), Duration.ofSeconds(10));
     }
 
     // ── Attributes ─────────────────────────────────────────────────────────
