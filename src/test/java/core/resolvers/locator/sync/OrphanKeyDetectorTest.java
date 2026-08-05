@@ -108,4 +108,28 @@ public class OrphanKeyDetectorTest {
         assertEquals(warnings.size(), 1);
         assertEquals(warnings.get(0).lineNumber(), 3);
     }
+
+    // ── Nested interface tests ────────────────────────────────────────────────
+
+    @Test
+    public void nestedInterfaceEnum_validKey_noWarning() throws IOException {
+        LineTrackingPropertiesReader reader = readerFor(
+            "LoginForm.Fields.USERNAME_FIELD.INPUT=//input[@id='user']",
+            "LoginForm.Buttons.LOGIN_BUTTON.TRIGGER=//button[@type='submit']"
+        );
+        List<OrphanWarning> warnings = detector.detect(NestedSyncTestFixturePage.class, reader);
+        assertTrue(warnings.isEmpty(),
+            "Valid nested interface enum keys must not be flagged as orphans: " + warnings);
+    }
+
+    @Test
+    public void nestedInterfaceEnum_unknownConstant_reportedAsOrphan() throws IOException {
+        LineTrackingPropertiesReader reader = readerFor(
+            "LoginForm.Fields.OLD_FIELD.INPUT=//input[@id='old']"
+        );
+        List<OrphanWarning> warnings = detector.detect(NestedSyncTestFixturePage.class, reader);
+        assertEquals(warnings.size(), 1);
+        assertTrue(warnings.get(0).reason().contains("OLD_FIELD"),
+            "Orphan reason must name the stale constant");
+    }
 }

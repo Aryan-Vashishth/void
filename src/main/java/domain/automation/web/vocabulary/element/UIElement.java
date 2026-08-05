@@ -44,8 +44,10 @@ public interface UIElement extends Target {
     @Nullable
     default String getExternalFileName() {
         Class<?> enumClass = ElementSupport.declaringClassOf(this);
-        Class<?> pageClass = enumClass.getEnclosingClass();
-        Class<?> target = pageClass != null ? pageClass : enumClass;
+        Class<?> target = enumClass;
+        while (target.getEnclosingClass() != null) {
+            target = target.getEnclosingClass();
+        }
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         String dir = target.getName().replace('.', '/') + "/";
         for (String file : new String[]{"locators.json", "locators.properties"}) {
