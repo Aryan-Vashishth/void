@@ -37,12 +37,28 @@ final class JsonNodeLookup {
     }
 
     /**
-     * Locator-style lookup: try dot-path first, fall back to deep-find, return the textual
-     * value of the resulting node — or {@code null} if nothing usable was found.
+     * Locator-style lookup: try dot-path first, fall back to searching from each top-level
+     * child of root, then fall back to deep-find. Returns {@code null} if nothing usable
+     * was found.
+     *
+     * <p>The child-level retry handles nested-interface enum keys whose dot-path prefix is
+     * the immediate enclosing interface name rather than the root page name. For example,
+     * key {@code "LoginForm.Credentials.USERNAME_FIELD.INPUT"} cannot be found directly from
+     * a root like {@code {"LoginPage":{...}}} but succeeds once the traversal starts from
+     * the {@code "LoginPage"} child node.</p>
      */
     public static String findText(JsonNode root, String key) {
         JsonNode node = findByDotPath(root, key);
-        if (node == null) node = deepFindField(root, key);
+        if (node != null && node.isTextual()) return node.asText();
+
+        if (root != null && root.isObject()) {
+            for (JsonNode child : (Iterable<JsonNode>) root::elements) {
+                node = findByDotPath(child, key);
+                if (node != null && node.isTextual()) return node.asText();
+            }
+        }
+
+        node = deepFindField(root, key);
         return (node != null && node.isTextual()) ? node.asText() : null;
     }
 }

@@ -1,0 +1,21 @@
+{
+  "NestedConventionalPage" : {
+    "LoginSection" : {
+      "Fields" : {
+        "USERNAME" : { "INPUT" : "//input[@data-test='username']" },
+        "PASSWORD" : { "INPUT" : "//input[@data-test='password']" }
+      },
+      "Actions" : {
+        "LOGIN_BUTTON" : { "TRIGGER" : "//button[@data-test='login-button']" }
+      }
+    },
+    "Header" : {
+      "Labels" : {
+        "PAGE_TITLE" : { "TEXT" : "//h1[@class='page-title']" }
+      }
+    },
+    "Footer" : {
+      "BACK_LINK" : { "TRIGGER" : "//a[@id='back']" }
+    }
+  }
+}

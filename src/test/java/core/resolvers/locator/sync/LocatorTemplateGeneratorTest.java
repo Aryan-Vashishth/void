@@ -69,4 +69,49 @@ public class LocatorTemplateGeneratorTest {
         List<LocatorKey> keys = generator.generateKeys(EmptyPage.class);
         assertTrue(keys.isEmpty());
     }
+
+    // ── Nested interface tests ────────────────────────────────────────────────
+
+    @Test
+    public void nestedInterfaceEnum_isIncludedInKeys() {
+        List<LocatorKey> keys = generator.generateKeys(NestedSyncTestFixturePage.class);
+        List<String> flat = keys.stream().map(LocatorKey::key).toList();
+
+        assertTrue(flat.contains("LoginForm.Fields.USERNAME_FIELD.INPUT"),
+            "Nested interface enum constant must appear in generated keys");
+        assertTrue(flat.contains("LoginForm.Fields.PASSWORD_FIELD.INPUT"));
+        assertTrue(flat.contains("LoginForm.Buttons.LOGIN_BUTTON.TRIGGER"));
+        assertTrue(flat.contains("ErrorBanner.Labels.ERROR_MSG.TEXT"));
+        assertTrue(flat.contains("ErrorBanner.Buttons.DISMISS_BUTTON.TRIGGER"));
+    }
+
+    @Test
+    public void nestedInterfaceEnum_usesInterfacePrefixNotPagePrefix() {
+        List<LocatorKey> keys = generator.generateKeys(NestedSyncTestFixturePage.class);
+        List<String> flat = keys.stream().map(LocatorKey::key).toList();
+
+        // Keys must use the immediate enclosing interface name, not the top-level page name
+        assertTrue(flat.stream().noneMatch(k -> k.startsWith("NestedSyncTestFixturePage.Fields.")),
+            "Nested enum keys must not carry the top-level page name as prefix");
+        assertTrue(flat.stream().anyMatch(k -> k.startsWith("LoginForm.Fields.")),
+            "Nested enum keys must use the immediate enclosing interface name");
+    }
+
+    @Test
+    public void directAndNestedEnums_allPresent() {
+        List<LocatorKey> keys = generator.generateKeys(NestedSyncTestFixturePage.class);
+        List<String> flat = keys.stream().map(LocatorKey::key).toList();
+
+        // Direct enum child of page
+        assertTrue(flat.contains("NestedSyncTestFixturePage.PageActions.FORGOT_PASSWORD_LINK.TRIGGER"),
+            "Direct enum child of page must use the page simple name as prefix");
+
+        // LoginForm nested enums: 2 + 1 constants = 3 keys
+        assertEquals(flat.stream().filter(k -> k.contains(".Fields.")).count(), 2L);
+        assertEquals(flat.stream().filter(k -> k.startsWith("LoginForm.Buttons.")).count(), 1L);
+
+        // ErrorBanner nested enums: 1 + 1 constants = 2 keys
+        assertEquals(flat.stream().filter(k -> k.startsWith("ErrorBanner.Labels.")).count(), 1L);
+        assertEquals(flat.stream().filter(k -> k.startsWith("ErrorBanner.Buttons.")).count(), 1L);
+    }
 }
