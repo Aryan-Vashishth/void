@@ -4,7 +4,7 @@ import core.flow.Flow;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.runtime.VOID;
-import domain.automation.web.vocabulary.role.ElementRole;
+import domain.automation.web.engine.UIEngine;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -33,6 +33,7 @@ public class SauceDemoTest {
     private static final String VALID_PASSWORD = "secret_sauce";
 
     private VOID app;
+    private UIEngine rawEngine; // cached for localStorage management; avoids per-test debug() warning
 
     // ═════════════════════════════════════════════════════════════════════════
     // Lifecycle
@@ -44,6 +45,7 @@ public class SauceDemoTest {
         CustomLogger.enableAnsi();
         CustomLogger.setTheme(LogTheme.HIGH_CONTRAST);
         app = VOID.builder().start();
+        rawEngine = app.debug().engine();
     }
 
     @AfterClass(alwaysRun = true)
@@ -53,7 +55,9 @@ public class SauceDemoTest {
 
     @BeforeMethod(alwaysRun = true)
     public void navigateToLogin() {
-        app.navigateTo(BASE_URL);
+        app.browser().navigateTo(BASE_URL);
+        // SauceDemo stores cart state in localStorage; clear it so each test starts with an empty cart.
+        rawEngine.executeScript("localStorage.clear()");
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -73,15 +77,11 @@ public class SauceDemoTest {
     }
 
     private String loginErrorText() {
-        return app.getText(LoginPage.ErrorMessage.Labels.ERROR_BANNER, ElementRole.TEXT);
+        return app.reader().query(LoginPage.ErrorMessage.Labels.ERROR_BANNER.getText());
     }
 
     private String cartBadge() {
-        return app.getText(ProductsPage.Header.Labels.CART_BADGE, ElementRole.TEXT);
-    }
-
-    private void selectSortOption(String visibleText) {
-        app.selectByVisibleText(ProductsPage.SortDropdown.Controls.SORT_SELECT, ElementRole.TRIGGER, visibleText);
+        return app.reader().query(ProductsPage.Header.Labels.CART_BADGE.getText());
     }
 
     private void addItemToCart(String slug) {
@@ -95,6 +95,8 @@ public class SauceDemoTest {
 
     private void openHamburgerMenu() {
         app.run(Flow.of(ProductsPage.Header.Buttons.MENU_BUTTON.click()));
+        // The sidebar uses a CSS transition; wait for it to become visible before returning.
+        app.elements().waitForVisible(ProductsPage.SideMenu.ALL_ITEMS_LINK);
     }
 
     private void goToCart() {
@@ -115,11 +117,11 @@ public class SauceDemoTest {
     }
 
     private List<String> productNames() {
-        return app.getAllTexts(ProductsPage.ProductItem.Labels.ITEM_NAME, ElementRole.TEXT);
+        return app.elements().allTexts(ProductsPage.ProductItem.Labels.ITEM_NAME);
     }
 
     private List<Double> productPrices() {
-        return app.getAllTexts(ProductsPage.ProductItem.Labels.ITEM_PRICE, ElementRole.TEXT)
+        return app.elements().allTexts(ProductsPage.ProductItem.Labels.ITEM_PRICE)
                 .stream()
                 .map(t -> Double.parseDouble(t.replace("$", "")))
                 .toList();
@@ -132,7 +134,7 @@ public class SauceDemoTest {
     @Test(description = "LOGIN-01 -- Valid credentials redirect to /inventory.html")
     public void login01_validLogin() {
         doLogin(STANDARD_USER, VALID_PASSWORD);
-        assertTrue(app.getCurrentUrl().contains("/inventory.html"),
+        assertTrue(app.browser().url().contains("/inventory.html"),
                 "Expected redirect to /inventory.html after valid login");
     }
 
@@ -197,14 +199,14 @@ public class SauceDemoTest {
     @Test(description = "LOGIN-10 -- Password field type attribute is 'password' (masked)")
     public void login10_passwordFieldMasked() {
         assertEquals(
-                app.getAttribute(LoginPage.LoginForm.Credentials.PASSWORD_FIELD, ElementRole.INPUT, "type"),
+                app.elements().attribute(LoginPage.LoginForm.Credentials.PASSWORD_FIELD, "type"),
                 "password");
     }
 
     @Test(description = "LOGIN-11 -- problem_user authenticates and reaches inventory page")
     public void login11_problemUser() {
         doLogin(PROBLEM_USER, VALID_PASSWORD);
-        assertTrue(app.getCurrentUrl().contains("/inventory.html"));
+        assertTrue(app.browser().url().contains("/inventory.html"));
     }
 
     @Test(description = "LOGIN-12 -- Error banner closes when dismiss icon is clicked")
@@ -214,13 +216,13 @@ public class SauceDemoTest {
 
         app.run(Flow.of(LoginPage.ErrorMessage.Buttons.ERROR_DISMISS.click()));
 
-        assertFalse(app.isVisible(LoginPage.ErrorMessage.Labels.ERROR_BANNER, ElementRole.TEXT),
+        assertFalse(app.elements().isVisible(LoginPage.ErrorMessage.Labels.ERROR_BANNER),
                 "Error banner should be hidden after clicking dismiss");
     }
 
     @Test(description = "LOGIN-13 -- Login button has no 'disabled' attribute (always enabled)")
     public void login13_loginButtonAlwaysEnabled() {
-        String disabled = app.getAttribute(LoginPage.LoginForm.Buttons.LOGIN_BUTTON, ElementRole.TRIGGER, "disabled");
+        String disabled = app.elements().attribute(LoginPage.LoginForm.Buttons.LOGIN_BUTTON, "disabled");
         assertNull(disabled, "Login button must not carry a 'disabled' attribute with empty fields");
     }
 
@@ -231,16 +233,16 @@ public class SauceDemoTest {
     @Test(description = "LAND-01 -- Products page loads: URL, title, and 6 product cards visible")
     public void land01_productsPageLoads() {
         doValidLogin();
-        assertTrue(app.getCurrentUrl().contains("/inventory.html"));
-        assertEquals(app.getText(ProductsPage.Header.Labels.PAGE_TITLE, ElementRole.TEXT), "Products");
-        assertEquals(app.getElementCount(ProductsPage.ProductItem.Labels.ITEM_NAME, ElementRole.TEXT), 6,
+        assertTrue(app.browser().url().contains("/inventory.html"));
+        assertEquals(app.reader().query(ProductsPage.Header.Labels.PAGE_TITLE.getText()), "Products");
+        assertEquals(app.elements().count(ProductsPage.ProductItem.Labels.ITEM_NAME), 6,
                 "Expected 6 product cards on the inventory page");
     }
 
     @Test(description = "LAND-02 -- Default sort is Name (A to Z)")
     public void land02_defaultSortAtoZ() {
         doValidLogin();
-        assertEquals(app.getText(ProductsPage.SortDropdown.Labels.ACTIVE_OPTION_LABEL, ElementRole.TEXT),
+        assertEquals(app.reader().query(ProductsPage.SortDropdown.Labels.ACTIVE_OPTION_LABEL.getText()),
                 "Name (A to Z)");
         List<String> names = productNames();
         assertEquals(names, names.stream().sorted().toList(),
@@ -250,7 +252,7 @@ public class SauceDemoTest {
     @Test(description = "LAND-03 -- Sort by Name (Z to A) reverses alphabetical order")
     public void land03_sortZtoA() {
         doValidLogin();
-        selectSortOption("Name (Z to A)");
+        app.run(Flow.of(ProductsPage.SortDropdown.Options.NAME_Z_TO_A.select()));
         List<String> names = productNames();
         assertEquals(names, names.stream().sorted(Comparator.reverseOrder()).toList(),
                 "Products should be in Z-A order after selecting that sort");
@@ -259,7 +261,7 @@ public class SauceDemoTest {
     @Test(description = "LAND-04 -- Sort by Price (low to high) orders products ascending")
     public void land04_sortPriceLowToHigh() {
         doValidLogin();
-        selectSortOption("Price (low to high)");
+        app.run(Flow.of(ProductsPage.SortDropdown.Options.PRICE_LOW_TO_HIGH.select()));
         List<Double> prices = productPrices();
         assertEquals(prices, prices.stream().sorted().toList(),
                 "Products should be ordered price ascending");
@@ -268,7 +270,7 @@ public class SauceDemoTest {
     @Test(description = "LAND-05 -- Sort by Price (high to low) orders products descending")
     public void land05_sortPriceHighToLow() {
         doValidLogin();
-        selectSortOption("Price (high to low)");
+        app.run(Flow.of(ProductsPage.SortDropdown.Options.PRICE_HIGH_TO_LOW.select()));
         List<Double> prices = productPrices();
         assertEquals(prices, prices.stream().sorted(Comparator.reverseOrder()).toList(),
                 "Products should be ordered price descending");
@@ -279,7 +281,7 @@ public class SauceDemoTest {
         doValidLogin();
         addItemToCart("sauce-labs-backpack");
         assertEquals(cartBadge(), "1");
-        assertTrue(app.isVisible(ProductsPage.ProductItem.DynamicButtons.REMOVE_BUTTON, ElementRole.TRIGGER, "sauce-labs-backpack"),
+        assertTrue(app.elements().isVisible(ProductsPage.ProductItem.DynamicButtons.REMOVE_BUTTON, "sauce-labs-backpack"),
                 "Remove button should appear after adding item");
     }
 
@@ -297,7 +299,7 @@ public class SauceDemoTest {
         addItemToCart("sauce-labs-backpack");
         assertEquals(cartBadge(), "1");
         app.run(Flow.of(ProductsPage.ProductItem.DynamicButtons.REMOVE_BUTTON.click().withArgs("sauce-labs-backpack")));
-        assertFalse(app.isVisible(ProductsPage.Header.Labels.CART_BADGE, ElementRole.TEXT),
+        assertFalse(app.elements().isVisible(ProductsPage.Header.Labels.CART_BADGE),
                 "Cart badge should disappear after removing the only item");
     }
 
@@ -306,8 +308,8 @@ public class SauceDemoTest {
         doValidLogin();
         addItemToCart("sauce-labs-backpack");
         goToCart();
-        assertTrue(app.getCurrentUrl().contains("/cart.html"));
-        assertTrue(app.getElementCount(CartPage.CartItem.Labels.ITEM_NAME, ElementRole.TEXT) > 0,
+        assertTrue(app.browser().url().contains("/cart.html"));
+        assertTrue(app.elements().count(CartPage.CartItem.Labels.ITEM_NAME) > 0,
                 "Cart should contain at least one item");
     }
 
@@ -319,21 +321,17 @@ public class SauceDemoTest {
                 ProductsPage.Header.Buttons.CART_LINK.click(),
                 CartPage.Actions.CONTINUE_SHOPPING_BUTTON.click()
         ));
-        assertTrue(app.getCurrentUrl().contains("/inventory.html"));
+        assertTrue(app.browser().url().contains("/inventory.html"));
     }
 
     @Test(description = "LAND-11 -- Hamburger menu opens and shows all four navigation links")
     public void land11_hamburgerMenuOpens() {
         doValidLogin();
         openHamburgerMenu();
-        assertTrue(app.isVisible(ProductsPage.SideMenu.ALL_ITEMS_LINK, ElementRole.TRIGGER),
-                "All Items link should be visible");
-        assertTrue(app.isVisible(ProductsPage.SideMenu.ABOUT_LINK, ElementRole.TRIGGER),
-                "About link should be visible");
-        assertTrue(app.isVisible(ProductsPage.SideMenu.LOGOUT_LINK, ElementRole.TRIGGER),
-                "Logout link should be visible");
-        assertTrue(app.isVisible(ProductsPage.SideMenu.RESET_APP_STATE_LINK, ElementRole.TRIGGER),
-                "Reset App State link should be visible");
+        assertTrue(app.elements().isVisible(ProductsPage.SideMenu.ALL_ITEMS_LINK), "All Items link should be visible");
+        assertTrue(app.elements().isVisible(ProductsPage.SideMenu.ABOUT_LINK), "About link should be visible");
+        assertTrue(app.elements().isVisible(ProductsPage.SideMenu.LOGOUT_LINK), "Logout link should be visible");
+        assertTrue(app.elements().isVisible(ProductsPage.SideMenu.RESET_APP_STATE_LINK), "Reset App State link should be visible");
     }
 
     @Test(description = "LAND-12 -- Reset App State clears badge; KNOWN DEFECT: Remove buttons do not revert")
@@ -346,12 +344,12 @@ public class SauceDemoTest {
         app.run(Flow.of(ProductsPage.SideMenu.RESET_APP_STATE_LINK.click()));
 
         // Badge clears correctly
-        assertFalse(app.isVisible(ProductsPage.Header.Labels.CART_BADGE, ElementRole.TEXT),
+        assertFalse(app.elements().isVisible(ProductsPage.Header.Labels.CART_BADGE),
                 "Cart badge should clear to 0 after Reset App State");
 
         // KNOWN DEFECT (LAND-12): Remove button does not revert to 'Add to cart' without
         // a page refresh. Asserting the actual broken behavior as a regression anchor.
-        assertTrue(app.isVisible(ProductsPage.ProductItem.DynamicButtons.REMOVE_BUTTON, ElementRole.TRIGGER, "sauce-labs-backpack"),
+        assertTrue(app.elements().isVisible(ProductsPage.ProductItem.DynamicButtons.REMOVE_BUTTON, "sauce-labs-backpack"),
                 "KNOWN DEFECT -- Remove button still shows 'Remove' after reset; expected 'Add to cart'");
     }
 
@@ -360,8 +358,9 @@ public class SauceDemoTest {
         doValidLogin();
         openHamburgerMenu();
         app.run(Flow.of(ProductsPage.SideMenu.CLOSE_MENU_BUTTON.click()));
-        // isVisible() returns false for CSS-hidden elements (menu is removed from view, not DOM)
-        assertFalse(app.isVisible(ProductsPage.SideMenu.CLOSE_MENU_BUTTON, ElementRole.TRIGGER),
+        // The sidebar close uses a CSS transition; wait for it to become hidden before asserting.
+        app.elements().waitForHidden(ProductsPage.SideMenu.CLOSE_MENU_BUTTON);
+        assertFalse(app.elements().isVisible(ProductsPage.SideMenu.CLOSE_MENU_BUTTON),
                 "Close button should be hidden once the menu is closed");
     }
 
@@ -369,7 +368,7 @@ public class SauceDemoTest {
     public void land14_footerTwitterLink() {
         doValidLogin();
         assertEquals(
-                app.getAttribute(ProductsPage.Footer.TWITTER_LINK, ElementRole.TRIGGER, "href"),
+                app.elements().attribute(ProductsPage.Footer.TWITTER_LINK, "href"),
                 "https://twitter.com/saucelabs");
     }
 
@@ -377,7 +376,7 @@ public class SauceDemoTest {
     public void land15_footerFacebookLink() {
         doValidLogin();
         assertEquals(
-                app.getAttribute(ProductsPage.Footer.FACEBOOK_LINK, ElementRole.TRIGGER, "href"),
+                app.elements().attribute(ProductsPage.Footer.FACEBOOK_LINK, "href"),
                 "https://www.facebook.com/saucelabs");
     }
 
@@ -385,7 +384,7 @@ public class SauceDemoTest {
     public void land16_footerLinkedInLink() {
         doValidLogin();
         assertEquals(
-                app.getAttribute(ProductsPage.Footer.LINKEDIN_LINK, ElementRole.TRIGGER, "href"),
+                app.elements().attribute(ProductsPage.Footer.LINKEDIN_LINK, "href"),
                 "https://www.linkedin.com/company/sauce-labs/");
     }
 
@@ -394,7 +393,7 @@ public class SauceDemoTest {
         doValidLogin();
         openHamburgerMenu();
         app.run(Flow.of(ProductsPage.SideMenu.LOGOUT_LINK.click()));
-        assertEquals(app.getCurrentUrl(), BASE_URL);
+        assertEquals(app.browser().url(), BASE_URL);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -406,10 +405,10 @@ public class SauceDemoTest {
         doValidLogin();
         addItemToCart("sauce-labs-onesie");
         goToCart();
-        assertTrue(app.getCurrentUrl().contains("/cart.html"));
-        assertTrue(app.getText(CartPage.CartItem.Labels.ITEM_NAME, ElementRole.TEXT).contains("Onesie"),
+        assertTrue(app.browser().url().contains("/cart.html"));
+        assertTrue(app.reader().query(CartPage.CartItem.Labels.ITEM_NAME.getText()).contains("Onesie"),
                 "Cart should display the Onesie item");
-        assertEquals(app.getText(CartPage.CartItem.Labels.ITEM_PRICE, ElementRole.TEXT), "$7.99");
+        assertEquals(app.reader().query(CartPage.CartItem.Labels.ITEM_PRICE.getText()), "$7.99");
     }
 
     @Test(description = "CART-02 -- Checkout button navigates to /checkout-step-one.html")
@@ -418,7 +417,7 @@ public class SauceDemoTest {
         addFirstItemToCart();
         goToCart();
         startCheckout();
-        assertTrue(app.getCurrentUrl().contains("/checkout-step-one.html"));
+        assertTrue(app.browser().url().contains("/checkout-step-one.html"));
     }
 
     @Test(description = "CART-03 -- Empty checkout form: 'First Name is required'")
@@ -429,7 +428,7 @@ public class SauceDemoTest {
         startCheckout();
         app.run(Flow.of(CheckoutStepOnePage.CheckoutInfoForm.Buttons.CONTINUE_BUTTON.click()));
         assertEquals(
-                app.getText(CheckoutStepOnePage.ErrorMessage.ERROR_BANNER, ElementRole.TEXT),
+                app.reader().query(CheckoutStepOnePage.ErrorMessage.ERROR_BANNER.getText()),
                 "Error: First Name is required");
     }
 
@@ -444,7 +443,7 @@ public class SauceDemoTest {
                 CheckoutStepOnePage.CheckoutInfoForm.Buttons.CONTINUE_BUTTON.click()
         ));
         assertEquals(
-                app.getText(CheckoutStepOnePage.ErrorMessage.ERROR_BANNER, ElementRole.TEXT),
+                app.reader().query(CheckoutStepOnePage.ErrorMessage.ERROR_BANNER.getText()),
                 "Error: Last Name is required");
     }
 
@@ -460,7 +459,7 @@ public class SauceDemoTest {
                 CheckoutStepOnePage.CheckoutInfoForm.Buttons.CONTINUE_BUTTON.click()
         ));
         assertEquals(
-                app.getText(CheckoutStepOnePage.ErrorMessage.ERROR_BANNER, ElementRole.TEXT),
+                app.reader().query(CheckoutStepOnePage.ErrorMessage.ERROR_BANNER.getText()),
                 "Error: Postal Code is required");
     }
 
@@ -471,7 +470,7 @@ public class SauceDemoTest {
         goToCart();
         startCheckout();
         fillCheckoutInfo("John", "Doe", "12345");
-        assertTrue(app.getCurrentUrl().contains("/checkout-step-two.html"));
+        assertTrue(app.browser().url().contains("/checkout-step-two.html"));
     }
 
     @Test(description = "CART-07 -- Overview totals: Total = Item total + Tax (~8%)")
@@ -483,13 +482,13 @@ public class SauceDemoTest {
         fillCheckoutInfo("John", "Doe", "12345");
 
         double subtotal = Double.parseDouble(
-                app.getText(CheckoutStepTwoPage.OrderSummary.PriceTotal.SUBTOTAL_LABEL, ElementRole.TEXT)
+                app.reader().query(CheckoutStepTwoPage.OrderSummary.PriceTotal.SUBTOTAL_LABEL.getText())
                         .replaceAll("[^0-9.]", ""));
         double tax = Double.parseDouble(
-                app.getText(CheckoutStepTwoPage.OrderSummary.PriceTotal.TAX_LABEL, ElementRole.TEXT)
+                app.reader().query(CheckoutStepTwoPage.OrderSummary.PriceTotal.TAX_LABEL.getText())
                         .replaceAll("[^0-9.]", ""));
         double total = Double.parseDouble(
-                app.getText(CheckoutStepTwoPage.OrderSummary.PriceTotal.TOTAL_LABEL, ElementRole.TEXT)
+                app.reader().query(CheckoutStepTwoPage.OrderSummary.PriceTotal.TOTAL_LABEL.getText())
                         .replaceAll("[^0-9.]", ""));
 
         assertEquals(subtotal, 7.99, 0.001, "Item subtotal should be $7.99");
@@ -505,8 +504,8 @@ public class SauceDemoTest {
         fillCheckoutInfo("John", "Doe", "12345");
         app.run(Flow.of(CheckoutStepTwoPage.Actions.FINISH_BUTTON.click()));
 
-        assertTrue(app.getCurrentUrl().contains("/checkout-complete.html"));
-        assertFalse(app.isVisible(ProductsPage.Header.Labels.CART_BADGE, ElementRole.TEXT),
+        assertTrue(app.browser().url().contains("/checkout-complete.html"));
+        assertFalse(app.elements().isVisible(ProductsPage.Header.Labels.CART_BADGE),
                 "Cart badge should be absent after completing the order");
     }
 
@@ -522,8 +521,8 @@ public class SauceDemoTest {
                 CheckoutCompletePage.Actions.BACK_HOME_BUTTON.click()
         ));
 
-        assertTrue(app.getCurrentUrl().contains("/inventory.html"));
-        assertFalse(app.isVisible(ProductsPage.Header.Labels.CART_BADGE, ElementRole.TEXT),
+        assertTrue(app.browser().url().contains("/inventory.html"));
+        assertFalse(app.elements().isVisible(ProductsPage.Header.Labels.CART_BADGE),
                 "Cart should be empty after completing and returning home");
     }
 
@@ -535,8 +534,8 @@ public class SauceDemoTest {
         startCheckout();
         app.run(Flow.of(CheckoutStepOnePage.CheckoutInfoForm.Buttons.CANCEL_BUTTON.click()));
 
-        assertTrue(app.getCurrentUrl().contains("/cart.html"));
-        assertTrue(app.getElementCount(CartPage.CartItem.Labels.ITEM_NAME, ElementRole.TEXT) > 0,
+        assertTrue(app.browser().url().contains("/cart.html"));
+        assertTrue(app.elements().count(CartPage.CartItem.Labels.ITEM_NAME) > 0,
                 "Cart item should be preserved after cancelling step one");
     }
 
@@ -552,7 +551,7 @@ public class SauceDemoTest {
         // KNOWN DEFECT (CART-11): Expected /cart.html (consistent with step-one cancel) but
         // actual behavior redirects to /inventory.html. Asserting actual behavior as a
         // regression anchor until the inconsistency is resolved.
-        assertTrue(app.getCurrentUrl().contains("/inventory.html"),
+        assertTrue(app.browser().url().contains("/inventory.html"),
                 "KNOWN DEFECT -- Cancel on step 2 lands on inventory; expected cart page");
     }
 
@@ -563,9 +562,9 @@ public class SauceDemoTest {
         goToCart();
         app.run(Flow.of(CartPage.CartItem.DynamicButtons.REMOVE_BUTTON.click().withArgs("sauce-labs-backpack")));
 
-        assertEquals(app.getElementCount(CartPage.CartItem.Labels.ITEM_NAME, ElementRole.TEXT), 0,
+        assertEquals(app.elements().count(CartPage.CartItem.Labels.ITEM_NAME), 0,
                 "Cart should be empty after removing the item");
-        assertFalse(app.isVisible(ProductsPage.Header.Labels.CART_BADGE, ElementRole.TEXT),
+        assertFalse(app.elements().isVisible(ProductsPage.Header.Labels.CART_BADGE),
                 "Cart badge should disappear after last item is removed");
     }
 
@@ -573,7 +572,7 @@ public class SauceDemoTest {
     public void cart13_emptyCartCheckout() {
         doValidLogin();
         goToCart();
-        assertEquals(app.getElementCount(CartPage.CartItem.Labels.ITEM_NAME, ElementRole.TEXT), 0,
+        assertEquals(app.elements().count(CartPage.CartItem.Labels.ITEM_NAME), 0,
                 "Cart must be empty at the start of this test");
 
         startCheckout();
@@ -582,7 +581,7 @@ public class SauceDemoTest {
 
         // KNOWN DEFECT (CART-13): The system should prevent a $0 order with an empty cart
         // but instead completes it with a confirmation page. Asserting actual behavior.
-        assertTrue(app.getCurrentUrl().contains("/checkout-complete.html"),
+        assertTrue(app.browser().url().contains("/checkout-complete.html"),
                 "KNOWN DEFECT -- Empty cart checkout succeeds; should be blocked");
     }
 

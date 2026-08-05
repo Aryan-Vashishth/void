@@ -1,6 +1,7 @@
 package tests.demo.pages.saucedemo;
 
 import domain.automation.web.vocabulary.capability.Clickable;
+import domain.automation.web.vocabulary.capability.Dropdown;
 import domain.automation.web.vocabulary.capability.ParameterizedClickable;
 import domain.automation.web.vocabulary.capability.ReadOnly;
 
@@ -31,12 +32,27 @@ public interface ProductsPage {
         CLOSE_MENU_BUTTON;
     }
 
-    // ── SortDropdown ── sort control + active label ───────────────────────────
+    // ── SortDropdown ── sort options + active label ───────────────────────────
 
     interface SortDropdown {
 
-        enum Controls implements Clickable {
-            SORT_SELECT;
+        /**
+         * Each constant IS a selectable sort option. The locator points to the {@code <select>}
+         * container; {@link #getArgs()} provides the visible text for
+         * {@link domain.automation.web.engine.UIEngine#selectByVisibleText}.
+         */
+        enum Options implements Dropdown {
+            NAME_A_TO_Z("Name (A to Z)"),
+            NAME_Z_TO_A("Name (Z to A)"),
+            PRICE_LOW_TO_HIGH("Price (low to high)"),
+            PRICE_HIGH_TO_LOW("Price (high to low)");
+
+            private final String label;
+
+            Options(String label) { this.label = label; }
+
+            @Override
+            public Object[] getArgs() { return new Object[]{label}; }
         }
 
         enum Labels implements ReadOnly {
