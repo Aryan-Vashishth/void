@@ -167,7 +167,7 @@ public abstract class ParameterizedAction<T extends ParameterizedAction<T>>
         super(element, role, capability);
     }
 
-    // Single suppression point; safe by the CRTP contract (T IS this class).
+    // Single suppression point; safe by the CRTP contract (T is the concrete subclass).
     @SuppressWarnings("unchecked")
     protected final T self() { return (T) this; }
 
@@ -267,7 +267,8 @@ When a use case requiring parameterized hover or type operations arises:
 
 ```java
 // Pattern is identical -- only execute() differs
-class ParameterizedHoverAction extends ParameterizedAction {
+class ParameterizedHoverAction
+        extends ParameterizedAction<ParameterizedHoverAction> {
     protected void execute(UIEngine engine, LocatorDescriptor d) { engine.hover(d); }
 }
 interface ParameterizedHoverable extends Hoverable {
