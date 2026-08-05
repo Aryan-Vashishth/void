@@ -90,5 +90,24 @@ public class EnumLocatorScannerTest {
         assertFalse(usernameVal.isBlank(),
                 "Expected a non-blank locator value even without a properties file");
     }
+
+    // =====================================================================
+    // Nested-interface enum -- properties loaded from outermost page class
+    // =====================================================================
+
+    @Test(description = "Scanner probes the outermost enclosing page class for properties, not the immediate enclosing interface")
+    public void writeInto_nestedInterfaceEnum_resolvesXpathFromOutermostPageProperties() {
+        // NestedConventionalPage.LoginSection.Fields is an enum inside a nested interface.
+        // Its properties file lives at NestedConventionalPage/locators.properties, not
+        // LoginSection/locators.properties. The scanner must walk up to the outermost class.
+        ObjectNode node = M.createObjectNode();
+        new EnumLocatorScanner(new PropertiesIndex())
+            .writeInto(node, elements.fixture.NestedConventionalPage.LoginSection.Fields.class);
+        assertEquals(node.path("USERNAME").path("INPUT").asText(),
+            "//input[@data-test='username']",
+            "Nested-interface enum must resolve XPath from the outermost page's properties file");
+        assertEquals(node.path("PASSWORD").path("INPUT").asText(),
+            "//input[@data-test='password']");
+    }
 }
 

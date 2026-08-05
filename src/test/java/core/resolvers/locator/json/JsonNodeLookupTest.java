@@ -71,5 +71,44 @@ public class JsonNodeLookupTest {
     public void findText_returnsNullForMissing() throws Exception {
         assertNull(JsonNodeLookup.findText(tree(), "no.such.path"));
     }
+
+    // ── Nested-interface key lookup ────────────────────────────────────────────
+
+    private static JsonNode nestedTree() throws Exception {
+        return M.readTree(
+            "{ \"LoginPage\": {" +
+            "    \"LoginForm\": {" +
+            "      \"Credentials\": {" +
+            "        \"USERNAME_FIELD\": { \"INPUT\": \"//input[@id='user']\" }," +
+            "        \"PASSWORD_FIELD\": { \"INPUT\": \"//input[@id='pass']\" }" +
+            "      }" +
+            "    }," +
+            "    \"CredentialsPanel\": {" +
+            "      \"ACCEPTED_CREDENTIALS\": { \"TEXT\": \"//div[@id='creds']\" }" +
+            "    }" +
+            "  }" +
+            "}");
+    }
+
+    @Test
+    public void findText_nestedInterfaceKey_foundViaChildSearch() throws Exception {
+        // Key "LoginForm.Credentials.USERNAME_FIELD.INPUT" cannot be reached from root
+        // ("LoginPage" is the root key). The child-search fallback must find it.
+        assertEquals(JsonNodeLookup.findText(nestedTree(), "LoginForm.Credentials.USERNAME_FIELD.INPUT"),
+            "//input[@id='user']");
+    }
+
+    @Test
+    public void findText_directEnumKey_foundViaRootDotPath() throws Exception {
+        // Key "LoginPage.CredentialsPanel.ACCEPTED_CREDENTIALS.TEXT" starts at root — found directly.
+        assertEquals(JsonNodeLookup.findText(nestedTree(), "LoginPage.CredentialsPanel.ACCEPTED_CREDENTIALS.TEXT"),
+            "//div[@id='creds']");
+    }
+
+    @Test
+    public void findText_nestedKey_secondConstant() throws Exception {
+        assertEquals(JsonNodeLookup.findText(nestedTree(), "LoginForm.Credentials.PASSWORD_FIELD.INPUT"),
+            "//input[@id='pass']");
+    }
 }
 

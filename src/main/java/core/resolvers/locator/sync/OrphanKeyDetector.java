@@ -97,7 +97,7 @@ final class OrphanKeyDetector {
                     existing.addAll(added);
                     return existing;
                 });
-            } else if (nested.isInterface()) {
+            } else if (!nested.isSynthetic()) {
                 collectConstantIndex(nested, index);
             }
         }

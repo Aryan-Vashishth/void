@@ -35,7 +35,7 @@ final class LocatorTemplateGenerator {
     /**
      * Returns all expected keys in declaration order.
      * Constants that are not {@link UIElement} instances are skipped.
-     * Enums inside nested interfaces are included recursively.
+     * Enums inside nested interfaces or nested classes are included recursively.
      */
     List<LocatorKey> generateKeys(Class<?> pageClass) {
         List<LocatorKey> result = new ArrayList<>();
@@ -47,7 +47,7 @@ final class LocatorTemplateGenerator {
         for (Class<?> nested : scope.getDeclaredClasses()) {
             if (nested.isEnum()) {
                 collectEnumKeys(nested, result);
-            } else if (nested.isInterface()) {
+            } else if (!nested.isSynthetic()) {
                 collectKeys(nested, result);
             }
         }
