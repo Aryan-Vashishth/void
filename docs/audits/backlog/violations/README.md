@@ -26,3 +26,4 @@ the remediation plan directly.
 | [waiter-returns-webdriverwait.md](waiter-returns-webdriverwait.md) | ADR-007 | `core/driver/Waiter.java` | Medium |
 | [uiengine-sendkeys-javadoc-selenium-reference.md](uiengine-sendkeys-javadoc-selenium-reference.md) | ADR-018 (doc) | `core/engine/UIEngine.java:357` | Very Low |
 | [core-driver-package-selenium-coupling.md](core-driver-package-selenium-coupling.md) | ADR-018, package cohesion | `core/driver/` package | Medium (absorbed into runtime-redesign I6.4) |
+| [uiengine-getnativedriver-escape-hatch.md](uiengine-getnativedriver-escape-hatch.md) | ADR-007, ADR-018 | `UIEngine.getNativeDriver()` cast sites in test code | High |

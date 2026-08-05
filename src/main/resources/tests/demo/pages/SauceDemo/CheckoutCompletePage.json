@@ -1,0 +1,65 @@
+{
+  "CheckoutCompletePage": {
+    "Header": {
+      "MENU_BUTTON": {
+        "TRIGGER": "//img[@data-test='open-menu']"
+      },
+      "PAGE_TITLE": {
+        "TEXT": "//span[@data-test='title']"
+      },
+      "CART_LINK": {
+        "TRIGGER": "//a[@data-test='shopping-cart-link']"
+      },
+      "CART_BADGE": {
+        "TEXT": "//span[@data-test='shopping-cart-badge']"
+      }
+    },
+    "SideMenu": {
+      "ALL_ITEMS_LINK": {
+        "TRIGGER": "//a[@data-test='inventory-sidebar-link']"
+      },
+      "ABOUT_LINK": {
+        "TRIGGER": "//a[@data-test='about-sidebar-link']"
+      },
+      "LOGOUT_LINK": {
+        "TRIGGER": "//a[@data-test='logout-sidebar-link']"
+      },
+      "RESET_APP_STATE_LINK": {
+        "TRIGGER": "//a[@data-test='reset-sidebar-link']"
+      },
+      "CLOSE_MENU_BUTTON": {
+        "TRIGGER": "//img[@data-test='close-menu']"
+      }
+    },
+    "OrderConfirmation": {
+      "PONY_EXPRESS_IMAGE": {
+        "IMAGE": "//img[@data-test='pony-express']"
+      },
+      "COMPLETE_HEADER": {
+        "TEXT": "//h2[@data-test='complete-header']"
+      },
+      "COMPLETE_TEXT": {
+        "TEXT": "//div[@data-test='complete-text']"
+      }
+    },
+    "Actions": {
+      "BACK_HOME_BUTTON": {
+        "TRIGGER": "//button[@data-test='back-to-products']"
+      },
+      "GENERATE_PDF_BUTTON": {
+        "TRIGGER": "//button[@data-test='generate-pdf-order']"
+      }
+    },
+    "Footer": {
+      "TWITTER_LINK": {
+        "TRIGGER": "//a[@data-test='social-twitter']"
+      },
+      "FACEBOOK_LINK": {
+        "TRIGGER": "//a[@data-test='social-facebook']"
+      },
+      "LINKEDIN_LINK": {
+        "TRIGGER": "//a[@data-test='social-linkedin']"
+      }
+    }
+  }
+}

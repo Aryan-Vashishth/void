@@ -357,6 +357,14 @@ public final class SeleniumEngine implements UIEngine {
     }
 
     @Override
+    public List<String> getAllTexts(LocatorDescriptor locator) {
+        By by = toBy(locator);
+        return driver.findElements(by).stream()
+                .map(e -> e.getText().trim())
+                .toList();
+    }
+
+    @Override
     public String getTextWithAttributeFallback(LocatorDescriptor locator, String endsWith, String... attributes) {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.presenceOfElementLocated(by));
