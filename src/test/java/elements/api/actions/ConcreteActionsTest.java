@@ -509,17 +509,15 @@ public class ConcreteActionsTest {
     }
 
     @Test
-    public void readOnly_readText_emitsReadTextAction() {
-        // ReadOnly.readText() factory method must produce a ReadTextAction, not a generic action
-        Action action = stubReadOnly().readText();
+    public void readOnly_getText_emitsReadTextAction() {
+        Action action = stubReadOnly().getText();
         assertTrue(action instanceof ReadTextAction,
-                "readText() must return a ReadTextAction; got " + action.getClass().getSimpleName());
+                "getText() must return a ReadTextAction; got " + action.getClass().getSimpleName());
     }
 
     @Test
-    public void readOnly_readText_capabilityIsReadOnly() {
-        // Emitted action must carry READ_ONLY capability for metadata/logging
-        assertEquals(stubReadOnly().readText().capability(), ActionCapability.READ_ONLY);
+    public void readOnly_getText_capabilityIsReadOnly() {
+        assertEquals(stubReadOnly().getText().capability(), ActionCapability.READ_ONLY);
     }
 
     // ════════════════════════════════════════════════════════════════════

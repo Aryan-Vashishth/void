@@ -15,11 +15,11 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 /**
  * Architecture rules enforcing the VOID façade boundary.
  *
- * <h3>Policy (from ADR-011 — VOID as Primary Session Façade)</h3>
+ * <h3>Policy (from ADR-011 -- VOID as Primary Session Facade)</h3>
  * <ul>
- *   <li>Test classes must not hold a field of type {@code UIEngine} — engine references belong on the façade.</li>
- *   <li>Test classes must not directly instantiate {@code FlowExecutor} — use {@code VOID.run()} instead.</li>
- *   <li>Test classes must not call navigation / URL / title methods on {@code UIEngine} directly — these are now on the façade.</li>
+ *   <li>Test classes must not hold a field of type {@code UIEngine} -- engine references belong on the session services.</li>
+ *   <li>Test classes must not directly instantiate {@code FlowExecutor} -- use {@code app.flow().run()} instead.</li>
+ *   <li>Test classes must not call navigation / URL / title methods on {@code UIEngine} directly -- use {@code app.browser()} instead.</li>
  * </ul>
  *
  * <p>Note: custom hook lambdas that <em>receive</em> a {@code UIEngine} as a parameter are
@@ -46,8 +46,8 @@ public class FacadeBoundaryRulesTest {
     /**
      * Test classes must not declare a field of type {@code UIEngine}.
      *
-     * <p>Engine references must be obtained through the VOID façade:
-     * {@code VOID.getEngine()} for the escape hatch, not stored as fields.</p>
+     * <p>Engine references must be obtained through the session services:
+     * {@code app.debug().engine()} for the escape hatch, not stored as fields.</p>
      */
     @Test(description = "Test classes must not hold a UIEngine field")
     public void testClassesShouldNotDeclareUIEngineFields() {
@@ -56,8 +56,8 @@ public class FacadeBoundaryRulesTest {
                 .should().haveRawType(UIEngine.class)
                 .because(
                     "UIEngine must not be stored as a field in test classes. " +
-                    "Use the VOID session façade (app.navigateTo(), app.getCurrentUrl(), etc.) " +
-                    "or obtain the engine on-demand via app.getEngine() for advanced scenarios. " +
+                    "Use the VOID session services (app.browser(), app.elements(), etc.) " +
+                    "or obtain the engine on-demand via app.debug().engine() for advanced scenarios. " +
                     "See ADR-011."
                 );
 
@@ -80,9 +80,9 @@ public class FacadeBoundaryRulesTest {
                 .that().resideInAPackage("tests..")
                 .should().callConstructor(FlowExecutor.class, UIEngine.class)
                 .because(
-                    "Test authors should use VOID.run(flow) or VOID.run(action) instead of " +
+                    "Test authors should use app.run(flow) or app.flow().run(action) instead of " +
                     "constructing FlowExecutor directly. FlowExecutor is an internal detail of " +
-                    "the VOID session façade. See ADR-011."
+                    "the VOID session facade. See ADR-011."
                 );
 
         rule.check(testClasses);
@@ -102,7 +102,7 @@ public class FacadeBoundaryRulesTest {
                 .should().haveRawType(FlowExecutor.class)
                 .because(
                     "FlowExecutor is an internal execution mechanism. " +
-                    "Test classes should run flows via VOID.run(flow). See ADR-011."
+                    "Test classes should run flows via app.run(flow). See ADR-011."
                 );
 
         rule.check(testClasses);

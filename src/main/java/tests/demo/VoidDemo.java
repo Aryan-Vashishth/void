@@ -45,7 +45,7 @@ public class VoidDemo {
 
         info.log("[SETUP] Starting VOID session...");
         app = VOID.builder().start();
-        info.success("VOID session started — engine: " + app.getEngine().getEngineName());
+        info.success("VOID session started -- engine: " + app.debug().engine().getEngineName());
     }
 
     /**
@@ -59,7 +59,7 @@ public class VoidDemo {
      */
     @Test
     public void loginWithValidCredentials() {
-        app.navigateTo(TARGET_URL);
+        app.browser().navigateTo(TARGET_URL);
 
         info.log("Creating login flow...");
         Flow loginFlow = Flow.of(
@@ -74,7 +74,7 @@ public class VoidDemo {
         info.success("Flow executed successfully.");
 
         info.verifying("Verifying redirect to /secure...");
-        String currentUrl = app.getCurrentUrl();
+        String currentUrl = app.browser().url();
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
         info.success("LOGIN PASSED — Redirected to secure area.");
@@ -115,7 +115,7 @@ public class VoidDemo {
      */
     @Test(dependsOnMethods = "loginWithValidCredentials")
     public void loginWithHookedActions() {
-        app.navigateTo(TARGET_URL);
+        app.browser().navigateTo(TARGET_URL);
 
         info.log("Executing profiled login flow...");
         app.run(Flow.of(
@@ -134,7 +134,7 @@ public class VoidDemo {
         info.success("Profiled flow executed successfully.");
 
         info.verifying("Verifying redirect to /secure...");
-        String currentUrl = app.getCurrentUrl();
+        String currentUrl = app.browser().url();
         Assert.assertTrue(currentUrl.contains("/secure"),
                 "Expected URL to contain '/secure' but was: " + currentUrl);
         info.success("HOOKED LOGIN PASSED — Redirected to secure area.");
