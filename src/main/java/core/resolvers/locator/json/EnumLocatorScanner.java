@@ -92,11 +92,17 @@ public final class EnumLocatorScanner {
      * </ol>
      */
     private Properties loadPropsFor(Object[] constants, Class<?> enumClass) {
-        // Walk up to the outermost enclosing class so nested-interface enums resolve
-        // to the top-level page's properties file (e.g. LoginPage$LoginForm -> LoginPage).
-        Class<?> pageClass = enumClass;
-        while (pageClass.getEnclosingClass() != null) {
-            pageClass = pageClass.getEnclosingClass();
+        // Walk up through chained interfaces only; stop before crossing into a concrete
+        // class so a page interface nested inside a test class is still the root.
+        Class<?> pageClass = enumClass.getEnclosingClass();
+        if (pageClass == null) {
+            pageClass = enumClass;
+        } else {
+            while (pageClass.isInterface()) {
+                Class<?> parent = pageClass.getEnclosingClass();
+                if (parent == null || !parent.isInterface()) break;
+                pageClass = parent;
+            }
         }
         String conventionalPath = ConventionalLocatorPath.forClassProperties(pageClass);
         Properties fromConventional = propertiesIndex.get(conventionalPath);

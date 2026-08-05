@@ -325,6 +325,41 @@ Locator keys in the conventional JSON use the fully-qualified format `PageClass.
 
 The role key (`TRIGGER`, `INPUT`, `TEXT`, etc.) maps to `ElementRole` and is filled in by the `--sync` generator from the element's capability interface.
 
+### Nested Interfaces
+
+Page contracts are often organized as nested interfaces, grouping enums by functional area. All enums at any nesting depth within a chain of interfaces share a single locator file rooted at the outermost interface:
+
+```java
+public interface LoginPage {
+    interface LoginSection {
+        enum Fields  implements Typeable  { USERNAME, PASSWORD }
+        enum Actions implements Clickable { LOGIN_BUTTON }
+    }
+    interface Header {
+        enum Labels implements ReadOnly { PAGE_TITLE }
+    }
+}
+```
+
+`Fields.USERNAME.getExternalFileName()` returns `LoginPage/locators.json`. The walk ascends through enclosing interfaces until it reaches an interface with no interface parent. It stops before crossing into a concrete enclosing class, so a page interface nested inside a test class (e.g. `TestClass$MyPage`) resolves to `TestClass$MyPage/locators.json`.
+
+The `--sync` CLI and the JSON tree builder both follow the same rule when generating and writing locator files. The resulting JSON mirrors the nesting depth:
+
+```json
+{
+  "LoginPage": {
+    "LoginSection": {
+      "Fields":  { "USERNAME":     { "INPUT":   "//input[@name='user']" },
+                   "PASSWORD":     { "INPUT":   "//input[@name='pass']" } },
+      "Actions": { "LOGIN_BUTTON": { "TRIGGER": "//button[@type='submit']" } }
+    },
+    "Header": {
+      "Labels":  { "PAGE_TITLE":   { "TEXT":    "//h1" } }
+    }
+  }
+}
+```
+
 ### Generate with `--sync`
 
 ```bash
