@@ -51,7 +51,7 @@
         "TRIGGER" : "//button[@data-test='back-to-products']"
       },
       "GENERATE_PDF_BUTTON" : {
-        "TRIGGER" : "//button[@data-test='generate-pdf']"
+        "TRIGGER" : "//button[@data-test='generate-pdf-order']"
       }
     },
     "Footer" : {
