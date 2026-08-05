@@ -48,7 +48,16 @@ public interface ReadOnly extends UIElement {
     // ── Action emission ─────────────────────────────────────────────────
 
     /** Reads the visible text of this element. Engine handles scroll internally. */
-    default ReadTextAction readText() {
+    default ReadTextAction getText() {
         return new ReadTextAction(this);
+    }
+
+    /**
+     * @deprecated since 0.9 -- use {@link #getText()} instead.
+     *             Will be removed in 1.0.
+     */
+    @Deprecated(since = "0.9", forRemoval = true)
+    default ReadTextAction readText() {
+        return getText();
     }
 }

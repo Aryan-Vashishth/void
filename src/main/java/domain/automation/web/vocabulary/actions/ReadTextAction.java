@@ -18,6 +18,8 @@ import domain.automation.web.vocabulary.role.ElementRole;
 @Beta(since = "0.2", note = "Phase 19 — concrete action subclass for ReadOnly")
 public final class ReadTextAction extends ElementAction {
 
+    private String capturedText;
+
     public ReadTextAction(ReadOnly element) {
         super(element, ElementRole.TEXT, ActionCapability.READ_ONLY);
     }
@@ -27,6 +29,16 @@ public final class ReadTextAction extends ElementAction {
 
     @Override
     protected void execute(UIEngine engine, LocatorDescriptor descriptor) {
-        engine.getText(descriptor);
+        capturedText = engine.getText(descriptor);
+    }
+
+    /**
+     * Returns the text captured during {@link #execute}.
+     *
+     * <p>Only meaningful after the action has been executed via
+     * {@link core.runtime.Reader#query(ReadTextAction)}.</p>
+     */
+    public String result() {
+        return capturedText;
     }
 }
