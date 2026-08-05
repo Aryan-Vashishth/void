@@ -62,17 +62,66 @@ template. Alternatives considered and rejected:
 
 ```
 ElementAction  (existing, unchanged)
-  └── ParameterizedAction  (new abstract)   ← locatorArgs + withArgs() + resolve() override
-        └── ParameterizedClickAction         (new concrete) ← only overrides execute()
-        └── ParameterizedHoverAction         (Phase 2)
-        └── ParameterizedTypeAction          (Phase 2)
+  └── ParameterizedAction<T>  (new abstract, CRTP)  ← locatorArgs + withArgs() + resolve()
+        └── ParameterizedClickAction                 (new concrete) ← only overrides execute()
+        └── ParameterizedHoverAction  (Phase 2)
+        └── ParameterizedTypeAction   (Phase 2)
 
 Clickable  (existing, unchanged)
-  └── ParameterizedClickable  (new)         ← overrides click() with covariant return type
+  └── ParameterizedClickable  (new)  ← overrides click() with covariant return type
 ```
 
 `withArgs()` and the args-forwarding `resolve()` live in `ParameterizedAction` once.
 Phase 2 action types inherit both for free -- zero duplication.
+
+### CRTP: self-referential generic for fluent return type
+
+The naive `public <A extends ParameterizedAction> A withArgs(...)` compiles but is not
+actually type-safe -- any caller can assign the result to any `ParameterizedAction`
+subtype and the cast only fails at runtime. The Self type (CRTP) fixes this:
+
+```java
+abstract class ParameterizedAction<T extends ParameterizedAction<T>> extends ElementAction {
+
+    @SuppressWarnings("unchecked")    // contained: cast is safe by the CRTP contract
+    protected final T self() { return (T) this; }
+
+    public final T withArgs(Object... args) { ... return self(); }
+}
+
+final class ParameterizedClickAction extends ParameterizedAction<ParameterizedClickAction> { ... }
+```
+
+`withArgs()` now returns `ParameterizedClickAction` at the call site -- no external cast,
+no `@SuppressWarnings` on the caller. The single suppression is isolated inside `self()`.
+
+`withArgs()` is `final` -- no subclass should override locator-arg handling. All
+subclasses differ only in `execute()`.
+
+### Action lifecycle (one-shot objects)
+
+```
+Element constant (enum)
+    │
+    │ .click()
+    ▼
+ParameterizedClickAction   ← created; locatorArgs = NO_ARGS
+    │
+    │ .withArgs("sauce-labs-backpack")
+    ▼
+ParameterizedClickAction   ← locatorArgs = ["sauce-labs-backpack"]  (same instance)
+    │
+    │ .perform(engine)
+    ▼
+resolve(engine)            ← engine.resolve(element, TRIGGER, locatorArgs)
+    │                         effectiveArgs: locatorArgs non-empty → used as-is
+    ▼
+engine.click(descriptor)   ← SeleniumEngine / PlaywrightEngine -- engine-neutral
+```
+
+Actions are one-shot objects. Mutating `locatorArgs` via a second `withArgs()` call after
+`perform()` is silent but semantically wrong -- the action has already executed.
+Document this at the class level: **do not reuse action instances across calls**.
 
 ### Engine agnosticism
 
@@ -82,9 +131,9 @@ Phase 2 action types inherit both for free -- zero duplication.
 
 ### `withArgs()` double-call behavior
 
-Second call silently overwrites first. Callers must invoke `withArgs()` exactly once.
-This is a deliberate simplicity tradeoff -- throwing on a second call adds complexity
-for a usage pattern that should not occur in practice.
+Second call silently overwrites first. This is a deliberate simplicity tradeoff --
+throwing on a second call adds complexity for a usage pattern that should not occur in
+practice. The one-shot lifecycle note above and a dedicated test make this explicit.
 
 ---
 
@@ -108,7 +157,9 @@ for a usage pattern that should not occur in practice.
 ### `ParameterizedAction` (new abstract base)
 
 ```java
-public abstract class ParameterizedAction extends ElementAction {
+// T is the concrete subtype -- enables withArgs() to return the concrete type directly.
+public abstract class ParameterizedAction<T extends ParameterizedAction<T>>
+        extends ElementAction {
 
     private Object[] locatorArgs = Target.NO_ARGS;
 
@@ -116,19 +167,23 @@ public abstract class ParameterizedAction extends ElementAction {
         super(element, role, capability);
     }
 
+    // Single suppression point; safe by the CRTP contract (T IS this class).
     @SuppressWarnings("unchecked")
-    public <A extends ParameterizedAction> A withArgs(Object... args) {
-        // Second call overwrites first. Callers should call withArgs() exactly once.
+    protected final T self() { return (T) this; }
+
+    // final: no subclass should change how locator args are stored or returned.
+    public final T withArgs(Object... args) {
+        // Second call overwrites first -- actions are one-shot; do not reuse.
         this.locatorArgs = (args != null) ? args : Target.NO_ARGS;
-        return (A) this;
+        return self();
     }
 
     @Override
     public final LocatorDescriptor resolve(Executor executor) {
         UIEngine engine = (UIEngine) executor;
+        // engine.resolve() is the engine-neutral contract; effectiveArgs(locatorArgs)
+        // inside the resolver: non-empty locatorArgs win, empty falls back to element.getArgs().
         return engine.resolve(element, role, locatorArgs);
-        // effectiveArgs(locatorArgs) inside the resolver:
-        // non-empty locatorArgs win; empty falls back to element.getArgs().
     }
 }
 ```
@@ -136,7 +191,10 @@ public abstract class ParameterizedAction extends ElementAction {
 ### `ParameterizedClickAction` (new concrete)
 
 ```java
-public final class ParameterizedClickAction extends ParameterizedAction {
+// The type parameter is resolved here -- withArgs() returns ParameterizedClickAction directly.
+public final class ParameterizedClickAction
+        extends ParameterizedAction<ParameterizedClickAction> {
+
     ParameterizedClickAction(ParameterizedClickable element) {
         super(element, ElementRole.TRIGGER, ActionCapability.CLICKABLE);
     }
