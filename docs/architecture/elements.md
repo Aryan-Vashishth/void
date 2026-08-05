@@ -186,8 +186,24 @@ AccountMappingElements.FilterPanel.DateRangeInput
 AccountMappingElements.Grid.ActionButton
 ```
 
-The outer enum is the page class. The inner enums are functional groups. This reflects UI
-structure in the type hierarchy without any runtime cost.
+The outer type is the page class; inner types are functional groups. This reflects UI structure in the type hierarchy without any runtime cost.
+
+Functional groups can themselves be nested interfaces, allowing unlimited depth:
+
+```java
+public interface LoginPage {
+    interface LoginSection {
+        enum Fields  implements Typeable  { USERNAME, PASSWORD }
+        enum Actions implements Clickable { LOGIN_BUTTON }
+    }
+    interface Header {
+        enum Labels implements ReadOnly { PAGE_TITLE }
+    }
+    enum Footer implements Clickable { BACK_LINK }
+}
+```
+
+`getExternalFileName()` walks up through chained interface enclosures until it reaches an interface with no interface parent, giving all enums in the chain the same file root (`LoginPage/locators.json`). The walk stops before crossing into a concrete enclosing class, so a page interface declared inside a concrete class (e.g. a test class) is still treated as the locator root.
 
 ### Locator key derivation from nesting
 

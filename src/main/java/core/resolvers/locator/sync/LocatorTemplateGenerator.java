@@ -12,8 +12,11 @@ import java.util.Set;
 /**
  * Derives the ordered set of expected locator keys for all enum constants in a page class.
  *
- * <p>Key format: {@code PageClass.EnumClass.CONSTANT_NAME.ROLE}, where ROLE is
- * {@link ElementRole#name()} — the same token {@code EnumLocatorScanner} uses in JSON.
+ * <p>Key format: {@code EnclosingClass.EnumClass.CONSTANT_NAME.ROLE}, where ROLE is
+ * {@link ElementRole#name()} -- the same token {@code EnumLocatorScanner} uses in JSON.
+ * For direct enum children of the page class the prefix is {@code PageName.EnumName}.
+ * For enums nested inside inner interfaces the prefix is {@code InterfaceName.EnumName},
+ * matching what {@link UIElement#qualifiedLocatorKey} produces at runtime.
  * PRIMARY and SECONDARY are meta-roles used internally and are excluded from templates.</p>
  */
 final class LocatorTemplateGenerator {
@@ -32,46 +35,56 @@ final class LocatorTemplateGenerator {
     /**
      * Returns all expected keys in declaration order.
      * Constants that are not {@link UIElement} instances are skipped.
+     * Enums inside nested interfaces or nested classes are included recursively.
      */
     List<LocatorKey> generateKeys(Class<?> pageClass) {
-        String pageSimple = pageClass.getSimpleName();
         List<LocatorKey> result = new ArrayList<>();
+        collectKeys(pageClass, result);
+        return result;
+    }
 
-        for (Class<?> nested : pageClass.getDeclaredClasses()) {
-            if (!nested.isEnum()) continue;
-            String enumSimple = nested.getSimpleName();
+    private void collectKeys(Class<?> scope, List<LocatorKey> result) {
+        for (Class<?> nested : scope.getDeclaredClasses()) {
+            if (nested.isEnum()) {
+                collectEnumKeys(nested, result);
+            } else if (!nested.isSynthetic()) {
+                collectKeys(nested, result);
+            }
+        }
+    }
 
-            for (Object constant : nested.getEnumConstants()) {
-                if (!(constant instanceof UIElement element)) continue;
+    private void collectEnumKeys(Class<?> enumClass, List<LocatorKey> result) {
+        String enclosingSimple = enumClass.getEnclosingClass().getSimpleName();
+        String enumSimple = enumClass.getSimpleName();
 
-                // Family-locator pattern: one shared template key covers all constants.
-                String familyKey = element.templateFamilyKey();
-                if (familyKey != null) {
-                    if (result.stream().noneMatch(k -> k.key().equals(familyKey))) {
-                        result.add(new LocatorKey(enumSimple, familyKey));
-                    }
-                    continue;
+        for (Object constant : enumClass.getEnumConstants()) {
+            if (!(constant instanceof UIElement element)) continue;
+
+            // Family-locator pattern: one shared template key covers all constants.
+            String familyKey = element.templateFamilyKey();
+            if (familyKey != null) {
+                if (result.stream().noneMatch(k -> k.key().equals(familyKey))) {
+                    result.add(new LocatorKey(enumSimple, familyKey));
                 }
+                continue;
+            }
 
-                String constantName = ((Enum<?>) constant).name();
+            String constantName = ((Enum<?>) constant).name();
 
-                Map<ElementRole, String> roles = element.getAllLocatorRoles();
-                List<ElementRole> capabilityRoles = roles.keySet().stream()
-                    .filter(r -> !META_ROLES.contains(r))
-                    .toList();
+            Map<ElementRole, String> roles = element.getAllLocatorRoles();
+            List<ElementRole> capabilityRoles = roles.keySet().stream()
+                .filter(r -> !META_ROLES.contains(r))
+                .toList();
 
-                if (capabilityRoles.isEmpty()) {
-                    // Plain UIElement without a capability interface — no role suffix
+            if (capabilityRoles.isEmpty()) {
+                result.add(new LocatorKey(enumSimple,
+                    enclosingSimple + "." + enumSimple + "." + constantName));
+            } else {
+                for (ElementRole role : capabilityRoles) {
                     result.add(new LocatorKey(enumSimple,
-                        pageSimple + "." + enumSimple + "." + constantName));
-                } else {
-                    for (ElementRole role : capabilityRoles) {
-                        result.add(new LocatorKey(enumSimple,
-                            pageSimple + "." + enumSimple + "." + constantName + "." + role.name()));
-                    }
+                        enclosingSimple + "." + enumSimple + "." + constantName + "." + role.name()));
                 }
             }
         }
-        return result;
     }
 }

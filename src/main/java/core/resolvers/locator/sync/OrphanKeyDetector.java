@@ -84,12 +84,22 @@ final class OrphanKeyDetector {
 
     private Map<String, Set<String>> buildConstantIndex(Class<?> pageClass) {
         Map<String, Set<String>> index = new LinkedHashMap<>();
-        for (Class<?> nested : pageClass.getDeclaredClasses()) {
-            if (!nested.isEnum()) continue;
-            Set<String> names = new LinkedHashSet<>();
-            for (Object c : nested.getEnumConstants()) names.add(((Enum<?>) c).name());
-            index.put(nested.getSimpleName(), names);
-        }
+        collectConstantIndex(pageClass, index);
         return index;
+    }
+
+    private void collectConstantIndex(Class<?> scope, Map<String, Set<String>> index) {
+        for (Class<?> nested : scope.getDeclaredClasses()) {
+            if (nested.isEnum()) {
+                Set<String> names = new LinkedHashSet<>();
+                for (Object c : nested.getEnumConstants()) names.add(((Enum<?>) c).name());
+                index.merge(nested.getSimpleName(), names, (existing, added) -> {
+                    existing.addAll(added);
+                    return existing;
+                });
+            } else if (!nested.isSynthetic()) {
+                collectConstantIndex(nested, index);
+            }
+        }
     }
 }

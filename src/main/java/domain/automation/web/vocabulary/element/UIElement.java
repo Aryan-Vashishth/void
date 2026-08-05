@@ -44,8 +44,20 @@ public interface UIElement extends Target {
     @Nullable
     default String getExternalFileName() {
         Class<?> enumClass = ElementSupport.declaringClassOf(this);
-        Class<?> pageClass = enumClass.getEnclosingClass();
-        Class<?> target = pageClass != null ? pageClass : enumClass;
+        // Start at the enum's immediate enclosing class and walk up through chained
+        // interfaces only.  Stop before crossing from an interface into a concrete
+        // class so that a page interface nested inside a test class is still treated
+        // as the locator root (e.g. MixedLocatorStrategyTest$MixedStrategyPage).
+        Class<?> target = enumClass.getEnclosingClass();
+        if (target == null) {
+            target = enumClass;
+        } else {
+            while (target.isInterface()) {
+                Class<?> parent = target.getEnclosingClass();
+                if (parent == null || !parent.isInterface()) break;
+                target = parent;
+            }
+        }
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         String dir = target.getName().replace('.', '/') + "/";
         for (String file : new String[]{"locators.json", "locators.properties"}) {
