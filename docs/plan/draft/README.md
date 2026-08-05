@@ -24,3 +24,4 @@ Plan-level execution order (versioning per each plan's "Versioning (CHANGELOG.md
 - `07 - generalize-element-into-target/` -- MERGED into `runtime-redesign/` Initiative I1; retained for phase docs and audit
 - `08 - locator-sync-trigger/` -- 4-phase plan for locator sync build integration and developer CLI; independent of runtime-redesign (avoid landing alongside 7.3)
 - `09 - release-automation/` -- 2-phase plan: `scripts/set-version` and `scripts/release`. Independent; can land at any time.
+- `10 - parameterized-action-args/` -- type-gated `withArgs()` on the action DSL for parameterized locators; adds `ParameterizedAction` base + `ParameterizedClickable` capability interface. Independent of runtime-redesign.
