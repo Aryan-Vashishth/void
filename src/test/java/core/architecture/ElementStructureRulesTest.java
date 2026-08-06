@@ -40,7 +40,7 @@ public class ElementStructureRulesTest {
      * Every enum that implements {@link UIElement} must be a member class of an enclosing
      * page container — not a standalone top-level class.
      *
-     * <p>Permitted: {@code DemoLoginPage.Credentials}, {@code AccountMappingElements.Header}<br>
+     * <p>Permitted: {@code DemoLoginPage.Credentials}, {@code LoginPage.LoginForm.Credentials}<br>
      * Forbidden: a top-level {@code Credentials} enum that happens to implement UIElement.</p>
      */
     @Test(description = "UIElement enums must be nested inside a page class")

@@ -314,11 +314,6 @@
 //       info.validation("Verifying all elements are visible on the page.");
 //    }
 //
-//    @When("User choose Insert New Records\\(s) from Import Records Dropdown")
-//    public void userChooseInsertNewRecordsFromImportRecordsDropdown() {
-//       info.dropdown("Selecting 'Insert New Records' from Import Records Dropdown");
-//        vartopia.accountMappingInteraction().selectFromDropdown(AccountMappingElements.importRecordsDropdown.INSERT_NEW_RECORDS);
-//    }
 //
 //    @When("User click {string} Dropdown and select {string}")
 //    public void userClickDropdownAndSelect(String dropdownLabel, String optionLabel) {
