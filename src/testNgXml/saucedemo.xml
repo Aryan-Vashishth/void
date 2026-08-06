@@ -6,7 +6,7 @@
         <listener class-name="tests.listeners.ScreenshotListener"/>
     </listeners>
 
-    <test name="SauceDemoTests" parallel="methods" thread-count="4">
+    <test name="SauceDemoTests" parallel="methods" thread-count="2">
         <classes>
             <class name="tests.demo.SauceDemoTest"/>
         </classes>

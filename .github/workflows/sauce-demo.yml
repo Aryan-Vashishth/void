@@ -57,7 +57,7 @@ jobs:
             -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
             -Dheadless=true \
             -Dmaximize=false \
-            -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080 \
+            -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080,--disable-extensions,--disable-background-networking,--disable-renderer-backgrounding,--disable-backgrounding-occluded-windows \
             -DchromeBinary="${{ steps.setup-chrome.outputs.chrome-path }}" \
             -Dvoid.rootLogLevel=INFO
         env:
