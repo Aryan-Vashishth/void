@@ -1,0 +1,80 @@
+name: SauceDemo Tests
+
+# Runs the full SauceDemo E2E test suite (44 tests, 4 parallel threads).
+# Triggered on every push and pull request.
+
+on: [push, pull_request]
+
+jobs:
+  sauce-demo:
+    name: SauceDemo — Chrome (headless, parallel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+        id: setup-chrome
+
+      - name: Install matching ChromeDriver
+        run: |
+          VERSION="${{ steps.setup-chrome.outputs.chrome-version }}"
+          MAJOR="${VERSION%%.*}"
+          DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${VERSION}/linux64/chromedriver-linux64.zip"
+          if ! curl --silent --head --fail "$DRIVER_URL" > /dev/null; then
+            VERSION=$(curl -sf "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${MAJOR}")
+            DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${VERSION}/linux64/chromedriver-linux64.zip"
+          fi
+          echo "Downloading ChromeDriver ${VERSION} from ${DRIVER_URL}"
+          curl -Lo /tmp/chromedriver.zip "$DRIVER_URL"
+          unzip -q /tmp/chromedriver.zip -d /tmp/
+          chmod +x /tmp/chromedriver-linux64/chromedriver
+          echo "CHROMEDRIVER=/tmp/chromedriver-linux64/chromedriver" >> "$GITHUB_ENV"
+
+      - name: Browser info
+        run: |
+          echo "Chrome path:    ${{ steps.setup-chrome.outputs.chrome-path }}"
+          echo "Chrome version: ${{ steps.setup-chrome.outputs.chrome-version }}"
+          echo "ChromeDriver:   $CHROMEDRIVER"
+          "${{ steps.setup-chrome.outputs.chrome-path }}" --version
+          "$CHROMEDRIVER" --version
+
+      - name: Run SauceDemo tests
+        run: |
+          mvn -B -ntp test \
+            -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
+            -Dheadless=true \
+            -Dmaximize=false \
+            -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080 \
+            -DchromeBinary="${{ steps.setup-chrome.outputs.chrome-path }}" \
+            -Dvoid.rootLogLevel=INFO
+        env:
+          SE_CHROMEDRIVER: ${{ env.CHROMEDRIVER }}
+
+      - name: Upload Surefire report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-report
+          path: target/surefire-reports/
+          if-no-files-found: ignore
+
+      - name: Upload VOID logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: void-logs
+          path: logs/
+          if-no-files-found: ignore
