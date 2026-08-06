@@ -5,7 +5,6 @@ import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.runtime.VOID;
 import core.utils.data.DataGenerator;
-import domain.automation.web.engine.UIEngine;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -35,17 +34,15 @@ public class SauceDemoTest implements ScreenshotCapable {
     private static final String VALID_PASSWORD = "secret_sauce";
 
     // Per-thread session -- each parallel test method gets its own browser instance.
-    private static final ThreadLocal<VOID>      SESSION = new ThreadLocal<>();
-    private static final ThreadLocal<UIEngine>  ENGINE  = new ThreadLocal<>();
+    private static final ThreadLocal<VOID> SESSION = new ThreadLocal<>();
 
-    private VOID     app()       { return SESSION.get(); }
-    private UIEngine rawEngine() { return ENGINE.get(); }
+    private VOID app() { return SESSION.get(); }
 
     @Override
     public byte[] captureScreenshot() {
         try {
-            UIEngine engine = ENGINE.get();
-            return engine != null ? engine.takeScreenshot() : new byte[0];
+            VOID app = SESSION.get();
+            return app != null ? app.browser().takeScreenshot() : new byte[0];
         } catch (Exception e) {
             return new byte[0];
         }
@@ -67,7 +64,6 @@ public class SauceDemoTest implements ScreenshotCapable {
         VOID app = SESSION.get();
         if (app != null) app.shutdown();
         SESSION.remove();
-        ENGINE.remove();
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -75,10 +71,9 @@ public class SauceDemoTest implements ScreenshotCapable {
         CustomLogger.info.log(Thread.currentThread().getName());
         VOID app = VOID.builder().start();
         SESSION.set(app);
-        ENGINE.set(app.debug().engine());
         app.browser().navigateTo(BASE_URL);
         // SauceDemo stores cart state in localStorage; clear it so each test starts with an empty cart.
-        rawEngine().executeScript("localStorage.clear()");
+        app.browser().clearLocalStorage();
     }
 
     // ═════════════════════════════════════════════════════════════════════════

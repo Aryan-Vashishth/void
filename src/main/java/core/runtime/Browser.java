@@ -41,4 +41,14 @@ public final class Browser {
     public void refresh() {
         engine.refresh();
     }
+
+    /** Takes a full-page screenshot and returns PNG bytes. */
+    public byte[] takeScreenshot() {
+        return engine.takeScreenshot();
+    }
+
+    /** Clears the browser's localStorage for the current origin. */
+    public void clearLocalStorage() {
+        engine.executeScript("localStorage.clear()");
+    }
 }
