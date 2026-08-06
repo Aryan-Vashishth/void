@@ -304,7 +304,7 @@ At that point, investigate:
 - Are there any remaining call sites of `ElementActions.of()`?
 - If yes: Keep as deprecated bridge with 2-release removal window.
 - If no: Mark for deletion.
-- If only tests: Move to test-support utilities.
+- If only examples: Move to test-support utilities.
 
 **Document the decision with evidence.**
 

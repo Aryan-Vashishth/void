@@ -254,7 +254,7 @@ No migration required. The single-argument `FlowExecutor(UIEngine)` constructor 
 - `FlowExecutor` delegates every per-action execution call to `ExecutionPipeline`.
 - `FlowExecutor` contains no retry, timeout, metrics, or tracing logic.
 - `DefaultExecutionPipeline` is a pure pass-through: zero additional overhead beyond `action.perform(engine)`.
-- All existing tests pass without modification.
+- All existing examples pass without modification.
 
 ---
 

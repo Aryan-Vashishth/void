@@ -59,7 +59,7 @@ For each finding, answer four questions before acting:
 - After Phase 9, how often is `Profiles.SAFE.before(action)` actually called through its switch?
 - Is the switch still the primary path for any code, or is it now a compatibility path only?
 - Could `Profiles` be simplified to constants that delegate to `ActionProfiles.DEFAULT_*`?
-- Are `Profiles.RELIABLE`, `Profiles.FAST`, `Profiles.DEBUG` switch arms still exercised by tests?
+- Are `Profiles.RELIABLE`, `Profiles.FAST`, `Profiles.DEBUG` switch arms still exercised by examples?
 
 ### `ElementRole` fallback in `ElementActions.capabilityFor()`
 

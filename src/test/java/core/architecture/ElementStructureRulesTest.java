@@ -29,7 +29,7 @@ public class ElementStructureRulesTest {
     @BeforeClass
     public void importClasses() {
         allClasses = new ClassFileImporter()
-                .importPackages("tests", "elements", "core", "domain", "dsl");
+                .importPackages("examples", "elements", "core", "domain", "dsl");
     }
 
     // ─────────────────────────────────────────────────────────────────────

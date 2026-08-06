@@ -405,4 +405,4 @@ PR enforcement (block merge if violated):
 **Changes:**
 - Implement `PlaywrightEngine implements UIEngine`
 - Run full pipeline without Selenium classpath/runtime dependency
-- Add engine parity tests against Action/Flow contract
+- Add engine parity examples against Action/Flow contract

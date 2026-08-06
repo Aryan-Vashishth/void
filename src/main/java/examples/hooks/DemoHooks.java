@@ -1,9 +1,9 @@
-package examples.demo.hooks;
+package examples.hooks;
 
 import core.actions.hooks.AfterActionHandler;
 import domain.automation.web.locator.LocatorDescriptor;
 import domain.automation.web.engine.UIEngine;
-import examples.demo.pages.DemoLoginPage;
+import examples.pages.DemoLoginPage;
 import domain.automation.web.vocabulary.role.ElementRole;
 
 import java.time.Duration;

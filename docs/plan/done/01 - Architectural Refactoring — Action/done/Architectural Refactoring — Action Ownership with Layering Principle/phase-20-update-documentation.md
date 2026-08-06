@@ -180,7 +180,7 @@ User code doesn't care about these constants—it just calls safely():
 
 ### 5. Example Code and Demo
 
-**File:** `src/main/java/tests/demo/VoidDemo.java`
+**File:** `src/main/java/examples/demo/VoidDemo.java`
 
 Update to use new action pattern:
 
@@ -321,7 +321,7 @@ Before finalizing, review all documentation against ADR-013 and ADR-014:
 - Migration guide (optional)
 
 **Update examples:**
-- `src/main/java/tests/demo/VoidDemo.java`
+- `src/main/java/examples/demo/VoidDemo.java`
 - Inline Javadoc in `ElementAction`, action subclasses, capability interfaces
 
 ---

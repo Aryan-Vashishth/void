@@ -15,7 +15,7 @@ Lock a clean, reproducible compile baseline on both `main` and the active featur
 
 ## Context
 
-After stashing and separating the action package refactor from unrelated changes, a CI failure occurred in `src/main/java/tests/demo/VoidDemo.java`:
+After stashing and separating the action package refactor from unrelated changes, a CI failure occurred in `src/main/java/examples/demo/VoidDemo.java`:
 
 ```
 Error: <identifier> expected at line 74

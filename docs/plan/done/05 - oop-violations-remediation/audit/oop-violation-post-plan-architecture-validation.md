@@ -41,7 +41,7 @@ elements/
   meta/         ElementRole, EnumClassRegistry
 dsl/
   VoidDSL.java
-tests/
+examples/
 ```
 
 ---

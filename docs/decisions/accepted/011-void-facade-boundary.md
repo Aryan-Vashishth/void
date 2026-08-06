@@ -24,7 +24,7 @@ app.interaction().clickOn(element);
 
 This creates three problems:
 
-1. **Façade becomes optional** — tests couple directly to `UIEngine` for session-level operations that should live on `VOID`.
+1. **Façade becomes optional** — examples couple directly to `UIEngine` for session-level operations that should live on `VOID`.
 2. **FlowExecutor leaks** — test authors construct their own executors, diluting session ownership and lifecycle control.
 3. **Multi-session isolation is broken** — `VOID.shutdown()` calls `DriverManager.quitAll()`, killing all drivers on the thread rather than just the session's own driver.
 
@@ -157,9 +157,9 @@ customer.shutdown();
 
 ### Architecture
 
-- `VOID` becomes the **single entry point** for test-level code — tests import `VOID`, `Flow`, `Action`, and `Element` types only.
+- `VOID` becomes the **single entry point** for test-level code — examples import `VOID`, `Flow`, `Action`, and `Element` types only.
 - `FlowExecutor` remains `public` (internal consumers exist) but is **not constructed by test authors** — documentation and ArchUnit rules discourage it.
-- `interaction()` is deprecated with a removal target — new tests must not use it.
+- `interaction()` is deprecated with a removal target — new examples must not use it.
 - `getDriver()` is deprecated — subclasses should use engine-level abstractions instead.
 
 ### Façade Growth Policy

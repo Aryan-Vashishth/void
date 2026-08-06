@@ -61,7 +61,7 @@ contracts.
   through the middle of `core.actions`, invisible in the package structure."
 - **Scope / files**: package relocation of ~20 concrete/abstract action classes plus
   `ActionProfiles`' capability-specific constants (which are UI vocabulary); import
-  updates in `elements.api.capability` (the emitters) and tests. No behavior change.
+  updates in `elements.api.capability` (the emitters) and examples. No behavior change.
 - **Dependencies**: 1.4; oop-remediation P1-P3 merged (their deletions --
   HookedAction, ActionLabeled -- shrink what must move). Never parallel with I1/I3.
 - **Risks**: (arch) misclassification -- a type that looks neutral but encodes UI

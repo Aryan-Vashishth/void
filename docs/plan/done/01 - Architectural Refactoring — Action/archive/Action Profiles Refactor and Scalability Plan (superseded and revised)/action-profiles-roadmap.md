@@ -44,7 +44,7 @@ This plan prevents accidental complexity while preserving backward compatibility
 
 ### Checklist
 
-- [x] Fix compile blocker in `src/main/java/tests/demo/VoidDemo.java`.
+- [x] Fix compile blocker in `src/main/java/examples/demo/VoidDemo.java`.
 - [x] Apply fix on both `main` and `feature/action-package-refactor`.
 - [x] Verify compile locally on both branches.
 - [ ] Add CI checklist item: demo API usage must match current Action API.
@@ -73,7 +73,7 @@ This plan prevents accidental complexity while preserving backward compatibility
 - [ ] Confirm canonical public API on `Action` and document it in `core.actions` docs.
 - [ ] Ensure each shorthand maps to explicit before/after behavior.
 - [ ] Audit examples to avoid mixed styles unless intentional.
-- [ ] Add/refresh unit tests around shorthand behavior and composition order.
+- [ ] Add/refresh unit examples around shorthand behavior and composition order.
 
 ### Exit Criteria
 
@@ -102,7 +102,7 @@ This plan prevents accidental complexity while preserving backward compatibility
 - [ ] Introduce `ActionTrace` data model.
 - [ ] Add instrumentation point in action execution pipeline.
 - [ ] Provide logger output in debug mode.
-- [ ] Add tests for trace ordering and failure capture.
+- [ ] Add examples for trace ordering and failure capture.
 
 ### Exit Criteria
 

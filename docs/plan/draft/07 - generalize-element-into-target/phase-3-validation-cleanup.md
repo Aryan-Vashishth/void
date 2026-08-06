@@ -47,7 +47,7 @@ grep -n "LocatorDescriptor\|ElementRole\|locator\|Locator" src/main/java/core/ta
 
 # 5. No behavioral regression
 mvn test -q
-# expected: all tests pass
+# expected: all examples pass
 ```
 
 If any check above fails, return to Phase 2 to fix the missed reference before proceeding.

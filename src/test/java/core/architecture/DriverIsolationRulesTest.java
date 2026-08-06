@@ -75,7 +75,7 @@ public class DriverIsolationRulesTest {
     public void importClasses() {
         allClasses = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages("core", "domain", "dsl", "tests");
+                .importPackages("core", "domain", "dsl", "examples");
     }
 
     @Test(description = "core.driver imported only from the Selenium engine boundary (ADR-021, I4.5)")

@@ -57,7 +57,7 @@ Phase 1 before Phase 2: `UIElement extends Target` requires `Target` to exist an
 first. Phase 1 creates the anchor; Phase 2 hooks into it.
 
 Phase 2 before Phase 3: validation only makes sense once the rename is complete. Phase 3
-is the final gate -- confirms no `Element` reference survived Phase 2 and that all tests
+is the final gate -- confirms no `Element` reference survived Phase 2 and that all examples
 pass.
 
 **Rule**: nothing in Phase N depends on Phase N+1. Each phase compiles and passes

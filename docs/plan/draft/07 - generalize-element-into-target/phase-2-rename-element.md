@@ -251,7 +251,7 @@ grep -n "getDisplayText" src/main/java/elements/api/UIElement.java
 # expected: one result (the @Override default)
 
 mvn test -q
-# expected: all tests pass; no behavior changed
+# expected: all examples pass; no behavior changed
 ```
 
 ---

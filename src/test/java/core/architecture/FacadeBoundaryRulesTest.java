@@ -36,7 +36,7 @@ public class FacadeBoundaryRulesTest {
     public void importClasses() {
         testClasses = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-                .importPackages("tests");
+                .importPackages("examples");
     }
 
     // ─────────────────────────────────────────────────────────────────────

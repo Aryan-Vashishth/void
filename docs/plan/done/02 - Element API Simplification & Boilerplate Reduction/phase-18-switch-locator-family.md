@@ -149,7 +149,7 @@ Prefer `AdvancedLocatorFamily` when:
 - `SwitchLocatorFamily` interface exists with abstract `getSemanticValue()`
 - Runtime arg comes from `getSemanticValue()` return value
 - Properties key format is unchanged
-- All tests pass
+- All examples pass
 
 ---
 

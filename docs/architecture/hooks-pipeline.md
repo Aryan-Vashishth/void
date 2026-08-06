@@ -281,24 +281,27 @@ app.interaction().clickOn(
 
 ### Reusable Named Constants (Recommended)
 
-The recommended pattern for any hook used more than once is a **constants-holder class** — a `final` class with a private constructor and `public static final` typed constants. This mirrors how the framework's own `core.interactions.hooks.After` and `Before` classes are built, and is the pattern demonstrated by `tests.demo.hooks.DemoHooks` in this repository.
+The recommended pattern for any hook used more than once is a **constants-holder class** — a `final` class with a private constructor and `public static final` typed constants. This mirrors how the framework's own `core.interactions.hooks.After` and `Before` classes are built, and is the pattern demonstrated by `examples.hooks.DemoHooks` in this repository.
 
 Use `AfterActionHandler` or `BeforeActionHandler` as the field type (not the raw `ActionHandler` supertype) so callers can see at a glance whether a constant is a before or after hook.
 
 ```java
-package tests.your.hooks;
+package examples.your.hooks;
 
 import core.actions.hooks.AfterActionHandler;
 import core.actions.hooks.BeforeActionHandler;
 import elements.locator.LocatorDescriptor;
 import your.pages.SomePage;
 import elements.meta.ElementRole;
+
 import java.time.Duration;
+
 import static core.logging.CustomLogger.debug;
 
 public final class AppHooks {
 
-    private AppHooks() {}
+    private AppHooks() {
+    }
 
     /** Dismiss the cookie consent banner if present before interacting. */
     public static final BeforeActionHandler DISMISS_COOKIE_BANNER = (engine, descriptor) -> {
@@ -456,7 +459,7 @@ executor.run(
         .after((eng, desc) -> eng.waitForVisible(eng.resolve(ResultPage.BANNER, TEXT), Duration.ofSeconds(5)))
 );
 
-// ✅ Custom profile via builder — reusable across tests
+// ✅ Custom profile via builder — reusable across examples
 ActionProfile myProfile = ActionProfile.builder()
     .before(Before.WAIT_FOR_ANGULAR_LOADER)
     .after(After.HIGHLIGHT_ELEMENT)

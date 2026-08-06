@@ -86,7 +86,7 @@ in (Action.java:0)
 
 The rule failed precisely, naming the offending method and type. The mutation was then
 reverted (`git diff` confirmed zero remaining changes to `Action.java`) and the full
-suite re-run green (1191 tests, 0 failures) before the phase commit.
+suite re-run green (1191 examples, 0 failures) before the phase commit.
 
 ---
 

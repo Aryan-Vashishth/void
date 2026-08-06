@@ -6,7 +6,7 @@ import domain.automation.web.resolve.api.LocatorResolvers;
 import elements.fixture.ConventionalTestPage;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
-import tests.demo.pages.DemoLoginPage;
+import examples.pages.DemoLoginPage;
 
 import static org.testng.Assert.*;
 
@@ -27,7 +27,7 @@ public class ConventionalLocatorPathTest {
     public void forClass_derivesPackageQualifiedJsonPath() {
         assertEquals(
             ConventionalLocatorPath.forClass(DemoLoginPage.class),
-            "tests/demo/pages/DemoLoginPage/locators.json"
+                "examples/demo/pages/DemoLoginPage/locators.json"
         );
     }
 
@@ -35,7 +35,7 @@ public class ConventionalLocatorPathTest {
     public void forClassProperties_derivesPackageQualifiedPropertiesPath() {
         assertEquals(
             ConventionalLocatorPath.forClassProperties(DemoLoginPage.class),
-            "tests/demo/pages/DemoLoginPage/locators.properties"
+                "examples/demo/pages/DemoLoginPage/locators.properties"
         );
     }
 
@@ -51,7 +51,7 @@ public class ConventionalLocatorPathTest {
     public void dirFor_returnsDirWithTrailingSlash() {
         assertEquals(
             ConventionalLocatorPath.dirFor(DemoLoginPage.class),
-            "tests/demo/pages/DemoLoginPage/"
+                "examples/demo/pages/DemoLoginPage/"
         );
     }
 
@@ -61,7 +61,7 @@ public class ConventionalLocatorPathTest {
         String demoPath    = ConventionalLocatorPath.forClass(DemoLoginPage.class);
         String fixturePath = ConventionalLocatorPath.forClass(ConventionalTestPage.class);
         assertNotEquals(demoPath, fixturePath);
-        assertTrue(demoPath.startsWith("tests/demo/pages/"));
+        assertTrue(demoPath.startsWith("examples/demo/pages/"));
         assertTrue(fixturePath.startsWith("elements/fixture/"));
     }
 
@@ -78,7 +78,7 @@ public class ConventionalLocatorPathTest {
     @Test
     public void defaultFileName_demo_returnsPackageQualifiedPath() {
         String name = DemoLoginPage.Credentials.USERNAME.getExternalFileName();
-        assertEquals(name, "tests/demo/pages/DemoLoginPage/locators.properties");
+        assertEquals(name, "examples/demo/pages/DemoLoginPage/locators.properties");
     }
 
     // -------------------------------------------------------------------------
@@ -115,7 +115,7 @@ public class ConventionalLocatorPathTest {
 
     @Test
     public void locatorPaths_rootedPath_notPrefixed() {
-        String path = "tests/demo/pages/DemoLoginPage/locators.json";
+        String path = "examples/demo/pages/DemoLoginPage/locators.json";
         assertEquals(LocatorPaths.underJson(path), path);
     }
 

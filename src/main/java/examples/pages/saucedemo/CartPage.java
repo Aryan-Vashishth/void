@@ -1,4 +1,4 @@
-package examples.demo.pages.saucedemo;
+package examples.pages.saucedemo;
 
 import domain.automation.web.vocabulary.capability.Clickable;
 import domain.automation.web.vocabulary.capability.ParameterizedClickable;

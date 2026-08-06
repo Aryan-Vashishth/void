@@ -18,7 +18,7 @@ Deliver two things in one module:
    `exec:java` command. Short class names work via classpath scanning.
 
 After this phase:
-- `locators.json` is always up to date before tests run.
+- `locators.json` is always up to date before examples run.
 - Empty keys fail the build at `process-classes`, not at test execution.
 - Developers can trigger any sync mode from the command line with a short name.
 - The shell wrapper (`void.bat` / `void.sh`) is still useful for the subset of
@@ -78,12 +78,12 @@ Build lifecycle with auto-sync:
 mvn test
   compile              (page object enums compiled)
   process-classes      <- AutoSyncMojo fires
-    resolve DemoLoginPage -> tests.demo.pages.DemoLoginPage
+    resolve DemoLoginPage -> examples.pages.DemoLoginPage
     LocatorSyncRunner.run(DemoLoginPage.class, false)
     SyncResult.EmptyKeys? -> BUILD FAILURE (shows which keys are blank)
     SyncResult.Success?   -> continue
   test-compile
-  test                 (locators.json is current; tests run)
+  test                 (locators.json is current; examples run)
 ```
 
 ---
@@ -199,7 +199,7 @@ mvn void:sync -Dclass=LoginPage
 # expected: error listing candidate FQCNs if LoginPage exists in multiple packages
 
 mvn test -q
-# expected: all tests pass with auto-sync enabled
+# expected: all examples pass with auto-sync enabled
 ```
 
 ---

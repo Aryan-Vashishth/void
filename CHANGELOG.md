@@ -22,7 +22,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
   `logs/allure-report/`. Run `mvn allure:serve` to open the report locally.
 
 - **Screenshot on failure**: `ScreenshotCapable` interface and `ScreenshotListener`
-  (`tests.listeners`) attach a PNG screenshot to the Allure report for every failed test method.
+  (`examples.listeners`) attach a PNG screenshot to the Allure report for every failed test method.
   `SauceDemoTest` implements `ScreenshotCapable` via `UIEngine.takeScreenshot()`, keeping the
   listener decoupled from the test class.
 
@@ -449,10 +449,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Tests
 
-- **`LogAppenderRoutingTest`** -- 11 deterministic unit tests covering all three regressions:
+- **`LogAppenderRoutingTest`** -- 11 deterministic unit examples covering all three regressions:
   programmatic `CapturingAppender`s attached to the named Log4j2 loggers; root logger
   level is pinned to `INFO` per test and restored on teardown so the suite is
-  order-independent. `CallerChainHelper` (in `tests.*`) provides a project-frame
+  order-independent. `CallerChainHelper` (in `examples.*`) provides a project-frame
   call-site so the caller chain can be asserted without modifying production filter rules.
 
 ---
@@ -555,8 +555,8 @@ The following are deprecated with `forRemoval = true`:
 
   **Locator resolution architecture**
   - Deterministic repository convention -- VOID derives each page's repository path from its
-    fully qualified type: `tests.demo.pages.DemoLoginPage` →
-    `src/main/resources/tests/demo/pages/DemoLoginPage/locators.json`; no path constant,
+    fully qualified type: `examples.pages.DemoLoginPage` →
+    `src/main/resources/examples/demo/pages/DemoLoginPage/locators.json`; no path constant,
     no annotation, no `getExternalFileName()` override in the common case
   - `LocatorContext` -- new interface abstracting repository discovery; default implementation
     (`DefaultLocatorContext.INSTANCE`) applies the convention; injectable via builder for
@@ -748,12 +748,12 @@ The following are deprecated with `forRemoval = true`:
 - **`VOID.shutdown()` — session-scoped teardown**
   - Now calls `engine.shutdown()` (releases browser) then `DriverContext.removePrimary()` (cleans ThreadLocal)
   - Previously called `DriverManager.quitAll()` which killed **all** drivers on the thread — a multi-session isolation bug
-  - Multi-session tests can now call `admin.shutdown()` without affecting `customer`
+  - Multi-session examples can now call `admin.shutdown()` without affecting `customer`
 
 - **ArchUnit façade boundary enforcement** (`FacadeBoundaryRulesTest`)
-  - Rule 1: No `UIEngine` fields in `tests.*` classes — use the VOID façade instead
-  - Rule 2: No direct `new FlowExecutor(engine)` construction in `tests.*` — use `app.run()`
-  - Rule 3: No `FlowExecutor` fields in `tests.*` classes
+  - Rule 1: No `UIEngine` fields in `examples.*` classes — use the VOID façade instead
+  - Rule 2: No direct `new FlowExecutor(engine)` construction in `examples.*` — use `app.run()`
+  - Rule 3: No `FlowExecutor` fields in `examples.*` classes
   - All rules include actionable `because()` messages pointing to ADR-011
   - `archunit:1.3.0` added as a test-scoped dependency
 
@@ -830,7 +830,7 @@ The following are deprecated since **2.1** and scheduled for removal in **3.0**:
 
 - `src/testNgXml/testng.xml` no longer references the missing
   `registry.EnumClassRegistryTest` and `core.utils.TestListener`. The suite
-  now picks up tests via package globs (`core.*`, `elements.*`), so
+  now picks up examples via package globs (`core.*`, `elements.*`), so
   `mvn test` runs the full unit-test set without extra flags.
 
 ### Migration notes

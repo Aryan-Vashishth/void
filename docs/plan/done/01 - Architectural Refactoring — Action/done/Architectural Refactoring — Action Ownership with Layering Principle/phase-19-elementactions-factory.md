@@ -96,7 +96,7 @@ Reason: Test infrastructure may need a factory for custom behavior
 
 ### Test infrastructure (replace with test utility factory)
 - Count: X
-- Examples: hook tests, descriptor capture
+- Examples: hook examples, descriptor capture
 
 ### Implementation code (replace with direct constructors)
 - Count: Y
@@ -146,7 +146,7 @@ If core.actions needs a helper for test infrastructure or internal use cases.
 If ElementActions is used only for testing.
 
 **Pros:**
-- Clear separation (only tests use it)
+- Clear separation (only examples use it)
 - Easier to remove later
 
 **Cons:**
@@ -170,7 +170,7 @@ If ElementActions is used only for testing.
        }
    }
    ```
-4. Update tests to use TestActionFactory
+4. Update examples to use TestActionFactory
 
 ### If Decision is "Keep as Internal"
 
@@ -190,7 +190,7 @@ If ElementActions is used only for testing.
 
 ## Tests
 
-No additional tests needed—this phase validates audit assumptions through compilation and existing test suite.
+No additional examples needed—this phase validates audit assumptions through compilation and existing test suite.
 
 After refactoring:
 
@@ -224,7 +224,7 @@ See ADR-012 for full reasoning.
 - [x] One of three options chosen with evidence
 - [x] ADR-012 created documenting decision and rationale
 - [x] Code refactored according to decision
-- [x] All tests pass
+- [x] All examples pass
 - [x] Demo code compiles
 
 ---
@@ -247,7 +247,7 @@ action subclasses, capability methods now create actions directly.
 ## Investigation Results
 
 Found X call sites:
-- Y in tests (classified as...)
+- Y in examples (classified as...)
 - Z in implementation (classified as...)
 - N dead code
 

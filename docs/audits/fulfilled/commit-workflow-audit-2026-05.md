@@ -96,7 +96,7 @@ VOID uses [Conventional Commits](https://www.conventionalcommits.org/) as define
 | `fix` | Bug fix |
 | `docs` | Documentation only |
 | `refactor` | Behavior-preserving code change |
-| `test` | Adding or updating tests |
+| `test` | Adding or updating examples |
 | `chore` | Build, CI, dependency, tooling |
 | `perf` | Performance improvement |
 | `audit` | Audit documents and architecture reviews |
@@ -107,7 +107,7 @@ VOID uses [Conventional Commits](https://www.conventionalcommits.org/) as define
 |------|-------|-----|
 | Subject line must be imperative mood ("add", not "added" or "adds") | ✅ | ✅ |
 | Subject line ≤ 72 characters | ✅ | ✅ |
-| Scope must be a real package or module (`engine`, `flow`, `locator`, `hooks`, `docs`, `tests`) | ✅ | ✅ |
+| Scope must be a real package or module (`engine`, `flow`, `locator`, `hooks`, `docs`, `examples`) | ✅ | ✅ |
 | Body must explain **why**, not just **what** | ✅ | ✅ |
 | No AI-generated filler ("This commit improves the codebase…") | — | ✅ |
 | LLM commits must include `Generated-by: <agent>` in the footer | — | ✅ |
@@ -153,7 +153,7 @@ Generated-by: GitHub Copilot
 
 | Scenario | Action |
 |----------|--------|
-| New feature + tests | Can be **one commit** if tests are for that feature only |
+| New feature + examples | Can be **one commit** if examples are for that feature only |
 | New feature + doc update | **Two commits** — `feat(...)` then `docs(...)` |
 | Refactor + behavior change | **Two commits** — `refactor(...)` then `feat(...)` or `fix(...)` |
 | Multiple unrelated fixes | **One commit per fix** |

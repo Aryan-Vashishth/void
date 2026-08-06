@@ -372,7 +372,7 @@ Properties testProps = ConfigLoader.loadFromClasspath(
 ## `log4j2.xml` (Runtime / Logging)
 
 **Owner**: Runtime / Logging (`core.logging`)
-**Location**: `src/main/resources/log4j2.xml` (and `src/test/resources/log4j2.xml` for tests)
+**Location**: `src/main/resources/log4j2.xml` (and `src/test/resources/log4j2.xml` for examples)
 **Purpose**: Configures Apache Log4j 2 -- the underlying logging engine.
 
 VOID's `CustomLogger` wraps Log4j 2 but respects its configuration for:

@@ -43,21 +43,33 @@ Expected output:
 ```java
 import core.flow.Flow;
 import core.runtime.VOID;
-import tests.demo.pages.DemoLoginPage;
+import examples.pages.DemoLoginPage;
 
 VOID app = VOID.builder().start();
 
-app.navigateTo("https://the-internet.herokuapp.com/login");
+app.
 
-app.run(Flow.of(
-    DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
-    DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
-    DemoLoginPage.Button.LOGIN_BUTTON.click()
+navigateTo("https://the-internet.herokuapp.com/login");
+
+app.
+
+run(Flow.of(
+        DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
+    DemoLoginPage.Credentials.PASSWORD.
+
+type("SuperSecretPassword!"),
+    DemoLoginPage.Button.LOGIN_BUTTON.
+
+click()
 ));
 
-assertTrue(app.getCurrentUrl().contains("/secure"));
+assertTrue(app.getCurrentUrl().
 
-app.shutdown();
+contains("/secure"));
+
+        app.
+
+shutdown();
 ```
 
 ---
@@ -124,7 +136,7 @@ Everything else is internal.
 ### VOID is not
 - a Selenium-only or Playwright-only wrapper API for direct test code
 - a Page Object Model framework centered around mutable page classes
-- a place to call `By.xpath(...)`, `WebDriver`, or raw DOM helpers from tests
+- a place to call `By.xpath(...)`, `WebDriver`, or raw DOM helpers from examples
 
 ---
 
@@ -133,7 +145,7 @@ Everything else is internal.
 Elements are defined as enums implementing capability interfaces.
 The capability determines which kind of `Action` an element can emit.
 
-Real example from `tests.demo.pages.DemoLoginPage`:
+Real example from `examples.pages.DemoLoginPage`:
 
 ```java
 public interface DemoLoginPage {
@@ -163,14 +175,14 @@ public interface DemoLoginPage {
 For plain elements (no `LocatorFamily`):
 
 - Locator keys default to `PageClass.EnumClass.CONSTANT.ROLE` (e.g. `DemoLoginPage.Button.LOGIN_BUTTON.TRIGGER`).
-- Locator file defaults to the conventional `.json` path derived from the FQCN (e.g. `tests/demo/pages/DemoLoginPage/locators.json`).
+- Locator file defaults to the conventional `.json` path derived from the FQCN (e.g. `examples/demo/pages/DemoLoginPage/locators.json`).
 - Display text defaults to a word-transformed constant name (`LOGIN_BUTTON` → `"Login Button"`).
 - `getArgs()` defaults to no args.
 
 For `LocatorFamily` elements (like `Credentials` above):
 
 - All constants in the enum share one template key (`DemoLoginPage.Credentials`).
-- Locator file resolves to a `.properties` path (e.g. `tests/demo/pages/DemoLoginPage/locators.properties`).
+- Locator file resolves to a `.properties` path (e.g. `examples/demo/pages/DemoLoginPage/locators.properties`).
 - `getArgs()` supplies the per-constant substitution argument for the `%s` template.
 
 All defaults are overridable. `getExternalFileName()` lets an element point to a named file instead of the convention.
@@ -267,19 +279,23 @@ Key idea:
 ```java
 import core.flow.Flow;
 import core.runtime.VOID;
-import tests.demo.pages.DemoLoginPage;
+import examples.pages.DemoLoginPage;
 
 VOID app = VOID.builder().start();
 
-app.navigateTo("https://the-internet.herokuapp.com/login");
+app.
+
+navigateTo("https://the-internet.herokuapp.com/login");
 
 Flow login = Flow.of(
-    DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
-    DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
-    DemoLoginPage.Button.LOGIN_BUTTON.click()
+        DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
+        DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
+        DemoLoginPage.Button.LOGIN_BUTTON.click()
 );
 
-app.run(login);
+app.
+
+run(login);
 ```
 
 Single action execution also works:
@@ -342,21 +358,24 @@ Flow login = Flow.of(
 
 ### Writing your own hook library
 
-For app-specific hooks used across multiple tests, create a constants-holder class
+For app-specific hooks used across multiple examples, create a constants-holder class
 following the same pattern as `core.interactions.hooks.After` and `Before`:
 
 ```java
-package tests.your.hooks;
+package examples.your.hooks;
 
 import core.interactions.hooks.AfterActionHandler;
 import core.interactions.hooks.BeforeActionHandler;
 import elements.meta.ElementRole;
+
 import java.time.Duration;
+
 import static core.logging.CustomLogger.debug;
 
 public final class AppHooks {
 
-    private AppHooks() {}
+    private AppHooks() {
+    }
 
     /** Wait for the app's loading overlay to disappear after an action. */
     public static final AfterActionHandler WAIT_FOR_PAGE_LOAD = (engine, descriptor) -> {
@@ -392,7 +411,7 @@ MyPage.SUBMIT_BUTTON.click()
         .after(AppHooks.WAIT_FOR_PAGE_LOAD, After.HIGHLIGHT_ELEMENT)
 ```
 
-For a working example, see `tests/demo/hooks/DemoHooks.java`.
+For a working example, see `examples/demo/hooks/DemoHooks.java`.
 Full hook reference: [`docs/architecture/hooks-pipeline.md`](docs/architecture/hooks-pipeline.md).
 
 ---
@@ -436,18 +455,18 @@ Locator values live in external `.json` / `.properties` files.
 Resolution happens inside the framework, not in test code.
 
 Example from the demo page:
-- `DemoLoginPage.Credentials.USERNAME` → LocatorFamily element, role `INPUT`, locator file: `tests/demo/pages/DemoLoginPage/locators.properties`
-- `DemoLoginPage.Button.LOGIN_BUTTON` → plain element, role `TRIGGER`, locator file: `tests/demo/pages/DemoLoginPage/locators.json`
+- `DemoLoginPage.Credentials.USERNAME` → LocatorFamily element, role `INPUT`, locator file: `examples/demo/pages/DemoLoginPage/locators.properties`
+- `DemoLoginPage.Button.LOGIN_BUTTON` → plain element, role `TRIGGER`, locator file: `examples/demo/pages/DemoLoginPage/locators.json`
 
 ### Locator resolution pipeline (DemoLoginPage)
 
-Using `tests/demo/pages/DemoLoginPage.java` as reference:
+Using `examples/demo/pages/DemoLoginPage.java` as reference:
 
 1. `DemoLoginPage.Button.LOGIN_BUTTON.click()` emits a deferred `Action`.
 2. At execution time, the action calls `engine.resolve(element, ElementRole.TRIGGER)`.
 3. `getPrimaryLocator()` returns the qualified key `DemoLoginPage.Button.LOGIN_BUTTON.TRIGGER`.
 4. `getExternalFileName()` returns `null` → falls back to the conventional classpath path.
-5. Convention maps the element's declaring page class FQCN to `tests/demo/pages/DemoLoginPage/locators.json`.
+5. Convention maps the element's declaring page class FQCN to `examples/demo/pages/DemoLoginPage/locators.json`.
 6. Resolver reads `{ "TRIGGER": "//button[@type='submit']" }` and builds a `LocatorDescriptor`.
 7. `UIEngine` executes the action (`click`, `type`, etc.) from that descriptor.
 
@@ -458,7 +477,7 @@ This keeps test code free of `By`, hardcoded locator strings, and engine-specifi
 ```bash
 mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+  -Dexec.args="--sync examples.pages.DemoLoginPage"
 ```
 
 This creates a `locators.properties` template. Fill in the XPath values, then re-run to write `locators.json`.
@@ -483,13 +502,13 @@ void-framework/
 │   ├── elements/
 │   │   ├── api/                    # Element contracts
 │   │   └── meta/                   # ElementRole and metadata
-│   └── tests/demo/
+│   └── examples/demo/
 │       ├── VoidDemo.java           # Current Action/Flow/FlowExecutor demo
 │       ├── pages/                  # Demo element enums
 │       └── hooks/                  # DemoHooks — named AfterActionHandler constants
 ├── src/main/resources/
 │   ├── locators/                   # Legacy named locator files (.properties / .json)
-│   └── tests/                      # Conventional locator repository (auto-path by FQCN)
+│   └── examples/                      # Conventional locator repository (auto-path by FQCN)
 ├── logs/                       # Runtime trace archive — gitignored, generated each run
 │   └── YYYY-MM-DD/
 │       ├── debug-trace/        # Full caller-chain traces (DEBUG level)
@@ -522,7 +541,7 @@ assertTrue(app.getCurrentUrl().contains("/secure"));
 app.shutdown();
 ```
 
-Multi-session tests are fully supported:
+Multi-session examples are fully supported:
 
 ```java
 VOID admin    = VOID.builder().start();
@@ -564,7 +583,7 @@ Each `VOID` instance is its own isolated session.
 ```java
 import core.flow.Flow;
 import core.runtime.VOID;
-import tests.demo.pages.DemoLoginPage;
+import examples.pages.DemoLoginPage;
 
 public class Example {
     public static void main(String[] args) {
@@ -574,9 +593,9 @@ public class Example {
             app.navigateTo("https://the-internet.herokuapp.com/login");
 
             app.run(Flow.of(
-                DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
-                DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
-                DemoLoginPage.Button.LOGIN_BUTTON.click()
+                    DemoLoginPage.Credentials.USERNAME.type("tomsmith"),
+                    DemoLoginPage.Credentials.PASSWORD.type("SuperSecretPassword!"),
+                    DemoLoginPage.Button.LOGIN_BUTTON.click()
             ));
         } finally {
             app.shutdown();
@@ -585,7 +604,7 @@ public class Example {
 }
 ```
 
-This mirrors `src/main/java/tests/demo/VoidDemo.java`.
+This mirrors `src/main/java/examples/demo/VoidDemo.java`.
 
 ---
 

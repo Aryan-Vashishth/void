@@ -3,7 +3,7 @@
 **Scope:** runtime-redesign M4 -- I5 (Session Model), I6 (Domain Registration), I7 (Locator Generalization)
 **Date:** 2026-07-31
 **Branch:** `initiative/domain-registration` (I6; I5 and I7 already merged to main)
-**Test run:** 1100 tests, 0 failures, 0 errors, 0 skipped
+**Test run:** 1100 examples, 0 failures, 0 errors, 0 skipped
 **Verdict:** PASS
 
 ---

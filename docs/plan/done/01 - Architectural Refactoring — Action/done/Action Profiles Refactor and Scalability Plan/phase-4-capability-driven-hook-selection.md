@@ -350,7 +350,7 @@ Override `safeProfile()` in the new capability interface — no modification to 
 - [x] Lambda `action.safely()` falls back to `Profiles.SAFE` behavior.
 - [x] `clickable.click().using(Profiles.SAFE)` produces the identical hook list as before this phase (backward compatibility).
 - [x] `typeable.type("x").using(Profiles.SAFE)` produces the identical hook list as before this phase.
-- [x] All Phase 1, Phase 2, Phase 3 tests pass unchanged.
+- [x] All Phase 1, Phase 2, Phase 3 examples pass unchanged.
 
 ---
 
@@ -360,7 +360,7 @@ Override `safeProfile()` in the new capability interface — no modification to 
 - [x] `action.safely()` on any element-bound action uses the capability's own declared safe profile.
 - [x] Adding a new capability interface that overrides `safeProfile()` requires zero changes to any existing framework file.
 - [x] No `HookStrategyResolver`, `HookStrategy`, or parallel strategy class hierarchy exists.
-- [x] All existing tests pass without modification.
+- [x] All existing examples pass without modification.
 
 ---
 

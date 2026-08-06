@@ -52,7 +52,7 @@ extends this plan.
   Versions Maven Plugin on the classpath; if not already present, add it to `pom.xml`
   as a plugin management entry only (no lifecycle binding).
 - **Rollback**: delete the script; restore manual checklist wording in `CLAUDE.md`.
-- **Validation / tests**: run `python scripts/set-version 9.9.9`; confirm `pom.xml`
+- **Validation / examples**: run `python scripts/set-version 9.9.9`; confirm `pom.xml`
   reads `<version>9.9.9</version>` and `version.json` reads `{ "version": "9.9.9" }`;
   run `mvn compile` to verify POM is well-formed; revert with `git checkout`.
 - **Exit criteria**: `python scripts/set-version <version>` updates both files
@@ -89,7 +89,7 @@ extends this plan.
   (compat) CHANGELOG format must be stable enough to grep reliably; if the format
   changes, the check must be updated in the same commit.
 - **Rollback**: delete the script; `set-version` from Phase 1 remains.
-- **Validation / tests**: run `python scripts/release 0.4.1 --dry-run` on the current
+- **Validation / examples**: run `python scripts/release 0.4.1 --dry-run` on the current
   tree; confirm it exits 0 and prints the planned actions. Run with a version that
   has no CHANGELOG entry; confirm it exits non-zero with a clear message.
 - **Exit criteria**: `release --dry-run` passes on a clean tree with a valid

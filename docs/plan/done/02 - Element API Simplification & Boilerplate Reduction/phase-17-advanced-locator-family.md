@@ -91,7 +91,7 @@ Only exceptional values are explicitly authored. Everything else follows standar
 - `AdvancedLocatorFamily` interface exists and is documented
 - Constants with explicit values use them; constants without fall back to auto-derivation
 - Properties key format is unchanged from Phase 16 (`PageName.EnumName`)
-- All tests pass
+- All examples pass
 
 ---
 

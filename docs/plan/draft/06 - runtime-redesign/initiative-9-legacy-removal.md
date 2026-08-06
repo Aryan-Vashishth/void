@@ -42,13 +42,13 @@ this one.
 - **Motivation**: the legacy zone cannot shrink while a living, test-facing layer
   depends on it; D5 is the gravitational-pull risk.
 - **Scope / files**: `dsl/VoidDSL.java`; `core/adapters/cucumber/*` call sites;
-  its tests. Depends on oop-remediation Phase 3 (P2 dispatch fix) being merged --
+  its examples. Depends on oop-remediation Phase 3 (P2 dispatch fix) being merged --
   the DSL should be refactored once, not twice; if P2 is not yet done, it merges
   INTO this phase (one owner).
 - **Dependencies**: 4.4, 5.3, 8.2 (the kernel surface it lands on is final);
   never parallel with 9.3.
 - **Risks**: (compat) DSL is user-facing for BDD users; parity is verified by
-  behavior tests per method before/after; (arch) partial migration would leave a
+  behavior examples per method before/after; (arch) partial migration would leave a
   dual dependency -- the phase completes or reverts, no half state.
 - **Rollback**: revert (legacy path still exists until 9.3, so rollback is safe).
 - **Validation**: DSL behavior-parity suite green; `grep -rn "core.interactions"
@@ -97,7 +97,7 @@ this one.
 - **Motivation**: audit domain 9 exists only to die; D5/D11/H-series lineage; the
   0.3.0 deprecated-removal inventory (five known blocking call sites) is the
   checklist seed.
-- **Scope / files**: the legacy classes and every remaining reference (tests
+- **Scope / files**: the legacy classes and every remaining reference (examples
   pinning them are deleted or migrated); `core.bridge.selenium` package removal;
   `core.context` reduced to the session type.
 - **Dependencies**: 9.1 (DSL off), 9.2 (utils off), 7.3 consumer gate resolved;
@@ -131,7 +131,7 @@ this one.
   shipping the new architecture under the old names would preserve the confusion
   the redesign exists to end.
 - **Scope / files**: renames across kernel and web domain per mapping; all docs;
-  all tests; Migration Ledger rows for new aliases (die next major).
+  all examples; Migration Ledger rows for new aliases (die next major).
 - **Dependencies**: 9.3 (name freed), 8.3 (mapping approved); green baseline
   commit before (pure-rename discipline, cross-risk #3).
 - **Risks**: (compat) largest mechanical diff of the roadmap -- mitigated by
@@ -139,7 +139,7 @@ this one.
   by review rule: this phase changes no behavior and no signature shapes);
   (arch) none if 8.3's table is complete.
 - **Rollback**: revert rename commits.
-- **Validation**: suite green; alias-compatibility tests; docs grep for old names
+- **Validation**: suite green; alias-compatibility examples; docs grep for old names
   returns only migration-guide mentions.
 - **Exit criteria**: code speaks the ontology; mapping table fully executed.
 - **ADR / docs**: every architecture doc; the migration guide's rename table.

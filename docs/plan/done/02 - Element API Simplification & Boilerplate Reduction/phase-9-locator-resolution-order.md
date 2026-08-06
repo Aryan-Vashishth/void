@@ -102,7 +102,7 @@ External lookup   Treat locator
 
 - All three resolution paths work correctly
 - No existing element is silently broken by the new fallthrough logic
-- All tests pass
+- All examples pass
 
 ---
 

@@ -152,11 +152,11 @@ public abstract class ElementAction implements Action {
 }
 ```
 
-### Step 1.4: Write unit tests for ElementAction
+### Step 1.4: Write unit examples for ElementAction
 
 **File:** `src/test/java/core/actions/ElementActionTest.java`
 
-Key tests:
+Key examples:
 - Template method orchestration (perform → resolve → execute)
 - Final methods can't be overridden
 - Immutability: safely() / debug() / using() return new instances
@@ -241,7 +241,7 @@ public final class SelectAction extends ElementAction {
 
 **File:** `src/test/java/core/actions/ClickActionTest.java` (and others)
 
-Key tests:
+Key examples:
 - Action type performs correct engine operation
 - Profile defaults are correct
 - Immutability works through inheritance chain
@@ -291,7 +291,7 @@ Same pattern: return concrete action types.
 
 ### Step 3.3: Test capability methods
 
-Write tests that verify capability methods return correct action types:
+Write examples that verify capability methods return correct action types:
 
 ```java
 @Test
@@ -326,9 +326,9 @@ Delete from Clickable, Typeable, Selectable, SearchField, SearchableDropdown:
 - `*_RELIABLE_PROFILE`
 - etc.
 
-### Step 4.3: Update tests
+### Step 4.3: Update examples
 
-Remove tests that verify capability-owned profiles. Profile tests now verify ElementAction subclasses own profiles.
+Remove examples that verify capability-owned profiles. Profile examples now verify ElementAction subclasses own profiles.
 
 ---
 
@@ -363,7 +363,7 @@ public final class Profiles {
 }
 ```
 
-### Step 5.2: Update tests
+### Step 5.2: Update examples
 
 Tests on `Profiles.SAFE.before(action)` no longer make sense. Delete them. Profile behavior is now tested through action subclasses.
 
@@ -425,7 +425,7 @@ Count by context:
 
 Create brief summary in PR comments:
 
-- X calls in tests
+- X calls in examples
 - Y calls in implementation
 - Z calls in demo
 
@@ -436,7 +436,7 @@ Create brief summary in PR comments:
 Based on evidence, decide:
 - **Option A:** Delete entirely (if no calls found)
 - **Option B:** Keep as internal utility (if implementation files use it)
-- **Option C:** Move to test-support utilities (if only tests use it)
+- **Option C:** Move to test-support utilities (if only examples use it)
 
 Document chosen option with rationale.
 
@@ -471,22 +471,22 @@ Demo and test code should use new pattern exclusively.
 
 ## Testing Strategy Throughout Implementation
 
-### Unit tests
+### Unit examples
 - ElementAction base class (template method, finality, immutability)
 - Each action subclass (execute() behavior, profile defaults)
 - Capability methods (return correct action types)
 
-### Integration tests
+### Integration examples
 - Action through hook pipeline (before/after/using)
 - Action through ExecutionPipeline (if Phase 5 already exists)
 - Profile resolution end-to-end
 
-### Regression tests
+### Regression examples
 - All existing action behavior preserved
 - Demo code still compiles and runs
 - Hook behavior unchanged
 
-### Audit tests
+### Audit examples
 - ElementRole: verify every action can resolve its locator
 - ElementActions.of(): catalog all remaining call sites
 
@@ -507,7 +507,7 @@ mvn test
 mvn test -Dtest=ElementActionTest
 
 # Demo compilation
-javac src/main/java/tests/demo/VoidDemo.java
+javac src/main/java/examples/demo/VoidDemo.java
 ```
 
 Never push without: `mvn -DskipTests compile` passing on both `main` and feature branch.
@@ -524,7 +524,7 @@ Never push without: `mvn -DskipTests compile` passing on both `main` and feature
 
 4. **Don't use capability for dispatch** — if you write a switch statement on `capability()` inside an action, you're violating the architecture.
 
-5. **Don't forget immutability tests** — verify that `action.safely()` returns a different object.
+5. **Don't forget immutability examples** — verify that `action.safely()` returns a different object.
 
 ---
 
@@ -543,7 +543,7 @@ If issues arise that can't be fixed within scope:
 ## Success Criteria
 
 - [x] All 8 phases are complete
-- [x] ElementAction base class compiles and tests pass
+- [x] ElementAction base class compiles and examples pass
 - [x] All 17 capability methods return concrete action types (covariant)
 - [x] All action subclasses implement execute() correctly
 - [x] ActionCapabilityProvider contains only capability() method

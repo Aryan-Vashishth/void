@@ -281,7 +281,7 @@ src/main/resources/examples/demo/pages/saucedemo/CartPage/locators.properties
 ```bash
 mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync examples.demo.pages.saucedemo.CartPage"
+  -Dexec.args="--sync examples.pages.saucedemo.CartPage"
 ```
 
 Append `--prune` to also remove keys that no longer have a matching enum constant.
@@ -291,7 +291,7 @@ Append `--prune` to also remove keys that no longer have a matching enum constan
 Open Claude Code in the project root and say:
 
 ```
-/sync-locators examples.demo.pages.saucedemo.CartPage
+/sync-locators examples.pages.saucedemo.CartPage
 ```
 
 Claude runs the sync command and shows the full output.
@@ -311,7 +311,7 @@ Run `--sync` against the new class. The CLI reads the enum constants and writes 
 ```bash
 mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync examples.demo.pages.saucedemo.MyNewPage"
+  -Dexec.args="--sync examples.pages.saucedemo.MyNewPage"
 ```
 
 The generated file lands at `src/main/resources/examples/demo/pages/saucedemo/MyNewPage/locators.properties`.
@@ -327,7 +327,7 @@ Re-run the same sync command. With values now present in `.properties`, the CLI 
 ```bash
 mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync examples.demo.pages.saucedemo.MyNewPage"
+  -Dexec.args="--sync examples.pages.saucedemo.MyNewPage"
 ```
 
 ### Step 5 -- Write the test

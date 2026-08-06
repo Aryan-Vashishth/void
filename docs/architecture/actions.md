@@ -312,23 +312,26 @@ Page object enum definitions must NOT call `ElementActions.of()`. Those should d
 
 Teams building on VOID should define their own reusable hook libraries following the same constants-holder pattern used by `core.interactions.hooks.After` and `core.interactions.hooks.Before`: a `final` class with a private constructor and `public static final` typed constants.
 
-`tests.demo.hooks.DemoHooks` is the canonical example in this repository:
+`examples.hooks.DemoHooks` is the canonical example in this repository:
 
 ```java
-package tests.demo.hooks;
+package examples.hooks;
 
 import domain.automation.web.locator.LocatorDescriptor;
 import core.interactions.hooks.AfterActionHandler;
-import tests.demo.pages.DemoLoginPage;
+import examples.pages.DemoLoginPage;
 import domain.automation.web.vocabulary.role.ElementRole;
+
 import java.time.Duration;
+
 import static core.logging.CustomLogger.debug;
 
 public final class DemoHooks {
 
     private static final Duration LOGIN_SUCCESS_TIMEOUT = Duration.ofSeconds(5);
 
-    private DemoHooks() {}
+    private DemoHooks() {
+    }
 
     public static final AfterActionHandler WAIT_FOR_LOGIN_SUCCESS = (engine, descriptor) -> {
         LocatorDescriptor successMsg = engine.resolve(

@@ -40,10 +40,10 @@ Thank you for considering contributing to VOID! This document outlines the stand
 ### Build & Test
 
 ```bash
-# Full build (skip tests for speed)
+# Full build (skip examples for speed)
 mvn clean install -DskipTests
 
-# Run all tests
+# Run all examples
 mvn clean test
 
 # Run a specific test class
@@ -145,7 +145,7 @@ Merge
 | Architecture Audit | Understand the current state; identify coupling, violations, and risks before any plan is written |
 | Implementation Plan | Define phases, file changes, and commit sequence; make architectural decisions explicit |
 | Plan Validation | Verify the plan is internally consistent and addresses the identified violations before code changes begin |
-| Implementation | Execute phases in order; each phase must compile and pass tests independently |
+| Implementation | Execute phases in order; each phase must compile and pass examples independently |
 | Full-System Audit | After all phases are complete, audit the entire initiative as a coherent system |
 | Hotfix Initiative | If the full-system audit finds integration issues, address them on a scoped hotfix branch before merging |
 | Architecture Decision | Record the decision in `docs/decisions/pending-review/` after the architecture has survived implementation and review |
@@ -195,9 +195,9 @@ all planned phases are complete and the full-system audit passes.
 
 ```
 initiative/<name>
-    |-- Phase 1  (committed, compilable, tests pass)
-    |-- Phase 2  (committed, compilable, tests pass)
-    |-- Phase 3  (committed, compilable, tests pass)
+    |-- Phase 1  (committed, compilable, examples pass)
+    |-- Phase 2  (committed, compilable, examples pass)
+    |-- Phase 3  (committed, compilable, examples pass)
     |-- ...
     |-- Full-System Audit
     `-- Merge to main
@@ -287,7 +287,7 @@ Use the [Conventional Commits](https://www.conventionalcommits.org/) format:
 | `fix`      | Bug fix                                  |
 | `docs`     | Documentation only                       |
 | `refactor` | Code change with no behavior change      |
-| `test`     | Adding or updating tests                 |
+| `test`     | Adding or updating examples                 |
 | `chore`    | Build, CI, dependency changes            |
 | `perf`     | Performance improvement                  |
 
@@ -302,7 +302,7 @@ docs(readme): add prerequisites section and badges
 
 refactor(logging): extract AnsiEscape from AnsiColors
 
-test(hooks): add unit tests for Before.CLEAR_FIELD
+test(hooks): add unit examples for Before.CLEAR_FIELD
 
 chore(deps): bump selenium to 4.38.0
 ```
@@ -313,8 +313,8 @@ chore(deps): bump selenium to 4.38.0
 
 ### Before Submitting
 
-- [ ] All existing tests pass (`mvn clean test`).
-- [ ] New code has unit tests (aim for >80% coverage on new classes).
+- [ ] All existing examples pass (`mvn clean test`).
+- [ ] New code has unit examples (aim for >80% coverage on new classes).
 - [ ] Public APIs have Javadoc (see [Documentation](#documentation)).
 - [ ] No compiler warnings introduced.
 - [ ] `CHANGELOG.md` updated under `## [Unreleased]` for any user-facing change (see [Versioning](#versioning)).
@@ -333,7 +333,7 @@ Include:
 
 ### Test Location
 
-- **Unit tests**: `src/test/java/` — mirrors the main source structure.
+- **Unit examples**: `src/test/java/` — mirrors the main source structure.
 - **Test resources**: `src/test/resources/` — test configs, locator files, uploads.
 - **TestNG suite**: `src/testNgXml/testng.xml` — runs via `mvn test`.
 
@@ -341,8 +341,8 @@ Include:
 
 - Use **TestNG** (`@Test`, `@BeforeClass`, `@DataProvider`).
 - Test method naming: `methodUnderTest_scenario_expectedOutcome`.
-- Mock `WebDriver` and `WebElement` for unit tests — don't require a live browser.
-- Use `@DataProvider` for parameterized tests.
+- Mock `WebDriver` and `WebElement` for unit examples — don't require a live browser.
+- Use `@DataProvider` for parameterized examples.
 - Tests must be idempotent and independent — no ordering dependencies.
 
 ### Test Categories

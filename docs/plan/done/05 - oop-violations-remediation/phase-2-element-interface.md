@@ -286,6 +286,6 @@ grep -r "ActionCapabilityProvider" src/
 Run locator sync to confirm element resolution is unaffected:
 ```
 mvn compile -q && mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli ^
-  "-Dexec.args=--sync tests.demo.pages.DemoLoginPage --prune"
+  "-Dexec.args=--sync examples.pages.DemoLoginPage --prune"
 ```
 Expected: `[sync] Done — DemoLoginPage is in sync.`

@@ -312,7 +312,7 @@ The intended end-to-end workflow after this phase:
 4.  Open the generated template — all keys are already present.
 5.  Fill in the locator values (XPath, CSS, ID, etc.).
 6.  Run the existing JSON Migration CLI.
-7.  Execute tests.
+7.  Execute examples.
 ```
 
 Step 3 and step 6 are the only tool invocations. Steps 1, 2, and 5 are the only places where developer judgment is required.
@@ -769,7 +769,7 @@ After this phase:
 
 Typical page definitions should become substantially smaller because repetitive runtime plumbing is eliminated.
 
-The developer workflow shortens to three steps that require judgment: define the page structure, fill in locator values, and run tests. Everything between those steps is generated.
+The developer workflow shortens to three steps that require judgment: define the page structure, fill in locator values, and run examples. Everything between those steps is generated.
 
 ---
 

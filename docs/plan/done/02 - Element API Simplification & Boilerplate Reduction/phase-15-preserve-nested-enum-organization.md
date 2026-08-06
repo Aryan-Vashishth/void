@@ -40,7 +40,7 @@ None of the earlier phases changed this structure. This phase verifies and enfor
 - [x] Capability grouping is preserved — elements are still organized by type (Credentials, Buttons, Labels, etc.)
 
 ### Compile-time Guarantees
-- [x] All element references in tests and flows still use the fully-qualified form `PageName.Group.CONSTANT`
+- [x] All element references in examples and flows still use the fully-qualified form `PageName.Group.CONSTANT`
 - [x] No string-based element identifiers have been introduced at call sites
 - [x] IDE autocomplete still starts at the page level and descends through the enum group to the constant
 
@@ -49,7 +49,7 @@ None of the earlier phases changed this structure. This phase verifies and enfor
 - [x] New rule added: `ElementStructureRulesTest.elementEnumsMustBeNested` — all element enums must be member classes; top-level element enums are forbidden
 
 ### Tests
-- [x] Regression: `mvn test` passes — **1066 tests, 0 failures**
+- [x] Regression: `mvn test` passes — **1066 examples, 0 failures**
 - [x] `VoidDemo` and all reference test pages compile and run correctly
 
 ---
@@ -65,7 +65,7 @@ noClasses()
     .should().beTopLevelClasses()
 ```
 
-Scans `tests`, `elements`, and `core` packages. Any future attempt to move an element enum
+Scans `examples`, `elements`, and `core` packages. Any future attempt to move an element enum
 to a top-level class will break the build.
 
 ---
@@ -94,7 +94,7 @@ No unchecked casts, raw types, or other warning categories introduced.
 - Nested enum structure fully preserved across all pages
 - No string-typed identifiers at call sites
 - ArchUnit rule `elementEnumsMustBeNested` enforces the structure going forward
-- All 1066 tests pass, 0 warnings introduced by this branch
+- All 1066 examples pass, 0 warnings introduced by this branch
 
 ---
 

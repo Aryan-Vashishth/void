@@ -24,7 +24,7 @@
 | I3.2 -- UNKNOWN fallback removal | `18e8b87` | Pass | Pass | `safely()` throws on UNKNOWN capability; `applyConfiguredDefault()` guards and warns; `configuration-reference.md` created |
 | I3.3 -- Neutral capability contract | `4cfc90c` | Pass | Pass | All 15 capability interfaces declare Web-domain ownership; `package-info.java` updated; `elements.md` gains ownership table; `kernelCapabilityReferencesAreContractTypedOnly` ArchUnit rule added |
 
-Final suite run before this audit: **1205 tests, 0 failures, 0 errors.**
+Final suite run before this audit: **1205 examples, 0 failures, 0 errors.**
 
 ---
 

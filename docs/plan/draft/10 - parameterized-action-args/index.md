@@ -41,7 +41,7 @@ addressed.
 |----|---------|-------|
 | C1 | No way to pass locator args through the action DSL | `core.actions` / `domain.automation.web.vocabulary.actions` |
 | C2 | Parameterized elements indistinguishable from static elements at type level | `domain.automation.web.vocabulary.capability` |
-| C3 | `SortDropdown.Controls.SORT_SELECT` declared `Clickable` instead of `Selectable` | `tests.demo.pages.saucedemo` |
+| C3 | `SortDropdown.Controls.SORT_SELECT` declared `Clickable` instead of `Selectable` | `examples.pages.saucedemo` |
 
 ---
 
@@ -134,7 +134,7 @@ resolve()                        ← engine.resolve(element, TRIGGER, locatorArg
 engine.click(descriptor)         ← SeleniumEngine / PlaywrightEngine -- engine-neutral
 ```
 
-Usage in tests:
+Usage in examples:
 
 ```java
 app.run(Flow.of(
@@ -173,11 +173,11 @@ practice. The one-shot lifecycle note above and a dedicated test make this expli
 | `src/main/java/domain/automation/web/vocabulary/actions/ClickAction.java` | Remove `final` modifier to allow subclassing by `ParameterizedClickAction` |
 | `src/main/java/domain/automation/web/vocabulary/actions/ParameterizedClickAction.java` | New concrete: extends `ClickAction`; adds `storedArgs`, `withArgs()`, `locatorArgs()` override |
 | `src/main/java/domain/automation/web/vocabulary/capability/ParameterizedClickable.java` | New interface: extends `Clickable`; overrides `click()` with covariant `ParameterizedClickAction` return |
-| `src/main/java/tests/demo/pages/saucedemo/ProductsPage.java` | Split `ProductItem.Buttons` → `Buttons` (static) + `DynamicButtons` (`ParameterizedClickable`); `Controls.SORT_SELECT` → `Selectable` |
-| `src/main/java/tests/demo/pages/saucedemo/CartPage.java` | Split `CartItem.Buttons` → `Buttons` (static) + `DynamicButtons` (`ParameterizedClickable`) |
-| `src/main/resources/tests/demo/pages/SauceDemo/ProductsPage/locators.properties` | Add `SortDropdown.Controls.SORT_SELECT.LIST` XPath if absent; re-sync |
-| `src/main/java/tests/demo/SauceDemoTest.java` | Replace `engine().click(resolve(..., slug))` with `click().withArgs(slug)`; `selectByVisibleText()` with `selectByText()` |
-| `src/test/java/elements/api/actions/ParameterizedActionTest.java` | New -- 6 unit tests (see below) |
+| `src/main/java/examples/demo/pages/saucedemo/ProductsPage.java` | Split `ProductItem.Buttons` → `Buttons` (static) + `DynamicButtons` (`ParameterizedClickable`); `Controls.SORT_SELECT` → `Selectable` |
+| `src/main/java/examples/demo/pages/saucedemo/CartPage.java` | Split `CartItem.Buttons` → `Buttons` (static) + `DynamicButtons` (`ParameterizedClickable`) |
+| `src/main/resources/examples/demo/pages/SauceDemo/ProductsPage/locators.properties` | Add `SortDropdown.Controls.SORT_SELECT.LIST` XPath if absent; re-sync |
+| `src/main/java/examples/demo/SauceDemoTest.java` | Replace `engine().click(resolve(..., slug))` with `click().withArgs(slug)`; `selectByVisibleText()` with `selectByText()` |
+| `src/test/java/elements/api/actions/ParameterizedActionTest.java` | New -- 6 unit examples (see below) |
 
 **No changes to:** `Clickable`, `UIEngine`, `SeleniumEngine`.
 **Minimal change to:** `ElementAction` -- add `protected Object[] locatorArgs()` hook; change `resolve()` to call it.

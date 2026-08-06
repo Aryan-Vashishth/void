@@ -211,7 +211,7 @@ ClickAction action = element.click();
 
 - [x] All capability methods return concrete action types
 - [x] No ElementActions.of() calls remain in capability interfaces
-- [x] All tests pass
+- [x] All examples pass
 - [x] Polymorphism is preserved (Action still accepts all action types)
 - [x] Javadoc mentions covariant return typing for clarity
 - [x] Demo code still compiles
