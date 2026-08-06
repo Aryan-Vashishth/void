@@ -74,7 +74,7 @@ Run a global search for `EMPTY_ARGS` before committing.
 
 - `EMPTY_ARGS` does not appear anywhere in the codebase
 - `NO_ARGS` is the single canonical empty-args constant
-- All tests pass
+- All examples pass
 
 ---
 

@@ -400,4 +400,4 @@ mvn test -Dtest=VoidDemo -q
 - [ ] Two `VOID.builder().start()` calls in the same JVM each open exactly one browser.
 - [ ] `VOID.java` imports neither `WebDriver` (except in deprecated `getDriver()`) nor `DriverContext`.
 - [ ] `EngineBootstrap` has no `FromDriver` record or `fromDriver()` method.
-- [ ] Existing tests compile and pass without behavior changes.
+- [ ] Existing examples compile and pass without behavior changes.

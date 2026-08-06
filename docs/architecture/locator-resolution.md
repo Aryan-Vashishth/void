@@ -296,8 +296,8 @@ Map<ElementRole, String> roles = element.getAllLocatorRoles();
 When `getExternalFileName()` returns `null` (the default for all minimal element enums), VOID derives the locator file path from the element's declaring page class:
 
 ```
-FQCN: tests.demo.pages.DemoLoginPage
-→ Classpath path: tests/demo/pages/DemoLoginPage/locators.json
+FQCN: examples.pages.DemoLoginPage
+→ Classpath path: examples/demo/pages/DemoLoginPage/locators.json
 ```
 
 The file is looked up on the classpath under `src/main/resources/`. No configuration needed — the path is deterministic and always unique per page class.
@@ -366,15 +366,15 @@ The `--sync` CLI and the JSON tree builder both follow the same rule when genera
 # Creates locators.properties template — fill in XPath values
 mvn process-resources -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+  -Dexec.args="--sync examples.pages.DemoLoginPage"
 
 # Re-run after filling values — writes locators.json
 mvn process-resources -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+  -Dexec.args="--sync examples.pages.DemoLoginPage"
 ```
 
-In Claude Code: `/sync-locators tests.demo.pages.DemoLoginPage`.
+In Claude Code: `/sync-locators examples.pages.DemoLoginPage`.
 
 Add `--prune` to remove keys for constants that no longer exist in the enum.
 
@@ -577,11 +577,11 @@ VOID includes a built-in CLI for generating and syncing locator files.
 # Sync: generate locators.properties template + write locators.json (conventional path)
 mvn process-resources -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+  -Dexec.args="--sync examples.pages.DemoLoginPage"
 
 # Sync with orphan key removal
 mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.DemoLoginPage --prune"
+  -Dexec.args="--sync examples.pages.DemoLoginPage --prune"
 
 # Preview: print resolved JSON to stdout (no files written)
 mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
@@ -593,7 +593,7 @@ mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
 
 # Write to conventional path
 mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--write-conventional tests.demo.pages.DemoLoginPage"
+  -Dexec.args="--write-conventional examples.pages.DemoLoginPage"
 
 # Write to a specific file
 mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
@@ -650,8 +650,8 @@ mvn test -Dlocator.json.base.path=custom/locators/json/
 
 | Page Class FQCN | Conventional Path |
 |-----------------|------------------|
-| `tests.demo.pages.DemoLoginPage` | `tests/demo/pages/DemoLoginPage/locators.json` |
-| `tests.app.pages.ManageUsersPage` | `tests/app/pages/ManageUsersPage/locators.json` |
+| `examples.pages.DemoLoginPage` | `examples/demo/pages/DemoLoginPage/locators.json` |
+| `examples.app.pages.ManageUsersPage` | `examples/app/pages/ManageUsersPage/locators.json` |
 
 **Named files** (opt-in via `getExternalFileName()`):
 

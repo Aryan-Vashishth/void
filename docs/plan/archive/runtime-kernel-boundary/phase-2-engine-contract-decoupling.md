@@ -93,6 +93,6 @@ grep -n "switch" src/main/java/core/engine/UIEngineFactory.java
       `core.engine.selenium` nor `core.driver`.
 - [ ] Registering a hypothetical second engine requires no edit to any file in
       `core.engine`.
-- [ ] `mvn compile -q` and existing tests pass.
+- [ ] `mvn compile -q` and existing examples pass.
 - [ ] P8 marked resolved in the violations index (coordinated with
       `oop-violations-remediation`).

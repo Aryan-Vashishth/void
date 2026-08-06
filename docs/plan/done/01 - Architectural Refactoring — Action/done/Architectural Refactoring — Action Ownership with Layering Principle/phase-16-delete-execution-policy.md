@@ -130,7 +130,7 @@ Delete:
 
 Tests that verify capability-owned profiles are removed:
 
-**Remove from tests:**
+**Remove from examples:**
 ```java
 // DELETE THIS
 @Test
@@ -171,8 +171,8 @@ Should find only test code (which was deleted) and metadata access (action subcl
 - `src/main/java/elements/api/capability/EditableTable.java`
 - ... and others
 
-**Remove from tests:**
-- All tests that verify capability-owned profiles
+**Remove from examples:**
+- All examples that verify capability-owned profiles
 
 ---
 
@@ -191,7 +191,7 @@ This may break if anything is calling deleted methods. If so, that's the pointâ€
 - [x] ActionCapabilityProvider contains only capability() method
 - [x] All capability interfaces have no profile constants or methods
 - [x] No references to deleted methods remain in code
-- [x] All tests pass
+- [x] All examples pass
 - [x] Compilation succeeds without errors
 
 ---

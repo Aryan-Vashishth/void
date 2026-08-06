@@ -65,7 +65,7 @@ Implementation Plan       (docs/plan/draft/<initiative>/index.md + phase-N.md)
 Plan Validation           (post-plan audit)
         |
         v
-Implementation (Phased)   (one commit per phase step; compile + tests pass between each)
+Implementation (Phased)   (one commit per phase step; compile + examples pass between each)
         |
         v
 Full-System Audit
@@ -203,7 +203,7 @@ for hypothetical future requirements unless the active initiative explicitly req
 - No wildcard imports except `static` from `CustomLogger` and `AnsiColors`.
 - Logging: `CustomLogger` only. Never `System.out.println`.
 - Test naming: `methodUnderTest_scenario_expectedOutcome`.
-- Unit tests do not open a browser. Use reflection for private state.
+- Unit examples do not open a browser. Use reflection for private state.
 - Static utility classes must have a `private` constructor.
 
 Full details: `docs/contributing/coding-standards.md`.

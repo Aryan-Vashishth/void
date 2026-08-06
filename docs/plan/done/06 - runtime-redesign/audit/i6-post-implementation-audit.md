@@ -23,7 +23,7 @@
 |---|---|
 | Sweep table has no "unassigned" row | PASS -- every main-tree package assigned to kernel / web-domain / observability / tooling / legacy |
 | Class Migration Matrix complete (zero unassigned rows) | PASS -- 74+ types classified, matrix committed to docs |
-| Startup path: bootstrap -> registration -> session(web) -> pipeline | PASS (covered by existing session + integration tests) |
+| Startup path: bootstrap -> registration -> session(web) -> pipeline | PASS (covered by existing session + integration examples) |
 | Suite green | PASS |
 
 ### I6.3 -- Probe domain (neutrality CI gate)
@@ -44,7 +44,7 @@
 | `domain.automation.web.vocabulary.*` is Selenium-free | PASS (ArchUnit `elementsApiIsSeleniumFree`, `uiActionsAreSeleniumFree`) |
 | `LocatorDescriptor` is Selenium-free | PASS (ArchUnit `locatorDescriptorIsSeleniumFree`) |
 | `UIEngineFactory` does not depend on `domain.automation.web.selenium` | PASS (ArchUnit `engineFactoryIsImplementationFree`) |
-| Kernel purity gate green | PASS (ArchUnit `kernelPurity`, 1100 tests) |
+| Kernel purity gate green | PASS (ArchUnit `kernelPurity`, 1100 examples) |
 | Visibility audit: zero reflexive `public` widenings | PASS -- all package-private classes kept package-private |
 | Zero remaining imports of pre-move FQNs in non-deprecated production code | PASS |
 | CHANGELOG FQN mapping table published | PASS -- full table under `[Unreleased]` in CHANGELOG.md |
@@ -52,7 +52,7 @@
 | `DomainRegistry` implementation-free check updated to new package | PASS (tightened in this session) |
 | Stale `core/driver/README.md`, `elements/api/README.md`, `core/engine/selenium/package-info.java` removed | PASS |
 | package-info.java added to all 16 `domain.automation.web.*` packages | PASS |
-| Suite green | PASS -- 1100 tests, 0 failures, 0 errors |
+| Suite green | PASS -- 1100 examples, 0 failures, 0 errors |
 
 ---
 

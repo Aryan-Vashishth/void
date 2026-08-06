@@ -8,7 +8,7 @@ Touches: project root only (`void.bat`, `void.sh`). No Java source changes.
 
 Provide an immediate ergonomic improvement with zero code changes. After this phase:
 
-- `.\void /sync tests.demo.pages.DemoLoginPage` replaces the full Maven exec command.
+- `.\void /sync examples.pages.DemoLoginPage` replaces the full Maven exec command.
 - Both Windows (`void.bat`) and POSIX (`void.sh`) are covered.
 - Developers have a stable command surface to learn before the Maven plugin (Phase 3)
   makes the underlying invocation invisible.
@@ -43,7 +43,7 @@ echo   /write ^<ClassName^>   -- write JSON to default output directory
 echo   /write-conventional ^<ClassName^>  -- write to conventional locators.json path
 echo.
 echo Example:
-echo   .\void /sync tests.demo.pages.DemoLoginPage
+echo   .\void /sync examples.pages.DemoLoginPage
 goto :eof
 
 :sync
@@ -99,7 +99,7 @@ case "$CMD" in
     echo "  /write-conventional <ClassName> write to conventional locators.json path"
     echo ""
     echo "Example:"
-    echo "  ./void.sh /sync tests.demo.pages.DemoLoginPage"
+    echo "  ./void.sh /sync examples.pages.DemoLoginPage"
     ;;
 esac
 ```
@@ -139,13 +139,13 @@ chore(cli): add void.bat and void.sh developer convenience wrappers
 .\void
 # expected: help text listing /sync /print /write
 
-.\void /sync tests.demo.pages.DemoLoginPage
+.\void /sync examples.pages.DemoLoginPage
 # expected: process-resources runs, then sync runs, then locators.json is written
 
 # POSIX
 chmod +x void.sh
 ./void.sh
-./void.sh /sync tests.demo.pages.DemoLoginPage
+./void.sh /sync examples.pages.DemoLoginPage
 ```
 
 ---
@@ -154,6 +154,6 @@ chmod +x void.sh
 
 - [ ] `void.bat` and `void.sh` exist at project root.
 - [ ] Running with no args prints the command list.
-- [ ] `.\void /sync tests.demo.pages.DemoLoginPage` produces the same output as the
+- [ ] `.\void /sync examples.pages.DemoLoginPage` produces the same output as the
       full Maven exec command.
 - [ ] Scripts are committed and reviewable.

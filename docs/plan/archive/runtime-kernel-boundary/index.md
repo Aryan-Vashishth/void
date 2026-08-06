@@ -89,7 +89,7 @@ Phases 1-3 also touch (P3 dispatch removal, P7 capability ownership). Those must
 merged first so the capability surface is stable before it is opened.
 
 **Rule**: nothing in Phase N depends on Phase N+1. Each phase compiles and passes
-`mvn compile -q` and existing tests on its own before the next phase begins. Never mix
+`mvn compile -q` and existing examples on its own before the next phase begins. Never mix
 phases in one commit.
 
 ---

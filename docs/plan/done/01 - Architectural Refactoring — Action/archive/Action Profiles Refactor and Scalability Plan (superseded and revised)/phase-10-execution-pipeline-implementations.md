@@ -213,7 +213,7 @@ Per implementation (independent test classes):
 - All four pipeline implementations exist and are independently composable.
 - No implementation modifies `FlowExecutor`, `ExecutionPipeline`, or `DefaultExecutionPipeline`.
 - Composition documentation in `src/main/java/core/executor/README.md` shows a concrete example chain.
-- All tests pass.
+- All examples pass.
 
 ---
 

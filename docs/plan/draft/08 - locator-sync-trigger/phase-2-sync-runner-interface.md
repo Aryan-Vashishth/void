@@ -169,11 +169,11 @@ grep -n "implements LocatorSyncRunner" \
 
 # CLI still exits with the correct codes
 mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+  -Dexec.args="--sync examples.pages.DemoLoginPage"
 # expected: exit 0 on success
 
 mvn test -q
-# expected: all existing tests pass
+# expected: all existing examples pass
 ```
 
 ---

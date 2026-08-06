@@ -14,7 +14,7 @@ after every page object change:
 ```
 mvn process-resources -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.DemoLoginPage"
+  -Dexec.args="--sync examples.pages.DemoLoginPage"
 ```
 
 Three compounding problems:

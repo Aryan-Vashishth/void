@@ -105,4 +105,4 @@ mvn test -Dtest=*VocabularyExtension* -q
       `core.engine`.
 - [ ] Unconfigured capability profile selection fails fast instead of silently
       inheriting browser hooks.
-- [ ] `mvn compile -q` and existing tests pass.
+- [ ] `mvn compile -q` and existing examples pass.

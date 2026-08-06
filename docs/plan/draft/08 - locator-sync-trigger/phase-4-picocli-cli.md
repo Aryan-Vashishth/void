@@ -55,7 +55,7 @@ $ void sync --help
 Usage: void sync [--prune] <className>
 
       <className>   Page class to sync. Short name (DemoLoginPage) or
-                    fully qualified (tests.demo.pages.DemoLoginPage).
+                    fully qualified (examples.pages.DemoLoginPage).
       --prune       Remove orphan keys from the .properties template.
 ```
 
@@ -68,7 +68,7 @@ Usage: void sync [--prune] <className>
 void sync DemoLoginPage
 
 # Fully qualified name
-void sync tests.demo.pages.DemoLoginPage
+void sync examples.pages.DemoLoginPage
 
 # With prune
 void sync DemoLoginPage --prune
@@ -229,6 +229,6 @@ java -jar void-cli/target/void-cli.jar sync UnknownPage
 - [ ] `void-cli` module packages as a fat JAR.
 - [ ] `void --help` lists all commands.
 - [ ] `void sync DemoLoginPage` (short name) runs and exits 0.
-- [ ] `void sync tests.demo.pages.DemoLoginPage` (FQCN) runs and exits 0.
+- [ ] `void sync examples.pages.DemoLoginPage` (FQCN) runs and exits 0.
 - [ ] Tab completion script is generated without errors.
 - [ ] Exit codes (0, 1, 3) match `JsonMigratorCli` contract.

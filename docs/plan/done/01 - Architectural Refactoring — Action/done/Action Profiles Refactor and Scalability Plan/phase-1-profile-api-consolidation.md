@@ -54,7 +54,7 @@ The problem is that examples and docs currently mix styles. Some use `withHooks(
 - `src/main/java/core/actions/ActionProfiles.java` — profile implementations
 - `src/main/java/core/actions/Profiles.java` — preset constants
 - `src/main/java/core/actions/Profile.java` — profile interface
-- `src/main/java/tests/demo/VoidDemo.java` — reference usage example
+- `src/main/java/examples/demo/VoidDemo.java` — reference usage example
 
 ---
 

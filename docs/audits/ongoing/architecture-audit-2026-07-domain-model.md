@@ -88,7 +88,7 @@ Fourteen domains are discoverable in the codebase. Not all are true domains.
 | 11 | Configuration | `core.utils.ConfigLoader`, `core.engine.EngineConfig`, `core.logging.config.LogConfig`, `driver.properties`, `test.properties` | Hierarchical config loading | Not a domain, a fragment. The loader is in utils, schemas are per-subsystem, and the root config file (`driver.properties`) is named after the Selenium platform, making the framework's bootstrap contract Selenium-flavored. |
 | 12 | Utilities | `core.utils`, `.data`, `.io`, `.web` | Config, enum resolution, data generation/verification, file IO, deprecated web helpers | Not a domain. A dumping ground: configuration, UI thread-local state (`UIContext`), test-data tooling, IO plumbing, and a managed graveyard (`web`). `EnumResolver`, non-deprecated and used by the DSL, imports `By`, `WebElement`, `ExpectedConditions`. |
 | 13 | DSL / BDD adaptation | `dsl.VoidDSL`, `core.adapters.cucumber`, `StepDefinition/` | Context-driven test-facing API | Weak domain. `VoidDSL` delegates to the frozen `Interactions`, so the modern DSL is built on the deprecated pipeline. `StepDefinition/` sits outside the package hierarchy. |
-| 14 | Demo/test content in main tree | `tests.demo.*` | Demo pages, hooks, page objects | Not a domain. Test content in `src/main/java`. |
+| 14 | Demo/test content in main tree | `examples.demo.*` | Demo pages, hooks, page objects | Not a domain. Test content in `src/main/java`. |
 
 Ownership verdict: domains 1, 2, 5, 8, 10 have clear conceptual ownership. Domains 3
 and 4 have blurred ownership at exactly the boundary that matters most. Domains 6, 11,
@@ -160,7 +160,7 @@ descriptor in `core.engine`), and a configuration context.
 ## Package Audit
 
 **`core`** -- The fundamental problem. `core` is not a domain, a layer, or a context;
-it is "everything except elements, dsl, and tests." It contains the kernel, the engine
+it is "everything except elements, dsl, and examples." It contains the kernel, the engine
 contract, the Selenium platform, the legacy zone, logging, config, bootstrap, and
 utilities as siblings. Package structure here records implementation history (each
 initiative added a sibling) rather than architecture. Every boundary violation below
@@ -228,7 +228,7 @@ organizational: the vocabulary is UI-specific by design (fine for the UI domain,
 if this remains the root model of a domain-neutral runtime), and it depends on
 `core.actions` (the cycle).
 
-**`tests.demo` and `StepDefinition/`** -- Test and demo content in the production
+**`examples.demo` and `StepDefinition/`** -- Test and demo content in the production
 source tree; the latter also violates naming conventions and hosts broken package-info
 links (known findings). Pure implementation-history artifacts.
 
@@ -264,7 +264,7 @@ incidental (imports).
 
 ## Dependency Analysis
 
-Intended flow (ADR-013, System Overview): tests -> runtime facade -> kernel -> engine
+Intended flow (ADR-013, System Overview): examples -> runtime facade -> kernel -> engine
 contract -> platform implementation, with elements feeding intent in at the top and
 resolution feeding descriptors in at the side.
 
@@ -437,7 +437,7 @@ Biggest long-term risks, in order:
 
 ### Low (minor observations)
 
-15. `tests.demo` and `StepDefinition/` in the main source tree (already externally
+15. `examples.demo` and `StepDefinition/` in the main source tree (already externally
     flagged).
 16. `core.context` reduced to near-emptiness post-deprecation; `core.flow`/
     `core.executor` as single-class top-level packages.
@@ -633,7 +633,7 @@ should be declared, not discovered.
 
 ## Concept Reality Tests
 
-Two litmus tests every proposed concept should pass, applied to the full candidate
+Two litmus examples every proposed concept should pass, applied to the full candidate
 set. Concepts that fail are not automatically disqualified, but they must earn their
 place with an explicit argument rather than inherit it from appearing in a list.
 
@@ -642,7 +642,7 @@ place with an explicit argument rather than inherit it from appearing in a list.
 | Concept | Observable? | Notes |
 |---|---|---|
 | Runtime | Yes | A running orchestrator exists; you can point to it. |
-| Session | Yes | User-visible, holds identity and lifetime; multi-session tests literally hold two. |
+| Session | Yes | User-visible, holds identity and lifetime; multi-session examples literally hold two. |
 | Target | Yes | A description you can construct, print, and hand around; its resolved referent is equally concrete. |
 | Interaction | Yes | A value you can build, compose, log, and trace. |
 | Domain | Yes | A registered extension with a name. |
@@ -675,11 +675,11 @@ This test exposes attributes masquerading as entities. Three concepts fail it.
 Session earns first-class status anyway: it has identity, state, and a user-visible
 lifetime -- it is a dependent *entity*, not an attribute. The execution owner earns
 it: an unowned responsibility must live somewhere, and no independent concept can
-absorb it. Capability fails *both* tests (non-observable and dependent) and survives
+absorb it. Capability fails *both* examples (non-observable and dependent) and survives
 only on the decoupling argument above -- which is precisely why that argument must be
 written into the ADR rather than left implicit.
 
-Rule for the redesign: any future concept proposal that fails both tests should be
+Rule for the redesign: any future concept proposal that fails both examples should be
 rejected by default; the burden of proof lies with the proposer, and "it decouples
 two vocabularies that must not meet" is the only precedent for an exception.
 
@@ -707,7 +707,7 @@ names; the redesign should introduce exactly one.)
 
 **Add: Session.** Justification: the ontology already uses the word ("Runtime owns
 sessions") without defining it, sessions are user-visible (multi-session workflows
-are a stated product feature, so tests hold and compare them), sessions carry
+are a stated product feature, so examples hold and compare them), sessions carry
 identity, environment, and lifecycle that no other concept can hold once Target is a
 stateless description, and subjectless interactions need the Session as their subject
 (O4). A concept that is public, stateful, and load-bearing cannot remain implicit.
@@ -799,7 +799,7 @@ execution).
 | Capability | Vocabulary by Domain; contract by framework | Static declaration | Targets (declare), Interactions (require), Runtime (validate as opaque set) | Other Domains' execution owners |
 | Target | Kinds by Domain; descriptions by consumer | Consumer (authored catalogs) | Interactions (bind), execution owner (resolve) | Runtime internals (Runtime treats Targets as opaque values) |
 | Domain | Extension author | Registration at bootstrap | Runtime (through registration contract only) | Other Domains |
-| execution owner (gap, O1/AD2) | Contract by framework; implementations by Domain | Domain, scoped per Session (binding cardinality pending AD1) | Runtime (dispatch), Session (lifecycle) | Consumers (tests never touch it directly) |
+| execution owner (gap, O1/AD2) | Contract by framework; implementations by Domain | Domain, scoped per Session (binding cardinality pending AD1) | Runtime (dispatch), Session (lifecycle) | Consumers (examples never touch it directly) |
 
 The last column is where architectures die. Three prohibitions carry the whole model:
 the Runtime never knows a concrete anything; a Domain never knows another Domain; a

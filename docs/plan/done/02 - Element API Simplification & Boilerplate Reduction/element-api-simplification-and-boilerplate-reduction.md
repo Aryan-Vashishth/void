@@ -258,10 +258,10 @@ Rather than requiring developers to declare locator file paths, VOID adopts a co
 Java source files remain in `src/main/java`. Locator resources live in `src/main/resources` under a structure that mirrors the full package path of the page type.
 
 ```
-src/main/java/tests/demo/pages/
+src/main/java/examples/demo/pages/
     DemoLoginPage.java
 
-src/main/resources/tests/demo/pages/
+src/main/resources/examples/demo/pages/
     DemoLoginPage/
         locators.properties
         locators.json
@@ -270,7 +270,7 @@ src/main/resources/tests/demo/pages/
 The runtime derives the resource path from the page's fully qualified type:
 
 ```
-tests.demo.pages.DemoLoginPage  →  tests/demo/pages/DemoLoginPage/locators.json
+examples.pages.DemoLoginPage  →  examples/demo/pages/DemoLoginPage/locators.json
 ```
 
 Deriving from the fully qualified type rather than just the class name eliminates collisions. Two pages named `LoginPage` in different packages (`admin.LoginPage`, `customer.LoginPage`) produce distinct repository paths and never conflict.
@@ -379,7 +379,7 @@ The intended end-to-end workflow after this phase:
 4.  Open the generated template — all keys are already present.
 5.  Fill in the locator values (XPath, CSS, ID, etc.).
 6.  Run Runtime Repository Generation.
-7.  Execute tests.
+7.  Execute examples.
 ```
 
 Steps 3 and 6 are the only tool invocations. Steps 1, 2, and 5 are the only places where developer judgment is required.
@@ -526,13 +526,13 @@ Introduce a fixed convention for where page repositories live within the Maven p
 VOID discovers each page's repository by deriving the resource path from the page's fully qualified type — no declaration required.
 
 ```
-src/main/resources/tests/demo/pages/DemoLoginPage/locators.json
+src/main/resources/examples/demo/pages/DemoLoginPage/locators.json
 ```
 
 Derived from:
 
 ```
-tests.demo.pages.DemoLoginPage  →  tests/demo/pages/DemoLoginPage/locators.json
+examples.pages.DemoLoginPage  →  examples/demo/pages/DemoLoginPage/locators.json
 ```
 
 The package is included in the path so that pages with identical class names in different packages never produce the same repository path.
@@ -1020,7 +1020,7 @@ After this phase:
 
 Typical page definitions should shrink by **60–80%** because repetitive runtime plumbing is eliminated.
 
-The developer workflow shortens to three steps that require judgment: define the page structure, fill in locator values, and run tests. Everything between those steps is generated.
+The developer workflow shortens to three steps that require judgment: define the page structure, fill in locator values, and run examples. Everything between those steps is generated.
 
 ---
 

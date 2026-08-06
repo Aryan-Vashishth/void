@@ -30,7 +30,7 @@ redesign therefore does not replace the pipeline; it (1) draws the kernel bounda
 around it, (2) re-types its edges against neutral concepts (Target, execution owner,
 Session), (3) repackages everything UI-specific as the first Domain, and (4) deletes
 the legacy surface that anchors Selenium vocabulary in the core. At every milestone
-the framework builds, tests pass, and existing test suites written against the
+the framework builds, examples pass, and existing test suites written against the
 stable tiers keep compiling.
 
 Ten initiatives, 38 phases, five milestones:
@@ -167,13 +167,13 @@ may be added to this ledger without a deletion phase.
    never-parallel rule above, plus fitness checks that freeze each won boundary so a
    later phase cannot silently undo an earlier one.
 3. **Page-object blast radius.** 1.2 (Element rename) and 9.4 (vocabulary reclaim)
-   touch every page object enum and most tests. Mitigation: both are mechanical
+   touch every page object enum and most examples. Mitigation: both are mechanical
    renames scheduled as single-purpose phases with no semantic change, and both are
    preceded by a green-baseline commit so the diff is pure rename.
 4. **Test suites pinning old APIs.** 39 test files exercise current signatures.
    Mitigation: every re-typing phase (4.4, 5.3, 8.2) includes test migration in its
    own scope; a phase is not done while any test uses its bridge artifact except
-   tests that exist to verify the bridge.
+   examples that exist to verify the bridge.
 5. **Long-lived deprecation surface.** Between M3 and M5 the codebase carries both
    typed edges. Mitigation: the Migration Ledger is reviewed at every milestone; any
    artifact whose deletion phase slips two milestones triggers a hotfix initiative

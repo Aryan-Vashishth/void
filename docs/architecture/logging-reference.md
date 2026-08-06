@@ -81,7 +81,7 @@ Includes message and full project call chain:
 2026-05-07 13:28:00.482 | INFO | [1/3] Navigating... | [CHAIN] VoidDemo.login <- FlowExecutor.run <- ...
 ```
 
-Project chain filtering keeps only project packages (`core.*`, `dsl.*`, `elements.*`, `tests.*`, `StepDefinition.*`).
+Project chain filtering keeps only project packages (`core.*`, `dsl.*`, `elements.*`, `examples.*`, `StepDefinition.*`).
 
 ## Runtime Properties
 

@@ -28,9 +28,9 @@ The phase design below assumes the fully qualified type approach (recommended).
 Java source and locator resources follow the standard Maven layout, with the resource path mirroring the page's full package path:
 
 ```
-src/main/java/tests/demo/pages/DemoLoginPage.java
+src/main/java/examples/demo/pages/DemoLoginPage.java
 
-src/main/resources/tests/demo/pages/
+src/main/resources/examples/demo/pages/
     DemoLoginPage/
         locators.properties
         locators.json
@@ -39,7 +39,7 @@ src/main/resources/tests/demo/pages/
 The runtime derives the resource path from the page's fully qualified type:
 
 ```
-tests.demo.pages.DemoLoginPage  →  tests/demo/pages/DemoLoginPage/locators.json
+examples.pages.DemoLoginPage  →  examples/demo/pages/DemoLoginPage/locators.json
 ```
 
 Package inclusion prevents collisions: two pages named `LoginPage` in different packages produce distinct paths.

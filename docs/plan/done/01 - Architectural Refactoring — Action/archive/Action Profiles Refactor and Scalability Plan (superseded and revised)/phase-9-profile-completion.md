@@ -189,7 +189,7 @@ No migration required. All existing behavior is preserved via fallback to `DEFAU
 - [ ] `clickable.click().debug()` applies debug hooks (highlight visible in output).
 - [ ] Lambda `action.reliable()` falls back to `Profiles.RELIABLE` behavior.
 - [ ] `clickable.click().using(Profiles.RELIABLE)` produces identical hook list as before this phase.
-- [ ] All Phase 4 tests pass unchanged.
+- [ ] All Phase 4 examples pass unchanged.
 
 ---
 

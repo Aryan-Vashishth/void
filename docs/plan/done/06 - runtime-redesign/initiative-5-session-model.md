@@ -72,7 +72,7 @@ which stays backlogged so 5.2 keeps exactly one objective.
   fixed here -- scoped out to keep one objective, tracked in backlog.
 - **Rollback**: revert; the old gate returns.
 - **Validation**: new test: bootstrap succeeds with no driver.properties when no
-  web session is requested; existing tests green (driver.properties present).
+  web session is requested; existing examples green (driver.properties present).
 - **Exit criteria**: `grep -n "driver.properties" src/main/java/core/bootstrap`
   empty; failure message parity test for the web path.
 - **ADR / docs**: configuration-reference.md bootstrap section.
@@ -121,7 +121,7 @@ which stays backlogged so 5.2 keeps exactly one objective.
 - **Risks**: (compat) none -- documentation and precedence clarification; any key
   behavior change is out of scope.
 - **Rollback**: revert docs.
-- **Validation**: config-resolution tests unchanged and green.
+- **Validation**: config-resolution examples unchanged and green.
 - **Exit criteria**: every config key has a documented owner (runtime / web domain /
   logging); no neutral component documents a driver key.
 - **ADR / docs**: configuration-reference.md is the deliverable.

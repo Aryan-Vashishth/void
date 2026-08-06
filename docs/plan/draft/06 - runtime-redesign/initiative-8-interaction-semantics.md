@@ -76,7 +76,7 @@ meanings of the framework's central noun in one codebase.
   explicitly out of scope (stability rule: no speculation); (compat) read-action
   callers may see signature refinement; Beta tier, in-repo migration in-phase.
 - **Rollback**: revert; single-subject implicit model returns.
-- **Validation**: suite green; tests: two-subject interaction validates both
+- **Validation**: suite green; examples: two-subject interaction validates both
   subjects' capabilities; a read interaction's result is observable through the
   runtime path (not via engine escape hatch).
 - **Exit criteria**: no kernel assumption of exactly-one-Target remains; result

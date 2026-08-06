@@ -861,13 +861,13 @@ Tests live in `src/test/java/core/logging/`:
 | `CustomLoggerTest` | General smoke test — all action labels, multiline messages, object overloads, tree/table rendering. |
 | `LogMultilineExperimentTest` | Edge-case experiments — multiline messages, null inputs, array rendering. |
 
-### Running theme tests
+### Running theme examples
 
 ```bash
-# All tests
+# All examples
 mvn test
 
-# Theme tests only
+# Theme examples only
 mvn test -Dtest=CustomLoggerThemeTest
 
 # Single theme test (e.g. COCKPIT smoke test)

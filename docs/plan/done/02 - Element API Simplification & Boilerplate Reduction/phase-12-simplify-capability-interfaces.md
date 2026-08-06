@@ -84,7 +84,7 @@ For diamond-inheritance situations (e.g. `Selectable extends Clickable, Listable
 
 - No capability interface contains a forwarding-only override that the compiler does not require
 - All required diamond-disambiguation overrides are present and documented
-- All tests pass
+- All examples pass
 
 ---
 

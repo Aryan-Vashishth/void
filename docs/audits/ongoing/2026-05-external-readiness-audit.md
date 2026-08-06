@@ -66,7 +66,7 @@ These are working. The audit recommendations below should preserve all of these.
 - A working code example in the TL;DR section
 - A **"What VOID is / is not"** framing — excellent for interview articulation
 - A **layer responsibility table** with explicit "what it should do / not do" columns
-- Real code examples from `tests.demo.pages.DemoLoginPage`, not pseudocode
+- Real code examples from `examples.pages.DemoLoginPage`, not pseudocode
 - A documentation index at the bottom
 
 ### 3.2 The execution-model design is coherent
@@ -159,7 +159,7 @@ git commit -m "chore: remove local classpath dump from repo root"
 **Why this is critical**:
 
 In 2026, a public Java project of this scope **without** a green CI badge reads as either abandoned or experimental. A hiring engineer's mental model:
-- Sees a CI badge → "this project actually compiles and tests pass" → proceeds to look at code
+- Sees a CI badge → "this project actually compiles and examples pass" → proceeds to look at code
 - Sees no CI badge → "is this even buildable?" → leaves
 
 This is the single highest-ROI fix on the entire project. It also unlocks every downstream improvement (publishing Allure reports, releasing artifacts, status visibility).
@@ -393,7 +393,7 @@ Decision required: is `VoidDSL` part of the system, or part of the legacy migrat
 
 ### 6.3 `src/main/java/StepDefinition/` violates package conventions
 
-Already covered in 5.4. The directory itself is non-idiomatic placement; it sits as a top-level Java sibling of `core/`, `elements/`, `dsl/`, `tests/`. Top-level directories should map to packages in `groupId` namespace (or at minimum follow lowercase convention).
+Already covered in 5.4. The directory itself is non-idiomatic placement; it sits as a top-level Java sibling of `core/`, `elements/`, `dsl/`, `examples/`. Top-level directories should map to packages in `groupId` namespace (or at minimum follow lowercase convention).
 
 **Severity**: Medium (visible in source tree).
 
@@ -468,7 +468,7 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Build & run unit tests
+      - name: Build & run unit examples
         run: mvn -B -ntp clean test
 
       - name: Upload surefire reports on failure

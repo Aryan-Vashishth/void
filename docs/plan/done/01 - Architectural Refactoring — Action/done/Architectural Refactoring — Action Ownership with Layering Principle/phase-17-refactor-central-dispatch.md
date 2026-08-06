@@ -198,7 +198,7 @@ Note: `ElementAction` overrides `safely()` with the full polymorphic path. This 
 affects plain lambda actions (`engine -> {}`). `ActionProfiles.DEFAULT_SAFE` (wait-for-visible)
 is a reasonable minimal guard for those.
 
-### 5. Update tests
+### 5. Update examples
 
 **Delete** (testing removed dispatch):
 - `ActionProfilesTest.safeProfile_clickable_expandsExpectedHooks`
@@ -206,11 +206,11 @@ is a reasonable minimal guard for those.
 - `ActionProfilesTest.safeProfile_selectable_expandsExpectedHooks`
 - `ActionProfilesTest.configuredDefaultProfile_isAppliedToNewActions` (already broken by
   Phase 15: concrete action methods bypass `ElementActions.of()` and thus `applyConfiguredDefault`)
-- `ElementActionsSafeProfileTest` backward-compatibility block: the four tests comparing
+- `ElementActionsSafeProfileTest` backward-compatibility block: the four examples comparing
   `Profiles.SAFE.before(action)` with `ActionProfiles.safeProfileFor(action.capability())`
 
 **Add**:
-- Reliable profile content tests in `ElementActionsSafeProfileTest`
+- Reliable profile content examples in `ElementActionsSafeProfileTest`
 - Configured-default test using `ElementActions.of()` + `DEBUG` profile
 - `fromName("SAFE")` and `fromName("RELIABLE")` both fall back to RAW
 
@@ -263,7 +263,7 @@ No capability use constitutes execution dispatch after this phase.
 - [x] Profiles are passive configuration objects — no dispatch logic
 - [x] The execution pipeline is unchanged
 - [x] Demo projects still compile
-- [x] All tests pass
+- [x] All examples pass
 - [x] The architecture remains engine-agnostic
 
 ---
@@ -276,7 +276,7 @@ No capability use constitutes execution dispatch after this phase.
 - `src/main/java/core/actions/Profiles.java` — remove SAFE, remove RELIABLE, update `fromName()`
 - `src/main/java/core/actions/Action.java` — update `safely()` default
 
-**Delete tests / update tests:**
+**Delete examples / update examples:**
 - `src/test/java/core/actions/ActionProfilesTest.java`
 - `src/test/java/core/actions/ElementActionsSafeProfileTest.java`
 - `src/test/java/core/actions/ElementActionTest.java`
@@ -299,7 +299,7 @@ mvn test
 - [x] `Profiles.SAFE` and `Profiles.RELIABLE` are deleted
 - [x] `Profiles.fromName("SAFE")` and `fromName("RELIABLE")` return RAW
 - [x] No `switch(action.capability())` in `Profiles.java`
-- [x] All tests pass
+- [x] All examples pass
 
 ---
 

@@ -84,7 +84,7 @@ This is not possible with anonymous lambdas.
 ## `ElementActions` Retained as @Internal
 
 `ElementActions.of()` is kept as an `@Internal` factory for two legitimate uses:
-1. Test infrastructure — tests that verify hook pipelines need element-bound actions with
+1. Test infrastructure — examples that verify hook pipelines need element-bound actions with
    programmable execute behavior that no concrete subclass provides
 2. Framework-internal edge cases — one-off element-bound actions without a dedicated subclass
 

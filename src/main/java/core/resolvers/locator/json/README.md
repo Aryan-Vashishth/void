@@ -55,13 +55,13 @@ JsonLocatorMigrator.writeResolvedJson(MyPageElements.class)
 
 ```bash
 # Print resolved JSON to stdout
-java core.resolvers.locator.json.JsonMigratorCli --print  tests.demo.pages.DemoLoginPage
+java core.resolvers.locator.json.JsonMigratorCli --print  examples.pages.DemoLoginPage
 
 # Write to the default output directory (src/main/resources/locators/json/)
-java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.DemoLoginPage
+java core.resolvers.locator.json.JsonMigratorCli --write  examples.pages.DemoLoginPage
 
 # Write to a specific file
-java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.DemoLoginPage  path/to/output.json
+java core.resolvers.locator.json.JsonMigratorCli --write  examples.pages.DemoLoginPage  path/to/output.json
 ```
 
 Locator values are resolved from companion `.properties` files where enum constants reference property keys rather than raw XPaths.

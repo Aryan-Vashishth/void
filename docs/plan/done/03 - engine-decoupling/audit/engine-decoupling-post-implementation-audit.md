@@ -92,7 +92,7 @@ early plan draft but was replaced by `EngineBootstrap.FromProfile` before implem
 | `DOMUtils`, `WaitUtils`, `TableHandler` | `CoreUtilsDeprecationTest` | 8 | Deprecation annotation regression guard |
 | `SeleniumLocatorBridge.fromBy` | `SeleniumLocatorBridgeTest` | 8 | All four strategies, XPATH fallback (with warning), raw value preservation, complex expression preservation |
 
-No browser-dependent tests were added; all cases use reflection or in-process Selenium type construction.
+No browser-dependent examples were added; all cases use reflection or in-process Selenium type construction.
 
 ---
 

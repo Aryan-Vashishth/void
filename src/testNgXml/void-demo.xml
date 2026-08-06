@@ -17,7 +17,7 @@
 
     <test name="VoidDemo">
         <classes>
-            <class name="tests.demo.VoidDemo"/>
+            <class name="examples.tests.VoidDemo"/>
         </classes>
     </test>
 
