@@ -2,11 +2,6 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="VoidFrameworkSuite" verbose="1">
 
-    <listeners>
-        <listener class-name="tests.listeners.ScreenshotListener"/>
-        <listener class-name="tests.listeners.AllureServeListener"/>
-    </listeners>
-
     <test name="UnitTests">
         <packages>
             <package name="core.*"/>

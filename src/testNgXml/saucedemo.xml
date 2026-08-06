@@ -4,7 +4,6 @@
 
     <listeners>
         <listener class-name="tests.listeners.ScreenshotListener"/>
-        <listener class-name="tests.listeners.AllureServeListener"/>
     </listeners>
 
     <test name="SauceDemoTests" parallel="methods" thread-count="4">
