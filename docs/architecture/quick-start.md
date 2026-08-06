@@ -11,7 +11,7 @@ Execution pipeline:
 Test code describes intent. The runtime handles execution.
 
 > 💡 **Want to see it in action first?** Jump to the [Runnable Demo](#runnable-demo) at the end, or run
-> `VoidDemo` as a TestNG test from [`src/main/java/tests/demo/VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) directly.
+> `VoidDemo` as a TestNG test from [`src/main/java/examples/demo/VoidDemo.java`](../../src/main/java/examples/demo/VoidDemo.java) directly.
 
 ---
 
@@ -107,7 +107,7 @@ Each enum constant maps to a locator key resolved from an external `.json` file.
 ### Minimal form — zero boilerplate
 
 ```java
-package tests.your.pages;
+package examples.your.pages;
 
 import elements.api.capability.*;
 
@@ -135,7 +135,7 @@ No constructors, no locator keys, no `getArgs()`, no `getExternalFileName()`.
 | Derived automatically | Rule |
 |-----------------------|------|
 | Locator key | `PageClass.EnumClass.CONSTANT.ROLE` — e.g. `LoginPageElements.Credentials.USERNAME_INPUT.INPUT` |
-| Locator file | Conventional classpath path from FQCN — e.g. `tests/your/pages/LoginPageElements/locators.json` |
+| Locator file | Conventional classpath path from FQCN — e.g. `examples/your/pages/LoginPageElements/locators.json` |
 | Display text | Word-transform of constant name — `SIGN_IN_BUTTON` → `"Sign In Button"` |
 | Args | Empty (`NO_ARGS`) |
 
@@ -240,10 +240,10 @@ Run `--sync` to generate a `.properties` template, fill in XPath values, then re
 # Step 1: generate the template
 mvn process-resources -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.your.pages.LoginPageElements"
+  -Dexec.args="--sync examples.your.pages.LoginPageElements"
 ```
 
-This creates `src/main/resources/tests/your/pages/LoginPageElements/locators.properties`:
+This creates `src/main/resources/examples/your/pages/LoginPageElements/locators.properties`:
 
 ```properties
 # Fill in XPath values — do not edit keys
@@ -258,7 +258,7 @@ LoginPageElements.Labels.SUCCESS_BANNER.TEXT=
 # Step 2: after filling values, write locators.json
 mvn process-resources -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.your.pages.LoginPageElements"
+  -Dexec.args="--sync examples.your.pages.LoginPageElements"
 ```
 
 Resulting `locators.json`:
@@ -281,7 +281,7 @@ Resulting `locators.json`:
 }
 ```
 
-In Claude Code: `/sync-locators tests.your.pages.LoginPageElements` runs both steps for you.
+In Claude Code: `/sync-locators examples.your.pages.LoginPageElements` runs both steps for you.
 
 ---
 
@@ -513,7 +513,7 @@ Example log line:
 | **`VOID` session** | Primary test object. Owns navigation (`navigateTo`, `getCurrentUrl`, `getTitle`, `refresh`), execution (`run(flow)`, `run(action)`), and lifecycle (`start`, `shutdown`). |
 | **`VOID.run()`** | Preferred execution entry — delegates to the internal `FlowExecutor`. Test code never constructs `FlowExecutor` directly. |
 | **UIEngine** | Single execution authority. Owns scroll, waits, retries, fallback. Engine implementations are selected at runtime (`selenium` / `playwright`). |
-| **`getEngine()`** | Advanced escape hatch. Most tests never need it. Document why when used. |
+| **`getEngine()`** | Advanced escape hatch. Most examples never need it. Document why when used. |
 | **LocatorDescriptor** | Engine-agnostic locator record. Contains value, strategy, args, optional parent scope. |
 | **External locators** | Locators live in `.properties` or `.json` — never in Java code. |
 | **Role-based resolution** | `LocatorResolvers.strict()` (recommended) resolves locators by `ElementRole`. |
@@ -612,14 +612,14 @@ String name = app.interaction().getText(MyElements.UserCards.FULL_NAME);
 
 ## Runnable Demo
 
-A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs into [the-internet.herokuapp.com/login](https://the-internet.herokuapp.com/login) using the Action/Flow/FlowExecutor pattern.
+A complete, self-contained demo lives in `src/main/java/examples/demo/`. It logs into [the-internet.herokuapp.com/login](https://the-internet.herokuapp.com/login) using the Action/Flow/FlowExecutor pattern.
 
 ### Files
 
 | File | Purpose |
 |------|---------|
-| [`VoidDemo.java`](../../src/main/java/tests/demo/VoidDemo.java) | Main entry point — bootstraps VOID, runs login flow, verifies redirect |
-| [`DemoLoginPage.java`](../../src/main/java/tests/demo/pages/DemoLoginPage.java) | UIElement definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
+| [`VoidDemo.java`](../../src/main/java/examples/demo/VoidDemo.java) | Main entry point — bootstraps VOID, runs login flow, verifies redirect |
+| [`DemoLoginPage.java`](../../src/main/java/examples/demo/pages/DemoLoginPage.java) | UIElement definitions — `Typeable` for inputs, `Clickable` for button, `ReadOnly` for labels |
 | [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) | Locator file — XPath locators keyed by element name |
 
 ### Running
@@ -628,7 +628,7 @@ A complete, self-contained demo lives in `src/main/java/tests/demo/`. It logs in
 # From IDE: run VoidDemo as a TestNG test
 
 # From command line:
-mvn test -Dtest=tests.demo.VoidDemo
+mvn test -Dtest=examples.tests.VoidDemo
 ```
 
 ### What It Demonstrates
@@ -646,10 +646,10 @@ mvn test -Dtest=tests.demo.VoidDemo
 
 ## Next Steps
 
-- 🚀 **[Runnable Demo](../../src/main/java/tests/demo/VoidDemo.java)** — complete working example targeting `the-internet.herokuapp.com/login`
-  - [`DemoLoginPage.java`](../../src/main/java/tests/demo/pages/DemoLoginPage.java) — element definitions (Typeable, Clickable, ReadOnly)
+- 🚀 **[Runnable Demo](../../src/main/java/examples/demo/VoidDemo.java)** — complete working example targeting `the-internet.herokuapp.com/login`
+  - [`DemoLoginPage.java`](../../src/main/java/examples/demo/pages/DemoLoginPage.java) — element definitions (Typeable, Clickable, ReadOnly)
   - [`demo-login-elements.json`](../../src/main/resources/locators/json/demo-login-elements.json) — locator file
-  - Run via: `mvn test -Dtest=tests.demo.VoidDemo` or IDE TestNG runner
+  - Run via: `mvn test -Dtest=examples.tests.VoidDemo` or IDE TestNG runner
 - 📖 [System Overview](system-overview.md) — full architecture and execution flow
 - 🪝 [Hooks Pipeline](hooks-pipeline.md) — composable before/after action hooks
 - 📍 [Locator Resolution](locator-resolution.md) — full resolution pipeline

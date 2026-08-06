@@ -128,9 +128,9 @@ Modified:
 - `src/main/java/elements/api/capability/SearchField.java` — removed `ActionProfile`, `Before`, `After` imports; removed `SEARCH_FIELD_SAFE_PROFILE` constant and `safeProfile()` override
 - `src/main/java/elements/api/capability/SearchableDropdown.java` — same removals as SearchField
 
-Updated tests:
-- `src/test/java/core/actions/ElementActionsSafeProfileTest.java` — full rewrite: tests now verify `ActionProfiles.safeProfileFor()` hook content, `ElementAction.safely()` dispatch, and backward compat with `Profiles.SAFE`
-- `src/test/java/core/actions/ElementActionTest.java` — 3-arg constructor throughout; test `defaultSafeProfile_returnsNonNullProfile` replaces field check; split `safely` tests cover normal dispatch and override pattern
+Updated examples:
+- `src/test/java/core/actions/ElementActionsSafeProfileTest.java` — full rewrite: examples now verify `ActionProfiles.safeProfileFor()` hook content, `ElementAction.safely()` dispatch, and backward compat with `Profiles.SAFE`
+- `src/test/java/core/actions/ElementActionTest.java` — 3-arg constructor throughout; test `defaultSafeProfile_returnsNonNullProfile` replaces field check; split `safely` examples cover normal dispatch and override pattern
 
 ---
 

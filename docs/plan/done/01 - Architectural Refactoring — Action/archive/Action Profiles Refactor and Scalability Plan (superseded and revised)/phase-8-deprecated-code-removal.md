@@ -85,7 +85,7 @@ feature/deprecate-get-engine
 
 ### Batch 1 — `HookedAction` Public API (Medium Risk)
 
-**Precondition:** Phase 4 complete. No code in `tests.*` or external packages constructs `HookedAction` directly or calls `HookedAction.wrap()`.
+**Precondition:** Phase 4 complete. No code in `examples.*` or external packages constructs `HookedAction` directly or calls `HookedAction.wrap()`.
 
 **What to remove:**
 - The public deprecated constructor `HookedAction(Action, LocatorDescriptor, List, List)`
@@ -99,7 +99,7 @@ feature/deprecate-get-engine
 **Checklist:**
 - [ ] Grep entire codebase for `new HookedAction(` with 4 arguments (public constructor) outside `core.actions` package.
 - [ ] Grep for `HookedAction.wrap(`.
-- [ ] Confirm zero usages in `tests.*`, `demo.*`, and production code.
+- [ ] Confirm zero usages in `examples.*`, `demo.*`, and production code.
 - [ ] Remove the 4-argument public constructor.
 - [ ] Remove `HookedAction.wrap(...)` static method.
 - [ ] Change `public class HookedAction` to package-private (`class HookedAction`) — or add `@Internal` if already annotated.
@@ -213,7 +213,7 @@ UIEngine getEngine();
 
 ## After All Batches
 
-- [ ] Run `mvn test` — all tests pass.
+- [ ] Run `mvn test` — all examples pass.
 - [ ] Verify compiler output contains no `@Deprecated` warnings in core production packages.
 - [ ] Update architecture docs to remove references to removed symbols.
 

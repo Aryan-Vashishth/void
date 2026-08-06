@@ -120,7 +120,7 @@ grep -r "HookedAction"  src/   # must be empty
 # After Phase 2
 mvn compile -q
 grep -r "ActionCapabilityProvider" src/   # must be empty
-mvn compile -q && mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli "-Dexec.args=--sync tests.demo.pages.DemoLoginPage --prune"
+mvn compile -q && mvn exec:java -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli "-Dexec.args=--sync examples.pages.DemoLoginPage --prune"
 # Expected: [sync] Done -- DemoLoginPage is in sync.
 
 # After Phase 3

@@ -97,7 +97,7 @@ The default implementation:
 - `LocatorContext` interface exists with a documented contract
 - `DefaultLocatorContext` implements the convention + override path correctly
 - `LocatorResolver` delegates to `LocatorContext` for Step 2
-- All tests pass
+- All examples pass
 
 ---
 

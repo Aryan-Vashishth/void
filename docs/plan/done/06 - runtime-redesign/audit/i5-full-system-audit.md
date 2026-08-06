@@ -78,9 +78,9 @@ from the pre-I4.3 era is resolved.
 
 ## Tests Green
 
-1213 tests, 0 failures, 0 errors, 0 skipped.
+1213 examples, 0 failures, 0 errors, 0 skipped.
 
-`FrameworkBootstrapTest` (4 tests) added: verifies idempotency, initialized flag, empty config
+`FrameworkBootstrapTest` (4 examples) added: verifies idempotency, initialized flag, empty config
 pre-init, and `init_succeedsWithoutDriverPropertiesOnClasspath` (filtering classloader).
 
 ---

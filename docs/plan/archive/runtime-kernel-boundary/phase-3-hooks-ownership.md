@@ -84,4 +84,4 @@ grep -rln "interactions.hooks" src/main/java | grep -v "core/interactions"
 - [ ] Old hook types still compile against existing user code (bridge pattern
       verified by a test implementing the old interface and passing it to the new
       API).
-- [ ] `mvn compile -q` and existing tests pass.
+- [ ] `mvn compile -q` and existing examples pass.

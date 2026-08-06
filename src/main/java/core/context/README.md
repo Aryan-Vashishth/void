@@ -59,7 +59,7 @@ String engineName = ctx.getEngineName();  // "selenium", "playwright", etc.
 | No global mutable singletons | Each thread/test gets its own context instance |
 | Safe parallel execution | No shared state between sessions |
 | Visible dependencies | All requirements stated at construction time |
-| Testable | Easy to mock or stub for unit tests |
+| Testable | Easy to mock or stub for unit examples |
 
 ---
 

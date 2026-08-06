@@ -138,8 +138,8 @@ Depends on audit findings. Expected:
 ## Tests
 
 - [ ] Each new session-level method has at least one test covering its basic behavior.
-- [ ] `app.getEngine()` usages replaced — tests that previously called through `getEngine()` now call session methods and pass.
-- [ ] Integration: existing end-to-end flow tests pass without modification.
+- [ ] `app.getEngine()` usages replaced — examples that previously called through `getEngine()` now call session methods and pass.
+- [ ] Integration: existing end-to-end flow examples pass without modification.
 
 ---
 

@@ -45,7 +45,7 @@ and rules, and stops there.
 - **Risks**: (arch) scope creep into a design document -- the ADR decides, it does
   not design APIs; (compat) none.
 - **Rollback**: revert docs commits.
-- **Validation / tests**: none executable; review against audit Part II
+- **Validation / examples**: none executable; review against audit Part II
   recommendations 1-9.
 - **Exit criteria**: AD1-AD3 each have a written resolution with rationale; every
   invariant names its axis; kernel membership is a closed list.
@@ -70,7 +70,7 @@ and rules, and stops there.
   each check must be demonstrated to FAIL when a forbidden import is temporarily
   added; (compat) none.
 - **Rollback**: delete the verification classes.
-- **Validation / tests**: the checks themselves; mutation demo (add forbidden
+- **Validation / examples**: the checks themselves; mutation demo (add forbidden
   import, watch it fail) recorded in the phase doc.
 - **Exit criteria**: suite green; each listed boundary has one check; CI-executable
   via `mvn test`.

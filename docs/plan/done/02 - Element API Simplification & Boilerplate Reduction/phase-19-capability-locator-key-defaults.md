@@ -71,7 +71,7 @@ Where `ROLE` is the `ElementRole` constant name (uppercase, matching `ElementRol
 **Examples from `DemoLoginPage`:**
 
 ```properties
-# tests/demo/pages/DemoLoginPage/locators.properties
+# examples/demo/pages/DemoLoginPage/locators.properties
 DemoLoginPage.Credentials.USERNAME_INPUT.INPUT=//input[@id='username']
 DemoLoginPage.Credentials.PASSWORD_INPUT.INPUT=//input[@id='password']
 DemoLoginPage.Button.LOGIN_BUTTON.TRIGGER=//button[@type='submit']
@@ -173,7 +173,7 @@ These changes landed together in commit `a6a111f`:
    - `src/test/resources/elements/fixture/ConventionalTestPage/locators.json`
    - `src/test/resources/elements/fixture/ConventionalPropsPage/locators.properties`
    - `src/test/resources/locators/json/MixedStrategyPage.json`
-   - `src/main/resources/tests/demo/pages/DemoLoginPage/locators.json` (also corrected stale outer key `DemoLoginElements` → `DemoLoginPage`)
+   - `src/main/resources/examples/demo/pages/DemoLoginPage/locators.json` (also corrected stale outer key `DemoLoginElements` → `DemoLoginPage`)
 5. **Tests updated** — `EnumLocatorScannerTest`, `JsonLocatorMigratorTest`, `AccountMappingMigratorTest` (13 assertions updated to traverse the extra role-object level).
 
 ---

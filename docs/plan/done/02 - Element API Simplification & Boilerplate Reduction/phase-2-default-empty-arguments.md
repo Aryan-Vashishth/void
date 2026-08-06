@@ -80,7 +80,7 @@ Or via a `.with(...)` helper if one exists.
 
 - `Element` has a working default `getArgs()` returning `NO_ARGS`
 - Dynamic elements with overrides are unaffected
-- All tests pass
+- All examples pass
 
 ---
 

@@ -121,7 +121,7 @@ mvn test -Dtest=ElementActionTest
 - [ ] Template Method pattern is correct (perform → resolve → execute)
 - [ ] All lifecycle methods are final
 - [ ] Immutability is guaranteed (using() returns new instance)
-- [ ] All unit tests pass
+- [ ] All unit examples pass
 - [ ] No changes to existing Action interface
 
 ---

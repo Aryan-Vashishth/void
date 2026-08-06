@@ -34,7 +34,7 @@ remained of `ElementActions.of()`.
 | Location | Count | Category |
 |----------|-------|----------|
 | `src/main/java/` (production) | 1 | `ReadOnly.readText()` — missed in Phase 15 |
-| `src/test/java/` (test infrastructure) | 14 | Custom-operation lambdas (descriptor capture, execution logging, hook-pipeline tests) |
+| `src/test/java/` (test infrastructure) | 14 | Custom-operation lambdas (descriptor capture, execution logging, hook-pipeline examples) |
 | `src/main/java/core/actions/Action.java` | 1 | Error message string only (not a call site) |
 | `src/main/java/core/actions/README.md` | 1 | Documentation example (stale) |
 
@@ -60,7 +60,7 @@ actions with programmable behavior.
 Not viable. Test infrastructure needs a factory for custom operations.
 
 **Option B — Keep as `@Internal` utility**  
-Viable. The factory remains accessible within the framework and tests (same package or
+Viable. The factory remains accessible within the framework and examples (same package or
 accessible via annotation convention), with Javadoc and the `@Internal` marker making the
 limited scope explicit.
 
@@ -79,7 +79,7 @@ Rationale:
 1. The production need is gone. After `ReadTextAction`, no capability interface calls
    `ElementActions.of()`. The public API is entirely concrete-subclass-based.
 
-2. Test infrastructure legitimately needs a custom-operation factory. Hook-pipeline tests
+2. Test infrastructure legitimately needs a custom-operation factory. Hook-pipeline examples
    verify that descriptors, engines, and hook ordering work correctly — they require actions
    with programmable execute behavior that concrete subclasses cannot provide.
 

@@ -103,7 +103,7 @@ executor.run(DashboardPage.PROFILE_BUTTON.click());
 - **Interactions remains** as frozen legacy orchestrator for backward compatibility
 - **Capability interfaces are dual-purpose** — they define structure AND emit Actions
 - **VoidDSL** continues to use `Interactions` internally (for BDD context-driven resolution)
-- **No migration required** — both paths coexist. New tests use Action/Flow/FlowExecutor. Existing tests use `Interactions` unchanged.
+- **No migration required** — both paths coexist. New examples use Action/Flow/FlowExecutor. Existing examples use `Interactions` unchanged.
 
 ### Path Comparison
 

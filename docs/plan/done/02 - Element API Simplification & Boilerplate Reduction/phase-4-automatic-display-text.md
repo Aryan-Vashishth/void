@@ -99,7 +99,7 @@ public String getDisplayText() {
 
 - `Element` has a working default `getDisplayText()` derived from the enum constant name
 - Existing overrides are unaffected
-- All tests pass
+- All examples pass
 
 ---
 

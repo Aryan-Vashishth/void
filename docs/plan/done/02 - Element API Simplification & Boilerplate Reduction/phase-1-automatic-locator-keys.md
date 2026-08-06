@@ -93,7 +93,7 @@ No constructor. No duplicate string. IDE rename of `USERNAME_INPUT` updates the 
 
 - `Element` has a working default `getPrimaryLocator()` derived from `name()`
 - Existing elements with explicit overrides are unaffected
-- All tests pass
+- All examples pass
 
 ---
 

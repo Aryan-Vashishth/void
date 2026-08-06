@@ -136,7 +136,7 @@ UIElement → Interactions (frozen orchestrator) → UIEngine (execution)
 - `VOID.navigateTo(url)` — session-level navigation
 - `VOID.getCurrentUrl()` / `VOID.getTitle()` / `VOID.refresh()` — session-level queries
 - `VOID.run(Flow)` / `VOID.run(Action)` — execution via internal FlowExecutor
-- `VOID.getEngine()` — advanced escape hatch (most tests never need this)
+- `VOID.getEngine()` — advanced escape hatch (most examples never need this)
 - `VOID.shutdown()` — session-scoped teardown (only this session's browser is closed)
 
 **`Interactions`** is a **frozen legacy orchestrator** — preserved for backward compatibility with existing step definitions and page objects. No new features should be added there. New development uses the VOID session façade.
@@ -321,7 +321,7 @@ void-framework/
 │   │   ├── meta/
 │   │   │   ├── ElementRole.java
 │   │   │   └── EnumClassRegistry.java
-│   │   └── exapmlepages/                     ← (removed — see tests.demo.pages)
+│   │   └── exapmlepages/                     ← (removed — see examples.pages)
 │   └── StepDefinition/
 ├── src/main/resources/
 │   ├── locators/
@@ -520,7 +520,7 @@ Prefix tokens: `xpath=`, `css=`, `id=`, `name=`, `tag=`, `linkText=`, `partialLi
 - **Action extension is additive** — adding a new action type or `ElementRole` value requires no changes to existing classes; new subclass declares its own profile and `operationLabel()` is derived automatically
 - **Actions NEVER perform work** until executed by UIEngine via FlowExecutor
 - **UIEngine owns ALL execution concerns** — scroll, waits, retries, fallback
-- **`VOID` is the primary session object** — tests navigate, run flows, and teardown through it
+- **`VOID` is the primary session object** — examples navigate, run flows, and teardown through it
 - **`FlowExecutor` is internal** — test code calls `app.run()`, not `new FlowExecutor(engine)`
 - **One execution path**: UIElement → Action → Flow → `VOID.run()` → FlowExecutor → UIEngine
 - **No compile-time code generation** — all behavior is visible and debuggable

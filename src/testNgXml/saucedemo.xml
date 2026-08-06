@@ -3,12 +3,12 @@
 <suite name="SauceDemoSuite" verbose="1">
 
     <listeners>
-        <listener class-name="tests.listeners.ScreenshotListener"/>
+        <listener class-name="examples.listeners.ScreenshotListener"/>
     </listeners>
 
     <test name="SauceDemoTests" parallel="methods" thread-count="2">
         <classes>
-            <class name="tests.demo.SauceDemoTest"/>
+            <class name="examples.tests.SauceDemoTest"/>
         </classes>
     </test>
 

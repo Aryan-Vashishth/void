@@ -109,7 +109,7 @@ Multi-argument templates continue to use explicit `.with(...)` calls.
 - `LocatorFamily` interface exists and is documented
 - Family constants look up `PageName.EnumName` key (not per-constant key)
 - Runtime argument is derived automatically from the constant name
-- All tests pass
+- All examples pass
 
 ---
 

@@ -117,8 +117,8 @@ requires a second domain's demand (extension before modification).
   the kernel cannot be domain-neutral while its central signature names UI.
 - **Scope / files**: kernel contract signatures; concrete UI actions (now UI-side
   after 2.2) migrate to the neutral parameter where their logic allows, staying on
-  UIEngine methods internally via their domain typing; all in-repo tests migrated
-  off bridges except bridge-verification tests.
+  UIEngine methods internally via their domain typing; all in-repo examples migrated
+  off bridges except bridge-verification examples.
 - **Dependencies**: 4.3, 2.4, 3.3. Never parallel with I2/I3.
 - **Risks**: (arch) accidental double execution model -- bridges must delegate, not
   duplicate (one pipeline, two signatures); (compat) Beta-tier churn is expected
@@ -128,7 +128,7 @@ requires a second domain's demand (extension before modification).
 - **Validation**: suite green; bridge-delegation test (both signatures reach the
   same execution path); fitness check: kernel signatures reference the neutral
   contract only.
-- **Exit criteria**: no in-repo caller uses a bridge except its tests; Migration
+- **Exit criteria**: no in-repo caller uses a bridge except its examples; Migration
   Ledger rows added (bridges die 9.4).
 - **ADR / docs**: actions.md, hooks-pipeline.md.
 - **Migration notes**: CHANGELOG with signature migration table.
@@ -152,7 +152,7 @@ requires a second domain's demand (extension before modification).
   existence.
 - **Rollback**: revert; rule removal.
 - **Validation**: suite green; fitness check: `core.driver` imported only from the
-  selenium engine boundary (and its own tests).
+  selenium engine boundary (and its own examples).
 - **Exit criteria**: check green; backlog violation closed.
 - **ADR / docs**: core-packages.md driver section rewritten as platform-internal.
 - **Migration notes**: CHANGELOG note for direct DriverFactory users.

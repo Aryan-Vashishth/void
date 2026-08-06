@@ -102,7 +102,7 @@ future it belongs in a separate `ReloadableLocatorContext`, not in `DefaultLocat
 
 - `src/main/java/core/resolvers/locator/api/DefaultLocatorContext.java`
 - `src/main/java/core/resolvers/locator/json/JsonLocatorReader.java`
-- `src/test/java/core/resolvers/locator/api/LocatorContextTest.java` — 3 new caching tests
+- `src/test/java/core/resolvers/locator/api/LocatorContextTest.java` — 3 new caching examples
 
 ---
 
@@ -119,7 +119,7 @@ future it belongs in a separate `ReloadableLocatorContext`, not in `DefaultLocat
 - [x] Unit test: first lookup for an element class triggers resolution
 - [x] Unit test: second lookup for the same class returns cached value without re-resolving
 - [x] Unit test: two different element classes have independent cache entries
-- [x] Regression: `mvn test` passes — 1065 tests, 0 failures
+- [x] Regression: `mvn test` passes — 1065 examples, 0 failures
 
 ---
 
@@ -128,7 +128,7 @@ future it belongs in a separate `ReloadableLocatorContext`, not in `DefaultLocat
 - File-name resolution occurs at most once per element class per session
 - No race condition under concurrent element lookups (ConcurrentHashMap + computeIfAbsent)
 - Cache is keyed by element class, not by path string
-- All 1065 tests pass
+- All 1065 examples pass
 
 ---
 

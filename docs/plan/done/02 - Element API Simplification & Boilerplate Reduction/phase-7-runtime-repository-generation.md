@@ -94,8 +94,8 @@ java JsonMigratorCli --write-conventional  com.example.MyPageElements
 | `core/resolvers/locator/json/EnumLocatorScanner.java` | `loadPropsFor()` now receives `enumClass`; probes conventional properties path first |
 | `core/resolvers/locator/json/JsonLocatorMigrator.java` | Added `writeResolvedJsonConventional(Class<?>)` |
 | `core/resolvers/locator/json/JsonMigratorCli.java` | Added `--write-conventional` mode |
-| `test: EnumLocatorScannerTest` | 2 new tests for conventional properties resolution |
-| `test: JsonLocatorMigratorTest` | 3 new tests for conventional write path |
+| `test: EnumLocatorScannerTest` | 2 new examples for conventional properties resolution |
+| `test: JsonLocatorMigratorTest` | 3 new examples for conventional write path |
 | `test: elements/fixture/ConventionalPropsPage` | New fixture with conventional `.properties` at classpath |
 
 ---
@@ -113,7 +113,7 @@ java JsonMigratorCli --write-conventional  com.example.MyPageElements
 - [x] `JsonLocatorMigrator`: `writeResolvedJsonConventional` target path follows `pkg/ClassName/locators.json`
 - [x] `JsonLocatorMigrator`: `writeResolvedJsonTo` with conventional path produces valid JSON
 - [x] `JsonLocatorMigrator`: conventional path places file inside `ClassName/` directory
-- [x] Full suite (1022 tests) — 0 failures
+- [x] Full suite (1022 examples) — 0 failures
 
 ---
 

@@ -1,6 +1,6 @@
 package core.logging;
 
-import tests.logging.CallerChainHelper;
+import examples.logging.CallerChainHelper;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

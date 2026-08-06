@@ -90,7 +90,7 @@ Result:
 
 - Mixed pages work correctly with no cross-enum interference
 - The supported mixed pattern is documented
-- All tests pass
+- All examples pass
 
 ---
 

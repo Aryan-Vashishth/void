@@ -37,7 +37,7 @@
 |--------|---------------|--------------|
 | Class visibility | `public` | `public` (unchanged — internal consumers exist) |
 | Constructor | `public FlowExecutor(UIEngine)` | Internal to `VOID` — users never construct |
-| Direct usage by tests | Possible and documented in Javadoc | Discouraged — `VOID.run()` preferred |
+| Direct usage by examples | Possible and documented in Javadoc | Discouraged — `VOID.run()` preferred |
 | `VOID` integration | `VOID.run(Flow)` delegates to internal executor | Add `VOID.run(Action)` to complete coverage |
 
 ---
@@ -48,7 +48,7 @@
 
 | # | Issue | Location | Impact |
 |---|-------|----------|--------|
-| F1 | `VOID` lacks session-level navigation methods — forces users to call `engine.navigateTo()` directly | `VOID.java` | **Façade becomes optional**; tests couple to `UIEngine` for basic navigation |
+| F1 | `VOID` lacks session-level navigation methods — forces users to call `engine.navigateTo()` directly | `VOID.java` | **Façade becomes optional**; examples couple to `UIEngine` for basic navigation |
 | F2 | No `run(Action)` on the façade — single-action execution requires wrapping in `Flow.of()` or constructing a `FlowExecutor` | `VOID.java` | **Pipeline bypass**; users create their own executors |
 | F3 | `interaction()` returns a fully Selenium-coupled 833-line class as the primary interaction surface | `VOID.java:160-165` | **Façade delegates to legacy**; contradicts engine-agnostic goal |
 
@@ -57,7 +57,7 @@
 | # | Issue | Location | Impact |
 |---|-------|----------|--------|
 | F4 | `shutdown()` calls `DriverManager.quitAll()` but does not call `engine.shutdown()` | `VOID.java:130-133` | Engine-owned resources (connections, processes) may leak |
-| F5 | `FlowExecutor` is publicly constructible — tests can bypass the session entirely | `FlowExecutor.java:25` | Multiple executors per session; lifecycle ownership diluted |
+| F5 | `FlowExecutor` is publicly constructible — examples can bypass the session entirely | `FlowExecutor.java:25` | Multiple executors per session; lifecycle ownership diluted |
 | F6 | `getDriver()` protected accessor leaks `WebDriver` type signature into subclass contracts | `VOID.java:151-153` | Subclasses become Selenium-coupled; engine swap breaks inheritance hierarchy |
 | F7 | Multi-session test pattern still requires manual `FlowExecutor` wiring per the existing documentation | `FlowExecutor.java` Javadoc | Users associate execution with executor rather than session |
 
@@ -204,8 +204,8 @@ protected WebDriver getDriver()                 // → replace with engine-based
 |------|-----------|--------|------------|
 | Façade grows beyond session concerns | Medium | Violates P4, creates second `Interactions` | Strict method-addition policy: only browser-session-level ops |
 | `interaction()` remains primary path despite deprecation | High | Dual-pipeline indefinitely | Remove from new test examples; deprecate with removal date |
-| `FlowExecutor` continues to be used directly in tests | Medium | Session abstraction bypassed | Documentation + constructor visibility restriction |
-| `shutdown()` session isolation bug causes flaky multi-session tests | High | Trust erosion in framework | Fix immediately — scope shutdown to session's own driver |
+| `FlowExecutor` continues to be used directly in examples | Medium | Session abstraction bypassed | Documentation + constructor visibility restriction |
+| `shutdown()` session isolation bug causes flaky multi-session examples | High | Trust erosion in framework | Fix immediately — scope shutdown to session's own driver |
 | Navigation methods create false equivalence with `Interactions` | Low | Confusion about where to call what | Clear Javadoc: "session ops here, element ops in Action/Flow" |
 
 ---
@@ -221,7 +221,7 @@ protected WebDriver getDriver()                 // → replace with engine-based
 3. Add `run(Action action)` to `VOID` — delegates to `executor.run(action)`
 
 **Exit criteria:**
-- Multi-session tests can start/stop independently
+- Multi-session examples can start/stop independently
 - Single actions can execute without `Flow.of()` wrapper
 
 ---
@@ -250,7 +250,7 @@ protected WebDriver getDriver()                 // → replace with engine-based
 1. Annotate `interaction()` with `@Deprecated(since = "2.1", forRemoval = true)`
 2. Annotate `getDriver()` with `@Deprecated`
 3. Update `FlowExecutor` Javadoc to discourage direct construction: _"Prefer `VOID.run()` for test-level execution"_
-4. Mark `getEngine()` Javadoc as _"Advanced API — most tests should not need this"_
+4. Mark `getEngine()` Javadoc as _"Advanced API — most examples should not need this"_
 
 **Exit criteria:**
 - IDE warnings surface for any new `interaction()` usage
@@ -262,8 +262,8 @@ protected WebDriver getDriver()                 // → replace with engine-based
 
 **Scope:** Governance  
 **Changes:**
-1. Add ArchUnit rule: _"Classes in `tests.*` should not directly instantiate `FlowExecutor`"_
-2. Add ArchUnit rule: _"Classes in `tests.*` should not call `UIEngine` methods except via known escape-hatch patterns"_
+1. Add ArchUnit rule: _"Classes in `examples.*` should not directly instantiate `FlowExecutor`"_
+2. Add ArchUnit rule: _"Classes in `examples.*` should not call `UIEngine` methods except via known escape-hatch patterns"_
 3. Track `getEngine()` call frequency — if rising, investigate missing façade methods
 4. Review new test code for direct engine interaction patterns monthly
 
@@ -278,9 +278,9 @@ protected WebDriver getDriver()                 // → replace with engine-based
 | Metric | Current | Target | Measurement |
 |--------|---------|--------|-------------|
 | Test classes using only `VOID` + pipeline types | ~30% (estimated) | >90% | grep for `getEngine()` / `interaction()` in test sources |
-| Direct `FlowExecutor` construction in tests | Present in examples | 0 | grep for `new FlowExecutor` in test sources |
+| Direct `FlowExecutor` construction in examples | Present in examples | 0 | grep for `new FlowExecutor` in test sources |
 | `interaction()` calls in new code | Active | 0 new usages | PR review + deprecation warnings |
-| Multi-session tests that function correctly | Broken (quitAll bug) | 100% pass | CI suite |
+| Multi-session examples that function correctly | Broken (quitAll bug) | 100% pass | CI suite |
 | Façade method count | 5 public methods | 10–12 public methods | Manual count |
 | `UIEngine` direct calls in test code | Common | Rare (<5% of test classes) | ArchUnit enforcement |
 

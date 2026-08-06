@@ -96,7 +96,7 @@ stability rules already forbid.
   Maps and a dependency-change list (remain / disappear / introduced edges) --
   the planning artifacts 6.4 executes against. No file is moved in this phase.
 - **Dependencies**: 6.1, and the content phases: 2.3, 3.3, 4.5, 7.2.
-- **Risks**: (compat) zero behavior change required -- existing tests are the
+- **Risks**: (compat) zero behavior change required -- existing examples are the
   proof; default registration preserves the "it just works" experience; (arch)
   leftover strays -- anything that cannot be assigned to web-domain or kernel at
   this point is a missed finding; the phase includes a full-assignment sweep
@@ -110,7 +110,7 @@ stability rules already forbid.
   sweep table and Class Migration Matrix committed to docs.
 - **Exit criteria**: the sweep table has no "unassigned" row; the migration matrix
   is complete for every web-domain-classified type; startup path: bootstrap ->
-  registration -> session(web) -> pipeline, all under existing tests.
+  registration -> session(web) -> pipeline, all under existing examples.
 - **ADR / docs**: core-packages.md restructured by ownership; migration matrix
   published as its own doc, referenced by 6.4.
 - **Migration notes**: none (declaration only; physical moves are 6.4).
@@ -160,7 +160,7 @@ stability rules already forbid.
   responsibilities," which is exactly what 6.2's audit produces and this phase
   executes.
 - **Scope / files**: every file the matrix lists; import updates across every
-  caller (kernel, tests, demo pages); `package-info.java` ownership declarations
+  caller (kernel, examples, demo pages); `package-info.java` ownership declarations
   moved with their packages; a full visibility re-audit per relocated type (Java
   subpackages do not inherit package-private access -- a member visible only
   because two types shared a package before the move must be re-justified, not
@@ -229,7 +229,7 @@ docs/audits/ongoing for open findings" rule, missed in the initial expansion)
   dedicated fix.
 - `uiengine-sendkeys-javadoc-selenium-reference.md` is already resolved
   (2026-07-22); no action, only its file path updates when `UIEngine` relocates.
-- **Status**: COMPLETE -- commit `3d83c1d`, 1100 tests green, 2026-07-31. 179 files
+- **Status**: COMPLETE -- commit `3d83c1d`, 1100 examples green, 2026-07-31. 179 files
   changed; 6 selenium domain files had wrong package declarations (fixed); 30+
   test files needed new domain imports or package-declaration changes for
   package-private access; `ElementStructureRulesTest` importPackages scope extended

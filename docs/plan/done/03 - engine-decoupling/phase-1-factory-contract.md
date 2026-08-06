@@ -292,5 +292,5 @@ grep -rn "DriverFactory.fromProfile" src/main/java/
 - [ ] `UIEngineFactory.create()` has no `WebDriver` parameter.
 - [ ] `SeleniumEngine` can create its own driver from a `DriverFactory.Profile`.
 - [ ] `VOID.start()` still launches exactly one browser.
-- [ ] Existing tests compile and pass without behavior changes.
+- [ ] Existing examples compile and pass without behavior changes.
 

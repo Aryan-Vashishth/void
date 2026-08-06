@@ -125,7 +125,7 @@ public void clickAction_safely_returnsNewInstance() {
 
 ```bash
 mvn -DskipTests compile
-mvn test -Dtest=.*ActionTest  # All action tests
+mvn test -Dtest=.*ActionTest  # All action examples
 ```
 
 ---
@@ -170,7 +170,7 @@ No behavior changes — only ownership changes.
 
 ## Affected Files
 
-**Create (parallel to tests):**
+**Create (parallel to examples):**
 - `src/main/java/core/actions/ClickAction.java`
 - `src/main/java/core/actions/TypeAction.java`
 - `src/main/java/core/actions/ClearAction.java`
@@ -192,7 +192,7 @@ No behavior changes — only ownership changes.
 - [ ] All action subclasses compile without errors
 - [ ] Each action implements execute() correctly
 - [ ] Profile constants are owned by actions, not capabilities
-- [ ] All unit tests pass
+- [ ] All unit examples pass
 - [ ] No public methods in subclasses (only inherited fluent APIs)
 - [ ] No changes to existing Action interface
 

@@ -82,7 +82,7 @@ Remove the following patterns wherever they appear and the defaults now cover th
 
 ## Affected Files
 
-- `src/main/java/tests/demo/pages/DemoLoginPage.java` (and any other page definitions in the project)
+- `src/main/java/examples/demo/pages/DemoLoginPage.java` (and any other page definitions in the project)
 - Any other enum-based element definitions across the codebase
 
 ---
@@ -108,7 +108,7 @@ Remove the following patterns wherever they appear and the defaults now cover th
 
 - All static element enums use the minimal declaration form
 - No redundant constructors, fields, or overrides remain in static elements
-- All tests pass
+- All examples pass
 
 ---
 

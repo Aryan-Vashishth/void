@@ -19,7 +19,7 @@ Implementation Plan       (docs/plan/draft/<initiative>/index.md + phase-N.md)
 Plan Validation           (post-plan audit; confirm plan is internally consistent)
         |
         v
-Implementation (Phased)   (one commit per phase step; each step must compile + pass tests)
+Implementation (Phased)   (one commit per phase step; each step must compile + pass examples)
         |
         v
 Full-System Audit         (audit entire initiative as a coherent system)
@@ -42,7 +42,7 @@ Merge to main
 | Architecture Audit | Understand the current state; identify coupling, violations, and risks before any plan is written |
 | Implementation Plan | Define phases, file changes, and commit sequence; make architectural decisions explicit |
 | Plan Validation | Verify the plan is internally consistent and addresses the identified violations |
-| Implementation | Execute phases in order; each phase must compile and pass tests independently |
+| Implementation | Execute phases in order; each phase must compile and pass examples independently |
 | Full-System Audit | After all phases, audit the initiative as a coherent system |
 | Hotfix Initiative | If the full-system audit finds integration issues, address them on a scoped hotfix branch |
 | Architecture Decision | Record the decision in `docs/decisions/pending-review/` after implementation and review |
@@ -131,8 +131,8 @@ measurably forward. Phases are not merge points.
 
 ```
 initiative/<name>
-    |-- Phase 1  (committed, compilable, tests pass)
-    |-- Phase 2  (committed, compilable, tests pass)
+    |-- Phase 1  (committed, compilable, examples pass)
+    |-- Phase 2  (committed, compilable, examples pass)
     |-- ...
     |-- Full-System Audit
     `-- Merge to main

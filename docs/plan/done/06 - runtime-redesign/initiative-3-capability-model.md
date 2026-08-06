@@ -60,7 +60,7 @@ mechanics of validation timing beyond AD3's decided posture.
 - **Motivation**: June audit failure mode -- wrong behavior applied invisibly to a
   future domain's actions; ontology I10/I12 spirit.
 - **Scope / files**: `ActionProfiles` default-selection path; configuration key
-  documentation; affected tests.
+  documentation; affected examples.
 - **Dependencies**: 3.1.
 - **Risks**: (compat) HIGH relative to its size: any existing action relying on the
   silent default changes behavior from "silently hooked" to "explicit or fail". The

@@ -1,0 +1,15 @@
+/**
+ * Page element definitions for demo applications.
+ *
+ * <p>Each interface defines typed enum constants implementing capability interfaces
+ * ({@code Clickable}, {@code Typeable}, {@code Selectable}, etc.) with locator keys
+ * mapped to external JSON files in {@code src/main/resources/locators/json/}.</p>
+ *
+ * <h3>Examples</h3>
+ * <ul>
+ *   <li>{@link examples.pages.DemoLoginPage} — simple login page (3 capabilities)</li>
+ *   <li>{@link examples.pages.ManageUsersElements} — ResolvableEnum for BDD step definitions</li>
+ * </ul>
+ */
+package examples.pages;
+

@@ -50,7 +50,7 @@ used for:
 | Engine swap breaks silently | Test code compiled against `WebDriver` will fail to compile or will throw `ClassCastException` when a non-Selenium engine is active, but the failure is at runtime, not design time |
 | UIEngine wait/retry logic skipped | `driver().findElement()` has no implicit wait; `engine().click()` includes waitForClickable, scroll, and JS fallback. Escape-hatch calls are inherently less robust |
 | Arbitrage grows | Once the pattern exists in one test, it spreads. Each new `driver()` call entrenches Selenium coupling further |
-| Contract tested under wrong assumptions | Tests verify Selenium behavior, not UIEngine behavior. A future engine may implement the same action differently; tests written against `driver()` cannot catch that |
+| Contract tested under wrong assumptions | Tests verify Selenium behavior, not UIEngine behavior. A future engine may implement the same action differently; examples written against `driver()` cannot catch that |
 
 ## Root cause
 

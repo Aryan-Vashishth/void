@@ -1,9 +1,9 @@
 Sync all page classes in a package. Generates/updates `.properties` and `locators.json` for every class found.
 
-`$ARGUMENTS` is a package name, e.g. `tests.demo.pages` or `tests.demo.pages.*` (trailing `.*` is stripped automatically).
+`$ARGUMENTS` is a package name, e.g. `examples.pages` or `examples.pages.*` (trailing `.*` is stripped automatically).
 
 Steps to follow:
-1. Strip any trailing `.*` from `$ARGUMENTS` to get the base package, e.g. `tests.demo.pages`.
+1. Strip any trailing `.*` from `$ARGUMENTS` to get the base package, e.g. `examples.pages`.
 2. Convert the package to a directory path by replacing `.` with `/`.
 3. Find all `.java` files directly (non-recursively) in `src/main/java/<path>/` and `src/test/java/<path>/`. List their base names without the `.java` extension.
 4. Build the FQCN for each as `<basePackage>.<ClassName>`.

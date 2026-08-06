@@ -37,7 +37,7 @@ public void setUp() {
 
 - Framework: TestNG (`@Test`, `@BeforeClass`, `@DataProvider`).
 - Test method naming: `methodUnderTest_scenario_expectedOutcome`.
-- Unit tests must not open a browser. Use reflection for private fields and methods.
+- Unit examples must not open a browser. Use reflection for private fields and methods.
 - No Mockito. Use proxy-based fakes or reflection-based setup.
 - Tests must be idempotent and independent -- no ordering dependencies.
 - Use `@DataProvider` for parameterized cases.

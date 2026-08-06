@@ -168,7 +168,7 @@ Options:
 |---|---|
 | Move `ByParser` + `ByPrefixStrategy` to `core.engine.selenium` | Acknowledges its web-domain nature; removes Selenium import from `core.resolvers` |
 | Keep in `core.resolvers.locator.parser`, retain as SeleniumEngine dependency | Cross-domain import in the resolver package |
-| Absorb into `SeleniumEngine` directly | Removes the indirection; ByParser tests go away |
+| Absorb into `SeleniumEngine` directly | Removes the indirection; ByParser examples go away |
 
 The correct choice aligns with the 7.2 ownership principle: `ByParser` produces Selenium
 `By` objects and belongs in the Selenium platform layer, not in the neutral resolver
@@ -253,7 +253,7 @@ stale imports from slipping through.
 ### R2 -- MEDIUM: `ByParser` move crosses a package boundary
 
 `ByParser` currently lives in `core.resolvers.locator.parser`. Moving it to
-`core.engine.selenium` relocates a tested class. Its tests (`ByParserTest`) must follow
+`core.engine.selenium` relocates a tested class. Its examples (`ByParserTest`) must follow
 or be updated.
 
 **Mitigation:** Move test class in the same commit. The fitness check added in 7.1

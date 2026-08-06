@@ -21,6 +21,7 @@ bin/
 # Local classpath dumps
 cp.txt
 *.classpath.txt
+docs/local-only-temp
 
 # OS junk
 .DS_Store
@@ -28,6 +29,9 @@ Thumbs.db
 
 # TestNG output
 test-output/
+
+# Allure
+.allure/
 
 # Internal notes
 .notes/

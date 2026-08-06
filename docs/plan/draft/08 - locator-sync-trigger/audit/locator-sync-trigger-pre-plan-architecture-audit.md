@@ -43,7 +43,7 @@ checked-out source tree with write access.
 Sync bound to a Maven lifecycle phase via `exec-maven-plugin` or a custom Mojo.
 
 **Earliest valid phase**: `process-classes` (after `compile`, main classes compiled and
-available via reflection; before test compile so generated files land before tests run).
+available via reflection; before test compile so generated files land before examples run).
 
 Execution chain:
 
@@ -54,7 +54,7 @@ mvn test
     foreach page class: JsonMigratorCli --sync <className>
     writes locators.properties + locators.json into src/main/resources
   test-compile
-  test                 (tests find locators.json on classpath)
+  test                 (examples find locators.json on classpath)
 ```
 
 **Pros**:
@@ -95,7 +95,7 @@ VOIDBuilder.start()
 - One-time per JVM (idempotency guard already exists)
 
 **Cons**:
-- **Writes to the source tree during test execution**. A developer running tests in a
+- **Writes to the source tree during test execution**. A developer running examples in a
   read-only workspace (e.g., a CI runner without source checkout write access) gets an
   `IOException` before the first test starts.
 - **File I/O on the hot path of session creation**. Sync reads all page classes via
