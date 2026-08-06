@@ -94,16 +94,6 @@ public class EnumClassRegistry {
 //            // ====== ADMIN HOME ELEMENTS ======
 //            Map.entry("tiles-admin_home", AdminHomeElements.Tiles.class),
 //
-//            // ====== ACCOUNT MAPPING ELEMENTS (Account Mapping Home Page) ======
-//            Map.entry("default_reports_tiles-account_mapping_home_page", AccountMappingElements.defaultReportsTiles.class),
-//            Map.entry("import_records_dropdown-account_mapping_home_page", AccountMappingElements.importRecordsDropdown.class),
-//
-//            // ====== IMPORT RECORDS POPUP ELEMENTS ======
-//            Map.entry("navigation_buttons-import_records_popup", AccountMappingElements.ImportRecordsPopup.navigationButtons.class),
-//            Map.entry("current_view_headers-import_records_popup", AccountMappingElements.ImportRecordsPopup.popupViewsHeaders.class),
-//            Map.entry("file_upload_field-import_records_popup", AccountMappingElements.ImportRecordsPopup.uploadField.class),
-//            Map.entry("table-import_records_popup", AccountMappingElements.ImportRecordsPopup.importRecordsTable.class),
-//            Map.entry("table_row_buttons-import_records_popup", AccountMappingElements.ImportRecordsPopup.importRecordsTable.addRemoveRowButtons.class),
 //
 //            // ====== RECORDS PAGE ELEMENTS (Account Mapping) ======
 //            Map.entry("records_grid-account_mapping", RecordsPageElements.RecordsGridTable.class),

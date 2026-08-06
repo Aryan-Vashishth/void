@@ -55,45 +55,16 @@ JsonLocatorMigrator.writeResolvedJson(MyPageElements.class)
 
 ```bash
 # Print resolved JSON to stdout
-java core.resolvers.locator.json.JsonMigratorCli --print  tests.demo.pages.AccountMappingElements
+java core.resolvers.locator.json.JsonMigratorCli --print  tests.demo.pages.DemoLoginPage
 
 # Write to the default output directory (src/main/resources/locators/json/)
-java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.AccountMappingElements
+java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.DemoLoginPage
 
 # Write to a specific file
-java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.AccountMappingElements  path/to/output.json
+java core.resolvers.locator.json.JsonMigratorCli --write  tests.demo.pages.DemoLoginPage  path/to/output.json
 ```
 
-## Example Output
-
-A migration of `AccountMappingElements` produces a JSON file like:
-
-```json
-{
-  "AccountMappingElements" : {
-    "Header" : {
-      "PAGE_TITLE" : "//h1[contains(@class,'page-title')]",
-      "BREADCRUMB" : "//nav[@aria-label='breadcrumb']//li[last()]"
-    },
-    "SearchBar" : {
-      "ACCOUNT_SEARCH" : {
-        "SEARCH_INPUT" : "//input[@placeholder='Search accounts...']",
-        "SEARCH_BUTTON" : "//button[@aria-label='Search']"
-      }
-    },
-    "FilterPanel" : {
-      "StatusDropdown" : {
-        "USER_STATUS" : {
-          "TRIGGER" : "//mat-select[@formcontrolname='status']",
-          "SEARCH_INPUT" : "//input[@placeholder='Filter statuses...']"
-        }
-      }
-    }
-  }
-}
-```
-
-Locator values are resolved from companion `.properties` files (e.g. `account-mapping-elements.properties`) where enum constants reference property keys rather than raw XPaths.
+Locator values are resolved from companion `.properties` files where enum constants reference property keys rather than raw XPaths.
 
 ## Key Design Decisions
 

@@ -3,6 +3,7 @@ package domain.automation.web.selenium;
 import domain.automation.web.selenium.driver.SeleniumDriverContext;
 import domain.automation.web.selenium.driver.SeleniumDriverFactory;
 import core.engine.EngineConfig;
+import core.utils.web.ElementHighlighter;
 import domain.automation.web.locator.LocatorDescriptor;
 import domain.automation.web.locator.LocatorStrategy;
 import domain.automation.web.engine.UIEngine;
@@ -181,13 +182,14 @@ public final class SeleniumEngine implements UIEngine {
     public void click(LocatorDescriptor locator) {
         By by = toBy(locator);
         String currentUrl = driver.getCurrentUrl();
+        WebElement lastLocated = null;
 
-        // Phase 1: Wait visible + clickable + scroll + highlight
+        // Phase 1: locate, scroll, flash blue (element found)
         try {
-            WebElement element = new WebDriverWait(driver, defaultTimeout)
+            lastLocated = new WebDriverWait(driver, defaultTimeout)
                     .until(ExpectedConditions.visibilityOfElementLocated(by));
-            scrollToElement(element);
-            highlightElement(element, "red");
+            scrollToElement(lastLocated);
+            ElementHighlighter.flashFocus(driver, lastLocated);
             new WebDriverWait(driver, defaultTimeout)
                     .until(ExpectedConditions.elementToBeClickable(by));
         } catch (Exception e) {
@@ -196,9 +198,10 @@ public final class SeleniumEngine implements UIEngine {
 
         // Phase 2: Standard click
         try {
-            WebElement element = driver.findElement(by);
-            String text = safeText(element);
-            element.click();
+            lastLocated = driver.findElement(by);
+            String text = safeText(lastLocated);
+            lastLocated.click();
+            ElementHighlighter.flashSuccess(driver, lastLocated);
             info.click(clickLabel(text, locator));
             debug.click("Clicked using Selenium click(). Locator: " + locator);
             return;
@@ -215,9 +218,10 @@ public final class SeleniumEngine implements UIEngine {
         // Phase 3: JS click fallback
         warn.fallback("[SeleniumEngine] Retrying with JavaScript click for: " + locator);
         try {
-            WebElement element = driver.findElement(by);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
-            info.click(clickLabel(safeText(element), locator));
+            lastLocated = driver.findElement(by);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", lastLocated);
+            ElementHighlighter.flashSuccess(driver, lastLocated);
+            info.click(clickLabel(safeText(lastLocated), locator));
             debug.success("Clicked using JavaScriptExecutor.");
             return;
         } catch (StaleElementReferenceException staleEx) {
@@ -232,11 +236,13 @@ public final class SeleniumEngine implements UIEngine {
 
         // Phase 4: Re-locate and final attempt
         try {
-            WebElement freshElement = new WebDriverWait(driver, defaultTimeout)
+            lastLocated = new WebDriverWait(driver, defaultTimeout)
                     .until(ExpectedConditions.elementToBeClickable(by));
-            freshElement.click();
-            info.click(clickLabel(safeText(freshElement), locator));
+            lastLocated.click();
+            ElementHighlighter.flashSuccess(driver, lastLocated);
+            info.click(clickLabel(safeText(lastLocated), locator));
         } catch (Exception retryEx) {
+            ElementHighlighter.flashDanger(driver, lastLocated);
             error.failed("[SeleniumEngine] click() exhausted all strategies for: " + locator);
             throw new RuntimeException("click failed for: " + locator, retryEx);
         }
@@ -247,8 +253,15 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         scrollToElement(element);
-        element.clear();
-        element.sendKeys(text);
+        ElementHighlighter.flashFocus(driver, element);
+        try {
+            element.clear();
+            element.sendKeys(text);
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         if (isPasswordLocator(locator)) {
             info.password(text, labelFor(locator));
         } else {
@@ -261,7 +274,14 @@ public final class SeleniumEngine implements UIEngine {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
         scrollToElement(element);
-        element.sendKeys(text);
+        ElementHighlighter.flashFocus(driver, element);
+        try {
+            element.sendKeys(text);
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         info.input("Appended: " + text + " | " + labelFor(locator));
     }
 
@@ -269,16 +289,32 @@ public final class SeleniumEngine implements UIEngine {
     public void clear(LocatorDescriptor locator) {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
-        element.clear();
+        scrollToElement(element);
+        ElementHighlighter.flashFocus(driver, element);
+        try {
+            element.clear();
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         info.clear("Cleared: " + labelFor(locator));
     }
 
     @Override
     public void sendKey(LocatorDescriptor locator, String key) {
         By by = toBy(locator);
-        WebElement element = driver.findElement(by);
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        scrollToElement(element);
+        ElementHighlighter.flashFocus(driver, element);
         Keys seleniumKey = mapKey(key);
-        element.sendKeys(seleniumKey);
+        try {
+            element.sendKeys(seleniumKey);
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         info.key(key + " | " + labelFor(locator));
     }
 
@@ -286,7 +322,15 @@ public final class SeleniumEngine implements UIEngine {
     public void selectByVisibleText(LocatorDescriptor locator, String text) {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
-        new org.openqa.selenium.support.ui.Select(element).selectByVisibleText(text);
+        scrollToElement(element);
+        ElementHighlighter.flashFocus(driver, element);
+        try {
+            new org.openqa.selenium.support.ui.Select(element).selectByVisibleText(text);
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         info.dropdown("Selected: " + text + " | " + labelFor(locator));
     }
 
@@ -294,7 +338,15 @@ public final class SeleniumEngine implements UIEngine {
     public void selectByValue(LocatorDescriptor locator, String value) {
         By by = toBy(locator);
         WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
-        new org.openqa.selenium.support.ui.Select(element).selectByValue(value);
+        scrollToElement(element);
+        ElementHighlighter.flashFocus(driver, element);
+        try {
+            new org.openqa.selenium.support.ui.Select(element).selectByValue(value);
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         info.dropdown("Selected: " + value + " | " + labelFor(locator));
     }
 
@@ -478,8 +530,16 @@ public final class SeleniumEngine implements UIEngine {
     @Override
     public void uploadFile(LocatorDescriptor locator, String filePath) {
         By by = toBy(locator);
-        WebElement element = driver.findElement(by);
-        element.sendKeys(filePath);
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        scrollToElement(element);
+        ElementHighlighter.flashFocus(driver, element);
+        try {
+            element.sendKeys(filePath);
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         info.upload("Uploaded: " + filePath + " | " + labelFor(locator));
     }
 
@@ -493,8 +553,7 @@ public final class SeleniumEngine implements UIEngine {
         try {
             By by = toBy(locator);
             WebElement element = driver.findElement(by);
-            ((JavascriptExecutor) driver).executeScript(
-                    "arguments[0].style.border='6px solid " + color + "';", element);
+            ElementHighlighter.flash(driver, element, themeFor(color), 0);
         } catch (Exception e) {
             // Best-effort — element may be gone if the action caused a navigation.
             debug.log("[SeleniumEngine] highlight() skipped — element no longer present: " + e.getMessage());
@@ -504,8 +563,16 @@ public final class SeleniumEngine implements UIEngine {
     @Override
     public void hover(LocatorDescriptor locator) {
         By by = toBy(locator);
-        WebElement element = driver.findElement(by);
-        new Actions(driver).moveToElement(element).perform();
+        WebElement element = waitFor(by).until(ExpectedConditions.visibilityOfElementLocated(by));
+        scrollToElement(element);
+        ElementHighlighter.flashFocus(driver, element);
+        try {
+            new Actions(driver).moveToElement(element).perform();
+        } catch (RuntimeException e) {
+            ElementHighlighter.flashDanger(driver, element);
+            throw e;
+        }
+        ElementHighlighter.flashSuccess(driver, element);
         info.hover("Hovered: " + labelFor(locator));
     }
 
@@ -629,13 +696,6 @@ public final class SeleniumEngine implements UIEngine {
         }
     }
 
-    private void highlightElement(WebElement element, String color) {
-        try {
-            ((JavascriptExecutor) driver).executeScript(
-                    "arguments[0].style.border='6px solid " + color + "';", element);
-        } catch (Exception ignored) {}
-    }
-
     private boolean urlChanged(String originalUrl) {
         try {
             return !java.util.Objects.equals(originalUrl, driver.getCurrentUrl());
@@ -672,6 +732,15 @@ public final class SeleniumEngine implements UIEngine {
             }
         }
         return false;
+    }
+
+    private static ElementHighlighter.Theme themeFor(String color) {
+        if (color == null) return ElementHighlighter.Theme.FOCUS;
+        return switch (color.toLowerCase()) {
+            case "green", "success" -> ElementHighlighter.Theme.SUCCESS;
+            case "red", "danger", "error" -> ElementHighlighter.Theme.DANGER;
+            default -> ElementHighlighter.Theme.FOCUS;
+        };
     }
 
     private static void configureLogging() {
