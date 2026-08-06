@@ -1,11 +1,11 @@
-package tests.demo;
+package examples.demo;
 
 import core.flow.Flow;
 import core.logging.CustomLogger;
 import core.logging.theme.LogTheme;
 import core.runtime.VOID;
-import tests.demo.hooks.DemoHooks;
-import tests.demo.pages.DemoLoginPage;
+import examples.demo.hooks.DemoHooks;
+import examples.demo.pages.DemoLoginPage;
 
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -97,7 +97,7 @@ public class VoidDemo {
      * <h3>Building custom hooks</h3>
      * <p>Project teams compose their own hook libraries by declaring
      * {@code static final AfterActionHandler} constants — the same pattern used by
-     * {@link core.interactions.hooks.After}.  See {@link tests.demo.hooks.DemoHooks} for the
+     * {@link core.interactions.hooks.After}.  See {@link examples.demo.hooks.DemoHooks} for the
      * canonical example.  Any named constant drops in wherever a lambda would work:</p>
      * <pre>
      *   element.click()

@@ -7,9 +7,9 @@
  *
  * <h3>Examples</h3>
  * <ul>
- *   <li>{@link tests.demo.pages.DemoLoginPage} — simple login page (3 capabilities)</li>
- *   <li>{@link tests.demo.pages.ManageUsersElements} — ResolvableEnum for BDD step definitions</li>
+ *   <li>{@link examples.demo.pages.DemoLoginPage} — simple login page (3 capabilities)</li>
+ *   <li>{@link examples.demo.pages.ManageUsersElements} — ResolvableEnum for BDD step definitions</li>
  * </ul>
  */
-package tests.demo.pages;
+package examples.demo.pages;
 

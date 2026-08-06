@@ -1,4 +1,4 @@
-package tests.listeners;
+package examples.listeners;
 
 import io.qameta.allure.Allure;
 import org.testng.ITestListener;

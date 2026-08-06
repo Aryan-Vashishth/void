@@ -85,7 +85,7 @@ Locators live in external JSON files and are resolved by the runtime -- never em
 
 ```
 src/main/java/
-  tests/demo/
+  examples/demo/
     SauceDemoTest.java              ← all 46 test methods
     pages/saucedemo/
       LoginPage.java                ← element enums for login page
@@ -94,11 +94,11 @@ src/main/java/
       CheckoutStepOnePage.java      ← element enums for checkout step 1
       CheckoutStepTwoPage.java      ← element enums for checkout step 2
       CheckoutCompletePage.java     ← element enums for order confirmation
-  tests/listeners/
+  examples/listeners/
     ScreenshotListener.java         ← attaches PNG to Allure on failure
     ScreenshotCapable.java          ← interface implemented by SauceDemoTest
 
-src/main/resources/tests/demo/pages/saucedemo/
+src/main/resources/examples/demo/pages/saucedemo/
   LoginPage/
     locators.properties             ← raw XPath/CSS values
     locators.json                   ← resolved locator tree (generated)
@@ -124,20 +124,20 @@ Every file that makes up the SauceDemo suite, in one place.
 
 | File | Role |
 |---|---|
-| `src/main/java/tests/demo/SauceDemoTest.java` | All 46 test methods; `ThreadLocal<VOID>` session isolation |
-| `src/main/java/tests/demo/pages/saucedemo/LoginPage.java` | Element enums for the login page |
-| `src/main/java/tests/demo/pages/saucedemo/ProductsPage.java` | Element enums for the product listing page |
-| `src/main/java/tests/demo/pages/saucedemo/CartPage.java` | Element enums for the cart page |
-| `src/main/java/tests/demo/pages/saucedemo/CheckoutStepOnePage.java` | Element enums for checkout step 1 (personal info) |
-| `src/main/java/tests/demo/pages/saucedemo/CheckoutStepTwoPage.java` | Element enums for checkout step 2 (order overview) |
-| `src/main/java/tests/demo/pages/saucedemo/CheckoutCompletePage.java` | Element enums for the order confirmation page |
+| `src/main/java/examples/demo/SauceDemoTest.java` | All 46 test methods; `ThreadLocal<VOID>` session isolation |
+| `src/main/java/examples/demo/pages/saucedemo/LoginPage.java` | Element enums for the login page |
+| `src/main/java/examples/demo/pages/saucedemo/ProductsPage.java` | Element enums for the product listing page |
+| `src/main/java/examples/demo/pages/saucedemo/CartPage.java` | Element enums for the cart page |
+| `src/main/java/examples/demo/pages/saucedemo/CheckoutStepOnePage.java` | Element enums for checkout step 1 (personal info) |
+| `src/main/java/examples/demo/pages/saucedemo/CheckoutStepTwoPage.java` | Element enums for checkout step 2 (order overview) |
+| `src/main/java/examples/demo/pages/saucedemo/CheckoutCompletePage.java` | Element enums for the order confirmation page |
 
 ### Listeners
 
 | File | Role |
 |---|---|
-| `src/main/java/tests/listeners/ScreenshotCapable.java` | Interface -- test classes implement this to expose a screenshot byte array |
-| `src/main/java/tests/listeners/ScreenshotListener.java` | TestNG `ITestListener` -- attaches PNG to Allure on every test failure |
+| `src/main/java/examples/listeners/ScreenshotCapable.java` | Interface -- test classes implement this to expose a screenshot byte array |
+| `src/main/java/examples/listeners/ScreenshotListener.java` | TestNG `ITestListener` -- attaches PNG to Allure on every test failure |
 
 ### Locators
 
@@ -145,24 +145,24 @@ Each page has three resource files. `locators.properties` is the source of truth
 
 | File | Role |
 |---|---|
-| `src/main/resources/tests/demo/pages/saucedemo/LoginPage/locators.properties` | Raw XPath / CSS for login page |
-| `src/main/resources/tests/demo/pages/saucedemo/LoginPage/locators.json` | Resolved locator tree (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/LoginPage.json` | Page-level metadata (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/ProductsPage/locators.properties` | Raw XPath / CSS for products page |
-| `src/main/resources/tests/demo/pages/saucedemo/ProductsPage/locators.json` | Resolved locator tree (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/ProductsPage.json` | Page-level metadata (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CartPage/locators.properties` | Raw XPath / CSS for cart page |
-| `src/main/resources/tests/demo/pages/saucedemo/CartPage/locators.json` | Resolved locator tree (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CartPage.json` | Page-level metadata (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutStepOnePage/locators.properties` | Raw XPath / CSS for checkout step 1 |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutStepOnePage/locators.json` | Resolved locator tree (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutStepOnePage.json` | Page-level metadata (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutStepTwoPage/locators.properties` | Raw XPath / CSS for checkout step 2 |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutStepTwoPage/locators.json` | Resolved locator tree (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutStepTwoPage.json` | Page-level metadata (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutCompletePage/locators.properties` | Raw XPath / CSS for confirmation page |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutCompletePage/locators.json` | Resolved locator tree (generated) |
-| `src/main/resources/tests/demo/pages/saucedemo/CheckoutCompletePage.json` | Page-level metadata (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/LoginPage/locators.properties` | Raw XPath / CSS for login page |
+| `src/main/resources/examples/demo/pages/saucedemo/LoginPage/locators.json` | Resolved locator tree (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/LoginPage.json` | Page-level metadata (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/ProductsPage/locators.properties` | Raw XPath / CSS for products page |
+| `src/main/resources/examples/demo/pages/saucedemo/ProductsPage/locators.json` | Resolved locator tree (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/ProductsPage.json` | Page-level metadata (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CartPage/locators.properties` | Raw XPath / CSS for cart page |
+| `src/main/resources/examples/demo/pages/saucedemo/CartPage/locators.json` | Resolved locator tree (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CartPage.json` | Page-level metadata (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutStepOnePage/locators.properties` | Raw XPath / CSS for checkout step 1 |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutStepOnePage/locators.json` | Resolved locator tree (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutStepOnePage.json` | Page-level metadata (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutStepTwoPage/locators.properties` | Raw XPath / CSS for checkout step 2 |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutStepTwoPage/locators.json` | Resolved locator tree (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutStepTwoPage.json` | Page-level metadata (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutCompletePage/locators.properties` | Raw XPath / CSS for confirmation page |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutCompletePage/locators.json` | Resolved locator tree (generated) |
+| `src/main/resources/examples/demo/pages/saucedemo/CheckoutCompletePage.json` | Page-level metadata (generated) |
 
 ### Config and CI
 
@@ -200,7 +200,7 @@ That's it. Selenium Manager auto-downloads a matching ChromeDriver if one is not
 
 ## Running the Tests
 
-**All 46 SauceDemo tests (headed):**
+**All 46 SauceDemo examples (headed):**
 ```bash
 mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml
 ```
@@ -271,9 +271,9 @@ Each page has two locator files:
 The CLI command is `--sync`. It reads the page class, generates or updates the `.properties` template with keys derived from the enum constants, then writes `locators.json`. The locator file path is resolved automatically from the class name -- it mirrors the Java package structure, so no path argument is needed.
 
 ```
-src/main/java/tests/demo/pages/saucedemo/CartPage.java
+src/main/java/examples/demo/pages/saucedemo/CartPage.java
                                      ↕ mirrors
-src/main/resources/tests/demo/pages/saucedemo/CartPage/locators.properties
+src/main/resources/examples/demo/pages/saucedemo/CartPage/locators.properties
 ```
 
 **Update an existing page** -- edit the `.properties` file, then sync:
@@ -281,7 +281,7 @@ src/main/resources/tests/demo/pages/saucedemo/CartPage/locators.properties
 ```bash
 mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.saucedemo.CartPage"
+  -Dexec.args="--sync examples.demo.pages.saucedemo.CartPage"
 ```
 
 Append `--prune` to also remove keys that no longer have a matching enum constant.
@@ -291,7 +291,7 @@ Append `--prune` to also remove keys that no longer have a matching enum constan
 Open Claude Code in the project root and say:
 
 ```
-/sync-locators tests.demo.pages.saucedemo.CartPage
+/sync-locators examples.demo.pages.saucedemo.CartPage
 ```
 
 Claude runs the sync command and shows the full output.
@@ -302,7 +302,7 @@ Claude runs the sync command and shows the full output.
 
 ### Step 1 -- Define the element contract
 
-Create the page interface in `src/main/java/tests/demo/pages/saucedemo/`. Declare nested enums implementing the appropriate capability interfaces (`Clickable`, `Typeable`, `ReadOnly`, etc.) with one constant per interactive element.
+Create the page interface in `src/main/java/examples/demo/pages/saucedemo/`. Declare nested enums implementing the appropriate capability interfaces (`Clickable`, `Typeable`, `ReadOnly`, etc.) with one constant per interactive element.
 
 ### Step 2 -- Generate the locator template
 
@@ -311,10 +311,10 @@ Run `--sync` against the new class. The CLI reads the enum constants and writes 
 ```bash
 mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.saucedemo.MyNewPage"
+  -Dexec.args="--sync examples.demo.pages.saucedemo.MyNewPage"
 ```
 
-The generated file lands at `src/main/resources/tests/demo/pages/saucedemo/MyNewPage/locators.properties`.
+The generated file lands at `src/main/resources/examples/demo/pages/saucedemo/MyNewPage/locators.properties`.
 
 ### Step 3 -- Fill in the locator values
 
@@ -327,7 +327,7 @@ Re-run the same sync command. With values now present in `.properties`, the CLI 
 ```bash
 mvn compile -q && mvn exec:java \
   -Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli \
-  -Dexec.args="--sync tests.demo.pages.saucedemo.MyNewPage"
+  -Dexec.args="--sync examples.demo.pages.saucedemo.MyNewPage"
 ```
 
 ### Step 5 -- Write the test

@@ -19,8 +19,8 @@
  *   // CLI: mvn test -Dtest=tests.demo.VoidDemo
  * </pre>
  *
- * @see tests.demo.VoidDemo
- * @see tests.demo.pages.DemoLoginPage
+ * @see examples.demo.VoidDemo
+ * @see examples.demo.pages.DemoLoginPage
  */
-package tests.demo;
+package examples.demo;
 

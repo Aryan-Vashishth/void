@@ -1,4 +1,4 @@
-package tests.demo;
+package examples.demo;
 
 import core.flow.Flow;
 import core.logging.CustomLogger;
@@ -10,8 +10,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import tests.demo.pages.saucedemo.*;
-import tests.listeners.ScreenshotCapable;
+import examples.demo.pages.saucedemo.*;
+import examples.listeners.ScreenshotCapable;
 
 import java.util.Comparator;
 import java.util.List;

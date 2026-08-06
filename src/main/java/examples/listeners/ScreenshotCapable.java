@@ -1,4 +1,4 @@
-package tests.listeners;
+package examples.listeners;
 
 /**
  * Implemented by test classes that can provide a PNG screenshot of the current browser state.

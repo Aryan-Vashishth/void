@@ -1,9 +1,9 @@
-package tests.demo.pages.saucedemo;
+package examples.demo.pages.saucedemo;
 
 import domain.automation.web.vocabulary.capability.Clickable;
 import domain.automation.web.vocabulary.capability.ReadOnly;
 
-public interface CheckoutStepTwoPage {
+public interface CheckoutCompletePage {
 
     // ── Header ── nav buttons + text labels ──────────────────────────────────
 
@@ -30,48 +30,19 @@ public interface CheckoutStepTwoPage {
         CLOSE_MENU_BUTTON;
     }
 
-    // ── OrderSummary ── review section with nested sub-groups ─────────────────
+    // ── OrderConfirmation ── success screen content ───────────────────────────
 
-    interface OrderSummary {
-
-        // Cart items being purchased (%s = item index)
-        interface CartItem {
-
-            enum Buttons implements Clickable {
-                ITEM_TITLE_LINK;
-            }
-
-            enum Labels implements ReadOnly {
-                QUANTITY,
-                ITEM_PRICE;
-            }
-        }
-
-        // Payment method line
-        enum PaymentInfo implements ReadOnly {
-            LABEL,
-            VALUE;
-        }
-
-        // Shipping method line
-        enum ShippingInfo implements ReadOnly {
-            LABEL,
-            VALUE;
-        }
-
-        // Price breakdown
-        enum PriceTotal implements ReadOnly {
-            SUBTOTAL_LABEL,
-            TAX_LABEL,
-            TOTAL_LABEL;
-        }
+    enum OrderConfirmation implements ReadOnly {
+        PONY_EXPRESS_IMAGE,
+        COMPLETE_HEADER,
+        COMPLETE_TEXT;
     }
 
-    // ── Actions ── page-level navigation buttons ──────────────────────────────
+    // ── Actions ── post-order navigation buttons ──────────────────────────────
 
     enum Actions implements Clickable {
-        CANCEL_BUTTON,
-        FINISH_BUTTON;
+        BACK_HOME_BUTTON,
+        GENERATE_PDF_BUTTON;
     }
 
     // ── Footer ── social links ────────────────────────────────────────────────

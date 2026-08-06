@@ -1,4 +1,4 @@
-package tests.logging;
+package examples.logging;
 
 import static core.logging.CustomLogger.debug;
 import static core.logging.CustomLogger.info;

@@ -1,4 +1,4 @@
-package tests.logging;
+package examples.logging;
 
 import core.logging.CustomLogger;
 import core.logging.config.LoggerContext;

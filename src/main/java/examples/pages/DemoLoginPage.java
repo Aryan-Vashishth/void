@@ -1,4 +1,4 @@
-package tests.demo.pages;
+package examples.demo.pages;
 
 import domain.automation.web.vocabulary.element.LocatorFamily;
 import domain.automation.web.vocabulary.capability.Clickable;
