@@ -63,6 +63,18 @@ jobs:
         env:
           SE_CHROMEDRIVER: ${{ env.CHROMEDRIVER }}
 
+      - name: Generate Allure report
+        if: always()
+        run: mvn -B -ntp allure:report -q
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: target/site/allure-maven-plugin/
+          if-no-files-found: ignore
+
       - name: Upload Surefire report
         if: always()
         uses: actions/upload-artifact@v4

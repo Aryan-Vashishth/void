@@ -11,6 +11,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import tests.demo.pages.saucedemo.*;
+import tests.listeners.ScreenshotCapable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -25,7 +26,7 @@ import static org.testng.Assert.*;
  * <p>Credentials: standard_user / locked_out_user / problem_user -- all use secret_sauce.</p>
  */
 @Test
-public class SauceDemoTest {
+public class SauceDemoTest implements ScreenshotCapable {
 
     private static final String BASE_URL       = "https://www.saucedemo.com/";
     private static final String STANDARD_USER  = "standard_user";
@@ -39,6 +40,16 @@ public class SauceDemoTest {
 
     private VOID     app()       { return SESSION.get(); }
     private UIEngine rawEngine() { return ENGINE.get(); }
+
+    @Override
+    public byte[] captureScreenshot() {
+        try {
+            UIEngine engine = ENGINE.get();
+            return engine != null ? engine.takeScreenshot() : new byte[0];
+        } catch (Exception e) {
+            return new byte[0];
+        }
+    }
 
     // ═════════════════════════════════════════════════════════════════════════
     // Lifecycle
