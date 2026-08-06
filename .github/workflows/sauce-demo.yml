@@ -72,7 +72,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: target/site/allure-maven-plugin/
+          path: logs/allure-report/
           if-no-files-found: ignore
 
       - name: Upload Surefire report

@@ -92,6 +92,8 @@
                 <version>${allure-maven.version}</version>               <!-- ✏️ update: allure-maven.version in <properties> -->
                 <configuration>
                     <reportVersion>${allure.version}</reportVersion>
+                    <resultsDirectory>${project.basedir}/logs/allure-results</resultsDirectory>
+                    <reportDirectory>${project.basedir}/logs/allure-report</reportDirectory>
                 </configuration>
             </plugin>
         </plugins>
