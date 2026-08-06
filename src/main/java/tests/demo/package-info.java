@@ -10,8 +10,7 @@
  *   ├── VoidDemo.java              ← Entry point: bootstraps VOID, runs login flow
  *   └── pages/
  *       ├── DemoLoginElements.java ← Simple example (Typeable, Clickable, ReadOnly)
- *       ├── AccountMappingElements.java ← Complex example (all capability interfaces)
- *       └── ManageUsersElements.java    ← ResolvableEnum example
+ *       └── ManageUsersElements.java ← ResolvableEnum example
  * </pre>
  *
  * <h3>Running</h3>
