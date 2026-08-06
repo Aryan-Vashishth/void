@@ -37,6 +37,10 @@
         <!-- Architecture testing -->
         <archunit.version>1.4.0</archunit.version>
 
+        <!-- Reporting -->
+        <allure.version>2.29.0</allure.version>
+        <allure-maven.version>2.14.0</allure-maven.version>
+
         <!-- Plugins -->
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
@@ -79,6 +83,17 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>src/testNgXml/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <version>${allure-maven.version}</version>               <!-- ✏️ update: allure-maven.version in <properties> -->
+                <configuration>
+                    <reportVersion>${allure.version}</reportVersion>
+                    <resultsDirectory>${project.basedir}/target/allure-results</resultsDirectory>
+                    <reportDirectory>${project.basedir}/logs/allure-report</reportDirectory>
                 </configuration>
             </plugin>
         </plugins>
@@ -163,5 +178,11 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- ── Allure TestNG (reporting) ─────────────────────── -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <version>${allure.version}</version>
+        </dependency>
     </dependencies>
 </project>

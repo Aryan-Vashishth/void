@@ -11,6 +11,32 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **SauceDemo CI workflow** (`.github/workflows/sauce-demo.yml`): runs the full 46-test suite
+  headlessly on every push and pull request via Chrome on `ubuntu-latest`. Uploads Allure HTML
+  report, Surefire XML, and VOID session logs as workflow artifacts.
+
+- **Allure TestNG reporting**: `allure-testng` 2.29.0 wired into the SauceDemo suite. Raw
+  results land in `target/allure-results/`; the generated HTML report is written to
+  `logs/allure-report/`. Run `mvn allure:serve` to open the report locally.
+
+- **Screenshot on failure**: `ScreenshotCapable` interface and `ScreenshotListener`
+  (`tests.listeners`) attach a PNG screenshot to the Allure report for every failed test method.
+  `SauceDemoTest` implements `ScreenshotCapable` via `UIEngine.takeScreenshot()`, keeping the
+  listener decoupled from the test class.
+
+- **Assignment documentation** (`docs/README_SAUCEDEMO.md`): human-friendly guide covering
+  quick start, VOID overview, framework rationale, full file reference, locator management
+  workflow (`--sync` CLI), and extension plan.
+
+### Fixed
+
+- **CI stability**: reduced `thread-count` from 4 to 2 in `saucedemo.xml` and added Chrome
+  memory flags (`--disable-extensions`, `--disable-background-networking`,
+  `--disable-renderer-backgrounding`, `--disable-backgrounding-occluded-windows`) to prevent
+  Linux OOM-killer terminating renderer processes on the 7 GB GitHub Actions runner.
+
 ---
 
 ## [0.9.0] - 2026-07-31
