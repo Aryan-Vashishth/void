@@ -116,12 +116,8 @@ src/main/
  │    │         ├── CheckoutStepOnePage.java   │
  │    │         ├── CheckoutStepTwoPage.java   │
  │    │         └── CheckoutCompletePage.java ←┘
- │    ├── tests/
- │    │    └── SauceDemoTest.java             — all 46 test methods
- │    ├── hooks/
- │    │    └── DemoHooks.java                 — named hook constants
- │    └── listeners/
- │         └── ScreenshotListener.java        — screenshot-on-failure wired to Allure
+ │    └── tests/
+ │         └── SauceDemoTest.java             — all 46 test methods
  └── resources/examples/
       └── pages/
            └── saucedemo/
