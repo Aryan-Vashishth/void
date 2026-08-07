@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /** Unit tests for {@link LayeredPropertiesLocatorSource}. */
+@Test(groups = {"integration"})
 public class LayeredPropertiesLocatorSourceTest {
 
     private static final String PROP_FILE = "test-locators.properties";

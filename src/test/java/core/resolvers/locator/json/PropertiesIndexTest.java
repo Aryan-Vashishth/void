@@ -8,6 +8,7 @@ import java.util.Properties;
 import static org.testng.Assert.*;
 
 /** Unit tests for {@link PropertiesIndex}. */
+@Test(groups = {"integration"})
 public class PropertiesIndexTest {
 
     private static final String PROP_FILE = "test-locators.properties";

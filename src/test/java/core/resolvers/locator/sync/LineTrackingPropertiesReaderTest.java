@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static org.testng.Assert.*;
 
+@Test(groups = {"integration"})
 public class LineTrackingPropertiesReaderTest {
 
     private LineTrackingPropertiesReader readerFor(String... lines) throws IOException {

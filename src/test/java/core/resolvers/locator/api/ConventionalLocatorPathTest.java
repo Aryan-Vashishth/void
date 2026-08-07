@@ -17,6 +17,7 @@ import static org.testng.Assert.*;
  * resolution for elements whose repositories live at the conventional
  * package-qualified classpath path.</p>
  */
+@Test(groups = {"integration"})
 public class ConventionalLocatorPathTest {
 
     // -------------------------------------------------------------------------

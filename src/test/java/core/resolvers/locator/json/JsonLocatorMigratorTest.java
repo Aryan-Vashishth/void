@@ -43,6 +43,7 @@ import static org.testng.Assert.*;
  * </ul>
  * </p>
  */
+@Test(groups = {"integration"})
 public class JsonLocatorMigratorTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
