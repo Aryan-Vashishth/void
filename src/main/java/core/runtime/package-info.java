@@ -41,13 +41,11 @@
  *
  * <h3>Layer model</h3>
  * <pre>
- *   ┌─────────────────────────────────────────────────────┐
- *   │  DSL layer         (dsl.VoidDSL)                    │
- *   ├─────────────────────────────────────────────────────┤
- *   │  Framework layer   (core.runtime.VOID)              │
- *   │    → Interactions  (legacy, frozen)                 │
- *   │    → UIEngine      (modern, preferred)              │
- *   └─────────────────────────────────────────────────────┘
+ *   +-----------------------------------------------------+
+ *   |  Framework layer   (core.runtime.VOID)              |
+ *   |    -&gt; UIEngine      (modern, preferred)             |
+ *   |    -&gt; Interactions  (legacy, frozen)                |
+ *   +-----------------------------------------------------+
  * </pre>
  *
  * @see core.runtime.VOID

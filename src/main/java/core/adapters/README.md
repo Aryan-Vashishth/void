@@ -14,7 +14,7 @@ Adapters translate between VOID's internal API and the conventions of external f
 
 | Package | Framework | Description |
 |---------|-----------|-------------|
-| `core.adapters.cucumber` | Cucumber BDD | Step definition classes mapping Gherkin steps to VOID's `Interactions` and `VoidDSL` layers |
+| `core.adapters.cucumber` | Cucumber BDD | Step definition classes mapping Gherkin steps to VOID's `Interactions` layer |
 
 ---
 
@@ -67,6 +67,5 @@ To integrate a new framework:
 ## See Also
 
 - `core.interactions.Interactions` — the interaction layer adapters delegate to
-- `dsl.VoidDSL` — the BDD/context-driven DSL layer
 - ADR-002: Cucumber as Optional Dependency
 

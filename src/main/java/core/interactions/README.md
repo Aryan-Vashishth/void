@@ -160,6 +160,5 @@ LoginPage.USERNAME.type("admin")
 - `core.actions` — modern replacement (deferred execution)
 - `core.flow` / `core.executor` — modern composition and execution
 - `core.engine.UIEngine` — what Interactions delegates to
-- `dsl.VoidDSL` — BDD-specific DSL wrapper
 - ADR-010: Hook Evolution
 
