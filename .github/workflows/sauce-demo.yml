@@ -3,7 +3,10 @@ name: SauceDemo Tests
 # Runs the full SauceDemo E2E test suite (44 tests, 4 parallel threads).
 # Triggered on every push and pull request.
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   sauce-demo:

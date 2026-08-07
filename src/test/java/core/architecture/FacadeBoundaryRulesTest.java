@@ -29,7 +29,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
  */
 public class FacadeBoundaryRulesTest {
 
-    /** All classes residing in the {@code tests.*} packages. */
+    /** All classes residing in the {@code examples.tests.*} packages. */
     private JavaClasses testClasses;
 
     @BeforeClass
@@ -52,7 +52,7 @@ public class FacadeBoundaryRulesTest {
     @Test(description = "Test classes must not hold a UIEngine field")
     public void testClassesShouldNotDeclareUIEngineFields() {
         ArchRule rule = noFields()
-                .that().areDeclaredInClassesThat().resideInAPackage("tests..")
+                .that().areDeclaredInClassesThat().resideInAPackage("examples.tests..")
                 .should().haveRawType(UIEngine.class)
                 .because(
                     "UIEngine must not be stored as a field in test classes. " +
@@ -77,7 +77,7 @@ public class FacadeBoundaryRulesTest {
     @Test(description = "Test classes must not directly instantiate FlowExecutor")
     public void testClassesShouldNotInstantiateFlowExecutorDirectly() {
         ArchRule rule = noClasses()
-                .that().resideInAPackage("tests..")
+                .that().resideInAPackage("examples.tests..")
                 .should().callConstructor(FlowExecutor.class, UIEngine.class)
                 .because(
                     "Test authors should use app.run(flow) or app.flow().run(action) instead of " +
@@ -98,7 +98,7 @@ public class FacadeBoundaryRulesTest {
     @Test(description = "Test classes must not hold a FlowExecutor field")
     public void testClassesShouldNotDeclareFlowExecutorFields() {
         ArchRule rule = noFields()
-                .that().areDeclaredInClassesThat().resideInAPackage("tests..")
+                .that().areDeclaredInClassesThat().resideInAPackage("examples.tests..")
                 .should().haveRawType(FlowExecutor.class)
                 .because(
                     "FlowExecutor is an internal execution mechanism. " +

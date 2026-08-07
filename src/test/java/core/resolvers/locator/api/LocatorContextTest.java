@@ -44,7 +44,7 @@ public class LocatorContextTest {
     @Test
     public void resolveFileName_demoCredentials_returnsConventionalPath() {
         String name = CTX.resolveFileName(DemoLoginPage.Credentials.USERNAME);
-        assertEquals(name, "examples/demo/pages/DemoLoginPage/locators.properties");
+        assertEquals(name, "examples/pages/DemoLoginPage/locators.properties");
     }
 
     // -----------------------------------------------------------------------
