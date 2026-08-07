@@ -37,6 +37,7 @@ import static org.testng.Assert.*;
  * </ul>
  */
 
+@Test(groups = {"integration"})
 public class JsonLocatorReaderV1Test {
 
     // =====================================================================

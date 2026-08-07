@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /** Unit tests for the unified {@link LocatorResolver} instance. */
+@Test(groups = {"integration"})
 public class LocatorResolverTest {
 
     private static final String PROP_FILE = "test-locators.properties";

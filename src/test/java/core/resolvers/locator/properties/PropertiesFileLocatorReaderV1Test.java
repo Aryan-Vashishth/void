@@ -22,6 +22,7 @@ import static org.testng.Assert.*;
  * <b>Test fixture:</b> {@code src/test/resources/locators/test-locators.properties}
  */
 
+@Test(groups = {"integration"})
 public class PropertiesFileLocatorReaderV1Test {
 
     // =====================================================================

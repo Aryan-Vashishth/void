@@ -12,6 +12,7 @@ import java.util.Comparator;
 
 import static org.testng.Assert.*;
 
+@Test(groups = {"integration"})
 public class LocatorSyncOrchestratorTest {
 
     private Path tempBase;

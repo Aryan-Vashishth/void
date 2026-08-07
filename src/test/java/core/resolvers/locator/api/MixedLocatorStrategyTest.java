@@ -15,6 +15,7 @@ import static org.testng.Assert.*;
  * hardcoded elements (null file name, key returned as-is) without any
  * cross-enum interference.</p>
  */
+@Test(groups = {"integration"})
 public class MixedLocatorStrategyTest {
 
     // -------------------------------------------------------------------------

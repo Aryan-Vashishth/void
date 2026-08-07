@@ -18,6 +18,7 @@ import static org.testng.Assert.*;
  *
  * <p>Verifies the resolver-side file-name resolution contract introduced in Phase 13.</p>
  */
+@Test(groups = {"integration"})
 public class LocatorContextTest {
 
     private static final LocatorContext CTX = DefaultLocatorContext.INSTANCE;
