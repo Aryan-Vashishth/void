@@ -466,6 +466,11 @@ public final class SeleniumEngine implements UIEngine {
     @Override
     public void waitForVisible(LocatorDescriptor locator, Duration timeout) {
         By by = toBy(locator);
+        try {
+            scrollToElement(driver.findElement(by));
+        } catch (Exception ignored) {
+            // element may not be in DOM yet; scroll is best-effort
+        }
         new WebDriverWait(driver, timeout)
                 .until(ExpectedConditions.visibilityOfElementLocated(by));
     }
