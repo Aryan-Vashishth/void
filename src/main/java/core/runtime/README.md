@@ -132,14 +132,11 @@ app.shutdown();  // engine quits the driver and cleans up its registry entry
 ## Layer Model
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  DSL layer         (dsl.VoidDSL)                    │
-│    → context-driven DSL for BDD steps               │
-├─────────────────────────────────────────────────────┤
-│  Framework layer   (core.runtime.VOID)              │
-│    → UIEngine      (modern, preferred)              │
-│    → Interactions  (legacy, frozen)                 │
-└─────────────────────────────────────────────────────┘
++-----------------------------------------------------+
+|  Framework layer   (core.runtime.VOID)              |
+|    -> UIEngine      (modern, preferred)             |
+|    -> Interactions  (legacy, frozen)                |
++-----------------------------------------------------+
 ```
 
 ---

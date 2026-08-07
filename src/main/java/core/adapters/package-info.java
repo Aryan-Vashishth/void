@@ -9,7 +9,7 @@
  * <ul>
  *   <li>{@code core.adapters.cucumber} — Cucumber BDD integration. Contains step
  *       definition classes that map Gherkin steps to VOID's
- *       {@link core.interactions.Interactions} and {@link dsl.VoidDSL} layers.
+ *       {@link core.interactions.Interactions} layer.
  *       Cucumber is an <b>optional dependency</b> — this package is only loaded
  *       when Cucumber is on the classpath.</li>
  * </ul>
@@ -25,7 +25,6 @@
  * </ul>
  *
  * @see core.interactions.Interactions
- * @see dsl.VoidDSL
  */
 package core.adapters;
 

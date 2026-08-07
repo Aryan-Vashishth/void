@@ -9,7 +9,6 @@
  * interface and built-in {@link core.interactions.hooks.Before}/{@link core.interactions.hooks.After}
  * constants that compose optional pre/post-action behaviour (waits, highlights, etc.).</p>
  *
- * <p>For BDD-specific wrappers, see {@code dsl.VoidDSL}.</p>
  */
 package core.interactions;
 
