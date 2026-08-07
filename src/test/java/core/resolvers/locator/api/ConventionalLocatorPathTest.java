@@ -27,7 +27,7 @@ public class ConventionalLocatorPathTest {
     public void forClass_derivesPackageQualifiedJsonPath() {
         assertEquals(
             ConventionalLocatorPath.forClass(DemoLoginPage.class),
-                "examples/demo/pages/DemoLoginPage/locators.json"
+                "examples/pages/DemoLoginPage/locators.json"
         );
     }
 
@@ -35,7 +35,7 @@ public class ConventionalLocatorPathTest {
     public void forClassProperties_derivesPackageQualifiedPropertiesPath() {
         assertEquals(
             ConventionalLocatorPath.forClassProperties(DemoLoginPage.class),
-                "examples/demo/pages/DemoLoginPage/locators.properties"
+                "examples/pages/DemoLoginPage/locators.properties"
         );
     }
 
@@ -51,7 +51,7 @@ public class ConventionalLocatorPathTest {
     public void dirFor_returnsDirWithTrailingSlash() {
         assertEquals(
             ConventionalLocatorPath.dirFor(DemoLoginPage.class),
-                "examples/demo/pages/DemoLoginPage/"
+                "examples/pages/DemoLoginPage/"
         );
     }
 
@@ -78,7 +78,7 @@ public class ConventionalLocatorPathTest {
     @Test
     public void defaultFileName_demo_returnsPackageQualifiedPath() {
         String name = DemoLoginPage.Credentials.USERNAME.getExternalFileName();
-        assertEquals(name, "examples/demo/pages/DemoLoginPage/locators.properties");
+        assertEquals(name, "examples/pages/DemoLoginPage/locators.properties");
     }
 
     // -------------------------------------------------------------------------
@@ -115,7 +115,7 @@ public class ConventionalLocatorPathTest {
 
     @Test
     public void locatorPaths_rootedPath_notPrefixed() {
-        String path = "examples/demo/pages/DemoLoginPage/locators.json";
+        String path = "examples/pages/DemoLoginPage/locators.json";
         assertEquals(LocatorPaths.underJson(path), path);
     }
 
