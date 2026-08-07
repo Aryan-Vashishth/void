@@ -22,6 +22,7 @@ import static org.testng.Assert.*;
  * and {@code Header}, plus a direct enum {@code Footer}. Resources at
  * {@code elements/fixture/NestedConventionalPage/locators.json}.</p>
  */
+@Test(groups = {"integration"})
 public class NestedInterfaceLocatorResolutionTest {
 
     // ── getExternalFileName() -- outermost-class walk ─────────────────────────

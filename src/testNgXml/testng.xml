@@ -3,10 +3,29 @@
 <suite name="VoidFrameworkSuite" verbose="1">
 
     <test name="UnitTests">
+        <groups>
+            <run>
+                <exclude name="integration"/>
+            </run>
+        </groups>
         <packages>
             <package name="core.*"/>
             <package name="elements.*"/>
             <package name="probe.*"/>
         </packages>
     </test>
+
+    <test name="IntegrationTests">
+        <groups>
+            <run>
+                <include name="integration"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="core.*"/>
+            <package name="elements.*"/>
+            <package name="probe.*"/>
+        </packages>
+    </test>
+
 </suite>

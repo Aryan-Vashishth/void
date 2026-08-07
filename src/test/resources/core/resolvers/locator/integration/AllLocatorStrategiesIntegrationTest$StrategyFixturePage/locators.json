@@ -1,0 +1,13 @@
+{
+  "StrategyFixturePage": {
+    "Elements": {
+      "XPATH_INFERRED":  { "TRIGGER": "//button[@id='xpath-btn']" },
+      "XPATH_EXPLICIT":  { "TRIGGER": "xpath=//button[@id='xpath-explicit-btn']" },
+      "CSS_ELEMENT":     { "TRIGGER": "css=button.css-btn" },
+      "ID_ELEMENT":      { "TRIGGER": "id=id-btn" },
+      "NAME_ELEMENT":    { "TRIGGER": "name=name-btn" },
+      "CLASS_ELEMENT":   { "TRIGGER": "class=btn" },
+      "TAG_ELEMENT":     { "TRIGGER": "tag=button" }
+    }
+  }
+}

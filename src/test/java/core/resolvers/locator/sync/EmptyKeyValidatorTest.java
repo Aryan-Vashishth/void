@@ -11,6 +11,7 @@ import java.util.List;
 
 import static org.testng.Assert.*;
 
+@Test(groups = {"integration"})
 public class EmptyKeyValidatorTest {
 
     private final EmptyKeyValidator validator = new EmptyKeyValidator();

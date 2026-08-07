@@ -66,6 +66,7 @@ import static org.testng.Assert.*;
  * (info/debug/warn/error + tree-style {@code log("heading", "k","v")}) so that
  * the rendering pipeline is also exercised end-to-end.</p>
  */
+@Test(groups = {"integration"})
 public class InteractionsEndToEndTest {
 
     /** File name fragment Ã¢â‚¬â€ base path {@code locators/properties/} is auto-prepended. */

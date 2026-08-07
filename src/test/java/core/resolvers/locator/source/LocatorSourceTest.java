@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /** Unit tests for {@link HardcodedLocatorSource}, {@link PropertiesLocatorSource}, {@link JsonLocatorSource}. */
+@Test(groups = {"integration"})
 public class LocatorSourceTest {
 
     private static final String PROP_FILE = "test-locators.properties"; // base prepended internally

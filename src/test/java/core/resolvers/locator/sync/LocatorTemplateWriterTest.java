@@ -15,6 +15,7 @@ import java.util.Set;
 
 import static org.testng.Assert.*;
 
+@Test(groups = {"integration"})
 public class LocatorTemplateWriterTest {
 
     private Path tempDir;

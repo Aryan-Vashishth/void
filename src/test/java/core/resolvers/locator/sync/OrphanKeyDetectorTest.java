@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.testng.Assert.*;
 
+@Test(groups = {"integration"})
 public class OrphanKeyDetectorTest {
 
     private final OrphanKeyDetector detector = new OrphanKeyDetector();
