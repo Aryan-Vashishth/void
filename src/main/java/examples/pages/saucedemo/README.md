@@ -107,17 +107,21 @@ Every push and pull request runs the full suite headlessly. Three artifacts are 
 
 ```
 src/main/
- ├── java/examples/
- │    ├── pages/
- │    │    └── saucedemo/
- │    │         ├── LoginPage.java            ←┐
- │    │         ├── ProductsPage.java          │  page contracts
- │    │         ├── CartPage.java              │  (enum-driven)
- │    │         ├── CheckoutStepOnePage.java   │
- │    │         ├── CheckoutStepTwoPage.java   │
- │    │         └── CheckoutCompletePage.java ←┘
- │    └── tests/
- │         └── SauceDemoTest.java             — all 46 test methods
+ ├── java/
+ │    ├── core/                                       — VOID runtime engine (collapsed)
+ │    ├── domain/                                     — domain registration and registry (collapsed)
+ │    ├── dsl/                                        — fluent interaction DSL (collapsed)
+ │    └── examples/
+ │         ├── pages/
+ │         │    └── saucedemo/
+ │         │         ├── LoginPage.java            ←┐
+ │         │         ├── ProductsPage.java          │  page contracts
+ │         │         ├── CartPage.java              │  (enum-driven)
+ │         │         ├── CheckoutStepOnePage.java   │
+ │         │         ├── CheckoutStepTwoPage.java   │
+ │         │         └── CheckoutCompletePage.java ←┘
+ │         └── tests/
+ │              └── SauceDemoTest.java              — all 46 test methods
  └── resources/examples/
       └── pages/
            └── saucedemo/

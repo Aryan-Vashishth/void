@@ -20,7 +20,7 @@ import static core.utils.EnumResolver.stringToEnum;
 import static core.logging.CustomLogger.*;
 
 /**
- * InteractionsDSL Ã¢â‚¬â€ DSL Layer
+ * InteractionsDSL -- DSL Layer
  * ----------------------------------------
  * Provides a high-level, context-driven <b>Domain-Specific Language</b> for
  * Cucumber / BDD step definitions. Translates plain-text BDD parameters
@@ -33,28 +33,31 @@ import static core.logging.CustomLogger.*;
  * {@code Interactions}, this class <em>holds</em> an {@code Interactions}
  * reference. This enforces a clean separation:</p>
  * <pre>
- *   DSL  Ã¢â€ â€™  Engine  Ã¢â€ â€™  WebDriver
+ *   DSL  -&gt;  Engine  -&gt;  WebDriver
  * </pre>
  * <p>The DSL never touches {@code WebDriver} directly. If the execution
  * engine is later swapped (Playwright, mock, replay), only the engine
- * needs to change Ã¢â‚¬â€ the DSL stays untouched.</p>
+ * needs to change -- the DSL stays untouched.</p>
  *
  * <h3>Layer responsibilities</h3>
  * <pre>
- *  Ã¢â€Å’Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â
- *  Ã¢â€â€š  dsl layer  (this package)                               Ã¢â€â€š
- *  Ã¢â€â€š  - VoidDSL             Ã¢â€ â€™ context-driven DSL              Ã¢â€â€š
- *  Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Â¤
- *  Ã¢â€â€š  framework layer   (core / elements)                     Ã¢â€â€š
- *  Ã¢â€â€š  - Interactions         Ã¢â€ â€™ raw UI actions (engine)        Ã¢â€â€š
- *  Ã¢â€â€š  - VOID                 Ã¢â€ â€™ framework faÃƒÂ§ade               Ã¢â€â€š
- *  Ã¢â€â€š  - elements.api.*       Ã¢â€ â€™ element contracts              Ã¢â€â€š
- *  Ã¢â€â€š  - core.*               Ã¢â€ â€™ driver / logging / resolvers   Ã¢â€â€š
- *  Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€Ëœ
+ *  +----------------------------------------------------------+
+ *  |  dsl layer  (this package)                               |
+ *  |  - VoidDSL             -&gt; context-driven DSL             |
+ *  +----------------------------------------------------------+
+ *  |  framework layer   (core / elements)                     |
+ *  |  - Interactions         -&gt; raw UI actions (engine)       |
+ *  |  - VOID                 -&gt; framework facade              |
+ *  |  - elements.api.*       -&gt; element contracts             |
+ *  |  - core.*               -&gt; driver / logging / resolvers  |
+ *  +----------------------------------------------------------+
  * </pre>
  *
- * @param engine The execution engine Ã¢â‚¬â€ all UI work is delegated here.
+ * @deprecated VoidDSL is superseded by the VOID interaction runtime. Use
+ *             {@link core.runtime.VOID} with {@link core.flow.Flow} instead.
+ * @param engine The execution engine -- all UI work is delegated here.
  */
+@Deprecated(forRemoval = true)
 public record VoidDSL(Interactions engine) {
 
     /**
