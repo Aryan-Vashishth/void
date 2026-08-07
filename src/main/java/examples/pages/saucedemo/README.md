@@ -106,14 +106,35 @@ Every push and pull request runs the full suite headlessly. Three artifacts are 
 ## Project structure
 
 ```
-src/
- └── examples/               your web application
-      ├── pages/saucedemo/    page contracts — LoginPage, ProductsPage, CartPage, CheckoutPages
-      ├── tests/              SauceDemoTest.java — all 46 test methods
-      ├── hooks/              named hook constants
-      ├── listeners/          screenshot-on-failure wired to Allure
-      └── resources/
-           └── pages/saucedemo/   locators.json + locators.properties per page
+src/main/
+ ├── java/examples/
+ │    ├── pages/
+ │    │    └── saucedemo/
+ │    │         ├── LoginPage.java            ←┐
+ │    │         ├── ProductsPage.java          │  page contracts
+ │    │         ├── CartPage.java              │  (enum-driven)
+ │    │         ├── CheckoutStepOnePage.java   │
+ │    │         ├── CheckoutStepTwoPage.java   │
+ │    │         └── CheckoutCompletePage.java ←┘
+ │    ├── tests/
+ │    │    └── SauceDemoTest.java             — all 46 test methods
+ │    ├── hooks/
+ │    │    └── DemoHooks.java                 — named hook constants
+ │    └── listeners/
+ │         └── ScreenshotListener.java        — screenshot-on-failure wired to Allure
+ └── resources/examples/
+      └── pages/
+           └── saucedemo/
+                ├── LoginPage/                ←┐
+                │    ├── locators.json         │  mirrors the page contract above;
+                │    └── locators.properties   │  one folder per page class,
+                ├── ProductsPage/              │  named identically
+                ├── CartPage/                  │
+                ├── CheckoutStepOnePage/       │
+                ├── CheckoutStepTwoPage/       │
+                └── CheckoutCompletePage/     ←┘
+                     ├── locators.json
+                     └── locators.properties
 ```
 
 ---
