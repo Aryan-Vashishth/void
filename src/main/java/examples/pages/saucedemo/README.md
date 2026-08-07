@@ -90,7 +90,7 @@ VOID doesn't replace Selenium, Playwright, Appium, or other automation engines â
 ```powershell
 git clone https://github.com/Aryan-Vashishth/void.git
 cd void
-mvn test "-Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml"
+mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml"
 mvn allure:serve
 ```
 
@@ -101,9 +101,9 @@ Selenium Manager auto-downloads a matching ChromeDriver -- no manual setup.
 **Headless (CI / bash):**
 
 ```bash
-mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
-         -Dheadless=true \
-         -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080
+mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
+               -Dheadless=true \
+               -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080
 ```
 
 ---
