@@ -10,7 +10,7 @@
 
 <h1 align="center">SauceDemo Automation</h1>
 
-Automation suite for [saucedemo.com](https://www.saucedemo.com) built as part of an automation demonstration.
+Automation suite for [saucedemo.com](https://www.saucedemo.com) -- reference implementation for the VOID interaction runtime.
 
 ---
 
@@ -179,7 +179,6 @@ VOID doesn't replace Selenium, Playwright, Appium, or other automation engines -
 - **Runtime-owned execution** -- waits, retries, logging, screenshots, and browser-specific behaviour are implemented once in the runtime rather than duplicated across the project.
 
 ---
-
 
 <details open>
 <summary><span style="font-size: 1.15em; font-weight: 600;">Architecture</span></summary>
