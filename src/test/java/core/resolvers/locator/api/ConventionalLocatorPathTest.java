@@ -61,7 +61,7 @@ public class ConventionalLocatorPathTest {
         String demoPath    = ConventionalLocatorPath.forClass(DemoLoginPage.class);
         String fixturePath = ConventionalLocatorPath.forClass(ConventionalTestPage.class);
         assertNotEquals(demoPath, fixturePath);
-        assertTrue(demoPath.startsWith("examples/demo/pages/"));
+        assertTrue(demoPath.startsWith("examples/pages/"));
         assertTrue(fixturePath.startsWith("elements/fixture/"));
     }
 
