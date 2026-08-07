@@ -87,16 +87,18 @@ VOID doesn't replace Selenium, Playwright, Appium, or other automation engines â
 
 > Requires JDK 17+, Maven 3.8+, Chrome.
 
-```bash
+```powershell
 git clone https://github.com/Aryan-Vashishth/void.git
 cd void
-mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml
+mvn test "-Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml"
 mvn allure:serve
 ```
 
-Selenium Manager auto-downloads a matching ChromeDriver â€” no manual setup.
+Selenium Manager auto-downloads a matching ChromeDriver -- no manual setup.
 
-**Headless (CI mode):**
+> **PowerShell:** quote `-D` arguments to prevent the shell from stripping the flag (`"-Dproperty=value"`).
+
+**Headless (CI / bash):**
 
 ```bash
 mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
