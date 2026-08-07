@@ -122,9 +122,9 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
 
 ## Reporting
 
-<img src="docs/images/screenshots/SauceDemo-allure-report-sample.png"
+<img src="../../../../../../docs/images/screenshots/SauceDemo-allure-report-sample.png"
      alt="Allure report overview"
-     width="780"/>
+     width="780" />
 
 Allure generates an interactive HTML report after every run:
 
@@ -141,7 +141,7 @@ mvn allure:serve
 
 ## CI
 
-<img src="docs/images/screenshots/SauceDemo-ci-passing.png"
+<img src="../../../../../../docs/images/screenshots/SauceDemo-ci-passing.png"
      alt="GitHub Actions -- SauceDemo suite passing"
      width="780"/>
 
