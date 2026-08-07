@@ -90,20 +90,21 @@ VOID doesn't replace Selenium, Playwright, Appium, or other automation engines â
 ```powershell
 git clone https://github.com/Aryan-Vashishth/void.git
 cd void
-mvn test "-Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml"
-mvn allure:serve
+mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml" allure:serve
 ```
 
 Selenium Manager auto-downloads a matching ChromeDriver -- no manual setup.
 
 > **PowerShell:** quote `-D` arguments to prevent the shell from stripping the flag (`"-Dproperty=value"`).
 
+**IntelliJ:** right-click `src/testNgXml/saucedemo.xml` in the Project view and select **Run**.
+
 **Headless (CI / bash):**
 
 ```bash
-mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
-         -Dheadless=true \
-         -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080
+mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
+               -Dheadless=true \
+               -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080
 ```
 
 ---
@@ -122,7 +123,7 @@ mvn test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
 
 ## Reporting
 
-![Allure report overview](docs/screenshots/allure-overview.png)
+![Allure report overview](../../../../../../docs/images/screenshots/SauceDemo-allure-report-sample.png)
 
 Allure generates an interactive HTML report after every run:
 
@@ -139,7 +140,7 @@ mvn allure:serve
 
 ## CI
 
-![GitHub Actions passing](docs/images/screenshots/SauceDemo-ci-passing.png)
+![GitHub Actions -- SauceDemo suite passing](../../../../../../docs/images/screenshots/SauceDemo-ci-passing.png)
 
 Every push and pull request runs the full suite headlessly. Three artifacts are uploaded after each run: `allure-report`, `surefire-report`, and `void-logs`.
 
