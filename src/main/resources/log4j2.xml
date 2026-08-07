@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Properties>
         <Property name="voidLogDir">${sys:void.logDir:-./logs}</Property>
@@ -24,7 +24,7 @@
                      fileName="${voidDebugLogDir}/debug-trace-${voidRunId}.log"
                      filePattern="${voidDebugLogDir}/archive/debug-trace-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
                      append="false">
-            <PatternLayout pattern="%replace{%m}{\u001B\[[;\d]*m}{}%n"/>
+            <PatternLayout pattern="%t │ %replace{%m}{\u001B\[[;\d]*m}{}%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="25 MB"/>
@@ -36,7 +36,7 @@
                      fileName="${voidPartialLogDir}/partial-trace-${voidRunId}.log"
                      filePattern="${voidPartialLogDir}/archive/partial-trace-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
                      append="false">
-            <PatternLayout pattern="%replace{%m}{\u001B\[[;\d]*m}{}%n"/>
+            <PatternLayout pattern="%t │ %replace{%m}{\u001B\[[;\d]*m}{}%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="25 MB"/>
@@ -48,7 +48,7 @@
                      fileName="${voidFullTraceLogDir}/full-trace-${voidRunId}.log"
                      filePattern="${voidFullTraceLogDir}/archive/full-trace-${voidRunId}.%d{yyyy-MM-dd}.%i.log.gz"
                      append="false">
-            <PatternLayout pattern="%replace{%m}{\u001B\[[;\d]*m}{}%n"/>
+            <PatternLayout pattern="%t │ %replace{%m}{\u001B\[[;\d]*m}{}%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="25 MB"/>
@@ -100,3 +100,4 @@
 
     </Loggers>
 </Configuration>
+
