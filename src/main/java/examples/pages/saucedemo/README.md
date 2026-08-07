@@ -10,20 +10,117 @@
 
 <h1 align="center">SauceDemo Automation</h1>
 
-Automation suite for [saucedemo.com](https://www.saucedemo.com) built as part of an automation assignment and used to demonstrate the design of the VOID Runtime.
-
-Rather than building on an existing Selenium framework, this project is built on **VOID (Virtual Object Interaction-Domain Runtime)** — an interaction runtime I designed to separate interaction modeling from execution. The SauceDemo suite serves as the reference implementation for the runtime while fulfilling the assignment requirements.
-
-- 46 automated scenarios
-- Positive, negative and end-to-end coverage
-- Selenium 4 + TestNG
-- Parallel execution
-- Allure reporting with screenshot-on-failure
-- GitHub Actions CI
+Automation suite for [saucedemo.com](https://www.saucedemo.com) -- reference implementation for the VOID interaction runtime.
 
 ---
 
-## Example test using the framework
+## Assignment Summary
+
+| | |
+|---|---|
+| Assignment 1 | Completed |
+| Automated scenarios | 46 |
+| Manual test cases | [Google Sheet](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing) |
+| CI | GitHub Actions |
+| Parallel execution | Yes |
+| Reporting | Allure with screenshot-on-failure |
+| Stack | Selenium 4 + TestNG |
+
+---
+
+## Quick start
+
+> Requires JDK 17+, Maven 3.8+, Chrome. Selenium Manager auto-downloads ChromeDriver.
+
+**Terminal (PowerShell)**
+
+```powershell
+git clone https://github.com/Aryan-Vashishth/void.git
+cd void
+mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml" allure:serve
+```
+
+> Quote `-D` arguments in PowerShell to prevent the shell from stripping the flag (`"-Dproperty=value"`).
+
+<p style="text-align: center;">or</p>
+
+**IntelliJ** -- right-click `src/testNgXml/saucedemo.xml` in the Project view and select **Run**.
+
+<p style="text-align: center;">or</p>
+
+**Headless (CI / bash)**
+
+```bash
+mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
+               -Dheadless=true \
+               -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080
+```
+
+---
+
+## Test coverage
+
+| Module | Positive | Negative | E2E |
+|--------|--------:|---------:|----:|
+| Login | 5 | 7 | - |
+| Products | 10 | 2 | - |
+| Cart | 8 | 2 | 2 |
+| Checkout | 6 | 2 | 2 |
+| **Total** | **29** | **13** | **4** |
+
+**[View the test case sheet →](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing)**
+
+Covers all 46 scenarios with Severity, Priority, Steps, Expected Result, Actual Result, and Status columns.
+
+---
+
+## Reporting
+
+![Allure report overview](../../../../../../docs/images/screenshots/SauceDemo-allure-report-sample.png)
+
+Allure generates an interactive HTML report after every run:
+
+- Pass / fail / skip breakdown with duration
+- Per-test timeline across parallel threads
+- Screenshot attached to every failed test
+- Full interaction log per test
+
+```bash
+mvn allure:serve
+```
+
+---
+
+## CI
+
+![GitHub Actions -- SauceDemo suite passing](../../../../../../docs/images/screenshots/SauceDemo-ci-passing.png)
+
+Every push and pull request runs the full suite headlessly. Three artifacts are uploaded after each run:
+
+- `allure-report` -- interactive HTML report with timeline, screenshots, and per-test breakdown
+- `surefire-report` -- raw TestNG XML output
+- `void-logs` -- VOID runtime execution trace, one log file per JVM process (all parallel threads write into the same file). Each file records session startup, every interaction dispatched (element, operation, hook chain, duration, pass/fail status), and teardown. Three verbosity levels are written per run: `partial-trace` (clean messages), `debug-trace` (messages + immediate caller), `full-trace` (messages + complete call chain to test root).
+
+---
+
+## Project structure
+
+```
+src/
+ └── examples/               your web application
+      ├── pages/saucedemo/    page contracts — LoginPage, ProductsPage, CartPage, CheckoutPages
+      ├── tests/              SauceDemoTest.java — all 46 test methods
+      ├── hooks/              named hook constants
+      ├── listeners/          screenshot-on-failure wired to Allure
+      └── resources/
+           └── pages/saucedemo/   locators.json + locators.properties per page
+```
+
+---
+
+## The VOID approach
+
+Rather than using a standard Page Object framework, this project is built on **VOID (Virtual Object Interaction-Domain Runtime)** -- an interaction runtime I designed to separate interaction modeling from execution.
 
 **Conventional Page Object**
 
@@ -58,9 +155,9 @@ Most Selenium projects eventually accumulate:
 - Locators commonly coupled to page object implementation, mixing locator management with interaction logic
 - Browser execution logic spread across the project rather than owned in one place
 
-I wanted to design a different architecture where tests describe **intent** while a dedicated runtime owns execution. That idea evolved into VOID — an interaction runtime that treats UI automation as one execution domain rather than the system itself.
+I wanted to design a different architecture where tests describe **intent** while a dedicated runtime owns execution. That idea evolved into VOID -- an interaction runtime that treats UI automation as one execution domain rather than the system itself.
 
-VOID doesn't replace Selenium, Playwright, Appium, or other automation engines — it provides a unified interaction model that sits above them, separating interaction modeling from execution.
+VOID doesn't replace Selenium, Playwright, Appium, or other automation engines -- it provides a unified interaction model that sits above them, separating interaction modeling from execution.
 
 | Conventional Page Objects | VOID |
 |---|---|
@@ -83,87 +180,8 @@ VOID doesn't replace Selenium, Playwright, Appium, or other automation engines �
 
 ---
 
-## Quick start
-
-> Requires JDK 17+, Maven 3.8+, Chrome.
-
-```powershell
-git clone https://github.com/Aryan-Vashishth/void.git
-cd void
-mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml"
-mvn allure:serve
-```
-
-Selenium Manager auto-downloads a matching ChromeDriver -- no manual setup.
-
-> **PowerShell:** quote `-D` arguments to prevent the shell from stripping the flag (`"-Dproperty=value"`).
-
-**IntelliJ:** right-click `src/testNgXml/saucedemo.xml` in the Project view and select **Run**.
-
-**Headless (CI / bash):**
-
-```bash
-mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
-               -Dheadless=true \
-               -Dargs=--no-sandbox,--disable-dev-shm-usage,--disable-gpu,--window-size=1920,1080
-```
-
----
-
-## Test coverage
-
-| Module | Positive | Negative | E2E |
-|--------|--------:|---------:|----:|
-| Login | 5 | 7 | - |
-| Products | 10 | 2 | - |
-| Cart | 8 | 2 | 2 |
-| Checkout | 6 | 2 | 2 |
-| **Total** | **29** | **13** | **4** |
-
----
-
-## Reporting
-
-![Allure report overview](../../../../../../docs/images/screenshots/SauceDemo-allure-report-sample.png)
-
-Allure generates an interactive HTML report after every run:
-
-- Pass / fail / skip breakdown with duration
-- Per-test timeline across parallel threads
-- Screenshot attached to every failed test
-- Full interaction log per test
-
-```bash
-mvn allure:serve
-```
-
----
-
-## CI
-
-![GitHub Actions -- SauceDemo suite passing](../../../../../../docs/images/screenshots/SauceDemo-ci-passing.png)
-
-Every push and pull request runs the full suite headlessly. Three artifacts are uploaded after each run: `allure-report`, `surefire-report`, and `void-logs`.
-
----
-
-## Project structure
-
-```
-src/
- └── examples/               your web application
-      ├── pages/saucedemo/    page contracts — LoginPage, ProductsPage, CartPage, CheckoutPages
-      ├── tests/              SauceDemoTest.java — all 46 test methods
-      ├── hooks/              named hook constants
-      ├── listeners/          screenshot-on-failure wired to Allure
-      └── resources/
-           └── pages/saucedemo/   locators.json + locators.properties per page
-```
-
----
-
 <details open>
-<summary>Architecture</summary>
+<summary><span style="font-size: 1.15em; font-weight: 600;">Architecture</span></summary>
 
 ```
     Test Method
@@ -194,7 +212,7 @@ Full architecture documentation: [`docs/architecture/`](../../../../docs/archite
 </details>
 
 <details open>
-<summary>Locator system</summary>
+<summary><span style="font-size: 1.15em; font-weight: 600;">Locator system</span></summary>
 
 Locators live outside Java in external JSON contracts:
 
@@ -211,13 +229,133 @@ Each page class maps to a JSON file by convention — no configuration needed.
 </details>
 
 <details open>
-<summary>Adding a new page</summary>
+<summary><span style="font-size: 1.15em; font-weight: 600;">Adding a new page</span></summary>
 
-1. Create the page interface with nested enums implementing `Clickable`, `Typeable`, or `ReadOnly`.
-2. Run `--sync` to generate the locator template.
-3. Fill in XPath / CSS values in the generated `.properties` file.
-4. Re-run `--sync` to produce `locators.json`.
-5. Write test methods in `SauceDemoTest.java`.
+**1. Define the page contract** -- `src/main/java/examples/pages/saucedemo/LoginPage.java`
+
+```java
+public interface LoginPage {
+
+    interface LoginForm {
+        enum Credentials implements Typeable  { USERNAME_FIELD, PASSWORD_FIELD; }
+        enum Buttons    implements Clickable  { LOGIN_BUTTON; }
+    }
+
+    interface ErrorMessage {
+        enum Labels   implements ReadOnly  { ERROR_BANNER; }
+        enum Buttons  implements Clickable { ERROR_DISMISS; }
+    }
+}
+```
+
+**2. Run sync to generate the `.properties` template**
+
+```powershell
+mvn compile -q && mvn exec:java "-Dexec.mainClass=core.resolvers.locator.json.JsonMigratorCli" "-Dexec.args=--sync examples.pages.saucedemo.LoginPage"
+```
+
+<p style="text-align: center;">or</p>
+
+> **Claude Code CLI** (if installed): `/sync-locators examples.pages.saucedemo.LoginPage` -- or sync an entire package at once: `/sync-locators-package examples.pages.saucedemo`
+
+The runtime creates the template at the path that mirrors the contract's package structure under `src/main/resources/`:
+
+```
+src/
+ └── main/
+      ├── java/examples/pages/saucedemo/LoginPage.java        ← contract
+      └── resources/examples/pages/saucedemo/LoginPage/
+               ├── locators.properties                        ← generated template
+               └── locators.json                              ← generated after fill
+```
+
+Generated template -- keys are derived from the enum hierarchy, values are blank:
+
+```properties
+# LoginPage — locators
+# Generated by LocatorSyncCli. Fill XPath values only. Do not edit keys.
+
+# --- Credentials ---
+LoginForm.Credentials.USERNAME_FIELD.INPUT=
+LoginForm.Credentials.PASSWORD_FIELD.INPUT=
+
+# --- Buttons ---
+LoginForm.Buttons.LOGIN_BUTTON.TRIGGER=
+
+# --- Labels ---
+ErrorMessage.Labels.ERROR_BANNER.TEXT=
+
+# --- Buttons ---
+ErrorMessage.Buttons.ERROR_DISMISS.TRIGGER=
+```
+
+**3. Fill in the locator values**
+
+Values support the following strategies -- all can be mixed freely in the same file:
+
+| Prefix | Strategy | Notes |
+|---|---|---|
+| `//` or `(//` | XPath | Inferred automatically -- no prefix needed |
+| `xpath=` | XPath | Explicit form, same result |
+| `css=` | CSS selector | Required for CSS -- not inferred |
+| `id=` | By ID | Shorthand for `css=[id='...']` |
+| `name=` | By name attribute | Shorthand for `css=[name='...']` |
+| `class=` | By class name | Single class only |
+| `tag=` | By tag name | |
+
+```properties
+# XPath -- inferred from //
+LoginForm.Credentials.USERNAME_FIELD.INPUT=//input[@data-test='username']
+LoginForm.Credentials.PASSWORD_FIELD.INPUT=//input[@data-test='password']
+
+# CSS
+LoginForm.Buttons.LOGIN_BUTTON.TRIGGER=css=input[data-test='login-button']
+
+# id= shorthand
+ErrorMessage.Labels.ERROR_BANNER.TEXT=id=error-banner
+
+# name= shorthand
+ErrorMessage.Buttons.ERROR_DISMISS.TRIGGER=name=dismiss-error
+```
+
+**4. Re-run sync to produce `locators.json`**
+
+Re-run the step 2 command. The JSON mirrors the nested structure of the contract exactly:
+
+```json
+{
+  "LoginPage": {
+    "LoginForm": {
+      "Credentials": {
+        "USERNAME_FIELD": { "INPUT":  "//input[@data-test='username']" },
+        "PASSWORD_FIELD": { "INPUT":  "//input[@data-test='password']" }
+      },
+      "Buttons": {
+        "LOGIN_BUTTON":  { "TRIGGER": "css=input[data-test='login-button']" }
+      }
+    },
+    "ErrorMessage": {
+      "Labels":  { "ERROR_BANNER":  { "TEXT":    "id=error-banner" } },
+      "Buttons": { "ERROR_DISMISS": { "TRIGGER": "name=dismiss-error" } }
+    }
+  }
+}
+```
+
+**5. Use in a test** -- no locator references in test code
+
+```java
+app.run(Flow.of(
+    LoginPage.LoginForm.Credentials.USERNAME_FIELD.type("standard_user"),
+    LoginPage.LoginForm.Credentials.PASSWORD_FIELD.type("secret_sauce"),
+    LoginPage.LoginForm.Buttons.LOGIN_BUTTON.click()
+));
+
+assertEquals(
+    app.reader().query(LoginPage.ErrorMessage.Labels.ERROR_BANNER.getText()),
+    "Epic sadface: Username is required"
+);
+```
 
 </details>
 
@@ -251,14 +389,6 @@ Its interaction model is independent of the underlying execution engine, allowin
 - Mobile engine (Appium)
 - REST API engine
 - Desktop engine
-
----
-
-## Manual test cases
-
-**[View the test case sheet →](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing)**
-
-Covers all 46 scenarios with Severity, Priority, Steps, Expected Result, Actual Result, and Status columns.
 
 ---
 
