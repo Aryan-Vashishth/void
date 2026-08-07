@@ -122,11 +122,9 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
 
 ## Reporting
 
-<p align="center">
-  <img src="docs/images/screenshots/SauceDemo-allure-report-sample.png"
-       alt="Allure report overview"
-       width="780"/>
-</p>
+<img src="docs/images/screenshots/SauceDemo-allure-report-sample.png"
+     alt="Allure report overview"
+     width="780"/>
 
 Allure generates an interactive HTML report after every run:
 
@@ -143,11 +141,9 @@ mvn allure:serve
 
 ## CI
 
-<p align="center">
-  <img src="docs/images/screenshots/SauceDemo-ci-passing.png"
-       alt="GitHub Actions — SauceDemo suite passing"
-       width="780"/>
-</p>
+<img src="docs/images/screenshots/SauceDemo-ci-passing.png"
+     alt="GitHub Actions -- SauceDemo suite passing"
+     width="780"/>
 
 Every push and pull request runs the full suite headlessly. Three artifacts are uploaded after each run: `allure-report`, `surefire-report`, and `void-logs`.
 
