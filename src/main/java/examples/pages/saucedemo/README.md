@@ -10,7 +10,7 @@
 
 <h1 align="center">SauceDemo Automation</h1>
 
-Automation suite for [saucedemo.com](https://www.saucedemo.com) -- reference implementation for the VOID interaction runtime.
+Automation suite for [saucedemo.com](https://www.saucedemo.com) -- This directory contains the Shopflo SDET assignment implementation and serves as a reference implementation of VOID.
 
 ---
 
