@@ -110,7 +110,6 @@ src/main/
  ├── java/
  │    ├── core/                                       — VOID runtime engine (collapsed)
  │    ├── domain/                                     — domain registration and registry (collapsed)
- │    ├── dsl/                                        — fluent interaction DSL (collapsed)
  │    └── examples/
  │         ├── pages/
  │         │    └── saucedemo/
