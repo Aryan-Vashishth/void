@@ -19,7 +19,7 @@ Automation suite for [saucedemo.com](https://www.saucedemo.com) -- This director
 | | |
 |---|---|
 | Assignment 1 | Completed |
-| Automated scenarios | 46 |
+| Automated scenarios | 45 |
 | Manual test cases | [Google Sheet](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing) |
 | CI | GitHub Actions |
 | Parallel execution | Yes |
@@ -63,14 +63,14 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
 | Module | Positive | Negative | E2E |
 |--------|--------:|---------:|----:|
 | Login | 5 | 7 | - |
-| Products | 10 | 2 | - |
+| Products | 9 | 2 | - |
 | Cart | 8 | 2 | 2 |
 | Checkout | 6 | 2 | 2 |
 | **Total** | **29** | **13** | **4** |
 
 **[View the test case sheet →](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing)**
 
-Covers all 46 scenarios with Severity, Priority, Steps, Expected Result, Actual Result, and Status columns.
+Covers all 45 scenarios with Severity, Priority, Steps, Expected Result, Actual Result, and Status columns.
 
 ---
 
