@@ -59,7 +59,8 @@ defects): [`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/t
 
 **FORM-11:** the confirmation modal's Close button takes the click (native and JavaScript) but
 the modal stays open. Escape closes it. The test asserts the current behavior so it will flag a
-change, the same way SauceDemo handles LAND-12.
+change, the same way SauceDemo handles LAND-12. It is in the `known-defect` TestNG group, which the
+Extent report shows as a warning rather than a plain pass.
 
 ### Not automated
 

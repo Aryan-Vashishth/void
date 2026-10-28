@@ -337,7 +337,7 @@ public class DemoQATest implements ScreenshotCapable {
                 "21 Aug 1990");
     }
 
-    @Test(groups = "form", description = "FORM-11 -- Modal dismissal; KNOWN DEFECT: Close button does not close it, Escape does")
+    @Test(groups = {"form", "known-defect"}, description = "FORM-11 -- Modal dismissal; KNOWN DEFECT: Close button does not close it, Escape does")
     public void form11_closeConfirmationModal() {
         open(PRACTICE_FORM);
         fillRequiredFields("Priya", "Sharma", PersonalDetails.Gender.OTHER_RADIO, "9876543210");

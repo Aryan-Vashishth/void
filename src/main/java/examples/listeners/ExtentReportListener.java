@@ -10,6 +10,7 @@ import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Base64;
 
 /**
@@ -21,6 +22,9 @@ import java.util.Base64;
 public class ExtentReportListener implements ITestListener {
 
     private static final Path REPORT_DIR = Path.of("logs", "extent-report");
+
+    /** TestNG group for regression anchors that assert a known product defect. Reported as a warning. */
+    public static final String KNOWN_DEFECT_GROUP = "known-defect";
 
     private final ThreadLocal<ExtentTest> currentTest = new ThreadLocal<>();
     private ExtentReports extent;
@@ -58,7 +62,12 @@ public class ExtentReportListener implements ITestListener {
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        currentTest.get().pass("Passed in " + durationMs(result) + " ms");
+        ExtentTest test = currentTest.get();
+        test.pass("Passed in " + durationMs(result) + " ms");
+        if (Arrays.asList(result.getMethod().getGroups()).contains(KNOWN_DEFECT_GROUP)) {
+            test.warning("Known defect: this test asserts the current defective behavior, so a pass "
+                    + "means the defect is still present.");
+        }
         currentTest.remove();
     }
 

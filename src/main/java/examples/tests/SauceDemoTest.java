@@ -358,7 +358,7 @@ public class SauceDemoTest implements ScreenshotCapable {
         assertTrue(app().elements().isVisible(ProductsPage.SideMenu.RESET_APP_STATE_LINK), "Reset App State link should be visible");
     }
 
-    @Test(description = "LAND-12 -- Reset App State clears badge; KNOWN DEFECT: Remove buttons do not revert")
+    @Test(groups = "known-defect", description = "LAND-12 -- Reset App State clears badge; KNOWN DEFECT: Remove buttons do not revert")
     public void land12_resetAppState() {
         doValidLogin();
         addItemToCart("sauce-labs-backpack");
@@ -563,7 +563,7 @@ public class SauceDemoTest implements ScreenshotCapable {
                 "Cart item should be preserved after cancelling step one");
     }
 
-    @Test(description = "CART-11 -- Cancel on step two; KNOWN DEFECT: goes to /inventory.html not /cart.html")
+    @Test(groups = "known-defect", description = "CART-11 -- Cancel on step two; KNOWN DEFECT: goes to /inventory.html not /cart.html")
     public void cart11_cancelOnCheckoutStepTwo() {
         doValidLogin();
         addFirstItemToCart();
@@ -592,7 +592,7 @@ public class SauceDemoTest implements ScreenshotCapable {
                 "Cart badge should disappear after last item is removed");
     }
 
-    @Test(description = "CART-13 -- Empty cart checkout; KNOWN DEFECT: $0 order should be blocked")
+    @Test(groups = "known-defect", description = "CART-13 -- Empty cart checkout; KNOWN DEFECT: $0 order should be blocked")
     public void cart13_emptyCartCheckout() {
         doValidLogin();
         goToCart();
