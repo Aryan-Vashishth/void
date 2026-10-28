@@ -40,6 +40,7 @@
         <!-- Reporting -->
         <allure.version>2.29.0</allure.version>
         <allure-maven.version>2.14.0</allure-maven.version>
+        <extentreports.version>5.1.2</extentreports.version>
 
         <!-- Plugins -->
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
@@ -183,6 +184,13 @@
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-testng</artifactId>
             <version>${allure.version}</version>
+        </dependency>
+
+        <!-- ── Extent Reports (HTML reporting) ───────────────── -->
+        <dependency>
+            <groupId>com.aventstack</groupId>
+            <artifactId>extentreports</artifactId>
+            <version>${extentreports.version}</version>
         </dependency>
     </dependencies>
 </project>
