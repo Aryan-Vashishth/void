@@ -1,0 +1,67 @@
+{
+  "SelectMenuPage" : {
+    "OldStyleSelect" : {
+      "Colors" : {
+        "RED" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "BLUE" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "GREEN" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "YELLOW" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "PURPLE" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "BLACK" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "WHITE" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "VIOLET" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "INDIGO" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "MAGENTA" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        },
+        "AQUA" : {
+          "TRIGGER" : "//select[@id='oldSelectMenu']"
+        }
+      },
+      "Labels" : {
+        "SELECTED_COLOR" : {
+          "TEXT" : "css=#oldSelectMenu option:checked"
+        }
+      }
+    },
+    "CarsMultiSelect" : {
+      "Cars" : {
+        "VOLVO" : {
+          "TRIGGER" : "//select[@id='cars']"
+        },
+        "SAAB" : {
+          "TRIGGER" : "//select[@id='cars']"
+        },
+        "OPEL" : {
+          "TRIGGER" : "//select[@id='cars']"
+        },
+        "AUDI" : {
+          "TRIGGER" : "//select[@id='cars']"
+        }
+      },
+      "Labels" : {
+        "SELECTED_CARS" : {
+          "TEXT" : "css=#cars option:checked"
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,15 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **DemoQA example suite** (`examples.pages.demoqa`, `examples.tests.DemoQATest`,
+  `src/testNgXml/demoqa.xml`): 18 tests against demoqa.com covering text, number, native and
+  react-select dropdowns, multi-select, checkboxes (flat and tree), radios, buttons, file upload,
+  and file download. Manual cases in `src/main/resources/examples/testcases/DemoQA_Test_Cases.csv`.
+
+- **Extent Reports**: `extentreports` 5.1.2 and `ExtentReportListener` (`examples.listeners`)
+  write one Spark HTML report per suite to `logs/extent-report/<suite>.html`, with test
+  categories from TestNG groups and a base64 screenshot on failure via `ScreenshotCapable`.
+
 - **SauceDemo CI workflow** (`.github/workflows/sauce-demo.yml`): runs the full 46-test suite
   headlessly on every push and pull request via Chrome on `ubuntu-latest`. Uploads Allure HTML
   report, Surefire XML, and VOID session logs as workflow artifacts.

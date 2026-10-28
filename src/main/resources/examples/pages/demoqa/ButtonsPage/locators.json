@@ -1,0 +1,14 @@
+{
+  "ButtonsPage" : {
+    "Buttons" : {
+      "CLICK_ME_BUTTON" : {
+        "TRIGGER" : "//button[text()='Click Me']"
+      }
+    },
+    "Labels" : {
+      "DYNAMIC_CLICK_MESSAGE" : {
+        "TEXT" : "//*[@id='dynamicClickMessage']"
+      }
+    }
+  }
+}
