@@ -99,8 +99,10 @@ src/main/java/examples/
 src/main/resources/examples/
  ├── pages/demoqa/<Page>/locators.{properties,json}
  ├── testdata/demoqa/profile-picture.png
- ├── testcases/DemoQA_Test_Cases.csv
- └── testcases/Assignment_Master_Test_Cases.xlsx
+ └── testcases/
+      ├── DemoQA_Test_Cases.csv
+      ├── SauceDemo_All_Test_Cases.csv
+      └── Assignment_Master_Test_Cases.xlsx
 src/testNgXml/demoqa.xml        DemoQA only
 src/testNgXml/examples.xml      SauceDemo + DemoQA
 ```
