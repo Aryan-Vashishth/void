@@ -24,6 +24,40 @@ Selenium today. Playwright-ready by contract. Engine-agnostic by design.
 
 ---
 
+## Quick Start: SauceDemo and DemoQA suites
+
+Two example suites built on VOID: [SauceDemo](src/main/java/examples/pages/saucedemo/README.md)
+(e-commerce flows) and [DemoQA](src/main/java/examples/pages/demoqa/README.md) (form controls,
+file upload and download).
+
+Prerequisites: JDK 17+ and Google Chrome. ChromeDriver is downloaded automatically.
+
+**Option 1: Maven 3.8+ installed**
+
+```powershell
+git clone https://github.com/Aryan-Vashishth/void.git
+cd void
+mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/examples.xml"
+```
+
+**Option 2: no Maven**
+
+```powershell
+git clone https://github.com/Aryan-Vashishth/void.git
+cd void
+powershell -ExecutionPolicy Bypass -File .\run-examples.ps1
+```
+
+`run-examples.ps1` uses Maven if it is installed; otherwise it downloads Maven into `tools\` once
+(about 9 MB, no admin rights) and reuses it on later runs. It prints progress and a result summary.
+`-ExecutionPolicy Bypass` is needed because Windows blocks unsigned PowerShell scripts by default;
+it applies to this one run only and changes no system settings.
+
+Both options run all 63 SauceDemo and DemoQA tests (about 4 minutes) and write the Extent report to
+`logs/extent-report/ExamplesSuite.html`.
+
+---
+
 ## Run the demo
 
 ```bash
