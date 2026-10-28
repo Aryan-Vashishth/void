@@ -26,6 +26,12 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/demoqa.xml -Dheadless=true
 **Report:** `logs/extent-report/DemoQASuite.html` (Extent Spark). Allure results are written too;
 `mvn allure:serve` opens them.
 
+SauceDemo and DemoQA together, one Extent report at `logs/extent-report/AssignmentSuite.html`:
+
+```powershell
+mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/assignment.xml"
+```
+
 ---
 
 ## Coverage
@@ -46,6 +52,8 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/demoqa.xml -Dheadless=true
 
 18 automated, 20 manual. Manual cases with steps, data, expected/actual results, severity and
 priority: [`DemoQA_Test_Cases.csv`](../../../../resources/examples/testcases/DemoQA_Test_Cases.csv).
+The master workbook for both applications (summary, all 65 cases, requirement coverage,
+defects): [`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Assignment_Master_Test_Cases.xlsx).
 
 ### Known defect
 
@@ -90,6 +98,8 @@ src/main/java/examples/
 src/main/resources/examples/
  ├── pages/demoqa/<Page>/locators.{properties,json}
  ├── testdata/demoqa/profile-picture.png
- └── testcases/DemoQA_Test_Cases.csv
-src/testNgXml/demoqa.xml
+ ├── testcases/DemoQA_Test_Cases.csv
+ └── testcases/Assignment_Master_Test_Cases.xlsx
+src/testNgXml/demoqa.xml        DemoQA only
+src/testNgXml/assignment.xml    SauceDemo + DemoQA
 ```

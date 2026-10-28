@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<!-- Full example run: SauceDemo then DemoQA, one Extent report at logs/extent-report/AssignmentSuite.html -->
+<suite name="AssignmentSuite" verbose="1">
+
+    <listeners>
+        <listener class-name="examples.listeners.ScreenshotListener"/>
+        <listener class-name="examples.listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="SauceDemo" parallel="methods" thread-count="4">
+        <classes>
+            <class name="examples.tests.SauceDemoTest"/>
+        </classes>
+    </test>
+
+    <test name="DemoQA" parallel="methods" thread-count="4">
+        <classes>
+            <class name="examples.tests.DemoQATest"/>
+        </classes>
+    </test>
+
+</suite>

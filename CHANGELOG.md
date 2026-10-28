@@ -22,6 +22,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
   write one Spark HTML report per suite to `logs/extent-report/<suite>.html`, with test
   categories from TestNG groups and a base64 screenshot on failure via `ScreenshotCapable`.
 
+- **Combined example suite** (`src/testNgXml/assignment.xml`): runs SauceDemo and DemoQA in one
+  command with a single Extent report, `logs/extent-report/AssignmentSuite.html`. Extent tests
+  are also tagged with their TestNG `<test>` name.
+
+- **Master test case workbook** (`src/main/resources/examples/testcases/Assignment_Master_Test_Cases.xlsx`):
+  summary, all 65 manual cases for both applications with their automated test and last result,
+  requirement coverage, and defects.
+
 - **SauceDemo CI workflow** (`.github/workflows/sauce-demo.yml`): runs the full 46-test suite
   headlessly on every push and pull request via Chrome on `ubuntu-latest`. Uploads Allure HTML
   report, Surefire XML, and VOID session logs as workflow artifacts.

@@ -50,6 +50,7 @@ public class ExtentReportListener implements ITestListener {
         ExtentTest test = extent.createTest(
                 description != null ? description : result.getMethod().getMethodName(),
                 result.getTestClass().getRealClass().getSimpleName() + "." + result.getMethod().getMethodName());
+        test.assignCategory(result.getTestContext().getName());
         String[] groups = result.getMethod().getGroups();
         if (groups.length > 0) test.assignCategory(groups);
         currentTest.set(test);
