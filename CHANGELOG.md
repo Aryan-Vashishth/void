@@ -21,6 +21,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - **Extent Reports**: `extentreports` 5.1.2 and `ExtentReportListener` (`examples.listeners`)
   write one Spark HTML report per suite to `logs/extent-report/<suite>.html`, with test
   categories from TestNG groups and a base64 screenshot on failure via `ScreenshotCapable`.
+  Tests in the `known-defect` group (LAND-12, CART-11, CART-13, FORM-11) are marked as warnings,
+  since they pass only while the defect they assert is still present.
 
 - **Combined example suite** (`src/testNgXml/assignment.xml`): runs SauceDemo and DemoQA in one
   command with a single Extent report, `logs/extent-report/AssignmentSuite.html`. Extent tests
@@ -34,7 +36,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
   summary, all 65 manual cases for both applications with their automated test and last result,
   requirement coverage, and defects.
 
-- **SauceDemo CI workflow** (`.github/workflows/sauce-demo.yml`): runs the full 46-test suite
+- **SauceDemo CI workflow** (`.github/workflows/sauce-demo.yml`): runs the full 45-test suite
   headlessly on every push and pull request via Chrome on `ubuntu-latest`. Uploads Allure HTML
   report, Surefire XML, and VOID session logs as workflow artifacts.
 
