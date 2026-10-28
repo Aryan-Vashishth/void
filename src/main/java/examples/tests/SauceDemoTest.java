@@ -111,8 +111,27 @@ public class SauceDemoTest implements ScreenshotCapable {
 
     private void openHamburgerMenu() {
         app().run(Flow.of(ProductsPage.Header.Buttons.MENU_BUTTON.click()));
+        // A click right after page load can land before React attaches the handler (seen on CI
+        // in LAND-12), so the menu never opens. Retry once if it has not appeared.
+        if (!menuOpensWithin(3_000)) {
+            app().run(Flow.of(ProductsPage.Header.Buttons.MENU_BUTTON.click()));
+        }
         // The sidebar uses a CSS transition; wait for it to become visible before returning.
         app().elements().waitForVisible(ProductsPage.SideMenu.ALL_ITEMS_LINK);
+    }
+
+    private boolean menuOpensWithin(long timeoutMs) {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        while (System.currentTimeMillis() < deadline) {
+            if (app().elements().isVisible(ProductsPage.SideMenu.ALL_ITEMS_LINK)) return true;
+            try {
+                Thread.sleep(250);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return false;
     }
 
     private void goToCart() {
