@@ -49,16 +49,24 @@ Versions follow [Semantic Versioning](https://semver.org/).
   `SauceDemoTest` implements `ScreenshotCapable` via `UIEngine.takeScreenshot()`, keeping the
   listener decoupled from the test class.
 
-- **Assignment documentation** (`docs/README_SAUCEDEMO.md`): human-friendly guide covering
+- **SauceDemo documentation** (`src/main/java/examples/pages/saucedemo/README.md`): guide covering
   quick start, VOID overview, framework rationale, full file reference, locator management
   workflow (`--sync` CLI), and extension plan.
 
 ### Fixed
 
-- **CI stability**: reduced `thread-count` from 4 to 2 in `saucedemo.xml` and added Chrome
-  memory flags (`--disable-extensions`, `--disable-background-networking`,
-  `--disable-renderer-backgrounding`, `--disable-backgrounding-occluded-windows`) to prevent
-  Linux OOM-killer terminating renderer processes on the 7 GB GitHub Actions runner.
+- **CI stability**: added Chrome memory flags (`--disable-extensions`,
+  `--disable-background-networking`, `--disable-renderer-backgrounding`,
+  `--disable-backgrounding-occluded-windows`) to prevent the Linux OOM killer terminating renderer
+  processes on the 7 GB GitHub Actions runner. `saucedemo.xml` runs with `thread-count="4"`.
+
+- **SauceDemo footer links**: SauceDemo renamed its Twitter footer link to X
+  (`data-test="social-x"`, `https://x.com/saucelabs`). LAND-14 and the `TWITTER_LINK` locators on
+  all five SauceDemo pages now target it.
+
+- **SauceDemo menu flakiness**: `SauceDemoTest.openHamburgerMenu()` clicks the menu button again if
+  the menu has not opened within 3 seconds. On CI, a click landing right after page load could
+  register without opening the menu, failing LAND-12.
 
 ---
 
