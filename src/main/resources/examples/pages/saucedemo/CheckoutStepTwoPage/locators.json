@@ -89,7 +89,7 @@
     },
     "Footer" : {
       "TWITTER_LINK" : {
-        "TRIGGER" : "//li[@class='social_twitter']/a"
+        "TRIGGER" : "//a[@data-test='social-x']"
       },
       "FACEBOOK_LINK" : {
         "TRIGGER" : "//li[@class='social_facebook']/a"
