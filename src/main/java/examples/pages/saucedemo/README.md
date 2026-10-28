@@ -20,10 +20,10 @@ Automation suite for [saucedemo.com](https://www.saucedemo.com) -- This director
 |---|---|
 | Assignment 1 | Completed |
 | Automated scenarios | 45 |
-| Manual test cases | [Google Sheet](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing) |
+| Manual test cases | [Google Sheet](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing), [`Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Master_Test_Cases.xlsx) |
 | CI | GitHub Actions |
 | Parallel execution | Yes |
-| Reporting | Allure with screenshot-on-failure |
+| Reporting | Allure with screenshot-on-failure; Extent when run with DemoQA via `examples.xml` |
 | Stack | Selenium 4 + TestNG |
 
 ---
