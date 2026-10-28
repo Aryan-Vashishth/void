@@ -24,8 +24,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
   Tests in the `known-defect` group (LAND-12, CART-11, CART-13, FORM-11) are marked as warnings,
   since they pass only while the defect they assert is still present.
 
-- **Combined example suite** (`src/testNgXml/assignment.xml`): runs SauceDemo and DemoQA in one
-  command with a single Extent report, `logs/extent-report/AssignmentSuite.html`. Extent tests
+- **Combined example suite** (`src/testNgXml/examples.xml`): runs SauceDemo and DemoQA in one
+  command with a single Extent report, `logs/extent-report/ExamplesSuite.html`. Extent tests
   are also tagged with their TestNG `<test>` name.
 
 - **DemoQA CI workflow** (`.github/workflows/demoqa.yml`): runs the 18-test DemoQA suite

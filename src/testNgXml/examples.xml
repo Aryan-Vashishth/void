@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<!-- Full example run: SauceDemo then DemoQA, one Extent report at logs/extent-report/AssignmentSuite.html -->
-<suite name="AssignmentSuite" verbose="1">
+<!-- Full example run: SauceDemo then DemoQA, one Extent report at logs/extent-report/ExamplesSuite.html -->
+<suite name="ExamplesSuite" verbose="1">
 
     <listeners>
         <listener class-name="examples.listeners.ScreenshotListener"/>

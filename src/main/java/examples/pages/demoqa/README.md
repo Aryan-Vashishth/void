@@ -26,10 +26,10 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/demoqa.xml -Dheadless=true
 **Report:** `logs/extent-report/DemoQASuite.html` (Extent Spark). Allure results are written too;
 `mvn allure:serve` opens them.
 
-SauceDemo and DemoQA together, one Extent report at `logs/extent-report/AssignmentSuite.html`:
+SauceDemo and DemoQA together, one Extent report at `logs/extent-report/ExamplesSuite.html`:
 
 ```powershell
-mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/assignment.xml"
+mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/examples.xml"
 ```
 
 ---
@@ -102,5 +102,5 @@ src/main/resources/examples/
  ├── testcases/DemoQA_Test_Cases.csv
  └── testcases/Assignment_Master_Test_Cases.xlsx
 src/testNgXml/demoqa.xml        DemoQA only
-src/testNgXml/assignment.xml    SauceDemo + DemoQA
+src/testNgXml/examples.xml      SauceDemo + DemoQA
 ```
