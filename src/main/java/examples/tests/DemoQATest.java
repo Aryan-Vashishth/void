@@ -77,6 +77,11 @@ public class DemoQATest implements ScreenshotCapable {
         // Read by SeleniumDriverFactory (system properties layer) when each session starts.
         Files.createDirectories(DOWNLOAD_DIR);
         System.setProperty("downloadsDir", DOWNLOAD_DIR.toString());
+        // DemoQA's ad scripts can stall a full page load until Chrome's renderer times out on slow
+        // connections. Return once the DOM is ready; element waits cover the rest. -D overrides it.
+        if (System.getProperty("pageLoadStrategy") == null) {
+            System.setProperty("pageLoadStrategy", "eager");
+        }
     }
 
     @BeforeMethod(alwaysRun = true)
