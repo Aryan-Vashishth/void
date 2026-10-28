@@ -1,6 +1,6 @@
 name: SauceDemo Tests
 
-# Runs the full SauceDemo E2E test suite (44 tests, 4 parallel threads).
+# Runs the full SauceDemo E2E test suite (45 tests, 4 parallel threads).
 # Triggered on every push and pull request.
 
 on:

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="DemoQASuite" verbose="1">
+
+    <listeners>
+        <listener class-name="examples.listeners.ScreenshotListener"/>
+        <listener class-name="examples.listeners.ExtentReportListener"/>
+    </listeners>
+
+    <test name="DemoQATests" parallel="methods" thread-count="4">
+        <classes>
+            <class name="examples.tests.DemoQATest"/>
+        </classes>
+    </test>
+
+</suite>

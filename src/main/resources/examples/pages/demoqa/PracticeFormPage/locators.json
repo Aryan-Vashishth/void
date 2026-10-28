@@ -1,0 +1,194 @@
+{
+  "PracticeFormPage" : {
+    "PersonalDetails" : {
+      "Fields" : {
+        "FIRST_NAME_INPUT" : {
+          "INPUT" : "//input[@id='firstName']"
+        },
+        "LAST_NAME_INPUT" : {
+          "INPUT" : "//input[@id='lastName']"
+        },
+        "EMAIL_INPUT" : {
+          "INPUT" : "//input[@id='userEmail']"
+        },
+        "MOBILE_INPUT" : {
+          "INPUT" : "//input[@id='userNumber']"
+        }
+      },
+      "Gender" : {
+        "MALE_RADIO" : {
+          "TRIGGER" : "//input[@id='gender-radio-1']"
+        },
+        "FEMALE_RADIO" : {
+          "TRIGGER" : "//input[@id='gender-radio-2']"
+        },
+        "OTHER_RADIO" : {
+          "TRIGGER" : "//input[@id='gender-radio-3']"
+        }
+      }
+    },
+    "DateOfBirth" : {
+      "Fields" : {
+        "DATE_OF_BIRTH_INPUT" : {
+          "INPUT" : "//input[@id='dateOfBirthInput']"
+        }
+      },
+      "Buttons" : {
+        "CALENDAR_TOGGLE" : {
+          "TRIGGER" : "//input[@id='dateOfBirthInput']"
+        },
+        "YEAR_SELECT" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__year-select')]"
+        }
+      },
+      "Months" : {
+        "JANUARY" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "FEBRUARY" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "MARCH" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "APRIL" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "MAY" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "JUNE" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "JULY" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "AUGUST" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "SEPTEMBER" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "OCTOBER" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "NOVEMBER" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        },
+        "DECEMBER" : {
+          "TRIGGER" : "//select[contains(@class,'react-datepicker__month-select')]"
+        }
+      },
+      "DynamicButtons" : {
+        "DAY_CELL" : {
+          "TRIGGER" : "//div[contains(@class,'react-datepicker__day--%1$s') and not(contains(@class,'react-datepicker__day--outside-month'))]"
+        }
+      }
+    },
+    "Subjects" : {
+      "Fields" : {
+        "SUBJECTS_INPUT" : {
+          "INPUT" : "//input[@id='subjectsInput']"
+        }
+      },
+      "Labels" : {
+        "SELECTED_SUBJECT_CHIPS" : {
+          "TEXT" : "//div[contains(@class,'subjects-auto-complete__multi-value__label')]"
+        }
+      },
+      "DynamicButtons" : {
+        "REMOVE_SUBJECT_BUTTON" : {
+          "TRIGGER" : "//div[@role='button' and @aria-label='Remove %1$s']"
+        }
+      }
+    },
+    "Hobbies" : {
+      "Options" : {
+        "SPORTS_CHECKBOX" : {
+          "TRIGGER" : "//input[@id='hobbies-checkbox-1']"
+        },
+        "READING_CHECKBOX" : {
+          "TRIGGER" : "//input[@id='hobbies-checkbox-2']"
+        },
+        "MUSIC_CHECKBOX" : {
+          "TRIGGER" : "//input[@id='hobbies-checkbox-3']"
+        }
+      }
+    },
+    "Picture" : {
+      "Fields" : {
+        "PICTURE_UPLOAD" : {
+          "INPUT" : "//input[@id='uploadPicture']"
+        }
+      }
+    },
+    "Address" : {
+      "Fields" : {
+        "CURRENT_ADDRESS_INPUT" : {
+          "INPUT" : "//textarea[@id='currentAddress']"
+        },
+        "STATE_INPUT" : {
+          "INPUT" : "//input[@id='react-select-3-input']"
+        },
+        "CITY_INPUT" : {
+          "INPUT" : "//input[@id='react-select-4-input']"
+        }
+      },
+      "Labels" : {
+        "SELECTED_STATE" : {
+          "TEXT" : "//div[@id='state']//div[contains(@class,'singleValue')]"
+        },
+        "SELECTED_CITY" : {
+          "TEXT" : "//div[@id='city']//div[contains(@class,'singleValue')]"
+        }
+      }
+    },
+    "Form" : {
+      "SUBMIT_BUTTON" : {
+        "TRIGGER" : "//button[@id='submit']"
+      }
+    },
+    "ConfirmationModal" : {
+      "Labels" : {
+        "MODAL_TITLE" : {
+          "TEXT" : "//div[@id='example-modal-sizes-title-lg']"
+        },
+        "STUDENT_NAME_VALUE" : {
+          "TEXT" : "//td[text()='Student Name']/following-sibling::td"
+        },
+        "STUDENT_EMAIL_VALUE" : {
+          "TEXT" : "//td[text()='Student Email']/following-sibling::td"
+        },
+        "GENDER_VALUE" : {
+          "TEXT" : "//td[text()='Gender']/following-sibling::td"
+        },
+        "MOBILE_VALUE" : {
+          "TEXT" : "//td[text()='Mobile']/following-sibling::td"
+        },
+        "DATE_OF_BIRTH_VALUE" : {
+          "TEXT" : "//td[text()='Date of Birth']/following-sibling::td"
+        },
+        "SUBJECTS_VALUE" : {
+          "TEXT" : "//td[text()='Subjects']/following-sibling::td"
+        },
+        "HOBBIES_VALUE" : {
+          "TEXT" : "//td[text()='Hobbies']/following-sibling::td"
+        },
+        "PICTURE_VALUE" : {
+          "TEXT" : "//td[text()='Picture']/following-sibling::td"
+        },
+        "ADDRESS_VALUE" : {
+          "TEXT" : "//td[text()='Address']/following-sibling::td"
+        },
+        "STATE_AND_CITY_VALUE" : {
+          "TEXT" : "//td[text()='State and City']/following-sibling::td"
+        }
+      },
+      "Buttons" : {
+        "CLOSE_BUTTON" : {
+          "TRIGGER" : "//button[@id='closeLargeModal']"
+        }
+      }
+    }
+  }
+}

@@ -60,17 +60,31 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
 
 ## Test coverage
 
-| Module | Positive | Negative | E2E |
-|--------|--------:|---------:|----:|
-| Login | 5 | 7 | - |
-| Products | 9 | 2 | - |
-| Cart | 8 | 2 | 2 |
-| Checkout | 6 | 2 | 2 |
-| **Total** | **29** | **13** | **4** |
+| Module | Test IDs | Cases | Known defects |
+|--------|----------|------:|--------------:|
+| Login | LOGIN-01 to LOGIN-13 | 13 | - |
+| Landing page (products, cart icon, menu, footer) | LAND-01 to LAND-17 | 17 | 1 |
+| Cart & checkout | CART-01 to CART-15 | 15 | 2 |
+| **Total** | | **45** | **3** |
 
 **[View the test case sheet →](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing)**
 
 Covers all 45 scenarios with Severity, Priority, Steps, Expected Result, Actual Result, and Status columns.
+The same cases are in the repo as [`SauceDemo_All_Test_Cases.csv`](../../../../resources/temp/testcases/SauceDemo_All_Test_Cases.csv)
+and on the Test Cases sheet of
+[`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Assignment_Master_Test_Cases.xlsx).
+
+### Known defects
+
+Each test asserts the current defective behavior, so it passes today and fails when SauceDemo
+changes. The full write-ups (steps, expected, actual) are on the Defects sheet of
+[`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Assignment_Master_Test_Cases.xlsx).
+
+| Test | Severity | Defect |
+|---|---|---|
+| LAND-12 | Low | Reset App State clears the cart badge, but product buttons still say "Remove" until the page is refreshed. |
+| CART-11 | Low | Cancel on checkout step two goes to the Products page; Cancel on step one goes to the cart. |
+| CART-13 | High | An empty cart can be checked out, producing a $0.00 order with a confirmation page. |
 
 ---
 
@@ -120,7 +134,7 @@ src/main/
  │         │         ├── CheckoutStepTwoPage.java   │
  │         │         └── CheckoutCompletePage.java ←┘
  │         └── tests/
- │              └── SauceDemoTest.java              — all 46 test methods
+ │              └── SauceDemoTest.java              — all 45 test methods
  └── resources/examples/
       └── pages/
            └── saucedemo/

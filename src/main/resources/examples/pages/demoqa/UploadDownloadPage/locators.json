@@ -1,0 +1,19 @@
+{
+  "UploadDownloadPage" : {
+    "Buttons" : {
+      "DOWNLOAD_BUTTON" : {
+        "TRIGGER" : "//a[@id='downloadButton']"
+      }
+    },
+    "Fields" : {
+      "FILE_UPLOAD" : {
+        "INPUT" : "//input[@id='uploadFile']"
+      }
+    },
+    "Labels" : {
+      "UPLOADED_FILE_PATH" : {
+        "TEXT" : "//*[@id='uploadedFilePath']"
+      }
+    }
+  }
+}

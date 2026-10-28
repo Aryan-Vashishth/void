@@ -1,0 +1,28 @@
+{
+  "CheckBoxPage" : {
+    "Nodes" : {
+      "HOME_CHECKBOX" : {
+        "TRIGGER" : "//span[@role='checkbox' and @aria-label='Select Home']"
+      },
+      "DESKTOP_CHECKBOX" : {
+        "TRIGGER" : "//span[@role='checkbox' and @aria-label='Select Desktop']"
+      },
+      "DOCUMENTS_CHECKBOX" : {
+        "TRIGGER" : "//span[@role='checkbox' and @aria-label='Select Documents']"
+      },
+      "DOWNLOADS_CHECKBOX" : {
+        "TRIGGER" : "//span[@role='checkbox' and @aria-label='Select Downloads']"
+      }
+    },
+    "Buttons" : {
+      "EXPAND_HOME_TOGGLE" : {
+        "TRIGGER" : "(//span[contains(@class,'rc-tree-switcher')])[1]"
+      }
+    },
+    "Labels" : {
+      "SELECTED_ITEMS" : {
+        "TEXT" : "//div[@id='result']/span[@class='text-success']"
+      }
+    }
+  }
+}
