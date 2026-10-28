@@ -32,6 +32,11 @@ Versions follow [Semantic Versioning](https://semver.org/).
   headlessly on every push and pull request with `pageLoadStrategy=eager`. Uploads Allure, Extent,
   Surefire, VOID logs, and the downloaded files as artifacts.
 
+- **Optional example runner** (`run-examples.ps1`): runs the combined, SauceDemo or DemoQA
+  suite with progress messages and a result summary. Uses Maven from the PATH if present;
+  otherwise downloads Apache Maven 3.9.12 into `tools\` once (SHA512 verified) and reuses it.
+  `DemoQATest` now defaults to `pageLoadStrategy=eager`, as CI already did.
+
 - **Master test case workbook** (`src/main/resources/examples/testcases/Master_Test_Cases.xlsx`):
   summary, all 65 manual cases for both applications with their automated test and last result,
   requirement coverage, and defects.

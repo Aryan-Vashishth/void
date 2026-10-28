@@ -18,6 +18,9 @@ bin/
 .idea/
 *.iml
 
+# Maven downloaded by run-examples.ps1
+tools/
+
 # Local classpath dumps
 cp.txt
 *.classpath.txt

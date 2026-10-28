@@ -32,6 +32,16 @@ SauceDemo and DemoQA together, one Extent report at `logs/extent-report/Examples
 mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/examples.xml"
 ```
 
+**No Maven installed?** `run-examples.ps1` at the repository root runs the same suites. It uses
+Maven if it is on the PATH; otherwise it downloads Apache Maven 3.9.12 into `tools\` once
+(about 9 MB, checksum verified, no admin rights) and reuses it on later runs:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\run-examples.ps1             # both suites
+powershell -ExecutionPolicy Bypass -File .\run-examples.ps1 demoqa      # or saucedemo
+powershell -ExecutionPolicy Bypass -File .\run-examples.ps1 -Headless
+```
+
 ---
 
 ## Coverage
