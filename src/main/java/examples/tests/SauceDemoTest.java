@@ -388,12 +388,12 @@ public class SauceDemoTest implements ScreenshotCapable {
                 "Close button should be hidden once the menu is closed");
     }
 
-    @Test(description = "LAND-14 -- Footer Twitter link points to Sauce Labs Twitter")
+    @Test(description = "LAND-14 -- Footer X (formerly Twitter) link points to Sauce Labs on X")
     public void land14_footerTwitterLink() {
         doValidLogin();
         assertEquals(
                 app().elements().attribute(ProductsPage.Footer.TWITTER_LINK, "href"),
-                "https://twitter.com/saucelabs");
+                "https://x.com/saucelabs");
     }
 
     @Test(description = "LAND-15 -- Footer Facebook link points to Sauce Labs Facebook")
