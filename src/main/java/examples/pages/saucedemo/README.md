@@ -72,6 +72,18 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
 
 Covers all 46 scenarios with Severity, Priority, Steps, Expected Result, Actual Result, and Status columns.
 
+### Known defects
+
+Each test asserts the current defective behavior, so it passes today and fails when SauceDemo
+changes. The full write-ups (steps, expected, actual) are on the Defects sheet of
+[`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Assignment_Master_Test_Cases.xlsx).
+
+| Test | Severity | Defect |
+|---|---|---|
+| LAND-12 | Low | Reset App State clears the cart badge, but product buttons still say "Remove" until the page is refreshed. |
+| CART-11 | Low | Cancel on checkout step two goes to the Products page; Cancel on step one goes to the cart. |
+| CART-13 | High | An empty cart can be checked out, producing a $0.00 order with a confirmation page. |
+
 ---
 
 ## Reporting
