@@ -70,15 +70,15 @@ mvn clean test -Dsurefire.suiteXmlFiles=src/testNgXml/saucedemo.xml \
 **[View the test case sheet →](https://docs.google.com/spreadsheets/d/1YE2avgbrKymS8T463X9Bkfrhy6aXMyeTp-pLMGpPFNk/edit?usp=sharing)**
 
 Covers all 45 scenarios with Severity, Priority, Steps, Expected Result, Actual Result, and Status columns.
-The same cases are in the repo as [`SauceDemo_All_Test_Cases.csv`](../../../../resources/temp/testcases/SauceDemo_All_Test_Cases.csv)
+The same cases are in the repo as [`SauceDemo_All_Test_Cases.csv`](../../../../resources/examples/testcases/SauceDemo_All_Test_Cases.csv)
 and on the Test Cases sheet of
-[`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Assignment_Master_Test_Cases.xlsx).
+[`Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Master_Test_Cases.xlsx).
 
 ### Known defects
 
 Each test asserts the current defective behavior, so it passes today and fails when SauceDemo
 changes. The full write-ups (steps, expected, actual) are on the Defects sheet of
-[`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Assignment_Master_Test_Cases.xlsx).
+[`Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Master_Test_Cases.xlsx).
 
 | Test | Severity | Defect |
 |---|---|---|

@@ -53,7 +53,7 @@ mvn clean test "-Dsurefire.suiteXmlFiles=src/testNgXml/examples.xml"
 18 automated, 20 manual. Manual cases with steps, data, expected/actual results, severity and
 priority: [`DemoQA_Test_Cases.csv`](../../../../resources/examples/testcases/DemoQA_Test_Cases.csv).
 The master workbook for both applications (summary, all 65 cases, requirement coverage,
-defects): [`Assignment_Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Assignment_Master_Test_Cases.xlsx).
+defects): [`Master_Test_Cases.xlsx`](../../../../resources/examples/testcases/Master_Test_Cases.xlsx).
 
 ### Known defect
 
@@ -99,8 +99,10 @@ src/main/java/examples/
 src/main/resources/examples/
  ├── pages/demoqa/<Page>/locators.{properties,json}
  ├── testdata/demoqa/profile-picture.png
- ├── testcases/DemoQA_Test_Cases.csv
- └── testcases/Assignment_Master_Test_Cases.xlsx
+ └── testcases/
+      ├── DemoQA_Test_Cases.csv
+      ├── SauceDemo_All_Test_Cases.csv
+      └── Master_Test_Cases.xlsx
 src/testNgXml/demoqa.xml        DemoQA only
 src/testNgXml/examples.xml      SauceDemo + DemoQA
 ```

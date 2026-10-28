@@ -32,7 +32,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
   headlessly on every push and pull request with `pageLoadStrategy=eager`. Uploads Allure, Extent,
   Surefire, VOID logs, and the downloaded files as artifacts.
 
-- **Master test case workbook** (`src/main/resources/examples/testcases/Assignment_Master_Test_Cases.xlsx`):
+- **Master test case workbook** (`src/main/resources/examples/testcases/Master_Test_Cases.xlsx`):
   summary, all 65 manual cases for both applications with their automated test and last result,
   requirement coverage, and defects.
 
